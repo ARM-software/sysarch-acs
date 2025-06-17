@@ -18,7 +18,7 @@
 #include "val/include/acs_val.h"
 #include "val/include/acs_pe.h"
 
-#define TEST_NUM   (ACS_PE_HYP_TEST_NUM_BASE  +  20)
+#define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  20)
 #define TEST_RULE  "B_PE_21"
 #define TEST_DESC  "Check for PMU counters                "
 

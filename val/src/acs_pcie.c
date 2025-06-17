@@ -1382,7 +1382,7 @@ val_pcie_register_bitfields_check(uint64_t *bf_info_table, uint32_t num_bitfield
 {
 
   uint32_t bdf;
-  uint32_t dp_type;
+  uint32_t dp_type = 0;
   uint32_t tbl_index;
   uint32_t num_fails;
   uint32_t num_pass;

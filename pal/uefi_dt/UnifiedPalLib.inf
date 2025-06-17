@@ -48,6 +48,7 @@
   ShellPkg/ShellPkg.dec
   EmbeddedPkg/EmbeddedPkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  StdLib/StdLib.dec
 
 [LibraryClasses]
   IoLib

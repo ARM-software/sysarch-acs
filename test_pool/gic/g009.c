@@ -22,7 +22,7 @@
 #include "val/include/acs_gic_support.h"
 #include "val/include/val_interface.h"
 
-#define TEST_NUM   (ACS_GIC_HYP_TEST_NUM_BASE + 9)
+#define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 9)
 #define TEST_RULE  "B_PPI_00"
 #define TEST_DESC  "Check NS EL2-Virt timer PPI Assignment"
 

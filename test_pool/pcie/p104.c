@@ -18,7 +18,7 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_memory.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 64)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 97)
 #define TEST_RULE  "PCI_MSI_2"
 #define TEST_DESC  "Check MSI(X) vectors uniqueness       "
 

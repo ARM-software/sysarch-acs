@@ -21,7 +21,7 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/val_interface.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 62)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 95)
 #define TEST_RULE  "PCI_MM_05, PCI_MM_06, PCI_MM_07"
 #define TEST_DESC  "No extra address translation          "
 

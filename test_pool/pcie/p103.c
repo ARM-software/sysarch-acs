@@ -18,7 +18,7 @@
 #include "val/include/acs_memory.h"
 #include "val/include/acs_pcie.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 63)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 96)
 #define TEST_RULE  "PCI_LI_02"
 #define TEST_DESC  "PCI legacy intr SPI ID unique         "
 

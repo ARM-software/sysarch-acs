@@ -20,7 +20,7 @@
 #include "val/include/acs_smmu.h"
 #include "val/include/acs_pcie.h"
 
-#define TEST_NUM   (ACS_SMMU_HYP_TEST_NUM_BASE + 5)
+#define TEST_NUM   (ACS_SMMU_TEST_NUM_BASE + 5)
 #define TEST_RULE  "B_SMMU_16, B_SMMU_17, B_SMMU_18"
 #define TEST_DESC  "Check SMMU S-EL2 & stage2 support     "
 
