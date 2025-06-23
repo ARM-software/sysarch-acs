@@ -18,7 +18,7 @@
 #include "val/include/acs_val.h"
 #include "val/include/val_interface.h"
 #include "val/include/acs_gic.h"
-#include "val/sys_arch_src/gic/gic.h"
+#include "val/driver/gic/gic.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 15)
 #define TEST_RULE  "S_L8GI_01"

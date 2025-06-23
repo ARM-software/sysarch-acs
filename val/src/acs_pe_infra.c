@@ -19,7 +19,7 @@
 #include "include/acs_pe.h"
 #include "include/acs_common.h"
 #include "include/acs_std_smc.h"
-#include "sys_arch_src/gic/acs_exception.h"
+#include "driver/gic/acs_exception.h"
 #include "include/val_interface.h"
 #include "include/pal_interface.h"
 

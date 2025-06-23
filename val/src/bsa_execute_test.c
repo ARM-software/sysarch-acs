@@ -32,7 +32,7 @@
 #include "include/acs_wakeup.h"
 #include "include/acs_std_smc.h"
 #include "include/acs_gic.h"
-#include "sys_arch_src/gic/gic.h"
+#include "driver/gic/gic.h"
 
 extern PCIE_INFO_TABLE *g_pcie_info_table;
 extern pcie_device_bdf_table *g_pcie_bdf_table;

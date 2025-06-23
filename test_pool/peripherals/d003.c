@@ -21,7 +21,7 @@
 #include "val/include/acs_pe.h"
 #include "val/include/acs_peripherals.h"
 #include "val/include/acs_gic.h"
-#include "val/sys_arch_src/gic/v3/gic_v3.h"
+#include "val/driver/gic/v3/gic_v3.h"
 
 #define TEST_NUM   (ACS_PER_TEST_NUM_BASE + 3)
 #define TEST_RULE_BSA  "B_PER_05"

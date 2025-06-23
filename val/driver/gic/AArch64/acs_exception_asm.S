@@ -17,7 +17,7 @@
 
 #ifndef TARGET_EMULATION
 #include "include/acs_pe.h"
-#include "sys_arch_src/gic/acs_exception.h"
+#include "driver/gic/acs_exception.h"
 #else
 #define EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS    0
 #define EXCEPT_AARCH64_IRQ                       1

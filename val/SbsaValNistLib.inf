@@ -60,19 +60,19 @@
   src/acs_nist.c
   src/acs_interface.c
   src/acs_msc_error.c
-  sys_arch_src/smmu_v3/smmu_v3.c
-  sys_arch_src/gic/gic.c
-  sys_arch_src/gic/acs_exception.c
-  sys_arch_src/gic/AArch64/acs_exception_asm.S
-  sys_arch_src/gic/v3/gic_v3.c
-  sys_arch_src/gic/v3/gic_v3_extended.c
-  sys_arch_src/gic/v3/AArch64/v3_asm.S
-  sys_arch_src/gic/v2/gic_v2.c
-  sys_arch_src/pcie/pcie.c
-  sys_arch_src/gic/its/acs_gic_its.c
-  sys_arch_src/gic/its/acs_gic_redistributor.c
-  sys_arch_src/gic/acs_exception.c
-  sys_arch_src/gic/AArch64/acs_exception_asm.S
+  driver/smmu_v3/smmu_v3.c
+  driver/gic/gic.c
+  driver/gic/acs_exception.c
+  driver/gic/AArch64/acs_exception_asm.S
+  driver/gic/v3/gic_v3.c
+  driver/gic/v3/gic_v3_extended.c
+  driver/gic/v3/AArch64/v3_asm.S
+  driver/gic/v2/gic_v2.c
+  driver/pcie/pcie.c
+  driver/gic/its/acs_gic_its.c
+  driver/gic/its/acs_gic_redistributor.c
+  driver/gic/acs_exception.c
+  driver/gic/AArch64/acs_exception_asm.S
   src/bsa_execute_test.c
   src/sbsa_execute_test.c
   src/mpam_execute_test.c

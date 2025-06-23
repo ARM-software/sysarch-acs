@@ -21,9 +21,9 @@
 #include "include/acs_common.h"
 #include "include/acs_pcie.h"
 #include "include/acs_iovirt.h"
-#include "sys_arch_src/gic/acs_exception.h"
-#include "sys_arch_src/gic/its/acs_gic_its.h"
-#include "sys_arch_src/gic/gic.h"
+#include "driver/gic/acs_exception.h"
+#include "driver/gic/its/acs_gic_its.h"
+#include "driver/gic/gic.h"
 #include "include/pal_interface.h"
 
 extern GIC_INFO_TABLE  *g_gic_info_table;

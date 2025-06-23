@@ -16,7 +16,7 @@
  **/
 #include "val/include/acs_val.h"
 #include "val/include/acs_gic.h"
-#include "val/sys_arch_src/gic/v3/gic_v3.h"
+#include "val/driver/gic/v3/gic_v3.h"
 #include "val/include/acs_timer.h"
 #include "val/include/acs_wakeup.h"
 #include "val/include/val_interface.h"

@@ -22,7 +22,7 @@
 #include "val/include/acs_smmu.h"
 #include "val/include/acs_pcie_enumeration.h"
 #include "val/include/acs_exerciser.h"
-#include "val/sys_arch_src/gic/its/acs_gic_its.h"
+#include "val/driver/gic/its/acs_gic_its.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 4)
 #define TEST_RULE  "PCI_MSI_2,ITS_DEV_6"

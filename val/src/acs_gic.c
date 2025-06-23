@@ -19,7 +19,7 @@
 #include "include/acs_gic.h"
 #include "include/acs_gic_support.h"
 #include "include/acs_common.h"
-#include "sys_arch_src/gic/gic.h"
+#include "driver/gic/gic.h"
 #include "include/pal_interface.h"
 
 GIC_INFO_TABLE  *g_gic_info_table;

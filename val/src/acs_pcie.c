@@ -21,7 +21,7 @@
 #include "include/val_interface.h"
 #include "include/acs_pcie.h"
 #include "include/acs_memory.h"
-#include "sys_arch_src/pcie/pcie.h"
+#include "driver/pcie/pcie.h"
 
 #define WARN_STR_LEN 7
 
