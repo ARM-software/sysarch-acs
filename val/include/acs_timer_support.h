@@ -139,4 +139,25 @@ void ArmWriteCnthvTval (uint64_t Val);
 void ArmGenericTimerEnableTimer (ARM_ARCH_TIMER_REGS reg);
 void ArmGenericTimerDisableTimer (ARM_ARCH_TIMER_REGS reg);
 
+uint64_t ArmReadHcrEl2(void);
+uint64_t ArmReadAA64MMFR1EL1(void);
+uint64_t ArmReadAA64MMFR4EL1(void);
+
+uint64_t ArmReadCntpCtl02(void);
+uint64_t ArmReadCntpTval02(void);
+uint64_t ArmReadCntpCval02(void);
+void     ArmWriteCntpCtl02(uint64_t val);
+void     ArmWriteCntpTval02(uint64_t val);
+void     ArmWriteCntpCval02(uint64_t val);
+
+uint64_t ArmReadCntvTval02(void);
+uint64_t ArmReadCntvCtl02(void);
+uint64_t ArmReadCntvCval02(void);
+void     ArmWriteCntvTval02(uint64_t val);
+void     ArmWriteCntvCtl02(uint64_t val);
+void     ArmWriteCntvCval02(uint64_t val);
+
+uint64_t ArmReadCntkCtl12(void);
+void     ArmWriteCntkCtl12(uint64_t val);
+
 #endif // __ARM_ARCH_TIMER_H__
