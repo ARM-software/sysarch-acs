@@ -137,6 +137,12 @@ typedef enum {
     TEST_STATUS_UNKNOWN
 } test_status_t;
 
+typedef struct {
+    uint32_t test_num;  /* ACS test number */
+    char *desc;         /* ACS test description */
+    char *rule;         /* Rule covered by the test */
+} test_config_t;
+
 uint8_t
 val_mmio_read8(addr_t addr);
 
