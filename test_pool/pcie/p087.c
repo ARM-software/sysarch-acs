@@ -39,6 +39,9 @@ payload(void)
   uint32_t test_skip = 1;
   uint32_t cap_base;
   uint32_t status;
+  uint32_t entry, num_entries;
+  uint32_t entry_size;
+  uint32_t entry_type_offset;
   pcie_device_bdf_table *bdf_tbl_ptr;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -64,21 +67,44 @@ payload(void)
       test_skip = 0;
 
       /* Retrieve the addr of Enhanced Allocation capability (14h) and check if the
-       * capability structure is not supported.
-       */
+       * capability structure is not supported. */
       status = val_pcie_find_capability(bdf, PCIE_CAP, CID_EA, &cap_base);
       if (status == PCIE_CAP_NOT_FOUND)
           continue;
 
-      /* Read Entry type register(08h) present in Enhanced Allocation capability struct(10h) */
-      val_pcie_read_cfg(bdf, cap_base + EA_ENTRY_TYPE_OFFSET, &reg_value);
+      /* Read number of entries in the EA Cap structure */
+      val_pcie_read_cfg(bdf, cap_base, &reg_value);
+      num_entries = (reg_value >> EA_NUM_ENTRY_SHIFT) & EA_NUM_ENTRY_MASK;
 
-      /* Extract enable value */
-      enable_value = (reg_value >> EA_ENTRY_TYPE_ENABLE_SHIFT) & EA_ENTRY_TYPE_ENABLE_MASK;
-      if (enable_value)
-      {
-          val_print(ACS_PRINT_ERR, "\n       Failed. BDF 0x%x Supports Enhanced Allocation", bdf);
-          test_fails++;
+      /* Move to next bdf if the EA Cap structure has no entries */
+      if (!num_entries)
+          continue;
+
+      /* First DW of the structure is common across all entires */
+      entry_type_offset = PCIE_DWORD_SIZE;
+
+      /* Type 1 functions implement additional DW after the fist DW - Bus Numbers register */
+      if (val_pcie_function_header_type(bdf) == TYPE1_HEADER)
+          entry_type_offset += PCIE_DWORD_SIZE;
+
+      for (entry = 0; entry < num_entries; entry++) {
+          val_print(ACS_PRINT_DEBUG, "\n       Reading entry at offset %llx", entry_type_offset);
+
+          /* Read Entry type register present in Enhanced Allocation capability struct(14h) */
+          val_pcie_read_cfg(bdf, cap_base + entry_type_offset, &reg_value);
+
+          /* Extract enable value */
+          enable_value = (reg_value >> EA_ENTRY_TYPE_ENABLE_SHIFT) & EA_ENTRY_TYPE_ENABLE_MASK;
+          if (enable_value)
+          {
+              val_print(ACS_PRINT_ERR, "\n       Enhanced Allocation enabled for BDF 0x%x", bdf);
+              test_fails++;
+          }
+
+          entry_size = (reg_value & EA_ENTRY_TYPE_SIZE_MASK);
+
+          /* Skip Base and Max registers and move to next entry */
+          entry_type_offset += ((entry_size + 1) * PCIE_DWORD_SIZE);
       }
   }
 

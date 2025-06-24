@@ -260,7 +260,9 @@
 #define AER_ERROR_MASK           0xFFFFFFFF
 
 /* EA Capability struct offsets */
-#define EA_ENTRY_TYPE_OFFSET       8
+#define EA_NUM_ENTRY_SHIFT         16
+#define EA_NUM_ENTRY_MASK          0x3F
+#define EA_ENTRY_TYPE_SIZE_MASK    0x7
 #define EA_ENTRY_TYPE_ENABLE_SHIFT 31
 #define EA_ENTRY_TYPE_ENABLE_MASK  1
 
@@ -372,6 +374,9 @@
 #define PCI_PCIE (1 << 0b1000)
 #define PCIE_PCI (1 << 0b0111)
 #define PCIe_ALL (iEP_RP | iEP_EP | RP | EP | RCEC | RCiEP)
+
+/* PCIe DWord definition */
+#define PCIE_DWORD_SIZE             0x04
 
 /* MSI-X Capabilities */
 #define MSI_X_ENABLE_SHIFT          31
