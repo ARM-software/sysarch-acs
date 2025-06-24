@@ -337,8 +337,7 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p068_entry(num_pe);
 
     if (((level > 3) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 4)) {
-    /* Only the test p062 will be run at L4+ with the test number (ACS_PER_TEST_NUM_BASE + 1) */
-      status |= p062_entry(num_pe);
+      status |= p087_entry(num_pe);
     }
 
     if (((level > 5) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 6)) {

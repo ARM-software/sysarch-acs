@@ -20,7 +20,7 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_pe.h"
 
-#define TEST_NUM   (ACS_PER_TEST_NUM_BASE + 87)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 87)
 #define TEST_DESC  "Check EA Capability                   "
 #define TEST_RULE  "S_L4PCI_2"
 
