@@ -389,8 +389,8 @@ VOID pal_ras2_fill_mem_pcct_info(
        context */
       ras2_pcc_shared_mem = (RAS2_PCC_SHARED_MEMORY_REGION * )pcct_subspace->BaseAddress;
       /* check if memory instance supports PATROL_SCRUB RAS feature */
-      /* RasFeatures[1] is lower 64bits in 128bits member */
-      if (ras2_pcc_shared_mem->RasFeatures[1] & RAS2_PLATFORM_FEATURE_PATROL_SCRUB_BITMASK)
+      /* RasFeatures[0] is lower 64bits in 128bits member */
+      if (ras2_pcc_shared_mem->RasFeatures[0] & RAS2_PLATFORM_FEATURE_PATROL_SCRUB_BITMASK)
           curr_block->block_info.mem_feat_info.patrol_scrub_support = 1;
       return;
     }
