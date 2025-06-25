@@ -22,7 +22,7 @@
 #include <linux/slab.h>
 #endif
 
-#define MAX_NAMED_COMP_LENGTH 150
+#define MAX_NAMED_COMP_LENGTH 256
 
 #ifdef TARGET_BM_BOOT
 
