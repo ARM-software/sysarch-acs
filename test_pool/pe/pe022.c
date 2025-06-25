@@ -18,7 +18,7 @@
 #include "val/include/acs_val.h"
 #include "val/include/acs_pe.h"
 
-#define TEST_NUM   (ACS_PE_PS_TEST_NUM_BASE  +  22)
+#define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  22)
 #define TEST_RULE  "B_PE_23, B_PE_24"
 #define TEST_DESC  "Check EL3 implementation              "
 

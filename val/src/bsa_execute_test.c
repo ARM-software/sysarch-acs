@@ -487,10 +487,10 @@ val_bsa_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 
       if (g_bsa_level >= 1 || g_bsa_only_level == 1) {
 #if defined(TARGET_LINUX) || defined(TARGET_EMULATION)
-          status |= p101_entry(num_pe);
-          status |= p102_entry(num_pe);
-          status |= p103_entry(num_pe);
-          status |= p104_entry(num_pe);
+          status |= p094_entry(num_pe);
+          status |= p095_entry(num_pe);
+          status |= p096_entry(num_pe);
+          status |= p097_entry(num_pe);
 #endif
 #ifndef TARGET_LINUX
           status |= p002_entry(num_pe);

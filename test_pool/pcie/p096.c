@@ -18,7 +18,7 @@
 #include "val/include/acs_memory.h"
 #include "val/include/acs_pcie.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 63)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 96)
 #define TEST_RULE  "PCI_LI_02"
 #define TEST_DESC  "PCI legacy intr SPI ID unique         "
 
@@ -153,7 +153,7 @@ payload (void)
 }
 
 uint32_t
-p103_entry(uint32_t num_pe)
+p096_entry(uint32_t num_pe)
 {
   uint32_t status = ACS_STATUS_FAIL;
 

@@ -19,7 +19,7 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_memory.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 61)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 94)
 #define TEST_RULE  "PCI_MM_01, PCI_MM_02, PCI_MM_03"
 #define TEST_DESC  "PCIe Unaligned access                 "
 
@@ -249,7 +249,7 @@ next_bar:
 }
 
 uint32_t
-p101_entry(uint32_t num_pe)
+p094_entry(uint32_t num_pe)
 {
 
   uint32_t status = ACS_STATUS_FAIL;

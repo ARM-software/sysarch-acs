@@ -18,7 +18,7 @@
 #include "val/include/acs_val.h"
 #include "val/include/acs_iovirt.h"
 
-#define TEST_NUM   (ACS_SMMU_HYP_TEST_NUM_BASE + 6)
+#define TEST_NUM   (ACS_SMMU_TEST_NUM_BASE + 6)
 #define TEST_RULE  "B_SMMU_19"
 #define TEST_DESC  "SMMUv2 unique intr per ctxt bank      "
 

@@ -27,10 +27,10 @@ $(info ACS is $(ACS))
 ifeq ($(ACS), bsa)
     obj-m += bsa_acs_test.o
     bsa_acs_test-objs += $(TEST_POOL)/pcie/p001.o \
-                     $(TEST_POOL)/pcie/p101.o \
-                     $(TEST_POOL)/pcie/p102.o \
-                     $(TEST_POOL)/pcie/p103.o \
-                     $(TEST_POOL)/pcie/p104.o \
+                     $(TEST_POOL)/pcie/p094.o \
+                     $(TEST_POOL)/pcie/p095.o \
+                     $(TEST_POOL)/pcie/p096.o \
+                     $(TEST_POOL)/pcie/p097.o \
                      $(TEST_POOL)/peripherals/d004.o \
                      $(TEST_POOL)/memory_map/m004.o 
 else

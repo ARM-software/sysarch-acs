@@ -18,7 +18,7 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_memory.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 64)
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 97)
 #define TEST_RULE  "PCI_MSI_2"
 #define TEST_DESC  "Check MSI(X) vectors uniqueness       "
 
@@ -235,7 +235,7 @@ payload (void)
 }
 
 uint32_t
-p104_entry(uint32_t num_pe)
+p097_entry(uint32_t num_pe)
 {
   uint32_t status = ACS_STATUS_FAIL;
 
