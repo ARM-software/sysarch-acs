@@ -19,7 +19,6 @@
 #include "val/include/acs_pe.h"
 #include "val/include/acs_common.h"
 #include "val/include/val_interface.h"
-#include "val/include/acs_pe.h"
 #include "val/include/acs_mpam.h"
 #include "val/include/acs_memory.h"
 
@@ -28,135 +27,24 @@
 #define TEST_DESC  "Check PMG storage by CPOR nodes       "
 
 #define PARTITION_PERCENTAGE 75
-#define CACHE_PERCENTAGE 50
+#define BUFFER_SIZE (100 * 1024 * 1024) //100M buffer
 
 static uint64_t mpam2_el2_temp;
+static uint32_t msc_node_cnt;
+static uint64_t llc_identifier;
+static uint32_t fail_cnt;
 
-static void payload(void)
+/* Program the CSU monitors within all applicable MSCs with specific PMG value */
+static void
+program_all_monitors_with_pmg(uint16_t partid, uint8_t pmg)
 {
-    uint32_t msc_node_cnt;
-    uint32_t rsrc_node_cnt;
     uint32_t msc_index;
-    uint32_t rsrc_index;
-    uint32_t llc_index;
-    uint64_t cache_identifier;
-    uint32_t cache_size;
-    uint32_t max_pmg;
-    uint32_t max_partid;
-    uint32_t cpor_nodes = 0;
+    uint8_t  max_pmg      = 0;
     uint32_t csumon_count = 0;
-    uint8_t pmg1;
-    uint8_t pmg2;
-    void *src_buf = 0;
-    void *dest_buf = 0;
-    uint64_t buf_size;
-    uint64_t mpam2_el2 = 0;
-    uint64_t nrdy_timeout;
-    uint32_t storage_value1;
-    uint32_t storage_value2;
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t rsrc_node_cnt, rsrc_index;
 
-   if (g_sbsa_level < 7) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
+    val_print(ACS_PRINT_TEST, "\n       Programming all MSCs to filter PMG value %d", pmg);
 
-   /* Check if PE implements FEAT_MPAM */
-    if (!((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
-        (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))) {
-            val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
-            return;
-    }
-
-   /* Get the Index for LLC */
-    llc_index = val_cache_get_llc_index();
-    if (llc_index == CACHE_TABLE_EMPTY) {
-        val_print(ACS_PRINT_ERR, "\n       Cache info table empty", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
-        return;
-    }
-
-    /* Get the cache identifier for LLC */
-    cache_identifier = val_cache_get_info(CACHE_ID, llc_index);
-    if (cache_identifier == INVALID_CACHE_INFO) {
-        val_print(ACS_PRINT_ERR, "\n       LLC invalid in PPTT", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
-        return;
-    }
-
-    /* Get total number of MSCs reported by MPAM ACPI table */
-    msc_node_cnt = val_mpam_get_msc_count();
-    val_print(ACS_PRINT_DEBUG, "\n       MSC count = %d", msc_node_cnt);
-
-    if (msc_node_cnt == 0) {
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 03));
-        return;
-    }
-
-    /* Get MPAM related information for LLC */
-    for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
-        rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
-        for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
-            if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index) ==
-                                                                MPAM_RSRC_TYPE_PE_CACHE) {
-                if (val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index) ==
-                                                                               cache_identifier) {
-                    if (val_mpam_supports_cpor(msc_index)) {
-                        cache_size = val_cache_get_info(CACHE_SIZE, llc_index);
-
-                        max_pmg = val_mpam_get_max_pmg(msc_index);
-
-                        if (val_mpam_supports_csumon(msc_index))
-                            csumon_count = val_mpam_get_csumon_count(msc_index);
-                        cpor_nodes++;
-                    }
-                    max_partid = val_mpam_get_max_partid(msc_index);
-                }
-            }
-        }
-    }
-
-    val_print(ACS_PRINT_DEBUG, "\n       CPOR Nodes = %d", cpor_nodes);
-    val_print(ACS_PRINT_DEBUG, "\n       Max PMG = %d", max_pmg);
-    val_print(ACS_PRINT_DEBUG, "\n       Max PARTID = %d", max_partid);
-    val_print(ACS_PRINT_DEBUG, "\n       Cache Size = 0x%x", cache_size);
-    val_print(ACS_PRINT_DEBUG, "\n       Number of CSU Monitors = %d", csumon_count);
-
-    /* Skip the test if CSU monitors/ nodes supporting Cache Portion Partitoning are 0
-       Also skip if Max PMG for MSC is less than 2 as the test uses 2 PMGs.
-       Otherwise, will lead to Out-of-range PMG behaviour. */
-    if (csumon_count == 0 || cpor_nodes == 0 || max_pmg < 2) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 03));
-        return;
-    }
-
-    /* Configure CPOR settings for nodes supporting CPOR */
-    for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
-        rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
-        for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
-            if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index) ==
-                                                                MPAM_RSRC_TYPE_PE_CACHE) {
-                if (val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index) ==
-                                                                               cache_identifier) {
-                    /* Select resource instance if RIS feature implemented */
-                    if (val_mpam_msc_supports_ris(msc_index))
-                        val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
-
-                    if (val_mpam_supports_cpor(msc_index))
-                        val_mpam_configure_cpor(msc_index, max_partid, PARTITION_PERCENTAGE);
-                }
-            }
-        }
-    }
-
-    /* Create two PMG groups for PE traffic */
-    pmg1 = max_pmg;
-    pmg2 = max_pmg-1;
-
-    mpam2_el2 = val_mpam_reg_read(MPAM2_EL2);
-    mpam2_el2_temp = mpam2_el2;
-
-     /* visit each MSC node and check for Cache resources */
     for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
         rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
 
@@ -171,116 +59,293 @@ static void payload(void)
 
                 /*Check if the PE Cache ID matches LLC ID */
                 if (val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index) ==
-                                                                               cache_identifier) {
+                                                                            llc_identifier) {
 
-                    buf_size = cache_size * CACHE_PERCENTAGE / 100 ;
+                    /* Select resource instance if RIS feature implemented */
+                    if (val_mpam_msc_supports_ris(msc_index))
+                        val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
 
-                    /*Allocate memory for source and destination buffers */
-                    src_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, buf_size);
-                    dest_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, buf_size);
+                    if (val_mpam_supports_cpor(msc_index)) {
 
-                    val_print(ACS_PRINT_DEBUG, "\n       buf_size            = 0x%x", buf_size);
+                        max_pmg = val_mpam_get_max_pmg(msc_index);
+                        val_mpam_configure_cpor(msc_index, partid, PARTITION_PERCENTAGE);
 
-                    if ((src_buf == NULL) || (dest_buf == NULL)) {
-                        val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
-                        val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
+                        if (val_mpam_supports_csumon(msc_index))
+                            csumon_count = val_mpam_get_csumon_count(msc_index);
+                    } else
+                        continue;
+
+                    /* Skip if the MSC's resource does not implement CSUMON or
+                       has max_pmg < programmable PMG */
+                    if (csumon_count == 0 || max_pmg < pmg) {
+                        val_print(ACS_PRINT_TEST, "\n       Skipping MSC resource %d", rsrc_index);
+                        continue;
                     }
 
-                    /* Clear the PARTID_D & PMG_D bits in mpam2_el2 before writing to them */
-                    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PARTID_D_SHIFT+15,
-                                                             MPAMn_ELx_PARTID_D_SHIFT);
-                    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7,
-                                                             MPAMn_ELx_PMG_D_SHIFT);
-
-                    /* Write MAX_PARTID & PMG2 to MPAM2_EL2 and generate PE traffic */
-                    mpam2_el2 |= (((uint64_t)pmg2 << MPAMn_ELx_PMG_D_SHIFT) |
-                                  ((uint64_t)max_partid << MPAMn_ELx_PARTID_D_SHIFT));
-
-                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
-
-                    /* Configure CSU monitors with PMG1 */
-                    if (val_mpam_supports_cpor(msc_index) && val_mpam_supports_csumon(msc_index))
-                        val_mpam_configure_csu_mon(msc_index, max_partid, pmg1, 0);
-
-                    /* Enable CSU monitoring */
-                    val_mpam_csumon_enable(msc_index);
-
-                    /* wait for MAX_NRDY_USEC after msc config change */
-                    nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, msc_index, 0);
-                    while (nrdy_timeout) {
-                        --nrdy_timeout;
-                    };
-
-                    /*Perform first memory transaction */
-                    val_memcpy(src_buf, dest_buf, buf_size);
-
-                    /* Read Cache storage value */
-                    storage_value1 = val_mpam_read_csumon(msc_index);
-
-                    val_print(ACS_PRINT_DEBUG, "\n       Storage Value 1 = 0x%x", storage_value1);
-
-                    /*Restore initial MPAM_EL2 settings */
-                    mpam2_el2 = mpam2_el2_temp;
-
-                    /* Clear the PARTID_D & PMG_D bits in mpam2_el2 before writing to them */
-                    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PARTID_D_SHIFT+15,
-                                                             MPAMn_ELx_PARTID_D_SHIFT);
-                    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7,
-                                                             MPAMn_ELx_PMG_D_SHIFT);
-
-                    /* Write MAX_PARTID & PMG1 to MPAM2_EL2 and generate PE traffic */
-                    mpam2_el2 |= (((uint64_t)pmg1 << MPAMn_ELx_PMG_D_SHIFT) |
-                                  ((uint64_t)max_partid << MPAMn_ELx_PARTID_D_SHIFT));
-
-                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
-
-                    /* Disable the monitor */
-                    val_mpam_csumon_disable(msc_index);
-
-                    /* Enable CSU monitoring */
-                    val_mpam_csumon_enable(msc_index);
-
-                    /* wait for MAX_NRDY_USEC after msc config change */
-                    nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, msc_index, 0);
-                    while (nrdy_timeout) {
-                        --nrdy_timeout;
-                    };
-
-                    /*Perform second memory transaction */
-                    val_memcpy(src_buf, dest_buf, buf_size);
-
-                    /* Read Cache storage value for PMG1 */
-                    storage_value2 = val_mpam_read_csumon(msc_index);
-
-                    val_print(ACS_PRINT_DEBUG, "\n       Storage Value 1 = 0x%x", storage_value2);
-
-                    /* Disable the monitor */
-                    val_mpam_csumon_disable(msc_index);
-
-                    /* Test fails if storage_value1 is non zero or storage_value2 is zero */
-                    if (storage_value1 || !storage_value2) {
-                        val_set_status(index, RESULT_FAIL(TEST_NUM, 05));
-
-                        /*Restore MPAM2_EL2 settings */
-                        val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-
-                        /*Free the buffers */
-                        val_memory_free_aligned(src_buf);
-                        val_memory_free_aligned(dest_buf);
-
-                        return;
-                    }
-
-                    /*Restore MPAM2_EL2 settings */
-                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-
-                    /*Free the buffers */
-                    val_memory_free_aligned(src_buf);
-                    val_memory_free_aligned(dest_buf);
+                    /* Program 0th CSU monitor to filter all transactions with programmed PMG */
+                    val_mpam_configure_csu_mon(msc_index, partid, pmg, 0);
                 }
             }
         }
     }
+}
+
+/* Enable/Disable CSU monitors for all applicable MSC nodes */
+static void
+set_status_for_all_csumon(uint32_t status)
+{
+    uint32_t msc_index;
+    uint32_t rsrc_node_cnt, rsrc_index;
+    uint32_t csumon_count = 0;
+    uint32_t nrdy_timeout = 0;
+
+    val_print(ACS_PRINT_DEBUG, "\n       Setting CSUMON status of all MSC to %d", status);
+
+    for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
+        rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
+
+        val_print(ACS_PRINT_DEBUG, "\n       msc index  = %d", msc_index);
+        val_print(ACS_PRINT_DEBUG, "\n       Resource count = %d ", rsrc_node_cnt);
+
+        for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
+
+            /* Check whether resource node is a PE Cache */
+            if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index) ==
+                                                          MPAM_RSRC_TYPE_PE_CACHE) {
+
+                /*Check if the PE Cache ID matches LLC ID */
+                if (val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index) ==
+                                                                            llc_identifier) {
+
+                    /* Select resource instance if RIS feature implemented */
+                    if (val_mpam_msc_supports_ris(msc_index))
+                        val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
+
+                    if (val_mpam_supports_cpor(msc_index)) {
+
+                        if (val_mpam_supports_csumon(msc_index))
+                            csumon_count = val_mpam_get_csumon_count(msc_index);
+                    } else
+                        continue;
+
+                    if (csumon_count == 0) {
+                        val_print(ACS_PRINT_DEBUG, "\n       Skipping MSC resource %d", rsrc_index);
+                        continue;
+                    }
+
+                    /* Enable/ Disable previously selected CSUMON instance */
+                    if (status)
+                        val_mpam_csumon_enable(msc_index);
+                    else
+                        val_mpam_csumon_disable(msc_index);
+
+                    nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, msc_index, 0);
+                    while (nrdy_timeout) {
+                        --nrdy_timeout;
+                    };
+                }
+            }
+        }
+    }
+}
+
+/* Read the value filtered by programmed CSU monitors across all MSCs */
+static void
+read_all_msc_csu_counters(uint32_t expected_count)
+{
+    uint32_t msc_index;
+    uint32_t rsrc_node_cnt, rsrc_index;
+    uint32_t csumon_count;
+    uint32_t storage_count;
+
+    val_print(ACS_PRINT_DEBUG, "\n       Reading the CSUMON counter of all MSC", 0);
+
+    for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
+        rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
+
+        for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
+
+            /* Check whether resource node is a PE Cache */
+            if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index) ==
+                                                          MPAM_RSRC_TYPE_PE_CACHE) {
+
+                /*Check if the PE Cache ID matches LLC ID */
+                if (val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index) ==
+                                                                            llc_identifier) {
+
+                    /* Select resource instance if RIS feature implemented */
+                    if (val_mpam_msc_supports_ris(msc_index))
+                        val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
+
+                    if (val_mpam_supports_cpor(msc_index)) {
+
+                        if (val_mpam_supports_csumon(msc_index))
+                            csumon_count = val_mpam_get_csumon_count(msc_index);
+                    } else
+                        continue;
+
+                    if (csumon_count == 0) {
+                        val_print(ACS_PRINT_DEBUG, "\n       Skipping MSC resource %d", rsrc_index);
+                        continue;
+                    }
+
+                    storage_count = val_mpam_read_csumon(msc_index);
+                    val_print(ACS_PRINT_TEST, "\n       msc index  = %d", msc_index);
+                    val_print(ACS_PRINT_TEST, "  storage count  = %d", storage_count);
+
+                    /* Expected count || Storage count -> Status */
+                    /*       0        ||       0       ->    1   */
+                    /*       0        ||       1       ->    0   */
+                    /*       1        ||       0       ->    0   */
+                    /*       1        ||       1       ->    1   */
+                    if (!((expected_count && storage_count) || (!expected_count && !storage_count)))
+                    {
+                        val_print(ACS_PRINT_ERR, "\n    MSC Storage value mismatch. Failure!", 0);
+                        fail_cnt++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void
+payload(void)
+{
+    uint32_t llc_index;
+    uint8_t pmg0       = 0;
+    uint8_t pmg1       = 1;
+    void *src_buf      = 0;
+    void *dest_buf     = 0;
+    uint16_t partid    = 1;
+    uint64_t mpam2_el2 = 0;
+    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+
+    fail_cnt = 0;
+
+   /* Get the Index for LLC */
+    llc_index = val_cache_get_llc_index();
+    if (llc_index == CACHE_TABLE_EMPTY) {
+        val_print(ACS_PRINT_ERR, "\n       Cache info table empty", 0);
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+        return;
+    }
+
+    /* Get the cache identifier for LLC */
+    llc_identifier = val_cache_get_info(CACHE_ID, llc_index);
+    if (llc_identifier == INVALID_CACHE_INFO) {
+        val_print(ACS_PRINT_ERR, "\n       LLC invalid in PPTT", 0);
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
+        return;
+    }
+
+    /* Get total number of MSCs reported by MPAM ACPI table */
+    msc_node_cnt = val_mpam_get_msc_count();
+    val_print(ACS_PRINT_DEBUG, "\n       MSC count = %d", msc_node_cnt);
+
+    if (msc_node_cnt == 0) {
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 03));
+        return;
+    }
+
+    /*Allocate memory for source and destination buffers */
+    src_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
+    dest_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
+
+    if ((src_buf == NULL) || (dest_buf == NULL)) {
+        val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
+        return;
+    }
+
+    mpam2_el2 = val_mpam_reg_read(MPAM2_EL2);
+    mpam2_el2_temp = mpam2_el2;
+
+    /* Scenario 1 :
+    a) Program first instance of CSU monitor across all MSCs with PMG value 1.
+    b) Program MPAM2_EL2 with PMG value 0
+    c) As there is a PMG mismatch between the requestor and completer,
+       the CSU monitors must not filter any transactions */
+    program_all_monitors_with_pmg(partid, pmg1);
+
+    /* Clear the PARTID_D & PMG_D bits in mpam2_el2 before writing to them */
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PARTID_D_SHIFT+15,
+                                                                    MPAMn_ELx_PARTID_D_SHIFT);
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7,
+                                                                    MPAMn_ELx_PMG_D_SHIFT);
+
+    val_print(ACS_PRINT_TEST, "\n       Programming mpam2_el2 with PMG=0 %d", pmg0);
+
+    mpam2_el2 |= (((uint64_t)pmg0 << MPAMn_ELx_PMG_D_SHIFT) |
+                    ((uint64_t)partid << MPAMn_ELx_PARTID_D_SHIFT));
+
+    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+
+    /* Enable CSU monitors for all MSCs that support CSU monitoring */
+    set_status_for_all_csumon(1);
+
+    /*Perform first memory transaction */
+    val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+
+    /* Monitor all MSCs with expected count in CSU monitors to be 0 */
+    read_all_msc_csu_counters(0);
+
+    /* Disable all monitors */
+    set_status_for_all_csumon(0);
+
+    /*Restore initial MPAM_EL2 settings */
+    mpam2_el2 = mpam2_el2_temp;
+
+    /* Clear the PARTID_D & PMG_D bits in mpam2_el2 before writing to them */
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PARTID_D_SHIFT+15,
+                                                MPAMn_ELx_PARTID_D_SHIFT);
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7,
+                                                MPAMn_ELx_PMG_D_SHIFT);
+
+    /* Scenario 2 :
+    a) The first instance of CSU monitor across all MSCs are already programmed with PMG=1
+    b) Program MPAM2_EL2 with PMG value 1
+    c) There is a PMG match between the requestor and completer,
+       it should result in increased CSUMON counter */
+    mpam2_el2 |= (((uint64_t)pmg1 << MPAMn_ELx_PMG_D_SHIFT) |
+                    ((uint64_t)partid << MPAMn_ELx_PARTID_D_SHIFT));
+
+    val_print(ACS_PRINT_TEST, "\n       Programming mpam2_el2 with PMG=1 %d", pmg1);
+
+    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+
+    /* Enable CSU monitoring */
+    set_status_for_all_csumon(1);
+
+    /*Perform second memory transaction */
+    val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+
+    /* Monitor all MSCs with expected count in CSU monitors to be non-zero */
+    read_all_msc_csu_counters(1);
+
+    /* Disable all monitors */
+    set_status_for_all_csumon(0);
+
+    /* Test fails if storage_value1 is non zero or storage_value2 is zero */
+    if (fail_cnt) {
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 05));
+
+        /*Restore MPAM2_EL2 settings */
+        val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
+
+        /*Free the buffers */
+        val_memory_free_aligned(src_buf);
+        val_memory_free_aligned(dest_buf);
+
+        return;
+    }
+
+    /*Restore MPAM2_EL2 settings */
+    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
+
+    /*Free the buffers */
+    val_memory_free_aligned(src_buf);
+    val_memory_free_aligned(dest_buf);
 
     val_set_status(index, RESULT_PASS(TEST_NUM, 01));
     return;
