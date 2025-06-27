@@ -58,6 +58,7 @@
   src/acs_ete.c
   src/acs_pcc.c
   src/acs_interface.c
+  src/acs_pfdi.c
   src/acs_msc_error.c
   src/acs_tpm.c
   driver/smmu_v3/smmu_v3.c
@@ -78,6 +79,7 @@
   src/mpam_execute_test.c
   src/drtm_execute_test.c
   src/pc_bsa_execute_test.c
+  src/pfdi_execute_test.c
 
 [Packages]
   MdePkg/MdePkg.dec

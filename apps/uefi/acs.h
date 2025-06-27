@@ -42,6 +42,11 @@
 #define MPAM_ACS_MINOR_VER      5
 #define MPAM_ACS_SUBMINOR_VER   1
 
+/* PFDI Release versions */
+#define PFDI_ACS_MAJOR_VER      0
+#define PFDI_ACS_MINOR_VER      5
+#define PFDI_ACS_SUBMINOR_VER   0
+
 #define G_PRINT_LEVEL ACS_PRINT_TEST
 
 #define G_SW_OS                 0

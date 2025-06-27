@@ -13,10 +13,11 @@
   - [ACS build steps - UEFI Shell application](#acs-build-steps---uefi-shell-application-2)
 - [Linux Application](#linux-application)
 - [Baremetal Abstraction](acs-build-steps---bare-metal-abstraction)
-- [DRTM ACS](#drtm-system-mpam-mem_test-and-pc-bsa-test)
-- [System MPAM](#drtm-system-mpam-mem_test-and-pc-bsa-test)
-- [mem_test](#drtm-system-mpam-mem_test-and-pc-bsa-test)
-- [PC-BSA](#drtm-system-mpam-mem_test-and-pc-bsa-test)
+- [DRTM ACS](#drtm-pfdi-system-mpam-mem_test-and-pc-bsa-test)
+- [PFDI ACS](#drtm-pfdi-system-mpam-mem_test-and-pc-bsa-test)
+- [System MPAM](#drtm-pfdi-system-mpam-mem_test-and-pc-bsa-test)
+- [mem_test](#drtm-pfdi-system-mpam-mem_test-and-pc-bsa-test)
+- [PC-BSA](#drtm-pfdi-system-mpam-mem_test-and-pc-bsa-test)
 
 ## Introduction to Arm sysarch-acs
 
@@ -468,9 +469,10 @@ The Arm SystemReady ACS test suite may run at a higher privilege level. An attac
 
 **Note:** To build the ACS with NIST Statistical Test Suite, see the [arm SBSA_NIST_User_Guide Document](docs/sbsa/arm_sbsa_nist_user_guide.md)
 
-## DRTM, System MPAM, mem_test and PC BSA test
+## DRTM, PFDI, System MPAM, mem_test and PC BSA test
 **Note:**
 - To run DRTM ACS, please see the [DRTM README](docs/drtm/README.md)
+- To run PFDI ACS, please see the [PFDI README](docs/pfdi/README.md)
 - To run System MPAM tests, see the [MPAM README](docs/mpam/README.md)
 - To run mem_test, see the [MEMTEST_README](mem_test/README.md)
 - To run PC-BSA tests, See the [PCBSA_README](docs/pc_bsa/README.md)
