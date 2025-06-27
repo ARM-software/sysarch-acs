@@ -813,5 +813,6 @@ uint32_t pfdi001_entry(uint32_t num_pe);
 uint32_t pfdi002_entry(uint32_t num_pe);
 uint32_t pfdi003_entry(uint32_t num_pe);
 uint32_t pfdi004_entry(uint32_t num_pe);
+uint32_t pfdi005_entry(uint32_t num_pe);
 
 #endif

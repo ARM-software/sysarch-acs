@@ -8,3 +8,5 @@ pre_commit_data/
 build/
 #Ignore kvm framework
 mem_test/kvm-unit-tests
+#Ignore pre commit data
+pre_commit_data/
