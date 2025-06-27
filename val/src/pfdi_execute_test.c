@@ -59,6 +59,7 @@ val_pfdi_execute_pfdi_tests(uint32_t num_pe)
   status  = pfdi003_entry(num_pe);
   status  = pfdi004_entry(num_pe);
   status  = pfdi005_entry(num_pe);
+  status  = pfdi006_entry(num_pe);
 
   val_print_test_end(status, "PFDI");
 
