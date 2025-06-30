@@ -106,7 +106,7 @@ clean_fail:
 
 static
 uint32_t
-check_sequence(uint64_t dma_buffer, uint32_t tgt_instance, uint32_t req_instance,
+check_sequence(uint64_t dma_addr, uint32_t tgt_instance, uint32_t req_instance,
                uint64_t bar_base, uint32_t size)
 {
   uint32_t status;
@@ -114,7 +114,7 @@ check_sequence(uint64_t dma_buffer, uint32_t tgt_instance, uint32_t req_instance
   uint64_t idx;
 
   /* Copy the contents of the memory to requestor exercise's memory */
-  val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dma_buffer, size, req_instance);
+  val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dma_addr, size, req_instance);
   val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, req_instance);
 
   /* Set the destination buffer as BAR base address of target exerciser */
@@ -141,7 +141,7 @@ check_sequence(uint64_t dma_buffer, uint32_t tgt_instance, uint32_t req_instance
 
   /* Compare the transaction data */
   val_exerciser_get_param(DATA_ATTRIBUTES, &transaction_data, &idx, tgt_instance);
-  if (val_memory_compare(&transaction_data, &dma_buffer, size))
+  if (val_memory_compare(&transaction_data, (void *)dma_addr, size))
   {
       val_print(ACS_PRINT_ERR,
                 "\n       Data mismatch for target exerciser instance: %x", tgt_instance);
@@ -202,7 +202,9 @@ payload(void)
 
       test_skip = 0;
 
-      status = check_sequence(dma_buffer, tgt_instance, req_instance, bar_base, 2);
+      /* Passing the buffer address as a value, to be configured as the source address for
+       * performing DMA */
+      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 2);
       if (status)
       {
           val_print(ACS_PRINT_ERR,
@@ -210,7 +212,7 @@ payload(void)
           fail_cnt++;
       }
 
-      status = check_sequence(dma_buffer, tgt_instance, req_instance, bar_base, 4);
+      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 4);
       if (status)
       {
           val_print(ACS_PRINT_ERR,
@@ -218,7 +220,7 @@ payload(void)
           fail_cnt++;
       }
 
-      status = check_sequence(dma_buffer, tgt_instance, req_instance, bar_base, 8);
+      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 8);
       if (status)
       {
           val_print(ACS_PRINT_ERR,
