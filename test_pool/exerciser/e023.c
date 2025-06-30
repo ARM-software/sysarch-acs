@@ -336,14 +336,15 @@ payload(void)
       if ((reg_value & 0x3) != 0)
           val_print(ACS_PRINT_WARN, "\n       DPC enabled for bdf : 0x%x", erp_bdf);
 
-
-      /* Search for MSI-X Capability */
-      if (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) {
+      /* Search for MSI-X/MSI Capability */
+      if ((val_pcie_find_capability(e_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) &&
+          (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
           val_print(ACS_PRINT_DEBUG, "\n       No MSI-X Capability for Bdf 0x%x", e_bdf);
       }
 
-      if (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) {
-          val_print(ACS_PRINT_DEBUG, "\n       No MSI-X Capability for RP Bdf 0x%x", erp_bdf);
+      if ((val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) &&
+          (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
+          val_print(ACS_PRINT_DEBUG, "\n       No MSI/MSI-X Capability for RP Bdf 0x%x", erp_bdf);
           goto err_check;
       }
 

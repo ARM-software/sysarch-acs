@@ -378,6 +378,13 @@
 /* PCIe DWord definition */
 #define PCIE_DWORD_SIZE             0x04
 
+/*MSI Capabilities */
+#define MSI_ENABLE_SHIFT                16
+#define MSI_ADDR_SHIFT                  32
+#define MSI_MSG_TBL_LOWER_ADDR_OFFSET   0x4
+#define MSI_MSG_TBL_HIGHER_ADDR_OFFSET  0x8
+#define MSI_MSG_TBL_DATA_OFFSET         0xC
+
 /* MSI-X Capabilities */
 #define MSI_X_ENABLE_SHIFT          31
 

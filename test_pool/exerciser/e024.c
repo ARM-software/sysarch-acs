@@ -203,9 +203,10 @@ payload(void)
           fail_cnt++;
       }
 
-      /* Search for MSI-X Capability */
-      if (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) {
-        val_print(ACS_PRINT_ERR, "\n       No MSI-X Capability for Bdf 0x%x", erp_bdf);
+      /* Search for MSI/MSI-X Capability */
+      if ((val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) &&
+        (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
+        val_print(ACS_PRINT_ERR, "\n       No MSI/MSI-X Capability for Bdf 0x%x", erp_bdf);
         goto err_check;
       }
 
