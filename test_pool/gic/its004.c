@@ -38,9 +38,9 @@ payload()
   uint32_t test_fail = 0;
   uint32_t streamid_check = 1;
   uint32_t curr_grp_did_cons, curr_grp_sid_cons;
-  uint32_t curr_grp_its_id = -1;
-  uint32_t curr_smmu_id = -1;
-  uint32_t curr_seg_num = -1;
+  uint32_t curr_grp_its_id;
+  uint32_t curr_smmu_id;
+  uint32_t curr_seg_num;
   pcie_device_bdf_table *bdf_tbl_ptr;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -56,6 +56,10 @@ payload()
   {
     bdf = bdf_tbl_ptr->device[tbl_index].bdf;
 
+    curr_grp_its_id = 0xFFFFFFFF;
+    curr_smmu_id = 0xFFFFFFFF;
+    curr_seg_num = 0xFFFFFFFF;
+    val_print(ACS_PRINT_INFO, "\n   BDF is  : 0x%x\n", bdf);
     /* If MSI or MSI-X not supported, Skip current device */
     if ((val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &cap_base) == PCIE_CAP_NOT_FOUND) &&
         (val_pcie_find_capability(bdf, PCIE_CAP, CID_MSIX, &cap_base) == PCIE_CAP_NOT_FOUND))
