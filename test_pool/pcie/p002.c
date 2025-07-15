@@ -17,12 +17,19 @@
 #include "val/include/acs_val.h"
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_pe.h"
+#include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 2)
 #define TEST_RULE  "PCI_IN_02"
 #define TEST_DESC  "PE - ECAM Region accessibility check  "
 
+/* Giving max VF as 256*/
+#define MAX_VFS 256
+
 static void *branch_to_test;
+
+static uint32_t num_vf;
+static uint32_t skip_rid_list[MAX_VFS];
 
 static
 void
@@ -37,6 +44,48 @@ esr(uint64_t interrupt_type, void *context)
 
   val_print(ACS_PRINT_INFO, "\n       Received exception of type: %d", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
+}
+
+/*
+ * Calculate the list of Virtual Function (VF) BDFs for a given Physical Function (PF) using
+ * the SR-IOV capability structure. Extract First VF Offset, VF Stride, and Number of VFs
+ * to compute each VF's Routing ID, convert to BDF, and store them in the skip list.
+ */
+static void
+calculate_vf(uint32_t seg, uint32_t bdf, uint32_t sriov_base)
+{
+  uint32_t vf_bdf;
+  uint32_t first_vf_offset, vf_rid;
+  uint32_t vf_stride;
+  uint32_t index;
+  uint32_t reg_value;
+  uint32_t pf_rid = PCIE_CREATE_BDF_PACKED(bdf);
+
+  val_pcie_read_cfg(bdf, sriov_base + SRIOV_VF_OFF_STR, &reg_value);
+  first_vf_offset = reg_value & SRIOV_FIRST_VF_SHIFT;
+  vf_stride = (reg_value >> SRIOV_STRIDE_SHIFT) & SRIOV_STRIDE_MASK;
+  val_print(ACS_PRINT_INFO, "\n    First vf offset is 0x%x", first_vf_offset);
+  val_print(ACS_PRINT_INFO, "\n    vf stride is 0x%x", vf_stride);
+
+  val_pcie_read_cfg(bdf, sriov_base + SRIOV_VF_COUNT, &reg_value);
+  num_vf = (reg_value >> SRIOV_NUM_VF_SHIFT) & SRIOV_NUM_VF_MASK;
+  val_print(ACS_PRINT_INFO, "\n    Number of VF's is 0x%x", num_vf);
+
+  vf_rid = pf_rid + first_vf_offset;
+  if (num_vf > MAX_VFS)
+     val_print(ACS_PRINT_WARN, "\n    Number of VF's present is more than 256", 0);
+
+  for (index = 0; index < num_vf; index++)
+  {
+     vf_bdf = PCIE_CREATE_BDF_FROM_PACKED(seg, vf_rid);
+     val_print(ACS_PRINT_INFO, "\n    Seg is 0x%x", seg);
+     val_print(ACS_PRINT_INFO, "\n    vf rid is 0x%x", vf_rid);
+     val_print(ACS_PRINT_INFO, "\n    vf bdf is 0x%x", vf_bdf);
+     skip_rid_list[index] = vf_bdf;
+     vf_rid += vf_stride;
+     if (index > MAX_VFS)
+         val_print(ACS_PRINT_WARN, "\n    Index value is more than 255", 0);
+  }
 }
 
 static
@@ -54,10 +103,11 @@ payload(void)
   uint32_t bus_index;
   uint32_t dev_index;
   uint32_t func_index;
-  uint32_t ret;
+  uint32_t ret, vf_index;
   uint32_t next_offset = 0;
   uint32_t curr_offset = 0;
   uint32_t status;
+  uint32_t sriov_base;
 
   index = val_pe_get_index_mpid(val_pe_get_mpid());
 
@@ -116,6 +166,17 @@ payload(void)
                   if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS,  &data) != PCIE_SUCCESS)
                       continue;
 
+                  val_print(ACS_PRINT_INFO, "\n     Valid BDF is %x", bdf);
+                  if (val_pcie_function_header_type(bdf) == TYPE0_HEADER)
+                  {
+                      if (val_pcie_find_capability(bdf, PCIE_ECAP, ECID_SRIOV,
+                                                   &sriov_base) == PCIE_SUCCESS) {
+                          val_print(ACS_PRINT_INFO, "\n     SR-IOV capability present", 0);
+                          val_print(ACS_PRINT_INFO, "\n     Check for VF's to skip", 0);
+                          calculate_vf(segment, bdf, sriov_base);
+                      }
+                  }
+
                   /* Read till the last capability in Extended Capability Structure */
                   next_offset = PCIE_ECAP_START;
                   while (next_offset)
@@ -133,6 +194,15 @@ payload(void)
                /* Access the start and end of the config space for PCIe devices whose
                   device ID and vendor ID are all FF's */
                else{
+                  /* Skip the check for VF's as in certain platforms read to config space can
+                     give valid response. Hence skipping the VF's */
+                  for (vf_index = 0; vf_index < num_vf; vf_index++) {
+                      if (bdf == skip_rid_list[vf_index]) {
+                          val_print(ACS_PRINT_INFO, "\n   BDF 0x%x is a VF. Hence skipping", bdf);
+                          continue;
+                      }
+                  }
+
                   val_pcie_read_cfg(bdf, PCIE_ECAP_START, &data);
 
                   /* Returned data must be FF's, otherwise the test must fail */
@@ -157,6 +227,7 @@ payload(void)
             }
         }
       }
+      val_memory_set(skip_rid_list, sizeof(uint32_t) * MAX_VFS, 0);
   }
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
@@ -184,3 +255,4 @@ p002_entry(uint32_t num_pe)
 
   return status;
 }
+

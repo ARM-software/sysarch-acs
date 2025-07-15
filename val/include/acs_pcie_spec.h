@@ -199,6 +199,7 @@
 #define ECID_ACS       0x000D
 #define ECID_ARICS     0x000E
 #define ECID_ATS       0x000F
+#define ECID_SRIOV     0x0010
 #define ECID_PRI       0x0013
 #define ECID_SPCIECS   0x0019
 #define ECID_PASID     0x001B
@@ -225,6 +226,15 @@
 #define DS_UNCORR_MASK 0x6
 #define DS_CORR_MASK   0x1
 #define ACSCTRL_SHIFT  0x0F
+
+/* SR-IOV Capability struct offsets and shifts*/
+#define SRIOV_VF_COUNT         0x0C
+#define SRIOV_VF_OFF_STR       0x14
+#define SRIOV_STRIDE_SHIFT     16
+#define SRIOV_NUM_VF_SHIFT     16
+#define SRIOV_FIRST_VF_SHIFT   0xFFFF
+#define SRIOV_STRIDE_MASK      0xFFFF
+#define SRIOV_NUM_VF_MASK      0xFFFF
 
 /* DPC Capability struct offsets and shifts */
 #define DPC_CTRL_OFFSET        0x4

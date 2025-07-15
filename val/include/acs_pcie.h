@@ -29,7 +29,15 @@
                                     (PCIE_EXTRACT_BDF_DEV(bdf) << 3) | \
                                     (PCIE_EXTRACT_BDF_BUS(bdf) << 8)
 
-#define PCIE_CREATE_BDF(seg, bus, dev, func) ((seg << 24) | ((bus & 0xFF) << 16) | ((dev & 0xFF) << 8) | func)
+#define PCIE_CREATE_BDF(seg, bus, dev, func) ((seg << 24) | ((bus & 0xFF) << 16) | \
+                                             ((dev & 0xFF) << 8) | func)
+
+
+#define PCIE_CREATE_BDF_FROM_PACKED(seg, rid)  (((seg) << 24) | \
+                                               (((rid) >> 8) << 16) | \
+                                               ((((rid) >> 3) & 0x1F) << 8) | \
+                                               ((rid) & 0x7))
+
 
 #define GET_DEVICE_ID(bus, dev, func) ((bus << 8) | (dev << 3) | func)
 
