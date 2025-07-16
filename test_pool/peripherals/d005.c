@@ -77,7 +77,7 @@ payload()
   uint32_t lcr_reg;
   uint32_t lcr_scratch2;
   uint32_t lcr_scratch3;
-  uint32_t skip_test = 0;
+  uint32_t test_skip = 1;
   uint32_t test_fail = 0;
 
   if (count == 0) {
@@ -95,7 +95,7 @@ payload()
            || interface_type == COMPATIBLE_SUBSET_16550
            || interface_type == COMPATIBLE_GENERIC_16550)
       {
-          skip_test = 1;
+          test_skip = 0;
           val_print(ACS_PRINT_DEBUG,
               "\n         UART 16550 found with instance: %x",
               count - 1);
@@ -193,7 +193,7 @@ payload()
       count--;
   }
 
-  if (!skip_test)
+  if (test_skip)
       val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
   else if (test_fail)
       val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
