@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,34 +20,41 @@
 #include "val/include/val_interface.h"
 #include "val/include/acs_smmu.h"
 
-#define TEST_NUM   (ACS_SMMU_TEST_NUM_BASE + 17)
-#define TEST_RULE  "B_SMMU_04"
-#define TEST_DESC  "Check TLB Range Invalidation          "
+#define TEST_NUM   (ACS_SMMU_TEST_NUM_BASE + 25)
+#define TEST_RULE  "B_SMMU_05"
+#define TEST_DESC  "Check DVM capabilities                "
+
 
 static
 void
 payload()
 {
 
-  uint64_t data_pe_tlb, data_ril;
+  uint64_t data_pe_cmow, data_pe_specres, data_btm;
   uint32_t num_smmu;
   uint32_t index;
 
   index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  data_pe_tlb = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR0_EL1), 56, 59);
-  if (data_pe_tlb != 0x2) {
-      val_print(ACS_PRINT_DEBUG, "\n       TLB Range Invalid Not "
-                                "Supported For PE              ", 0);
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
-      return;
+  /* Get cache maintenance instruction support */
+  data_pe_cmow = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64MMFR1_EL1), 56, 59);
+  if (data_pe_cmow != 0x1) {
+      val_print(ACS_PRINT_DEBUG, "\n       Instruction Cache Invalidation Not "
+                                "Supported For PE", 0);
+  }
+
+  /* Get prediction invalidation instructions support */
+  data_pe_specres = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR1_EL1), 40, 43);
+  if (data_pe_specres == 0x0) {
+      val_print(ACS_PRINT_DEBUG, "\n       Branch Prediction Invalidation Not "
+                                "Supported For PE", 0);
   }
 
   num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
   if (num_smmu == 0) {
     val_print(ACS_PRINT_DEBUG, "\n       No SMMU Controllers are discovered"
                                  "                  ", 0);
-    val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
+    val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
     return;
   }
 
@@ -55,20 +62,20 @@ payload()
     if (val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, num_smmu) < 3) {
       val_print(ACS_PRINT_DEBUG, "\n       Not valid for SMMUv2 or older"
                                     "version               ", 0);
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 3));
+      val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
       return;
     }
 
-    data_ril = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_IDR3, num_smmu), 10, 10);
+    data_btm = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_IDR0, num_smmu), 5, 5);
 
-    /* If PE TLB Range Invalidation then SMMU_IDR3.RIL = 0b1 */
-    if (data_pe_tlb == 0x2) {
-        if (data_ril != 0x1) {
-            val_print(ACS_PRINT_ERR, "\n       Range Invalidation unsupported "
+    /* Broadcast TLB Invalidation supported if SMMU_IDR0.BTM, bit[5] = 0b1 */
+    if (data_pe_specres || data_pe_cmow) {
+      if (data_btm != 0x1) {
+        val_print(ACS_PRINT_ERR, "\n       Broadcast TLB Maintenance unsupported "
                                      "for SMMU %x", num_smmu);
-            val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-            return;
-        }
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+        return;
+      }
     }
   }
 
@@ -76,7 +83,7 @@ payload()
 }
 
 uint32_t
-i017_entry(uint32_t num_pe)
+i025_entry(uint32_t num_pe)
 {
 
   uint32_t status = ACS_STATUS_FAIL;

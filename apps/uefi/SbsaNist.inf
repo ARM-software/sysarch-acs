@@ -94,6 +94,7 @@
   ../../test_pool/smmu/i021.c
   ../../test_pool/smmu/i022.c
   ../../test_pool/smmu/i024.c
+  ../../test_pool/smmu/i025.c
   ../../test_pool/memory_map/m005.c
   ../../test_pool/pcie/p043.c
   ../../test_pool/pcie/p044.c
