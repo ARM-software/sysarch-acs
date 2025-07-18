@@ -53,9 +53,9 @@ payload(void)
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
+next_bdf:
   while (tbl_index < bdf_tbl_ptr->num_entries)
   {
-      next_bdf:
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
 
@@ -82,7 +82,7 @@ payload(void)
               if (ecam_base == rp_ecam_base && segment == rp_segment)
               {
                   val_print(ACS_PRINT_DEBUG,
-                            "\n       ECAM base 0x%x matches with RPs base address ", ecam_base);
+                            "\n       ECAM base 0x%llx matches with RPs base address ", ecam_base);
                   goto next_bdf;
               }
 
