@@ -788,6 +788,9 @@
 #define IOVIRT_NAMED_COMP1_NUM_MAP    9
 #define IOVIRT_MAX_NUM_MAP            33
 
+/* Size used to Map the SMMU Register Space, if not mapped */
+#define SMMU_MAP_SIZE                 0x20000 //2*64 KB
+
 /* DMA platform config parameters */
 #define PLATFORM_OVERRIDE_DMA_CNT   0
 

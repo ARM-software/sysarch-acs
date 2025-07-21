@@ -19,6 +19,7 @@
 #include "include/acs_common.h"
 #include "include/acs_iovirt.h"
 #include "include/acs_smmu.h"
+#include "include/acs_mmu.h"
 
 IOVIRT_INFO_TABLE *g_iovirt_info_table;
 uint32_t g_num_smmus;
@@ -268,6 +269,7 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 {
   uint32_t i, smmu_ver;
   uint32_t smmu_minor;
+  uint64_t smmu_base = 0;
 
   if (iovirt_info_table == NULL)
   {
@@ -284,6 +286,17 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
   val_print(ACS_PRINT_TEST,
             " SMMU_INFO: Number of SMMU CTRL       :    %d\n", g_num_smmus);
   for (i = 0; i < g_num_smmus; i++) {
+
+    smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, i);
+    val_print(ACS_PRINT_DEBUG, "\n   SMMU index %x, ", i);
+    val_print(ACS_PRINT_DEBUG, "Base : 0x%llx", smmu_base);
+
+#ifndef TARGET_LINUX
+    val_print(ACS_PRINT_DEBUG, "\n   Check for SMMU index %x entry in memmap", i);
+    if (val_mmu_update_entry(smmu_base, SMMU_MAP_SIZE))
+      val_print(ACS_PRINT_WARN, "\n   Adding SMMU index %x entry failed", i);
+#endif
+
     smmu_ver = val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, i);
     val_print(ACS_PRINT_TEST,
             " SMMU_INFO: SMMU index %.2d ", i);

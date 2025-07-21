@@ -111,6 +111,9 @@
 /* Max SID Size in SMMU is 32 */
 #define MAX_SID  32
 
+/* Size used to Map the SMMU Register Space, if not mapped */
+#define SMMU_MAP_SIZE        PLATFORM_OVERRIDE_SMMU_MAP_SIZE
+
 #if PLATFORM_OVERRIDE_TIMEOUT
     #define TIMEOUT_LARGE    PLATFORM_OVERRIDE_TIMEOUT_LARGE
     #define TIMEOUT_MEDIUM   PLATFORM_OVERRIDE_TIMEOUT_MEDIUM

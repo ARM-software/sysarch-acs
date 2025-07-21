@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2022-2025 Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2022-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,6 +68,9 @@
 /* Change OVERRIDE_SMMU_BASE to non-zero value for this to take effect */
 #define PLATFORM_OVERRIDE_SMMU_BASE        0x0 //0x2B400000
 #define PLATFORM_OVERRIDE_SMMU_ARCH_MAJOR  3
+
+/* Size used to Map the SMMU Register Space, if not mapped */
+#define PLATFORM_OVERRIDE_SMMU_MAP_SIZE    0x20000 //2*64 KB
 
 extern UINT32 g_pcie_p2p;
 extern UINT32 g_pcie_cache_present;
