@@ -781,9 +781,9 @@ val_mpam_memory_mbwumon_reset(uint32_t msc_index)
   @return  Buffer address if SUCCESSFUL, else NULL
 **/
 void *
-val_mem_alloc_at_address(uint64_t mem_base, uint64_t size)
+val_mem_alloc_at_address(uint64_t mem_base, uint64_t mem_len, uint64_t size)
 {
-  return pal_mem_alloc_at_address(mem_base, size);
+  return pal_mem_alloc_at_address(mem_base, mem_len, size);
 }
 
 /**
@@ -1640,7 +1640,8 @@ void val_mem_free_shared_memcpybuf(uint32_t num_pe)
  *
  * @result  status      1 for success, 0 for failure
  */
-uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uint32_t pe_count)
+uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t mem_len,
+                                    uint64_t buffer_size, uint32_t pe_count)
 {
   void *buffer;
   uint32_t pe_index;
@@ -1660,6 +1661,7 @@ uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uin
   for (pe_index = 0; pe_index < pe_count; pe_index++) {
       g_shared_memcpy_buffer[pe_index] = (uint8_t *) val_mem_alloc_at_address (
                                                     mem_base + (pe_index * buffer_size),
+                                                    mem_len,
                                                     buffer_size);
 
       if (g_shared_memcpy_buffer[pe_index] == NULL) {

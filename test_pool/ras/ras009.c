@@ -54,6 +54,7 @@ payload()
   uint64_t node_type;
   uint64_t err_inj_addr;
   uint64_t prox_base_addr;
+  uint64_t addr_len;
 
   uint32_t status;
   uint32_t fail_cnt = 0, test_skip = 0;
@@ -104,6 +105,7 @@ payload()
 
     /* Get base addr for proximity domain to inject error in platform defined method */
     prox_base_addr = val_srat_get_info(SRAT_MEM_BASE_ADDR, mc_prox_domain);
+    addr_len = val_srat_get_info(SRAT_MEM_ADDR_LEN, mc_prox_domain);
     if (prox_base_addr == SRAT_INVALID_INFO) {
       val_print(ACS_PRINT_ERR, "\n       Invalid base for prox domain : 0x%lx", mc_prox_domain);
       fail_cnt++;
@@ -111,7 +113,7 @@ payload()
     }
 
     /* check if the address accessible to PE by trying to allocate the address */
-    err_inj_addr = (uint64_t)val_mem_alloc_at_address(prox_base_addr, ONE_BYTE_BUFFER);
+    err_inj_addr = (uint64_t)val_mem_alloc_at_address(prox_base_addr, addr_len, ONE_BYTE_BUFFER);
     val_print(ACS_PRINT_ERR, "\n       err_inj_addr : 0x%lx", err_inj_addr);
     if (err_inj_addr == 0) {
       val_print(ACS_PRINT_ERR, "\n       Unable to allocate address in prox domain : 0x%lx",

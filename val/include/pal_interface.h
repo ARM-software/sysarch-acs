@@ -1171,7 +1171,7 @@ typedef struct {
 } MPAM_INFO_TABLE;
 
 void pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable);
-void *pal_mem_alloc_at_address(uint64_t mem_base, uint64_t size);
+void *pal_mem_alloc_at_address(uint64_t mem_base, uint64_t mem_len, uint64_t size);
 void pal_mem_free_at_address(uint64_t mem_base, uint64_t size);
 
 /* Platform Communication Channel (PCC) info table */

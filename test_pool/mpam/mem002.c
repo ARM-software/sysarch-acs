@@ -313,6 +313,7 @@ payload_primary(void)
                 /* Create a shared memcopy buffer from this memory node */
                 alloc_status = val_alloc_shared_memcpybuf(
                                                     val_mpam_memory_get_base(msc_index, rsrc_index),
+                                                    val_mpam_memory_get_size(msc_index, rsrc_index),
                                                     buf_size,
                                                     num_pe_cont);
 

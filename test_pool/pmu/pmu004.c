@@ -35,8 +35,8 @@ static PMU_EVENT_TYPE_e config_events[NUM_PMU_MON] = {PMU_EVENT_IB_TOTAL_BW,
                                                PMU_EVENT_IB_WRITE_BW};
 
 /* Generates Inbound read/write traffic at memory interface */
-static uint32_t generate_inbound_traffic(uint32_t node_index, uint64_t base_addr, uint32_t size,
-                             uint64_t *value)
+static uint32_t generate_inbound_traffic(uint32_t node_index, uint64_t base_addr,
+                                         uint64_t addr_len, uint32_t size, uint64_t *value)
 {
     uint32_t  i;
     void *src_buf = 0;
@@ -44,8 +44,8 @@ static uint32_t generate_inbound_traffic(uint32_t node_index, uint64_t base_addr
     /* Generate inbound traffic for given size*/
 
     /* Allocate memory for 4 Megabytes */
-    src_buf = (void *)val_mem_alloc_at_address(base_addr, BUFFER_SIZE);
-    dest_buf = (void *)val_mem_alloc_at_address(base_addr + BUFFER_SIZE, BUFFER_SIZE);
+    src_buf = (void *)val_mem_alloc_at_address(base_addr, addr_len, BUFFER_SIZE);
+    dest_buf = (void *)val_mem_alloc_at_address(base_addr + BUFFER_SIZE, addr_len, BUFFER_SIZE);
 
     if ((src_buf == NULL) || (dest_buf == NULL))
         return 1;
@@ -181,7 +181,8 @@ static void payload(void)
             val_pmu_enable_monitor(node_index, i);
 
         /* Generate first memory traffic for 2 MB */
-        status = generate_inbound_traffic(node_index, prox_base_addr, BUFFER_SIZE / 2, bandwidth1);
+        status = generate_inbound_traffic(node_index, prox_base_addr,
+                                          addr_len, BUFFER_SIZE / 2, bandwidth1);
 
         if (status) {
             val_print(ACS_PRINT_ERR, "\n       Memory allocation failed", node_index);
@@ -196,7 +197,8 @@ static void payload(void)
         }
 
         /* Generate second memory traffic for 4 MB */
-        status = generate_inbound_traffic(node_index, prox_base_addr, BUFFER_SIZE, bandwidth2);
+        status = generate_inbound_traffic(node_index, prox_base_addr,
+                                          addr_len, BUFFER_SIZE, bandwidth2);
 
         if (status) {
             val_print(ACS_PRINT_ERR, "\n       Memory allocation failed", node_index);

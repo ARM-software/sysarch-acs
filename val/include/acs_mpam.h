@@ -99,9 +99,10 @@ uint64_t val_mpam_memory_mbwumon_read_count(uint32_t msc_index);
 uint32_t val_mpam_get_msc_count(void);
 uint32_t val_mpam_get_max_ris_count(uint32_t msc_index);
 void val_mpam_memory_mbwumon_reset(uint32_t msc_index);
-void *val_mem_alloc_at_address (uint64_t mem_base, uint64_t size);
-void val_mem_free_at_address (uint64_t mem_base, uint64_t size);
-uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uint32_t pe_count);
+void *val_mem_alloc_at_address (uint64_t mem_base, uint64_t mem_len, uint64_t size);
+void val_mem_free_at_address(uint64_t mem_base, uint64_t size);
+uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t mem_len,
+                                uint64_t buffer_size, uint32_t pe_count);
 uint64_t val_get_shared_memcpybuf(uint32_t pe_index);
 void val_mem_free_shared_memcpybuf(uint32_t num_pe);
 uint32_t val_mpam_get_csumon_count(uint32_t msc_index);

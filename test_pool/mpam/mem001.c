@@ -250,8 +250,9 @@ void payload(void)
                     return;
                 }
 
-                src_buf = (void *)val_mem_alloc_at_address(addr_base, buf_size);
-                dest_buf = (void *)val_mem_alloc_at_address(addr_base + buf_size, buf_size);
+                src_buf = (void *)val_mem_alloc_at_address(addr_base, addr_len, buf_size);
+                dest_buf = (void *)val_mem_alloc_at_address(addr_base + buf_size,
+                                                            addr_len, buf_size);
 
                 if ((src_buf == NULL) || (dest_buf == NULL)) {
                     val_print(ACS_PRINT_ERR, "\n       Memory allocation of buffers failed", 0);
