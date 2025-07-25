@@ -87,7 +87,7 @@ static void payload(void)
         rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
 
         val_print(ACS_PRINT_DEBUG, "\n       msc index  = %d", msc_index);
-        val_print(ACS_PRINT_DEBUG, "\n       Resource count %d = ", rsrc_node_cnt);
+        val_print(ACS_PRINT_DEBUG, "\n       Resource count = %d", rsrc_node_cnt);
 
         for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
 
