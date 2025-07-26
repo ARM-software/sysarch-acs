@@ -104,7 +104,7 @@ Prebuilt images for each release are available in the prebuilt_images folder of 
     Before you start the ACS build, ensure that the following requirements are met.
 
 - Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
-- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is 836942fbadb629050b866a8052e6af755bcdf623
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
 - Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2.<br />
@@ -191,7 +191,7 @@ Prebuilt images for each release are available in the prebuilt_images folder of 
     Before you start the ACS build, ensure that the following requirements are met.
 
 - Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
-- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is 836942fbadb629050b866a8052e6af755bcdf623
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
 - Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2.<br />
