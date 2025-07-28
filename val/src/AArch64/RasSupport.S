@@ -40,7 +40,6 @@
 .align 2
 
 GCC_ASM_EXPORT(AA64ReadErrIdr1)
-GCC_ASM_EXPORT(AA64WriteErrIdr1)
 GCC_ASM_EXPORT(AA64ReadErrAddr1)
 GCC_ASM_EXPORT(AA64WriteErrAddr1)
 GCC_ASM_EXPORT(AA64ReadErrCtlr1)
@@ -53,17 +52,12 @@ GCC_ASM_EXPORT(AA64WriteErrSelr1)
 GCC_ASM_EXPORT(AA64ReadErrPfgf1)
 GCC_ASM_EXPORT(AA64ReadErrPfgctl1)
 GCC_ASM_EXPORT(AA64ReadErrPfgcdn1)
-GCC_ASM_EXPORT(AA64WriteErrPfgf1)
 GCC_ASM_EXPORT(AA64WriteErrPfgctl1)
 GCC_ASM_EXPORT(AA64WriteErrPfgcdn1)
 
 
 ASM_PFX(AA64ReadErrIdr1):
   mrs  x0, erridr_el1
-  ret
-
-ASM_PFX(AA64WriteErrIdr1):
-  msr   erridr_el1, x0
   ret
 
 ASM_PFX(AA64ReadErrAddr1):
@@ -104,10 +98,6 @@ ASM_PFX(AA64WriteErrSelr1):
 
 ASM_PFX(AA64ReadErrPfgf1):
   mrs  x0, erxpfgf_el1
-  ret
-
-ASM_PFX(AA64WriteErrPfgf1):
-  msr   erxpfgf_el1, x0
   ret
 
 ASM_PFX(AA64ReadErrPfgctl1):
