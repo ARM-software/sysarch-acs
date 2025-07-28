@@ -89,7 +89,7 @@ source ShellPkg/Application/sbsa-acs/tools/scripts/acsbuild.sh NIST
 
 ***Windows build environment***
 ```
-build -a AARCH64 -t GCC49 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sbsa-acs/uefi_app/SbsaAvs.inf -D ENABLE_NIST
+build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sbsa-acs/uefi_app/SbsaAvs.inf -D ENABLE_NIST
 ```
 
 **Directory structure of SBSA ACS**

@@ -30,14 +30,14 @@ might lead to unpredictable behavior in concurrent programs.
 
 3. Build bsa-acs UEFI app <br>
 Note :  Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
->          export GCC49_AARCH64_PREFIX=<path to CC>arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+>          export GCC_AARCH64_PREFIX=<path to CC>arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 >          export PACKAGES_PATH=`pwd`/edk2-libc
 >          source edksetup.sh
 >          make -C BaseTools/Source/C
 >          source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh mem_test
 
 4. BSA EFI application path
-- The EFI executable file is generated at <edk2-path>/Build/Shell/DEBUG_GCC49/AARCH64/Bsa.efi
+- The EFI executable file is generated at <edk2-path>/Build/Shell/DEBUG_GCC/AARCH64/Bsa.efi
 
 ## Test suite execution on QEMU platform
 1. Fetch uefi-firmware

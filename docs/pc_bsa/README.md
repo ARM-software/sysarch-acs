@@ -44,10 +44,10 @@ Note: The details of the packages are beyond the scope of this document.
 ##### 3. Build PC-BSA UEFI Application <br>
 Note :  Install GCC-ARM 13.2 from [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) <br>
 For a x86 host build,
->  export GCC49_AARCH64_PREFIX=<path to arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-><br>
+>  export GCC_AARCH64_PREFIX=<path to arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-><br>
 
 For an AArch64 build,
->  export GCC49_AARCH64_PREFIX=/usr/bin/aarch64-linux-gnu-
+>  export GCC_AARCH64_PREFIX=/usr/bin/aarch64-linux-gnu-
 
 Build the binary,
 > 1. export PACKAGES_PATH=$PWD/edk2-libc<br>
@@ -56,7 +56,7 @@ Build the binary,
 > 4. source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pc_bsa<br>
 
 ##### 4. PC BSA EFI application path
-- The EFI executable file is generated at \<edk2-path\>/Build/Shell/DEBUG_GCC49/AARCH64/PC_Bsa.efi
+- The EFI executable file is generated at \<edk2-path\>/Build/Shell/DEBUG_GCC/AARCH64/PC_Bsa.efi
 
 ### 2. Execution Steps
 The execution of the compliance suite varies depending on the test environment. These steps assume that the test suite is invoked through the ACS UEFI shell application
