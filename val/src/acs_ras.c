@@ -446,7 +446,7 @@ val_ras_reg_read(uint32_t node_index, uint32_t reg, uint32_t err_rec_idx)
       default:
           break;
       }
-      value = val_mmio_read(base + offset);
+      value = val_mmio_read64(base + offset);
   } else {
       /* System register based read */
 
@@ -548,7 +548,7 @@ val_ras_reg_write(uint32_t node_index, uint32_t reg, uint64_t write_data)
       break;
     }
 
-    val_mmio_write(base + offset, write_data);
+    val_mmio_write64(base + offset, write_data);
   } else {
     /* System register based Write */
 
