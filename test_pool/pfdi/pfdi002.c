@@ -19,7 +19,7 @@
 #include "val/include/val_interface.h"
 
 #define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 2)
-#define TEST_RULE  "R0060, R0102, R0105"
+#define TEST_RULE  "R0102, R0105"
 #define TEST_DESC  "Check PFDI mandatory functions            "
 
 void
