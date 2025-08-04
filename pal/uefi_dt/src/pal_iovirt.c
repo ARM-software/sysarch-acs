@@ -41,6 +41,9 @@ static char smmu3_dt_arr[][SMMU_COMPATIBLE_STR_LEN] = {
     "arm,smmu-v3",
 };
 
+UINT32
+pal_strncmp(CHAR8 *str1, CHAR8 *str2, UINT32 len);
+
 UINT64 pal_get_iort_ptr();
 
 /**
@@ -574,6 +577,7 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
   NODE_DATA_MAP *data_map;
   UINT32 i, iommu_node;
   UINT32 *Preg_val;
+  CHAR8 *Pstatus; 
   int offset, parent_offset;
   int prop_len, addr_cell, size_cell;
   const struct fdt_property *P_dma;
@@ -626,6 +630,19 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
       while (offset != -FDT_ERR_NOTFOUND) {
           acs_print(ACS_PRINT_DEBUG, L"  SMMUv3 node:%d offset:%d\n", IoVirtTable->num_smmus,
                     offset);
+
+          /* Consider only the SMMU which is visible in non-secure world
+             Status fields either not present or if present should not be disabled */
+          Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
+          if ((prop_len > 0) && (Pstatus != NULL)) {
+              acs_print(ACS_PRINT_DEBUG, L"  Status field length %d\n", prop_len);
+              if (pal_strncmp(Pstatus, "disabled", 9) == 0) {
+                  acs_print(ACS_PRINT_DEBUG, L"  SMMU instance is disabled\n");
+                  offset = fdt_node_offset_by_compatible((const void *)dt_ptr, offset,
+                                                          smmu3_dt_arr[i]);
+                  continue;
+              }
+          }
 
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg_val == NULL)) {
@@ -681,6 +698,19 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
       while (offset != -FDT_ERR_NOTFOUND) {
           acs_print(ACS_PRINT_DEBUG, L"  SMMUv2 node:%d offset:%d\n", IoVirtTable->num_smmus,
                     offset);
+
+          /* Consider only the SMMU which is visible in non-secure world
+             Status fields either not present or if present should not be disabled */
+          Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
+          if ((prop_len > 0) && (Pstatus != NULL)) {
+              acs_print(ACS_PRINT_DEBUG, L"  Status field length %d\n", prop_len);
+              if (pal_strncmp(Pstatus, "disabled", 9) == 0) {
+                  acs_print(ACS_PRINT_DEBUG, L"  SMMU instance is disabled\n");
+                  offset = fdt_node_offset_by_compatible((const void *)dt_ptr, offset,
+                                                          smmu3_dt_arr[i]);
+                  continue;
+              }
+          }
 
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg_val == NULL)) {
