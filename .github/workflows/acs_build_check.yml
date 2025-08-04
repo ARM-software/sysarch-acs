@@ -429,5 +429,5 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: unified.efi
-            path: edk2/Build/Shell/DEBUG_GCC49/AARCH64/Unified.efi
+            path: edk2/Build/Shell/DEBUG_GCC49/AARCH64/UnifiedAcs.efi
             if-no-files-found: error
