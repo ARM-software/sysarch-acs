@@ -44,6 +44,7 @@
   ../../test_pool/pfdi/pfdi009.c
   ../../test_pool/pfdi/pfdi010.c
   ../../test_pool/pfdi/pfdi011.c
+  ../../test_pool/pfdi/pfdi012.c
   ../../test_pool/pfdi/pfdi013.c
   ../../test_pool/pfdi/pfdi014.c
 

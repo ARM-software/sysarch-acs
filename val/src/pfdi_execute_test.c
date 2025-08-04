@@ -65,11 +65,12 @@ val_pfdi_execute_pfdi_tests(uint32_t num_pe)
   status  |= pfdi009_entry(num_pe);
   status  |= pfdi010_entry(num_pe);
   status  |= pfdi011_entry(num_pe);
+  status  |= pfdi012_entry(num_pe);
   status  |= pfdi013_entry(num_pe);
   status  |= pfdi014_entry(num_pe);
+  status  |= pfdi015_entry(num_pe);
 
   val_print_test_end(status, "PFDI");
 
   return status;
-
 }
