@@ -783,4 +783,4 @@ An absence of rootbridge before the beginning of the device hierarchy implies a 
 
 --------------
 
-*Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2023-2025, Arm Limited and Contributors. All rights reserved.*

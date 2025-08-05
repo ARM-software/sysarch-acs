@@ -29,7 +29,9 @@ capability validation tests. Exerciser's BAR0 space contains following control a
  DMA Control Register            Configure and trigger DMA transactions(DMA_CTL_REG)     0x8
 
  DMA Offset Register             Configure DMA transaction access offset (in bytes)      0xc
-                                 from base of exerciser memory.
+                                 from base of exerciser memory and use it to configure
+                                 the offset within the BAR1 region, where read or write
+                                 data is stored.
 
  Bus Address Register            Configure bus address that is destination/source        0x10
                                  for DMA or untranslated input address for ATSRequest.
@@ -186,6 +188,9 @@ capability validation tests. Exerciser's BAR0 space contains following control a
 
   * Status of the last DMA request can be known from DMA Status Register.
 
+  * If the user wants to read from or write to memory, the data will be stored at a location in the BAR1 region.
+    The location within BAR1 is configured using the DMA Offset Register.
+
 **MSI Generation and Service**
 
 ```
@@ -316,10 +321,10 @@ capability validation tests. Exerciser's BAR0 space contains following control a
                                          given when ATSRequest was
                                          privileged.
 
- ReadPrivileged            5             If 1 Read permission was given   RO         0b
+ ReadPrivileged            6             If 1 Read permission was given   RO         0b
                                          when ATSRequest was privileged.
 
- ReplyPermissionReserved  31:6           Reserved                         RO         0h
+ ReplyPermissionReserved  31:7           Reserved                         RO         0h
 
 ```
 
@@ -404,6 +409,22 @@ and memory transactions. This includes,
 
 * memory transactions which are forwarded from PCIe endpoint to device(like exerciser).
 
+```
+                                            +--------------------------+
+                                            |        Exerciser         |
+                                            |                          |
+  +--------------+     +---------------+    |  +---------------------+ |
+  | PE Subsystem |---> | PCIe Endpoint |--->|  | Transaction monitor | |
+  +--------------+     +---------------+ |  |  +---------------------+ |
+                                         |  |                          |
+                                         |  |                          |
+                                         |  +--------------------------+
+                                         |
+                                         +--------> get_transaction_monitor_control_if
+                                                        [PCIDevice2ClientProtocol]
+
+```
+
 
 Each recorded transaction has the following information:
 
@@ -445,14 +466,13 @@ Note: Each beat in a burst transaction is recorded as a single separate transact
   transaction byte size is calculated as log2(bytes). For example, if size is 8, bit3 of the upper 16 bits
   will be set.
   ------------------------------------------------------------------------------------------------
-           31:16            15   14   13   12   11   10   9   8   7   6   5   4   3   2   1   0
+           31:16            15   14   13   12   11   10   9   8   7   6   5   4   3   2   1    0
   ------------------------------------------------------------------------------------------------
   | Transaction byte size  |                Reserved                                 C/M  R/W  Type
 
   Bit0: Request type(defaults to zero).
   Bit1: 1 for Read and 0 for Write.
   Bit2: 1 for CFG transaction and 0 for MEM transaction.
-  Bits 31-16: Log2 of transaction size, in bytes.
 
 
  TransactionTraceControlReg  Bit          Description                      R/W    Value at reset
@@ -470,6 +490,5 @@ Note: Each beat in a burst transaction is recorded as a single separate transact
   * Read the transaction trace database register(offset 0x40). Each read returns one 32 bit entry mentioned above, starting
     from first transaction. A value of 0xFFFFffff indicates invalid entry.
 
---------------
 
-*Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2023-2025, Arm Limited and Contributors. All rights reserved.*

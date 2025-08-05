@@ -66,7 +66,10 @@ A new Error injection extended capability, implemented as a DVSEC, has been adde
  inject_error_immediately    17     Inject error in this endpoint configured      RW       0x0
                                     using the error_code field.
 
- reserved                    19:18  Reserved                                      RO       0x0
+ set_poison_mode             18     To configure Poison mode. See Poison          RW       0x0
+                                    mode section for more details.
+
+ reserved                    19     Reserved                                      RO       0x0
 
  error_code                  30:20  Error code configuration for corrupt DMA      RW       0x0
                                     mode and inject_error_immediately
@@ -86,6 +89,9 @@ There are 2 ways to inject errors:
   * Inject immediately : Using the `inject_error_immediately` bit set, the user can inject an error at that endpoint with the error configured using the `error_code` field in control register. The error_codes are defined in Error Codes section. This bit is cleared once the error has been injected.
 
   * Corrupt DMA : With the `inject_error_on_dma` bit set, the endpoint is put in Corrupt DMA mode. Any peer-to-peer DMAs generated in corrupt DMA mode, will lead to an error injection in destination endpoint. All DMAs will fail by default in this mode, so this bit will need to be cleared for normal functioning of DMAs for this endpoint. The injected error in destination endpoint will be as configured by `error_code` field in control register. The error_codes are defined in Error Codes section.
+
+## Poison mode
+`set_poison_mode` bit is added at control register's bit number 18. When this bit is set to 1, the endpoint is put in poison mode and then any read requests to endpoint's BAR memory space will result in all 1's data and write access will be ignored. Also the poison error message will be sent to the upstream Root Port and it will record the error bits in `ERR<n>STATUS` (RAS's STATUS register). This will only happen if Error Reporting is turned on in endpoint's PCIe express capability using the control register. Clear `set_poison_mode` bit which will disable poison mode, endpoint will continue with normal operations and allows access to it's BAR memory space.
 
 ## Error Codes
 ```
@@ -124,4 +130,4 @@ When an corrupt DMA passes through an intermediate component such as a switch, i
 
 --------------
 
-*Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2023-2025, Arm Limited and Contributors. All rights reserved.*
