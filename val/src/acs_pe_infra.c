@@ -559,7 +559,7 @@ val_get_pe_architecture(uint32_t index)
   while (num_slots > 0) {
     num_slots--;
     cur_pe_count += type4_entry->core_count;
-    if (index > cur_pe_count) {
+    if (index >= cur_pe_count) {
       type4_entry++;
       continue;
     }
