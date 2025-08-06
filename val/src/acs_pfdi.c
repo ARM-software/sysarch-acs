@@ -23,8 +23,6 @@
 #include "include/acs_std_smc.h"
 #include "include/acs_memory.h"
 
-pfdi_pe_test_support_info *g_pfdi_pe_test_support_info;
-
 /**
   @brief   This function checks if reserved_bits received are zero
   @param   reserved_bits reserved bits value received
@@ -176,36 +174,3 @@ int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value)
                                 error_value, 0, 0, 0, NULL, NULL, NULL);
 }
 
-/**
- *  @brief   Allocate memory for the PFDI PE Test Count function.
- *
- *  @return  status
- */
-uint32_t val_pfdi_allocate_pe_mem(void)
-{
-  uint32_t num_pe = val_pe_get_num();
-
-  /* Allocate memory to save all PFDI Versions or status for all PE's */
-  g_pfdi_pe_test_support_info =
-        (pfdi_pe_test_support_info *)val_memory_calloc(num_pe, sizeof(pfdi_pe_test_support_info));
-  if (g_pfdi_pe_test_support_info == NULL) {
-      val_print(ACS_PRINT_ERR, "\n       Allocation for PFDI PE Test Support Info Failed \n", 0);
-      return ACS_STATUS_ERR;
-  }
-
-  val_data_cache_ops_by_va((addr_t)g_pfdi_pe_test_support_info, CLEAN_AND_INVALIDATE);
-  return ACS_STATUS_PASS;
-}
-
-/**
-  @brief  Free the memory which was allocated by val_pfdi_allocate_pe_mem
-        1. Caller       - Application Layer
-        2. Prerequisite - val_pfdi_allocate_pe_mem
-  @param  None
-  @result None
-**/
-void val_pfdi_free_pe_mem(void)
-{
-
-  pal_mem_free_aligned((void *)g_pfdi_pe_test_support_info);
-}

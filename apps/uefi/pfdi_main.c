@@ -45,8 +45,6 @@ UINT32  g_acs_tests_total;
 
 SHELL_FILE_HANDLE g_acs_log_file_handle;
 
-INT64  g_pfdi_version = 0;
-
 VOID
 HelpMsg (
   VOID
@@ -314,7 +312,6 @@ freePfdiAcsMem()
 {
   val_pe_free_info_table();
   val_gic_free_info_table();
-  val_pfdi_free_pe_mem();
   val_free_shared_mem();
 }
 
@@ -339,13 +336,6 @@ execute_tests()
   }
 
   Status = createGicInfoTable();
-  if (Status) {
-      if (g_acs_log_file_handle)
-        ShellCloseFile(&g_acs_log_file_handle);
-    return Status;
-  }
-
-  Status = val_pfdi_allocate_pe_mem();
   if (Status) {
       if (g_acs_log_file_handle)
         ShellCloseFile(&g_acs_log_file_handle);

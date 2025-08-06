@@ -26,7 +26,7 @@
 
 #define PFDI_FN_PFDI_BASE            0xC40002D0
 #define PFDI_FN_PFDI(n)              (PFDI_FN_PFDI_BASE + (n))
-#define PFDI_FN_PFDI_MAX_NUM         0x09
+#define PFDI_FN_PFDI_MAX_NUM         0x08
 
 #define PFDI_FN_PFDI_VERSION            PFDI_FN_PFDI(0x00)
 #define PFDI_FN_PFDI_FEATURES           PFDI_FN_PFDI(0x01)
@@ -39,7 +39,7 @@
 #define PFDI_FN_PFDI_INVALID            PFDI_FN_PFDI(0x08)
 
 #define PFDI_VERSION_GET_MAJOR(version)     ((version >> 16) & 0x7fffU)
-#define PFDI_VERSION_GET_MINOR(version)     ((version) & 0x7fffU)
+#define PFDI_VERSION_GET_MINOR(version)     ((version) & 0xffffU)
 
 #define VAL_PFDI_RESERVED_BYTE_ZERO         0x0
 

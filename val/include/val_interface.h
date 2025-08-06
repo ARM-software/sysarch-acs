@@ -791,10 +791,6 @@ typedef enum {
     PFDI_MODULE,
 } PFDI_MODULE_ID_e;
 
-typedef struct {
-  int64_t test_count;
-} pfdi_pe_test_support_info;
-
 uint32_t val_pfdi_reserved_bits_check_is_zero(uint32_t reserved_bits);
 int64_t val_pfdi_version(void);
 int64_t val_pfdi_features(uint32_t function_id);
@@ -804,8 +800,6 @@ int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id)
 int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id);
 int64_t val_pfdi_fw_check(void);
 int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value);
-uint32_t val_pfdi_allocate_pe_mem(void);
-void val_pfdi_free_pe_mem(void);
 
 uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
 
@@ -817,5 +811,6 @@ uint32_t pfdi005_entry(uint32_t num_pe);
 uint32_t pfdi006_entry(uint32_t num_pe);
 uint32_t pfdi007_entry(uint32_t num_pe);
 uint32_t pfdi008_entry(uint32_t num_pe);
+uint32_t pfdi009_entry(uint32_t num_pe);
 
 #endif

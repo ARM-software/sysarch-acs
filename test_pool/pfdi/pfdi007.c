@@ -20,81 +20,76 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 7)
-#define TEST_RULE  "R0089"
-#define TEST_DESC  "Query PFDI firmware check on all PEs      "
+#define TEST_RULE  "R0076"
+#define TEST_DESC  "Execute Test Parts on PE                  "
+
+#define RUN_ALL_TEST_PARTS -1
 
 typedef struct{
-  int64_t status;
-} pfdi_fw_check_details;
+  int64_t run_status;
+  int64_t fault_id;
+} pfdi_run_status_details;
 
-pfdi_fw_check_details *g_pfdi_fw_check_details;
+pfdi_run_status_details *g_pfdi_run_status_details;
 
 void
-pfdi_fw_check(void)
+pfdi_test_run(void)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  int64_t  status;
-  pfdi_fw_check_details   *status_buffer;
+  int64_t fault_test_id;
+  pfdi_run_status_details   *status_buffer;
 
-  status_buffer = g_pfdi_fw_check_details + index;
+  status_buffer = g_pfdi_run_status_details + index;
 
-  /* Invoke PFDI Firmware check function for current PE index */
-  status = val_pfdi_fw_check();
+  /* Invoke PFDI Run function for current PE index */
+  status_buffer->run_status =
+            val_pfdi_pe_test_run(RUN_ALL_TEST_PARTS, RUN_ALL_TEST_PARTS, &fault_test_id);
 
-  status_buffer->status = status;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
-  if (status < PFDI_ACS_SUCCESS) {
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-    return;
-  }
+  status_buffer->fault_id = fault_test_id;
+  val_data_cache_ops_by_va((addr_t)&status_buffer->run_status, CLEAN_AND_INVALIDATE);
+  val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
 }
 
-static void payload_fw_check(void *arg)
+static void payload_run(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t timeout, i = 0;
-  int64_t  status;
-  pfdi_fw_check_details *status_buffer;
+  uint32_t timeout, i = 0, test_fail = 0;
   uint32_t num_pe = *(uint32_t *)arg;
+  pfdi_run_status_details   *status_buffer;
 
-  /* Invoke PFDI Firmware check function for current PE index */
-  status = val_pfdi_fw_check();
-  if (status < PFDI_ACS_SUCCESS) {
+  /* Allocate memory to save all PFDI run status and fault id's for all PE's */
+  g_pfdi_run_status_details =
+            (pfdi_run_status_details *) val_memory_calloc(num_pe, sizeof(pfdi_run_status_details));
+  if (g_pfdi_run_status_details == NULL) {
     val_print(ACS_PRINT_ERR,
-               "\n       PFDI query FW Check function failed err = %d", status);
+                "\n       Allocation for PFDI Run Function Failed", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
     return;
   }
 
-  /* Allocate memory to save all PFDI function status for all PE's */
-  g_pfdi_fw_check_details = (pfdi_fw_check_details *)
-                    val_memory_calloc(num_pe, sizeof(pfdi_fw_check_details));
-  if (g_pfdi_fw_check_details == NULL) {
-    val_print(ACS_PRINT_ERR,
-                "\n       Allocation for PFDI FW Check Function Failed", 0);
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
-    return;
-  }
-
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_fw_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
+    status_buffer = g_pfdi_run_status_details + i;
+    val_data_cache_ops_by_va((addr_t)&status_buffer->run_status, CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
   }
 
-  /* Execute pfdi_fw_check function in All PE's */
+  /* Invoke PFDI Run function for current PE index */
+  pfdi_test_run();
+
+  /* Execute pfdi_test_run function in All PE's */
   for (i = 0; i < num_pe; i++) {
     if (i != index) {
       timeout = TIMEOUT_LARGE;
-      val_execute_on_pe(i, pfdi_fw_check, 0);
+      val_execute_on_pe(i, pfdi_test_run, 0);
 
       while ((--timeout) && (IS_RESULT_PENDING(val_get_status(i))));
 
       if (timeout == 0) {
         val_print(ACS_PRINT_ERR, "\n       **Timed out** for PE index = %d", i);
-        val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
+        val_set_status(i, RESULT_FAIL(TEST_NUM, 2));
         goto free_pfdi_details;
       }
     }
@@ -103,23 +98,40 @@ static void payload_fw_check(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    if (i != index) {
-      status_buffer = g_pfdi_fw_check_details + i;
-      val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
+    status_buffer = g_pfdi_run_status_details + i;
+    val_data_cache_ops_by_va((addr_t)&status_buffer->run_status, CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
+    test_fail = 0;
 
-      if (status_buffer->status < PFDI_ACS_SUCCESS) {
-        val_print(ACS_PRINT_ERR, "\n       PFDI query FW Check function failed err = %d",
-                                                        status_buffer->status);
-        val_set_status(i, RESULT_FAIL(TEST_NUM, 4));
+    if (status_buffer->run_status < PFDI_ACS_SUCCESS) {
+      if (status_buffer->run_status == PFDI_ACS_FAULT_FOUND) {
+        if (status_buffer->fault_id == PFDI_ACS_UNKNOWN) {
+          val_print(ACS_PRINT_ERR, "\n       Fault in PFDI test part on PE %d ", i);
+          val_print(ACS_PRINT_ERR, "cannot be identified", 0);
+        } else {
+          val_print(ACS_PRINT_ERR, "\n       PFDI test part %d ", status_buffer->fault_id);
+          val_print(ACS_PRINT_ERR, "triggered the fault on PE %d", i);
+        }
+      } else if (status_buffer->run_status == PFDI_ACS_ERROR) {
+        val_print(ACS_PRINT_ERR,
+              "\n       PFDI Test parts have executed but failed to complete on PE %d", i);
+      } else {
+        val_print(ACS_PRINT_ERR,
+              "\n       PFDI PE Run function failed %d ", status_buffer->run_status);
+        val_print(ACS_PRINT_ERR, "on PE  %d", i);
       }
-      goto free_pfdi_details;
+      test_fail++;
     }
+
+    if (test_fail)
+      val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
+    else
+      val_set_status(i, RESULT_PASS(TEST_NUM, 1));
   }
 
-  val_set_status(index, RESULT_PASS(TEST_NUM, 1));
-
 free_pfdi_details:
-  val_memory_free((void *) g_pfdi_fw_check_details);
+  val_memory_free((void *) g_pfdi_run_status_details);
+
   return;
 }
 
@@ -130,7 +142,7 @@ uint32_t pfdi007_entry(uint32_t num_pe)
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)
-    val_run_test_configurable_payload(&num_pe, payload_fw_check);
+    val_run_test_configurable_payload(&num_pe, payload_run);
 
   /* get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
