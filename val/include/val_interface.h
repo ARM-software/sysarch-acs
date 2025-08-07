@@ -800,6 +800,11 @@ int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id)
 int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id);
 int64_t val_pfdi_fw_check(void);
 int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value);
+int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
+              unsigned long arg2, unsigned long arg3,
+              unsigned long arg4, unsigned long arg5,
+              unsigned long *ret1, unsigned long *ret2,
+              unsigned long *ret3);
 
 uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
 
@@ -812,5 +817,6 @@ uint32_t pfdi006_entry(uint32_t num_pe);
 uint32_t pfdi007_entry(uint32_t num_pe);
 uint32_t pfdi008_entry(uint32_t num_pe);
 uint32_t pfdi009_entry(uint32_t num_pe);
+uint32_t pfdi010_entry(uint32_t num_pe);
 
 #endif
