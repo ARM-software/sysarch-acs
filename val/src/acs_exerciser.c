@@ -27,6 +27,25 @@ EXERCISER_INFO_TABLE g_exerciser_info_table;
 extern uint32_t pcie_bdf_table_list_flag;
 
 /**
+  @brief   Return a string representing the vendor name for a given vendor ID
+**/
+char8_t *lookup_vendor_name(uint32_t vendor_id)
+{
+    switch (vendor_id) {
+    case 0x13B5:
+        return "Arm Ltd";
+    case 0x14AB:
+        return "Siemens AG";
+    case 0x16C3:
+        return "Synopsys, Inc.";
+    case 0x17CD:
+        return "Cadence Design Systems";
+    default:
+        return "Unknown Vendor";
+    }
+}
+
+/**
   @brief   This API popultaes information from all the PCIe stimulus generation IP available
            in the system into exerciser_info_table structure
   @param   exerciser_info_table - Table pointer to be filled by this API
@@ -39,6 +58,8 @@ uint32_t val_exerciser_create_info_table(void)
   uint32_t num_bdf, num_ecam;
   uint32_t num_exerciser_info = 0;
   pcie_device_bdf_table *bdf_table;
+  char8_t *vendor_name;
+  uint32_t vendor_id;
 
   num_ecam = (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
   if (num_ecam == 0)
@@ -73,7 +94,13 @@ uint32_t val_exerciser_create_info_table(void)
       {
           g_exerciser_info_table.e_info[num_exerciser_info].bdf = Bdf;
           g_exerciser_info_table.e_info[num_exerciser_info++].initialized = 0;
+          vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
+          vendor_name = lookup_vendor_name(vendor_id);
           val_print(ACS_PRINT_DEBUG, "    exerciser Bdf %x\n", Bdf);
+          val_print(ACS_PRINT_DEBUG, "    Vendor ID: 0x%04x, ", vendor_id);
+          val_print(ACS_PRINT_DEBUG, "Vendor Name: ", 0);
+          val_print(ACS_PRINT_DEBUG, vendor_name, 0);
+          val_print(ACS_PRINT_DEBUG, "\n\n", 0);
       }
   }
   g_exerciser_info_table.num_exerciser = num_exerciser_info;
