@@ -57,6 +57,11 @@ payload(void)
       if (val_dma_get_info(DMA_HOST_IOMMU_ATTACHED, target_dev_index)) {
           iommu_flag++;
           val_dma_device_get_dma_addr(target_dev_index, &dma_addr, &dma_len);
+          if (dma_addr == 0 || dma_len == 0) {
+             val_print(ACS_PRINT_ERR, "\n        No active or valid ata command or "
+                                      "scatterlist for device at index : %d", target_dev_index);
+             continue;
+          }
           status = val_smmu_ops(SMMU_CHECK_DEVICE_IOVA, &target_dev_index, &dma_addr);
           if (status) {
               val_print(ACS_PRINT_ERR, "\n       The DMA address %lx used by device ", dma_addr);
