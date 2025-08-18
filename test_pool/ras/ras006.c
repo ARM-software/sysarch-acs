@@ -42,6 +42,7 @@ payload()
   uint64_t err_rec_impl_bitmap;
   uint64_t err_rec_addrmode_bitmap;
   uint64_t data;
+  uint64_t addr_len;
 
   uint32_t status;
   uint32_t fail_cnt = 0, test_skip = 0;
@@ -117,6 +118,7 @@ payload()
           /* fetch base addr of the proximity domain to inject an error in platform
              defined method */
           prox_base_addr = val_srat_get_info(SRAT_MEM_BASE_ADDR, mc_prox_domain);
+          addr_len = val_srat_get_info(SRAT_MEM_ADDR_LEN, mc_prox_domain);
           if (prox_base_addr == SRAT_INVALID_INFO) {
               val_print(ACS_PRINT_ERR,
                         "\n       Invalid base address for proximity domain : 0x%lx",
@@ -126,7 +128,8 @@ payload()
           }
 
           /* check if the address accessible to PE by trying to allocate the address */
-          err_inj_addr = (uint64_t)val_mem_alloc_at_address(prox_base_addr, ONE_BYTE_BUFFER);
+          err_inj_addr = (uint64_t)val_mem_alloc_at_address(prox_base_addr,
+                                                            addr_len, ONE_BYTE_BUFFER);
 
           if (err_inj_addr == 0) {
               val_print(ACS_PRINT_ERR,

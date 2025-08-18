@@ -137,8 +137,9 @@ static void payload(void)
         }
 
         //* Allocate memory for 4 Megabytes */
-        src_buf = (void *)val_mem_alloc_at_address(prox_base_addr, BUFFER_SIZE);
-        dest_buf = (void *)val_mem_alloc_at_address(prox_base_addr + BUFFER_SIZE, BUFFER_SIZE);
+        src_buf = (void *)val_mem_alloc_at_address(prox_base_addr, addr_len, BUFFER_SIZE);
+        dest_buf = (void *)val_mem_alloc_at_address(prox_base_addr + BUFFER_SIZE,
+                                                    addr_len, BUFFER_SIZE);
 
         if ((src_buf == NULL) || (dest_buf == NULL)) {
             val_print(ACS_PRINT_ERR, "\n       Memory allocation of buffers failed", 0);

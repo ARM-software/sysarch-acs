@@ -63,6 +63,7 @@ void payload(void)
     uint32_t status;
     uint64_t buf_size;
     uint64_t base;
+    uint64_t size;
     uint32_t data;
     uint64_t nrdy_timeout;
     void *src_buf = 0;
@@ -138,8 +139,9 @@ void payload(void)
             /* Create 1 MB buffers sufficient to cretae overflow for this memory channel */
             buf_size = 1 * SIZE_1M;
             base = val_mpam_memory_get_base(msc_index, rsrc_index);
-            src_buf = (void *)val_mem_alloc_at_address(base, buf_size);
-            dest_buf = (void *)val_mem_alloc_at_address(base + buf_size, buf_size);
+            size = val_mpam_memory_get_size(msc_index, rsrc_index);
+            src_buf = (void *)val_mem_alloc_at_address(base, size, buf_size);
+            dest_buf = (void *)val_mem_alloc_at_address(base + buf_size, size, buf_size);
 
             if ((src_buf == NULL) || (dest_buf == NULL)) {
                 val_print(ACS_PRINT_ERR, "\n       Mem allocation for buffers failed", 0x0);

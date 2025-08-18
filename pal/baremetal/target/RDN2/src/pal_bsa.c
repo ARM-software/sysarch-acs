@@ -1073,10 +1073,12 @@ pal_mem_free_aligned (void *Buffer)
 void *
 pal_mem_alloc_at_address (
   uint64_t mem_base,
+  uint64_t mem_len,
   uint64_t Size
   )
 {
   (void) mem_base;
+  (void) mem_len;
   (void) Size;
   return (void*) NULL;
 }

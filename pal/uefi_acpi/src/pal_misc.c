@@ -23,6 +23,8 @@
 #include <Protocol/Cpu.h>
 #include "include/pal_uefi.h"
 
+#define ALIGN_UP(x, a)   (((x) + ((a)-1)) & ~((a)-1))
+
 UINT8   *gSharedMemory;
 
 /**
@@ -634,24 +636,33 @@ pal_mem_free_pages(
 VOID *
 pal_mem_alloc_at_address (
   UINT64 mem_base,
+  UINT64 mem_len,
   UINT64 Size
   )
 {
   EFI_STATUS Status;
   EFI_PHYSICAL_ADDRESS PageBase;
+  UINT64 CurrentAddr;
 
-  PageBase = mem_base;
-  Status = gBS->AllocatePages (AllocateAddress,
+  CurrentAddr = ALIGN_UP(mem_base, 4096);
+
+  while ((CurrentAddr + Size) <= (mem_base + mem_len))
+  {
+    PageBase = CurrentAddr;
+    Status = gBS->AllocatePages (AllocateAddress,
                                EfiBootServicesData,
                                EFI_SIZE_TO_PAGES(Size),
                                &PageBase);
-  if (EFI_ERROR(Status))
-  {
-    acs_print(ACS_PRINT_ERR, L" Allocate Pages failed %x\n", Status);
-    return NULL;
+    if (!EFI_ERROR(Status))
+    {
+      return (VOID *)(UINTN)PageBase;
+    }
+
+    CurrentAddr += 4096;
   }
 
-  return (VOID*)(UINTN)PageBase;
+  acs_print(ACS_PRINT_ERR, L" Allocate Pages failed %x\n", Status);
+  return NULL;
 }
 
 /**
