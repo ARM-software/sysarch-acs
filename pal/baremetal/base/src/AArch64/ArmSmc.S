@@ -42,6 +42,7 @@ ASM_PFX(ArmCallSmc):
   // A SMC call can return up to 4 values - we do not need to store back x4-x7.
   stp   x2, x3, [x9, #16]
   stp   x0, x1, [x9, #0]
+  str   x4, [x9, #32]
 
   mov   x0, x9
 

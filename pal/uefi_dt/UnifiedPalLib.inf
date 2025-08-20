@@ -28,6 +28,7 @@
   src/AArch64/ArmSmc.S
   src/AArch64/AcsTestInfra.S
   src/AArch64/ModuleEntryPoint.S
+  src/AArch64/AcsPfdiTest.S
   src/pal_misc.c
   src/pal_acpi.c
   src/pal_pe.c
@@ -41,6 +42,7 @@
   src/pal_smmu.c
   src/pal_dt.c
   src/pal_dt_debug.c
+  src/pal_pfdi.c
 
 [Packages]
   StdLib/StdLib.dec

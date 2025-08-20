@@ -63,6 +63,7 @@ finish:
 
   // Store the SMC returned values into the ARM_SMC_ARGS structure.
   // A SMC call can return up to 4 values - we do not need to store back x4-x7.
+  str   x4, [x9, #32]
   stp   x2, x3, [x9, #16]
   stp   x0, x1, [x9, #0]
 

@@ -23,6 +23,8 @@
 #include "include/acs_std_smc.h"
 #include "include/acs_memory.h"
 
+extern int32_t gPsciConduit;
+
 /**
   @brief   This function checks if reserved_bits received are zero
   @param   reserved_bits reserved bits value received
@@ -42,7 +44,7 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
               unsigned long arg2, unsigned long arg3,
               unsigned long arg4, unsigned long arg5,
               unsigned long *ret1, unsigned long *ret2,
-              unsigned long *ret3)
+              unsigned long *ret3, unsigned long *ret4)
 {
     int64_t status;
     ARM_SMC_ARGS args;
@@ -54,7 +56,7 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
     args.Arg4 = arg4;
     args.Arg5 = arg5;
 
-    pal_pe_call_smc(&args, CONDUIT_SMC);
+    pal_pe_call_smc(&args, gPsciConduit);
     status = args.Arg0;
 
     if (ret1)
@@ -63,6 +65,8 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
       *ret2 = args.Arg2;
     if (ret3)
       *ret3 = args.Arg3;
+    if (ret4)
+      *ret4 = args.Arg4;
 
     return status;
 }
@@ -75,7 +79,7 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
 int64_t val_pfdi_version(void)
 {
     return val_invoke_pfdi_fn(PFDI_FN_PFDI_VERSION, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL);
+                              NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -86,7 +90,7 @@ int64_t val_pfdi_version(void)
 int64_t val_pfdi_features(uint32_t function_id)
 {
     return val_invoke_pfdi_fn(PFDI_FN_PFDI_FEATURES, function_id, 0, 0, 0, 0,
-                                NULL, NULL, NULL);
+                                NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -100,7 +104,7 @@ int64_t val_pfdi_pe_test_id(int64_t *test_id)
     unsigned long _test_id;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_ID, 0, 0, 0, 0, 0,
-                              &_test_id, NULL, NULL);
+                              &_test_id, NULL, NULL, NULL);
     if (test_id)
         *test_id = (int64_t)_test_id;
 
@@ -115,7 +119,7 @@ int64_t val_pfdi_pe_test_id(int64_t *test_id)
 int64_t val_pfdi_pe_test_part_count(void)
 {
     return val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_PART_COUNT, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL);
+                              NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -128,7 +132,7 @@ int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id)
     unsigned long _fault_test_id;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_RUN, start, end, 0, 0, 0,
-                              &_fault_test_id, NULL, NULL);
+                              &_fault_test_id, NULL, NULL, NULL);
     if (fault_test_id)
         *fault_test_id = (int64_t)_fault_test_id;
 
@@ -145,7 +149,7 @@ int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id)
     unsigned long _fault_test_part_id;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_RESULT, 0, 0, 0, 0, 0,
-                              &_fault_test_part_id, NULL, NULL);
+                              &_fault_test_part_id, NULL, NULL, NULL);
     if (fault_test_part_id)
         *fault_test_part_id = (int64_t)_fault_test_part_id;
 
@@ -160,7 +164,7 @@ int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id)
 int64_t val_pfdi_fw_check(void)
 {
     return val_invoke_pfdi_fn(PFDI_FN_PFDI_FW_CHECK, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL);
+                              NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -171,6 +175,24 @@ int64_t val_pfdi_fw_check(void)
 int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value)
 {
     return val_invoke_pfdi_fn(PFDI_FN_PFDI_FORCE_ERROR, function_id,
-                                error_value, 0, 0, 0, NULL, NULL, NULL);
+                                error_value, 0, 0, 0, NULL, NULL, NULL, NULL);
+}
+
+/**
+  @brief  Make the SMC call using AARCH64 Assembly code
+
+  @param  args to pass to the EL3 firmware
+  @param  conduit  SMC or HVC
+  @param  pre_smc_regs  regs x5 to x17 before smc/hvc call
+  @param  post_smc_regs regs x5 to x17 after smc/hvc call
+
+  @return  None
+**/
+void
+val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
+              uint64_t pre_smc_regs[REG_COUNT_X5_X17],
+              uint64_t post_smc_regs[REG_COUNT_X5_X17])
+{
+    pal_pfdi_verify_regs(args, conduit, pre_smc_regs, post_smc_regs);
 }
 

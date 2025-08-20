@@ -804,7 +804,11 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
               unsigned long arg2, unsigned long arg3,
               unsigned long arg4, unsigned long arg5,
               unsigned long *ret1, unsigned long *ret2,
-              unsigned long *ret3);
+              unsigned long *ret3, unsigned long *ret4);
+void
+val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
+              uint64_t pre_smc_regs[REG_COUNT_X5_X17],
+              uint64_t post_smc_regs[REG_COUNT_X5_X17]);
 
 uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
 
@@ -818,5 +822,6 @@ uint32_t pfdi007_entry(uint32_t num_pe);
 uint32_t pfdi008_entry(uint32_t num_pe);
 uint32_t pfdi009_entry(uint32_t num_pe);
 uint32_t pfdi010_entry(uint32_t num_pe);
+uint32_t pfdi011_entry(uint32_t num_pe);
 
 #endif

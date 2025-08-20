@@ -48,7 +48,7 @@ check_invalid_fn()
   val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
 
   /* Invoke PFDI invalid function on current PE index */
-  status = val_invoke_pfdi_fn(PFDI_FN_PFDI_INVALID, 0, 0, 0, 0, 0, NULL, NULL, NULL);
+  status = val_invoke_pfdi_fn(PFDI_FN_PFDI_INVALID, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
 
   /*Save the return status*/
   status_buffer->status_unsupported = status;
