@@ -88,7 +88,8 @@ void
 payload()
 {
 
-    uint32_t status, timeout, ns_wdg = 0;
+    uint32_t status, ns_wdg = 0;
+    uint64_t timeout;
     uint64_t timer_expire_ticks = 1 * g_wakeup_timeout;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
     wd_num = val_wd_get_info(0, WD_INFO_COUNT);
@@ -112,7 +113,6 @@ payload()
             continue;    /*Skip Secure watchdog*/
 
         ns_wdg++;
-        timeout = val_get_counter_frequency() * 2;
 
         int_id       = val_wd_get_info(wd_num, WD_INFO_GSIV);
         val_print(ACS_PRINT_DEBUG, "\n       WS0 Interrupt id  %d        ", int_id);
@@ -137,7 +137,6 @@ payload()
         else
             val_gic_set_intr_trigger(int_id, INTR_TRIGGER_INFO_LEVEL_HIGH);
 
-        wakeup_set_failsafe();
         g_wd_int_received = 0;
         status = val_wd_set_ws0(wd_num, timer_expire_ticks);
         if (status) {
@@ -145,9 +144,12 @@ payload()
             val_set_status(index, RESULT_FAIL(TEST_NUM, 4));
             return;
         }
+        wakeup_set_failsafe();
 
-        timeout = val_get_counter_frequency() * 2;
+        timeout = val_get_counter_frequency() * 2 * g_wakeup_timeout;
         while (timeout && (g_wd_int_received == 0) && (g_failsafe_int_received == 0)) {
+          val_data_cache_ops_by_va((addr_t)&g_wd_int_received, INVALIDATE);
+          val_data_cache_ops_by_va((addr_t)&g_failsafe_int_received, INVALIDATE);
           timeout--;
         }
         wakeup_clear_failsafe();
@@ -155,6 +157,7 @@ payload()
         val_wd_set_ws0(wd_num, 0);
 
         if (g_failsafe_int_received) {
+          val_print(ACS_PRINT_ERR, "\n       Failsafe interrupt received, no WS0 interrupt", 0);
           val_set_status(index, RESULT_FAIL(TEST_NUM, 7));
           return;
         }
