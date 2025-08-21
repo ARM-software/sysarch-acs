@@ -13,20 +13,6 @@ index f0a8b9f..e41e0de 100644
  
    //
    // Retrieve the pointer to the optional UEFI HII Font Protocol
-diff --git a/MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c b/MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c
-index eb12266..bd86b3a 100644
---- a/MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c
-+++ b/MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c
-@@ -815,8 +815,5 @@ FreePool (
-   IN VOID  *Buffer
-   )
- {
--  EFI_STATUS  Status;
--
--  Status = gBS->FreePool (Buffer);
--  ASSERT_EFI_ERROR (Status);
-+  gBS->FreePool (Buffer);
- }
 diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
 index 7e985f8..5ea90eb 100644
 --- a/ShellPkg/ShellPkg.dsc
