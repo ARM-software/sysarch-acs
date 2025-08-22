@@ -40,7 +40,7 @@ uint8_t get_effective_e2h(void)
   else
     effective_e2h = hcr_e2h;
 
-  val_print(ACS_PRINT_DEBUG, "\n       effective e2h : 0x%x", effective_e2h);
+  val_print(ACS_PRINT_DEBUG, "\n       effective e2h : 0x%x\n", effective_e2h);
   return effective_e2h;
 }
 
