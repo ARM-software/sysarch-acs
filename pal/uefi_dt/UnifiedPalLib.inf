@@ -43,6 +43,7 @@
   src/pal_dt_debug.c
 
 [Packages]
+  StdLib/StdLib.dec
   ArmPkg/ArmPkg.dec
   MdePkg/MdePkg.dec
   ShellPkg/ShellPkg.dec
