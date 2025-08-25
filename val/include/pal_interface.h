@@ -100,7 +100,6 @@
   typedef UINT64  uint64_t;
   typedef UINT64  addr_t;
   typedef UINT64  dma_addr_t;
-  typedef BOOLEAN bool;
 
   #define MAX_SID  32
   #define MMU_PGT_IAS    48
