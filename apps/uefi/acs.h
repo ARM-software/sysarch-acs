@@ -84,7 +84,7 @@
                                        /*[72 B Each + 16 B Header]*/
 #define PCIE_INFO_TBL_SZ        1024   /*Supports max 40 RC's    */
                                        /*[24 B Each + 4 B Header]*/
-#define SMBIOS_INFO_TBL_SZ      1024   /*Supports max 16 Processor Slots/Sockets*/
+#define SMBIOS_INFO_TBL_SZ      65536  /*Supports max 1024 Processor Slots/Sockets*/
                                        /*[64 B Each]*/
 #define PMU_INFO_TBL_SZ         20496  /*Supports maximum 512 PMUs*/
                                        /*[40 B Each + 4 B Header]*/

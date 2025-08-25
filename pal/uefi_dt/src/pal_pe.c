@@ -66,7 +66,7 @@ static char psci_dt_arr[][PSCI_COMPATIBLE_STR_LEN] = {
 };
 
 
-#define MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED  16
+#define MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED  1024
 #define SIZE_STACK_SECONDARY_PE  0x100                //256 bytes per core
 #define UPDATE_AFF_MAX(src,dest,mask)  ((dest & mask) > (src & mask) ? (dest & mask) : (src & mask))
 
