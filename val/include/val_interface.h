@@ -118,7 +118,8 @@ uint64_t val_time_delay_ms(uint64_t time_ms);
 typedef enum {
   PE_FEAT_MPAM,
   PE_FEAT_PMU,
-  PE_FEAT_RAS
+  PE_FEAT_RAS,
+  PE_FEAT_RME
 } PE_FEAT_NAME;
 
 void     val_pe_cache_clean_invalidate_range(uint64_t start_addr, uint64_t length);
@@ -798,6 +799,7 @@ void     val_mpam_msc_trigger_intr(uint32_t msc_index);
 uint32_t reg001_entry(void);
 uint32_t reg002_entry(void);
 uint32_t reg003_entry(void);
+uint32_t reg004_entry(void);
 
 // Memory Bandwidth partitioning tests entry calls
 uint32_t mem001_entry(void);

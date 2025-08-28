@@ -666,6 +666,12 @@ uint32_t val_pe_feat_check(PE_FEAT_NAME pe_feature)
             return ACS_STATUS_PASS;
         else
             return ACS_STATUS_FAIL;
+    case PE_FEAT_RME:
+        /*  ID_AA64PFR0_EL1 RME bits [55:52] != 0 indicate RME implemented */
+        if ((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 52, 55)) != 0)
+            return ACS_STATUS_PASS;
+        else
+            return ACS_STATUS_FAIL;
     default:
         val_print(ACS_PRINT_ERR, "\nPE_FEAT_CHECK: Invalid PE feature", 0);
         return ACS_STATUS_FAIL;

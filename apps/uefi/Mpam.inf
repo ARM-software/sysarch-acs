@@ -39,6 +39,7 @@
   ../../test_pool/mpam/reg001.c
   ../../test_pool/mpam/reg002.c
   ../../test_pool/mpam/reg003.c
+  ../../test_pool/mpam/reg004.c
   ../../test_pool/mpam/error001.c
   ../../test_pool/mpam/error002.c
   ../../test_pool/mpam/error003.c

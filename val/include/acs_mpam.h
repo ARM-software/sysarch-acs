@@ -40,11 +40,14 @@
 #define MPAMn_ELx_PMG_I_MASK        0xffULL
 #define MPAMn_ELx_PMG_D_MASK        0xffULL
 #define MPAMn_ELx_MPAMEN_MASK       0x1ULL
+
 /* MPAMIDR_EL1 bit definitions */
 #define MPAMIDR_PARTID_MAX_SHIFT    0
 #define MPAMIDR_PMG_MAX_SHIFT       32
 #define MPAMIDR_PARTID_MAX_MASK     0xffff
 #define MPAMIDR_PMG_MAX_MASK        0xff
+#define MPAMIDR_HAS_ALTSP           57
+#define MPAMIDR_SP4                 59
 
 #define CPOR_BITMAP_DEF_VAL         0xFFFFFFFF
 
