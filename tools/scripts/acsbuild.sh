@@ -15,10 +15,18 @@
 #  limitations under the License.
 ##
 
-if [ $(uname -m) != "aarch64" ] && [ -v $GCC_AARCH64_PREFIX ]
+if [ "$1" != "mem_test" ] && [ $(uname -m) != "aarch64" ] && [ -v $GCC_AARCH64_PREFIX ]
 then
     echo "GCC_AARCH64_PREFIX is not set"
     echo "set using export GCC_AARCH64_PREFIX=<lib_path>/bin/aarch64-linux-gnu-"
+    return 0
+fi
+
+#GGC49 prefix check for mem_test build
+if [ "$1" == "mem_test" ] && [ $(uname -m) != "aarch64" ] && [ -v $GCCNOLTO_AARCH64_PREFIX ]
+then
+    echo "GCCNOLTO_AARCH64_PREFIX is not set"
+    echo "set using export GCCNOLTO_AARCH64_PREFIX=<lib_path>/bin/aarch64-linux-gnu-"
     return 0
 fi
 
@@ -128,7 +136,7 @@ fi
 if [ "$1" == "mem_test" ]; then
     git checkout ShellPkg/ShellPkg.dsc
     git apply ShellPkg/Application/sysarch-acs/mem_test/patches/mem_test_edk2.patch
-    build -a AARCH64 -t GCC -n 1 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Mem.inf
+    build -a AARCH64 -t GCCNOLTO -n 1 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Mem.inf
     return 0;
 fi
 
