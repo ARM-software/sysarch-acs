@@ -23,36 +23,24 @@
 #define TEST_RULE  "R0060"
 #define TEST_DESC  "Check PFDI Feature function support       "
 
-typedef struct{
-  int64_t status;
-  int64_t status_invalid;
-} pfdi_feature_check_details;
-
-pfdi_feature_check_details *g_pfdi_feature_check_details;
-
+PFDI_RET_PARAMS *g_pfdi_feature_check_details;
 
 void
 check_feature()
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   int64_t  status;
-  pfdi_feature_check_details  *status_buffer;
+  PFDI_RET_PARAMS *status_buffer;
 
   status_buffer = g_pfdi_feature_check_details + index;
 
   /* Invoke PFDI Feature function for current PE index */
-  status = val_pfdi_features(PFDI_FN_PFDI_FEATURES);
+  status = val_pfdi_features(PFDI_FN_PFDI_FEATURES, &status_buffer->x1, &status_buffer->x2,
+                                               &status_buffer->x3, &status_buffer->x4);
 
   /*Save the return status*/
-  status_buffer->status = status;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
-
-  /* Invoke PFDI Feature function with invalid id for current PE index */
-  status = val_pfdi_features(PFDI_FN_PFDI_INVALID);
-
-  /*Save the return status*/
-  status_buffer->status_invalid = status;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
+  status_buffer->x0 = status;
+  val_pfdi_invalidate_ret_params(status_buffer);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -62,12 +50,12 @@ static void payload_feature_check(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t timeout, i = 0, run_fail = 0;
-  pfdi_feature_check_details *status_buffer;
+  PFDI_RET_PARAMS *status_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
 
   /* Allocate memory to save all PFDI function status for all PE's */
-  g_pfdi_feature_check_details = (pfdi_feature_check_details *)
-                    val_memory_calloc(num_pe, sizeof(pfdi_feature_check_details));
+  g_pfdi_feature_check_details = (PFDI_RET_PARAMS *)
+                    val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_feature_check_details == NULL) {
     val_print(ACS_PRINT_ERR,
                 "\n       Allocation for PFDI Feature Check Function Failed", 0);
@@ -77,8 +65,7 @@ static void payload_feature_check(void *arg)
 
   for (i = 0; i < num_pe; i++) {
     status_buffer = g_pfdi_feature_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(status_buffer);
   }
 
   /* Invoke PFDI Feature function for current PE index */
@@ -104,21 +91,24 @@ static void payload_feature_check(void *arg)
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
     status_buffer = g_pfdi_feature_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(status_buffer);
     run_fail = 0;
 
-    if (status_buffer->status < PFDI_ACS_SUCCESS) {
+    if (status_buffer->x0 < PFDI_ACS_SUCCESS) {
       val_print(ACS_PRINT_ERR, "\n       PFDI Feature Check function failed err = %ld",
-                                                        status_buffer->status);
+                                                        status_buffer->x0);
       val_print(ACS_PRINT_ERR, " on PE index = %d", i);
       run_fail++;
     }
 
-    if (status_buffer->status_invalid != PFDI_ACS_NOT_SUPPORTED) {
-      val_print(ACS_PRINT_ERR, "\n       PFDI Feature Check invalid function failed err = %d",
-                                                        status_buffer->status_invalid);
-      val_print(ACS_PRINT_ERR, " on PE index = %d", i);
+    if ((status_buffer->x1 != 0) || (status_buffer->x2 != 0) ||
+        (status_buffer->x3 != 0) || (status_buffer->x4 != 0)) {
+      val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, " x1=0x%llx", status_buffer->x1);
+      val_print(ACS_PRINT_ERR, " x2=0x%llx", status_buffer->x2);
+      val_print(ACS_PRINT_ERR, " x3=0x%llx", status_buffer->x3);
+      val_print(ACS_PRINT_ERR, " x4=0x%llx", status_buffer->x4);
+      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
       run_fail++;
     }
 

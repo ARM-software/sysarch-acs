@@ -23,26 +23,21 @@
 #define TEST_RULE  "R0089"
 #define TEST_DESC  "Query PFDI firmware check on all PEs      "
 
-typedef struct{
-  int64_t status;
-} pfdi_fw_check_details;
-
-pfdi_fw_check_details *g_pfdi_fw_check_details;
+PFDI_RET_PARAMS *g_pfdi_fw_check_details;
 
 void
 pfdi_fw_check(void)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  int64_t  status;
-  pfdi_fw_check_details   *status_buffer;
+  PFDI_RET_PARAMS *pfdi_buffer;
 
-  status_buffer = g_pfdi_fw_check_details + index;
+  pfdi_buffer = g_pfdi_fw_check_details + index;
 
   /* Invoke PFDI Firmware check function for current PE index */
-  status = val_pfdi_fw_check();
+  pfdi_buffer->x0 = val_pfdi_fw_check(&pfdi_buffer->x1, &pfdi_buffer->x2,
+                                     &pfdi_buffer->x3, &pfdi_buffer->x4);
 
-  status_buffer->status = status;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
+  val_pfdi_invalidate_ret_params(pfdi_buffer);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -52,12 +47,12 @@ static void payload_fw_check(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t timeout, i = 0, test_fail = 0;
-  pfdi_fw_check_details *status_buffer;
+  PFDI_RET_PARAMS *pfdi_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
 
   /* Allocate memory to save all PFDI function status for all PE's */
-  g_pfdi_fw_check_details = (pfdi_fw_check_details *)
-                    val_memory_calloc(num_pe, sizeof(pfdi_fw_check_details));
+  g_pfdi_fw_check_details = (PFDI_RET_PARAMS *)
+                    val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_fw_check_details == NULL) {
     val_print(ACS_PRINT_ERR,
                 "\n       Allocation for PFDI FW Check Function Failed", 0);
@@ -66,8 +61,8 @@ static void payload_fw_check(void *arg)
   }
 
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_fw_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_fw_check_details + i;
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
   }
 
   /* Invoke PFDI Firmware check function for current PE index */
@@ -92,14 +87,25 @@ static void payload_fw_check(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_fw_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status, CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_fw_check_details + i;
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
     test_fail = 0;
 
-    if (status_buffer->status < PFDI_ACS_SUCCESS) {
+    if (pfdi_buffer->x0 < PFDI_ACS_SUCCESS) {
       val_print(ACS_PRINT_ERR,
-            "\n       PFDI FW Check function failed %d", status_buffer->status);
+            "\n       PFDI FW Check function failed %lld", pfdi_buffer->x0);
       val_print(ACS_PRINT_ERR, "on PE  %d", i);
+      test_fail++;
+    }
+
+    if ((pfdi_buffer->x1 != 0) || (pfdi_buffer->x2 != 0) ||
+        (pfdi_buffer->x3 != 0) || (pfdi_buffer->x4 != 0)) {
+      val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, " x1=0x%llx", pfdi_buffer->x1);
+      val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->x2);
+      val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->x3);
+      val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->x4);
+      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
       test_fail++;
     }
 

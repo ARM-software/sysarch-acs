@@ -791,14 +791,24 @@ typedef enum {
     PFDI_MODULE,
 } PFDI_MODULE_ID_e;
 
+typedef struct{
+  int64_t x0;
+  int64_t x1;
+  int64_t x2;
+  int64_t x3;
+  int64_t x4;
+} PFDI_RET_PARAMS;
+
+
 uint32_t val_pfdi_reserved_bits_check_is_zero(uint32_t reserved_bits);
-int64_t val_pfdi_version(void);
-int64_t val_pfdi_features(uint32_t function_id);
-int64_t val_pfdi_pe_test_id(int64_t *test_id);
-int64_t val_pfdi_pe_test_part_count(void);
-int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id);
-int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id);
-int64_t val_pfdi_fw_check(void);
+int64_t val_pfdi_version(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_features(uint32_t function_id, int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_id(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_part_count(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_run(int64_t start, int64_t end,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_result(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_fw_check(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
 int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value);
 int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
               unsigned long arg2, unsigned long arg3,
@@ -809,6 +819,7 @@ void
 val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
               uint64_t pre_smc_regs[REG_COUNT_X5_X17],
               uint64_t post_smc_regs[REG_COUNT_X5_X17]);
+void val_pfdi_invalidate_ret_params(PFDI_RET_PARAMS *args);
 
 uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
 

@@ -39,7 +39,7 @@ pfdi_function_check(void)
 
   for (f_id = PFDI_FN_PFDI_VERSION; f_id <= PFDI_FN_PFDI_FORCE_ERROR; f_id++) {
     /* Invoke PFDI Feature function for current PE index */
-    pfdi_buffer->status[fn_status] = val_pfdi_features(f_id);
+    pfdi_buffer->status[fn_status] = val_pfdi_features(f_id, NULL, NULL, NULL, NULL);
     val_data_cache_ops_by_va((addr_t)&pfdi_buffer->status[fn_status], CLEAN_AND_INVALIDATE);
     fn_status++;
   }

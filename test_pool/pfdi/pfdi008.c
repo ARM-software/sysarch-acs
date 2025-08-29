@@ -23,28 +23,21 @@
 #define TEST_RULE  "R0082"
 #define TEST_DESC  "Query PE boot test status                 "
 
-typedef struct{
-  int64_t results_status;
-  int64_t fault_id;
-} pfdi_results_status_details;
-
-pfdi_results_status_details *g_pfdi_results_status_details;
+PFDI_RET_PARAMS *g_pfdi_results_status_details;
 
 void
 pfdi_test_results(void)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  int64_t fault_test_id;
-  pfdi_results_status_details   *status_buffer;
+  PFDI_RET_PARAMS *pfdi_buffer;
 
-  status_buffer = g_pfdi_results_status_details + index;
+  pfdi_buffer = g_pfdi_results_status_details + index;
 
   /* Invoke PFDI Results function for current PE index */
-  status_buffer->results_status = val_pfdi_pe_test_result(&fault_test_id);
+  pfdi_buffer->x0 = val_pfdi_pe_test_result(&pfdi_buffer->x1, &pfdi_buffer->x2,
+                                     &pfdi_buffer->x3, &pfdi_buffer->x4);
 
-  status_buffer->fault_id = fault_test_id;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->results_status, CLEAN_AND_INVALIDATE);
-  val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
+  val_pfdi_invalidate_ret_params(pfdi_buffer);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -54,12 +47,12 @@ static void payload_test_results(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t timeout, i = 0, test_fail = 0;
-  pfdi_results_status_details *status_buffer;
+  PFDI_RET_PARAMS *pfdi_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
 
   /* Allocate memory to save all PFDI results status and fault id's for all PE's */
-  g_pfdi_results_status_details = (pfdi_results_status_details *)
-                    val_memory_calloc(num_pe, sizeof(pfdi_results_status_details));
+  g_pfdi_results_status_details = (PFDI_RET_PARAMS *)
+                    val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_results_status_details == NULL) {
     val_print(ACS_PRINT_ERR,
                 "\n       Allocation for PFDI Results Function Failed", 0);
@@ -68,9 +61,8 @@ static void payload_test_results(void *arg)
   }
 
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_results_status_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->results_status, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_results_status_details + i;
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
   }
 
   /* Invoke PFDI Run function for current PE index */
@@ -95,26 +87,25 @@ static void payload_test_results(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_results_status_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->results_status, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&status_buffer->fault_id, CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_results_status_details + i;
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
     test_fail = 0;
 
-    if (status_buffer->results_status < PFDI_ACS_SUCCESS) {
-      if (status_buffer->results_status == PFDI_ACS_FAULT_FOUND) {
-        if (status_buffer->fault_id == PFDI_ACS_UNKNOWN) {
+    if (pfdi_buffer->x0 < PFDI_ACS_SUCCESS) {
+      if (pfdi_buffer->x0 == PFDI_ACS_FAULT_FOUND) {
+        if (pfdi_buffer->x1 == PFDI_ACS_UNKNOWN) {
           val_print(ACS_PRINT_ERR, "\n       Fault in PFDI test part on PE %d ", i);
           val_print(ACS_PRINT_ERR, "cannot be identified", 0);
         } else {
-          val_print(ACS_PRINT_ERR, "\n       PFDI test part %d ", status_buffer->fault_id);
+          val_print(ACS_PRINT_ERR, "\n       PFDI test part %lld ", pfdi_buffer->x1);
           val_print(ACS_PRINT_ERR, "triggered the fault on PE %d", i);
         }
-      } else if (status_buffer->results_status == PFDI_ACS_ERROR) {
+      } else if (pfdi_buffer->x0 == PFDI_ACS_ERROR) {
         val_print(ACS_PRINT_ERR,
               "\n       PFDI Test parts have executed but failed to complete on PE %d", i);
       } else {
-        val_print(ACS_PRINT_ERR, "\n       PFDI PE Results function failed err = %d",
-                                                      status_buffer->results_status);
+        val_print(ACS_PRINT_ERR, "\n       PFDI PE Results function failed err = %lld",
+                                                      pfdi_buffer->x0);
         val_print(ACS_PRINT_ERR, "on PE  %d", i);
       }
       test_fail++;

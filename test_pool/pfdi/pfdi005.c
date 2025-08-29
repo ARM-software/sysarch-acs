@@ -23,28 +23,21 @@
 #define TEST_RULE  "R0066"
 #define TEST_DESC  "Check PE HW test mechanism info           "
 
-typedef struct{
-  int64_t pfdi_st_version;
-  int64_t pfdi_st_status;
-} st_version_details;
-
-st_version_details *g_pfdi_st_version_details;
+PFDI_RET_PARAMS *g_pfdi_st_version_details;
 
 void
 pfdi_st_version_check(void)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  st_version_details *pfdi_st_status_buffer;
-  int64_t feat;
+  PFDI_RET_PARAMS *pfdi_buffer;
 
-  pfdi_st_status_buffer = g_pfdi_st_version_details + index;
+  pfdi_buffer = g_pfdi_st_version_details + index;
 
   /* Invoke PFDI Test ID  function for current PE index */
-  pfdi_st_status_buffer->pfdi_st_status = val_pfdi_pe_test_id(&feat);
-  pfdi_st_status_buffer->pfdi_st_version = feat;
+  pfdi_buffer->x0 = val_pfdi_pe_test_id(&pfdi_buffer->x1, &pfdi_buffer->x2,
+                                        &pfdi_buffer->x3, &pfdi_buffer->x4);
 
-  val_data_cache_ops_by_va((addr_t)&pfdi_st_status_buffer->pfdi_st_version, CLEAN_AND_INVALIDATE);
-  val_data_cache_ops_by_va((addr_t)&pfdi_st_status_buffer->pfdi_st_status, CLEAN_AND_INVALIDATE);
+  val_pfdi_invalidate_ret_params(pfdi_buffer);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -57,11 +50,11 @@ static void payload_pe_test_id_check(void *arg)
   int64_t test_fail = 0;
   int64_t version, temp_status;
   uint32_t timeout, i = 0, major, minor, vendor_id;
-  st_version_details *st_pfdi_buffer;
+  PFDI_RET_PARAMS *pfdi_buffer;
 
   /* Allocate memory to save all PFDI Self Test Versions for all PE's */
   g_pfdi_st_version_details =
-            (st_version_details *) val_memory_calloc(num_pe, sizeof(st_version_details));
+            (PFDI_RET_PARAMS *) val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_st_version_details == NULL) {
     val_print(ACS_PRINT_ERR,
                 "\n       Allocation for PFDI Self Test Version Details Failed", 0);
@@ -70,9 +63,8 @@ static void payload_pe_test_id_check(void *arg)
   }
 
   for (i = 0; i < num_pe; i++) {
-    st_pfdi_buffer = g_pfdi_st_version_details + i;
-    val_data_cache_ops_by_va((addr_t)&st_pfdi_buffer->pfdi_st_version, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&st_pfdi_buffer->pfdi_st_status, CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_st_version_details + i;
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
   }
 
   /* Invoke PFDI PE Test ID function for current PE index */
@@ -97,18 +89,17 @@ static void payload_pe_test_id_check(void *arg)
 
   for (i = 0; i < num_pe; i++) {
     val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test version details for PE index = %d", i);
-    st_pfdi_buffer = g_pfdi_st_version_details + i;
+    pfdi_buffer = g_pfdi_st_version_details + i;
     test_fail = 0;
 
-    val_data_cache_ops_by_va((addr_t)&st_pfdi_buffer->pfdi_st_status, CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&st_pfdi_buffer->pfdi_st_version, CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(pfdi_buffer);
 
-    version = st_pfdi_buffer->pfdi_st_version;
-    temp_status  = st_pfdi_buffer->pfdi_st_status;
+    temp_status  = pfdi_buffer->x0;
+    version = pfdi_buffer->x1;
 
     if (temp_status != PFDI_ACS_SUCCESS) {
       val_print(ACS_PRINT_ERR,
-                "\n       PFDI PE Test ID failed err = %d", temp_status);
+                "\n       PFDI PE Test ID failed err = %lld", temp_status);
       test_fail++;
     }
 
@@ -122,6 +113,15 @@ static void payload_pe_test_id_check(void *arg)
     /* Return status Bits[23:20] must be zero */
     if (val_pfdi_reserved_bits_check_is_zero(
              VAL_EXTRACT_BITS(version, 20, 23)) != ACS_STATUS_PASS) {
+      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+      test_fail++;
+    }
+
+    if ((pfdi_buffer->x2 != 0) || (pfdi_buffer->x3 != 0) || (pfdi_buffer->x4 != 0)) {
+      val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->x2);
+      val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->x3);
+      val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->x4);
       val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
       test_fail++;
     }

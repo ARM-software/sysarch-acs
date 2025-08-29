@@ -23,21 +23,19 @@
 #define TEST_RULE  "R0071"
 #define TEST_DESC  "Check num of Test Part supported          "
 
-typedef struct {
-  int64_t test_count;
-} pfdi_pe_test_support_info;
-
-pfdi_pe_test_support_info *g_pfdi_pe_test_support_info;
+PFDI_RET_PARAMS *g_pfdi_pe_test_support_info;
 
 void
 pfdi_test_part_count(void)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  pfdi_pe_test_support_info *test_buffer = g_pfdi_pe_test_support_info + index;
+  PFDI_RET_PARAMS *pfdi_buffer = g_pfdi_pe_test_support_info + index;
 
   /* Invoke PFDI Feature function for current PE index */
-  test_buffer->test_count = val_pfdi_pe_test_part_count();
-  val_data_cache_ops_by_va((addr_t)&test_buffer->test_count, CLEAN_AND_INVALIDATE);
+  pfdi_buffer->x0 = val_pfdi_pe_test_part_count(&pfdi_buffer->x1, &pfdi_buffer->x2,
+                                     &pfdi_buffer->x3, &pfdi_buffer->x4);
+
+  val_pfdi_invalidate_ret_params(pfdi_buffer);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -48,11 +46,12 @@ static void payload_pe_test_info_check(void *arg)
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t num_pe = *((uint32_t *)arg);
   uint32_t timeout, i = 0;
-  pfdi_pe_test_support_info *test_buffer;
+  uint32_t test_fail = 0;
+  PFDI_RET_PARAMS *test_buffer;
 
   /* Allocate memory to save all PFDI Versions or status for all PE's */
   g_pfdi_pe_test_support_info =
-        (pfdi_pe_test_support_info *)val_memory_calloc(num_pe, sizeof(pfdi_pe_test_support_info));
+        (PFDI_RET_PARAMS *)val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_pe_test_support_info == NULL) {
       val_print(ACS_PRINT_ERR, "\n       Allocation for PFDI PE Test Support Info Failed \n", 0);
       return;
@@ -60,7 +59,7 @@ static void payload_pe_test_info_check(void *arg)
 
   for (i = 0; i < num_pe; i++) {
     test_buffer = g_pfdi_pe_test_support_info + i;
-    val_data_cache_ops_by_va((addr_t)&test_buffer->test_count, CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(test_buffer);
   }
 
   /* Invoke PFDI Test Part count function for current PE index */
@@ -85,21 +84,37 @@ static void payload_pe_test_info_check(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
+    test_fail = 0;
     test_buffer = g_pfdi_pe_test_support_info + i;
 
-    val_data_cache_ops_by_va((addr_t)&test_buffer->test_count, CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(test_buffer);
 
-    if (test_buffer->test_count < PFDI_ACS_SUCCESS) {
+    if (test_buffer->x0 < PFDI_ACS_SUCCESS) {
       val_print(ACS_PRINT_ERR, "\n       PFDI query Test part count failed %lld",
-                                  test_buffer->test_count);
+                                  test_buffer->x0);
       val_print(ACS_PRINT_ERR, "on PE = %d", i);
-      val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
+      test_fail++;
     } else {
       val_print(ACS_PRINT_DEBUG,
-                    "\n       Test Part Count = 0x%llx", test_buffer->test_count);
+                    "\n       Test Part Count = 0x%llx", test_buffer->x0);
       val_print(ACS_PRINT_DEBUG, "on PE  %d", i);
-      val_set_status(i, RESULT_PASS(TEST_NUM, 1));
     }
+
+    if ((test_buffer->x1 != 0) || (test_buffer->x2 != 0) ||
+        (test_buffer->x3 != 0) || (test_buffer->x4 != 0)) {
+      val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, " x1=0x%llx", test_buffer->x1);
+      val_print(ACS_PRINT_ERR, " x2=0x%llx", test_buffer->x2);
+      val_print(ACS_PRINT_ERR, " x3=0x%llx", test_buffer->x3);
+      val_print(ACS_PRINT_ERR, " x4=0x%llx", test_buffer->x4);
+      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+      test_fail++;
+    }
+
+    if (test_fail)
+      val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
+    else
+      val_set_status(i, RESULT_PASS(TEST_NUM, 1));
   }
 
 free_pfdi_details:

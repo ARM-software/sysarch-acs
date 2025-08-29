@@ -76,10 +76,24 @@ int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
  *
  *  @return  status and version
  */
-int64_t val_pfdi_version(void)
+int64_t val_pfdi_version(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
-    return val_invoke_pfdi_fn(PFDI_FN_PFDI_VERSION, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL, NULL);
+    int64_t status;
+    unsigned long _x1, _x2, _x3, _x4;
+
+    status = val_invoke_pfdi_fn(PFDI_FN_PFDI_VERSION, 0, 0, 0, 0, 0,
+                              &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
+
+    return status;
 }
 
 /**
@@ -87,10 +101,25 @@ int64_t val_pfdi_version(void)
  *
  *  @return  status and feature details
  */
-int64_t val_pfdi_features(uint32_t function_id)
+int64_t val_pfdi_features(uint32_t function_id, int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
-    return val_invoke_pfdi_fn(PFDI_FN_PFDI_FEATURES, function_id, 0, 0, 0, 0,
-                                NULL, NULL, NULL, NULL);
+    int64_t status;
+    unsigned long _x1, _x2, _x3, _x4;
+
+    status = val_invoke_pfdi_fn(PFDI_FN_PFDI_FEATURES, function_id, 0, 0, 0, 0,
+                              &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
+
+    return status;
+
 }
 
 /**
@@ -98,15 +127,22 @@ int64_t val_pfdi_features(uint32_t function_id)
  *
  *  @return  status and PFDI Test ID
  */
-int64_t val_pfdi_pe_test_id(int64_t *test_id)
+int64_t val_pfdi_pe_test_id(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
     int64_t status;
-    unsigned long _test_id;
+    unsigned long _x1, _x2, _x3, _x4;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_ID, 0, 0, 0, 0, 0,
-                              &_test_id, NULL, NULL, NULL);
-    if (test_id)
-        *test_id = (int64_t)_test_id;
+                              &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
 
     return status;
 }
@@ -116,25 +152,47 @@ int64_t val_pfdi_pe_test_id(int64_t *test_id)
  *
  *  @return  status and PFDI part tests count
  */
-int64_t val_pfdi_pe_test_part_count(void)
+int64_t val_pfdi_pe_test_part_count(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
-    return val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_PART_COUNT, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL, NULL);
+    int64_t status;
+    unsigned long _x1, _x2, _x3, _x4;
+
+    status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_PART_COUNT, 0, 0, 0, 0, 0,
+                              &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
+
+    return status;
 }
 
 /**
  *  @brief   Calls PFDI PE Test run function
  *  @return  status and fault found test part
  */
-int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id)
+int64_t val_pfdi_pe_test_run(int64_t start, int64_t end,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
     int64_t status;
-    unsigned long _fault_test_id;
+    unsigned long _x1, _x2, _x3, _x4;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_RUN, start, end, 0, 0, 0,
-                              &_fault_test_id, NULL, NULL, NULL);
-    if (fault_test_id)
-        *fault_test_id = (int64_t)_fault_test_id;
+                               &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
 
     return status;
 }
@@ -143,15 +201,22 @@ int64_t val_pfdi_pe_test_run(int64_t start, int64_t end, int64_t *fault_test_id)
  *  @brief   Calls PFDI PE Test Results function
  *  @return  status and fault test part if test report fault
  */
-int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id)
+int64_t val_pfdi_pe_test_result(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
     int64_t status;
-    unsigned long _fault_test_part_id;
+    unsigned long _x1, _x2, _x3, _x4;
 
     status = val_invoke_pfdi_fn(PFDI_FN_PFDI_PE_TEST_RESULT, 0, 0, 0, 0, 0,
-                              &_fault_test_part_id, NULL, NULL, NULL);
-    if (fault_test_part_id)
-        *fault_test_part_id = (int64_t)_fault_test_part_id;
+                                &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
 
     return status;
 }
@@ -161,10 +226,24 @@ int64_t val_pfdi_pe_test_result(int64_t *fault_test_part_id)
  *
  *  @return  status
  */
-int64_t val_pfdi_fw_check(void)
+int64_t val_pfdi_fw_check(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
 {
-    return val_invoke_pfdi_fn(PFDI_FN_PFDI_FW_CHECK, 0, 0, 0, 0, 0,
-                              NULL, NULL, NULL, NULL);
+    int64_t status;
+    unsigned long _x1, _x2, _x3, _x4;
+
+    status = val_invoke_pfdi_fn(PFDI_FN_PFDI_FW_CHECK, 0, 0, 0, 0, 0,
+                                 &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
+
+    return status;
 }
 
 /**
@@ -195,4 +274,23 @@ val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
 {
     pal_pfdi_verify_regs(args, conduit, pre_smc_regs, post_smc_regs);
 }
+
+/**
+  @brief  Clean and Invalidate the Data cache line containing
+          the input address tag
+
+  @param  addr Address
+
+  @return Status
+**/
+void
+val_pfdi_invalidate_ret_params(PFDI_RET_PARAMS *args)
+{
+  val_data_cache_ops_by_va((addr_t)&args->x0, CLEAN_AND_INVALIDATE);
+  val_data_cache_ops_by_va((addr_t)&args->x1, CLEAN_AND_INVALIDATE);
+  val_data_cache_ops_by_va((addr_t)&args->x2, CLEAN_AND_INVALIDATE);
+  val_data_cache_ops_by_va((addr_t)&args->x3, CLEAN_AND_INVALIDATE);
+  val_data_cache_ops_by_va((addr_t)&args->x4, CLEAN_AND_INVALIDATE);
+}
+
 

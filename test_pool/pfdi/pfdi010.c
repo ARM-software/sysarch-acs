@@ -20,16 +20,14 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 10)
-#define TEST_RULE  "R0106"
+#define TEST_RULE  "R0154"
 #define TEST_DESC  "PFDI invalid function support check       "
 
 typedef struct{
-  int64_t status_unsupported;
   int64_t status_invalid;
 } pfdi_invalid_fn_check_details;
 
 pfdi_invalid_fn_check_details *g_pfdi_invalid_fn_check_details;
-
 
 void
 check_invalid_fn()
@@ -41,18 +39,11 @@ check_invalid_fn()
   status_buffer = g_pfdi_invalid_fn_check_details + index;
 
   /* Invoke PFDI Feature function with invalid function for current PE index */
-  status = val_pfdi_features(PFDI_FN_PFDI_INVALID);
+  status = val_pfdi_features(PFDI_FN_PFDI_INVALID, NULL, NULL, NULL, NULL);
 
   /*Save the return status*/
   status_buffer->status_invalid = status;
   val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
-
-  /* Invoke PFDI invalid function on current PE index */
-  status = val_invoke_pfdi_fn(PFDI_FN_PFDI_INVALID, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
-
-  /*Save the return status*/
-  status_buffer->status_unsupported = status;
-  val_data_cache_ops_by_va((addr_t)&status_buffer->status_unsupported, CLEAN_AND_INVALIDATE);
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   return;
@@ -77,7 +68,6 @@ static void payload_invalid_fn_check(void *arg)
 
   for (i = 0; i < num_pe; i++) {
     status_buffer = g_pfdi_invalid_fn_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status_unsupported, CLEAN_AND_INVALIDATE);
     val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
   }
 
@@ -104,29 +94,19 @@ static void payload_invalid_fn_check(void *arg)
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
     status_buffer = g_pfdi_invalid_fn_check_details + i;
-    val_data_cache_ops_by_va((addr_t)&status_buffer->status_unsupported, CLEAN_AND_INVALIDATE);
     val_data_cache_ops_by_va((addr_t)&status_buffer->status_invalid, CLEAN_AND_INVALIDATE);
-    run_fail = 0;
 
     if (status_buffer->status_invalid != PFDI_ACS_NOT_SUPPORTED) {
       val_print(ACS_PRINT_ERR, "\n       PFDI Invalid function check failed err = %ld",
                                                         status_buffer->status_invalid);
       val_print(ACS_PRINT_ERR, " on PE index = %d", i);
       run_fail++;
-    }
-
-    if (status_buffer->status_unsupported != PFDI_ACS_NOT_SUPPORTED) {
-      val_print(ACS_PRINT_ERR, "\n       PFDI Unsuppoted function check failed err = %d",
-                                                        status_buffer->status_unsupported);
-      val_print(ACS_PRINT_ERR, " on PE index = %d", i);
-      run_fail++;
-    }
-
-    if (run_fail)
       val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
-    else
-      val_set_status(i, RESULT_PASS(TEST_NUM, 1));
+    }
   }
+
+  if (run_fail == 0)
+    val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 
 free_pfdi_details:
   val_memory_free((void *) g_pfdi_invalid_fn_check_details);
