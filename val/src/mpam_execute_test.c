@@ -159,6 +159,7 @@ val_mpam_execute_register_tests(uint32_t num_pe)
   status |= reg002_entry();
   status |= reg003_entry();
   status |= reg004_entry();
+  status |= reg005_entry();
 
   val_print_test_end(status, "REGISTER");
 
