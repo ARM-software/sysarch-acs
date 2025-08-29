@@ -25,11 +25,11 @@ then
     mkdir workspace
 fi
 cd ${WORK_DIR}
-if [ ! -d arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu ]
+if [ ! -d arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu ]
 then
-    rm -f arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-    wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-    tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+    rm -f arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+    wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+    tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 fi
 
 if [ ! -d output ]
@@ -54,7 +54,7 @@ rm -f ShellPkg/Application/sysarch-acs
 rm -rf Build/Shell/DEBUG_GCC/*
 
 ln -s ${HOME_DIR} ShellPkg/Application/sysarch-acs
-export GCC_AARCH64_PREFIX=${WORK_DIR}/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+export GCC_AARCH64_PREFIX=${WORK_DIR}/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 export PACKAGES_PATH=${WORK_DIR}/edk2/edk2-libc
 
 source edksetup.sh

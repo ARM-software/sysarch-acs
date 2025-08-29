@@ -31,13 +31,13 @@ jobs:
         run: |
           mkdir -p /opt/cross
           cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
       - name: Set up EDK2 environment and build Bsa.efi
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
           export PACKAGES_PATH=$PWD/edk2-libc
           source edksetup.sh
           make -C BaseTools/Source/C
@@ -74,13 +74,13 @@ jobs:
         run: |
           mkdir -p /opt/cross
           cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
       - name: Set up EDK2 environment and build Bsa.efi
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
           export PACKAGES_PATH=$PWD/edk2-libc
           source edksetup.sh
           make -C BaseTools/Source/C
@@ -117,13 +117,13 @@ jobs:
         run: |
           mkdir -p /opt/cross
           cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
       - name: Set up EDK2 environment and build Sbsa.efi
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
           export PACKAGES_PATH=$PWD/edk2-libc
           source edksetup.sh
           make -C BaseTools/Source/C
@@ -161,13 +161,13 @@ jobs:
         run: |
           mkdir -p /opt/cross
           cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
       - name: Set up EDK2 environment and build Drtm.efi
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
           export PACKAGES_PATH=$PWD/edk2-libc
           source edksetup.sh
           make -C BaseTools/Source/C
@@ -204,13 +204,13 @@ jobs:
         run: |
           mkdir -p /opt/cross
           cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
       - name: Set up EDK2 environment and build Mpam.efi
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
           export PACKAGES_PATH=$PWD/edk2-libc
           source edksetup.sh
           make -C BaseTools/Source/C
@@ -238,12 +238,12 @@ jobs:
         run: |
               mkdir -p /opt/cross
               cd /opt/cross
-              wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
-              tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
+              wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+              tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
 
       - name: Compile BSA Baremetal ACS for RDN2 Platform
         run: |
-              export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
+              export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
               mkdir build
               cd build
               cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
@@ -273,12 +273,12 @@ jobs:
         run: |
               mkdir -p /opt/cross
               cd /opt/cross
-              wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
-              tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
+              wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+              tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
 
       - name: Compile SBSA Baremetal ACS for RDN2 Platform
         run: |
-              export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
+              export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
               mkdir build
               cd build
               cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
@@ -367,13 +367,13 @@ jobs:
           run: |
             mkdir -p /opt/cross
             cd /opt/cross
-            wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-            tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
         - name: Set up EDK2 environment and build SbsaNist.efi
           run: |
             cd edk2
-            export GCC49_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+            export GCC49_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
             export PACKAGES_PATH=$PWD/edk2-libc
             source edksetup.sh
             make -C BaseTools/Source/C
@@ -410,13 +410,13 @@ jobs:
           run: |
             mkdir -p /opt/cross
             cd /opt/cross
-            wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-            tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
         - name: Set up EDK2 environment and build PC_Bsa.efi
           run: |
             cd edk2
-            export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+            export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
             export PACKAGES_PATH=$PWD/edk2-libc
             source edksetup.sh
             make -C BaseTools/Source/C
@@ -453,13 +453,13 @@ jobs:
           run: |
             mkdir -p /opt/cross
             cd /opt/cross
-            wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-            tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 
         - name: Set up EDK2 environment and build unified.efi
           run: |
             cd edk2
-            export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+            export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
             export PACKAGES_PATH=$PWD/edk2-libc
             source edksetup.sh
             make -C BaseTools/Source/C

@@ -27,7 +27,7 @@ ACS build requires that the following requirements are met, Please skip this if 
 - Any mainstream Linux based OS distribution.
 - git clone EDK2 tree.
 - git clone EDK2-libc tree.
-- Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
+- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2. The details of the packages are beyond the scope of this document.
 
 #### Build Steps
@@ -42,9 +42,9 @@ The following output file is created in /path/to/sysarch-acs/workspace/output/:
 - Drtm.efi
 
 #### Note : Steps to get toolchain
-- wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-- tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-- export GCC_AARCH64_PREFIX= GCC 13.2 toolchain path pointing to arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+- wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+- tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+- export GCC_AARCH64_PREFIX= GCC 14.3 toolchain path pointing to arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 
 ## Test suite execution in UEFI
 

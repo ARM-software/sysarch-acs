@@ -54,7 +54,7 @@ The tests can also be executed in a Bare-metal environment. The initialization o
 
 ####    1.2 Build environment
 ##### If the build environment is Linux, perform the following steps:
-1.  export GCC_AARCH64_PREFIX= GCC13.2 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
+1.  export GCC_AARCH64_PREFIX= GCC14.3 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
 2.  export PACKAGES_PATH= path pointing to edk2-libc
 3.  source edksetup.sh
 4.  make -C BaseTools/Source/C
@@ -108,7 +108,7 @@ Prebuilt images for each release are available in the prebuilt_images folder of 
 - Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
 - git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
-- Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
+- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2.<br />
 Note:<br />
 - The details of the packages are beyond the scope of this document.
@@ -136,7 +136,7 @@ Note:<br />
 
 ####    1.2 Build environment
 ##### If the build environment is Linux, perform the following steps:
-1.  export GCC_AARCH64_PREFIX= GCC13.2 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
+1.  export GCC_AARCH64_PREFIX= GCC14.3 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
 2.  export PACKAGES_PATH= path pointing to edk2-libc
 3.  source edksetup.sh
 4.  make -C BaseTools/Source/C
@@ -195,7 +195,7 @@ Prebuilt images for each release are available in the prebuilt_images folder of 
 - Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
 - git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
-- Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
+- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2.<br />
 Note:<br />
 - The details of the packages are beyond the scope of this document.
@@ -208,7 +208,7 @@ Note:<br />
 
 ####    1.2 Build environment
 ##### If the build environment is Linux, perform the following steps:
-1.  export GCC_AARCH64_PREFIX= GCC13.2 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
+1.  export GCC_AARCH64_PREFIX= GCC14.3 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
 2.  export PACKAGES_PATH= path pointing to edk2-libc
 3.  source edksetup.sh
 4.  make -C BaseTools/Source/C
@@ -295,7 +295,7 @@ The patch for the kernel tree and the Linux PAL are hosted separately on [linux-
 #### Prerequisites
 ACS build requires that the following requirements are met, Please skip this if you are using [Linux Build Script](https://gitlab.arm.com/linux-arm/linux-acs/-/blob/master/acs-drv/files/build.sh?ref_type=heads)
 - Linux kernel source version 5.11, 5.13, 5.15, 6.0, 6.4, 6.7, 6.8, 6.10
-- Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
+- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Build environment for AArch64 Linux kernel.<br />
 NOTE: <br />
 - Linux version 6.8 is recommended version.
@@ -394,7 +394,7 @@ The following arguments can be used when running the build.sh script:
                     If not provided, the default version is 6.8.
 
 - __--GCC_TOOLS__     \-  Specifies the GCC toolchain version for cross-compilation.
-                    The default version is 13.2.rel1.
+                    The default version is 14.3.rel1.
 
 - __--help__          \-  Displays information about the ACS build environment, including default values,
                     usage instructions, and additional notes.
