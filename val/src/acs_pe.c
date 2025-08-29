@@ -23,7 +23,7 @@
 #include "include/pal_interface.h"
 #include "include/val_interface.h"
 #include "include/acs_std_smc.h"
-
+#include "include/acs_timer_support.h"
 
 /**
   @brief   Pointer to the memory location of the PE Information table
@@ -219,7 +219,7 @@ val_pe_reg_read(uint32_t reg_id)
        case TRCIDR5:
           return AA64ReadTrcidr5();
        case HCR_EL2:
-          return ArmReadHcr();
+          return ArmReadHcrEl2();
        case VTCR_EL2:
           return AA64ReadVtcr();
       default:
@@ -422,7 +422,7 @@ uint32_t val_pe_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr)
         return ACS_STATUS_ERR;
 
     if (el == AARCH64_EL2)
-        e2h = ArmReadHcr() & AARCH64_HCR_E2H_MASK;
+        e2h = ArmReadHcrEl2() & AARCH64_HCR_E2H_MASK;
 
     if (el == AARCH64_EL1 || (el == AARCH64_EL2 && e2h))
     {

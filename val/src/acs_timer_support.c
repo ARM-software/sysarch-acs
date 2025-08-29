@@ -18,6 +18,7 @@
 #include "include/acs_val.h"
 #include "include/acs_timer_support.h"
 #include "include/acs_common.h"
+#include "include/acs_pe.h"
 
 /**
   @brief This API is used to get the effective HCR_EL2.E2H
@@ -25,6 +26,13 @@
 uint8_t get_effective_e2h(void)
 {
   uint32_t effective_e2h;
+
+  /* if EL2 is not present, effective E2H will be 0 */
+  if (val_pe_reg_read(CurrentEL) == AARCH64_EL1) {
+    val_print(ACS_PRINT_DEBUG, "\n       CurrentEL: AARCH64_EL1", 0);
+    return 0;
+  }
+
   uint32_t hcr_e2h = VAL_EXTRACT_BITS(ArmReadHcrEl2(), 34, 34);
   uint32_t feat_vhe = VAL_EXTRACT_BITS(ArmReadAA64MMFR1EL1(), 8, 11);
   uint32_t e2h0 = VAL_EXTRACT_BITS(ArmReadAA64MMFR4EL1(), 24, 27);

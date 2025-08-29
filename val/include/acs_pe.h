@@ -198,7 +198,6 @@ typedef enum {
 uint64_t ArmReadMpidr(void);
 uint64_t ArmReadIdPfr0(void);
 uint64_t ArmReadIdPfr1(void);
-uint64_t ArmReadHcr(void);
 uint64_t AA64ReadMmfr0(void);
 uint64_t AA64ReadMmfr1(void);
 uint64_t AA64ReadMmfr2(void);

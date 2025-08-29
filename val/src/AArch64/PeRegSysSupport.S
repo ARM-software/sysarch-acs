@@ -55,7 +55,6 @@ GCC_ASM_EXPORT (AA64ReadSctlr1)
 GCC_ASM_EXPORT (AA64ReadPmcr)
 GCC_ASM_EXPORT (AA64ReadIdDfr0)
 GCC_ASM_EXPORT (AA64ReadIdDfr1)
-GCC_ASM_EXPORT (ArmReadHcr)
 GCC_ASM_EXPORT (AA64ReadCurrentEL)
 GCC_ASM_EXPORT (AA64ReadIdMdrar)
 GCC_ASM_EXPORT (AA64ReadMdcr2)
@@ -216,11 +215,6 @@ ASM_PFX(AA64ReadIdDfr0):
 
 ASM_PFX(AA64ReadIdDfr1):
   mrs   x0, id_aa64dfr1_el1
-  ret
-
-// UINTN ArmReadHcr(VOID)
-ASM_PFX(ArmReadHcr):
-  mrs   x0, hcr_el2
   ret
 
 ASM_PFX(AA64ReadCurrentEL):
