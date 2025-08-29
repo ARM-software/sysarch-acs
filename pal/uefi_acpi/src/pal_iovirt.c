@@ -80,7 +80,7 @@ dump_block(IOVIRT_BLOCK *block) {
       break;
       case IOVIRT_NODE_SMMU:
       case IOVIRT_NODE_SMMU_V3:
-      acs_print(ACS_PRINT_INFO, L"  SMMU: Major Rev:%d Base Address:0x%x\n",
+      acs_print(ACS_PRINT_INFO, L"  SMMU: Major Rev:%d Base Address:0x%llx\n",
                  block->data.smmu.arch_major_rev, block->data.smmu.base);
       break;
       case IOVIRT_NODE_PMCG:

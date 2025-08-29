@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,7 +104,7 @@ typedef struct {
 typedef struct {
         uint32_t its_count;
         uint32_t identifiers[1];     /* GIC ITS identifier arrary */
-}PLATFORM_OVERRIDE_IORT_ITS_GROUP;
+} PLATFORM_OVERRIDE_IORT_ITS_GROUP;
 
 typedef struct {
   uint64_t smmu_base;               /* SMMU base to which component is attached, else NULL */
@@ -338,8 +338,8 @@ typedef struct {
 } PLATFORM_OVERRIDE_HMAT_BW_ENTRY;
 
 typedef struct {
-  uint32_t num_of_prox_domain;      /* Number of Memory Proximity Domains */
-  PLATFORM_OVERRIDE_HMAT_BW_ENTRY bw_info[];            /* Array of bandwidth info based on proximity domain */
+  uint32_t num_of_prox_domain;                 /* Number of Memory Proximity Domains */
+  PLATFORM_OVERRIDE_HMAT_BW_ENTRY bw_info[];   /* Array of BW info based on proximity domain */
 } PLATFORM_OVERRIDE_HMAT_INFO_TABLE;
 
 typedef struct {
@@ -481,8 +481,7 @@ typedef union {
 typedef struct {
   uint32_t                 subspace_idx;    /* PCC subspace index in PCCT ACPI table */
   uint32_t                 subspace_type;   /* type of PCC subspace */
-  PLATFORM_OVERRIDE_PCC_TYPE_SPECIFIC_INFO
-                           type_spec_info;  /* PCC subspace type specific info */
+  PLATFORM_OVERRIDE_PCC_TYPE_SPECIFIC_INFO  type_spec_info;  /* PCC subspace type specific info */
 } PLATFORM_OVERRIDE_PCC_INFO;
 
 typedef struct {

@@ -18,11 +18,9 @@
 /** Begin config **/
 
 /* Settings */
-#define PLATFORM_OVERRIDE_PRINT_LEVEL  0x3     //The permissible levels are 1,2,3,4 and 5
+#define PLATFORM_OVERRIDE_PRINT_LEVEL  0x3    //The permissible levels are 1,2,3,4 and 5
 #define PLATFORM_OVERRIDE_BSA_LEVEL    0x1    // The permissible levels are only 1
-
-#define PLATFORM_OVERRIDE_SBSA_LEVEL        0x7    //The permissible levels are 3,4,5,6 and 7
-#define PLATFORM_OVERRIDE_SBSA_PRINT_LEVEL  0x3    //The permissible levels are 1,2,3,4 and 5
+#define PLATFORM_OVERRIDE_SBSA_LEVEL   0x7    //The permissible levels are 3,4,5,6 and 7
 
 /*SMBIOS config parameters*/
 #define PLATFORM_OVERRIDE_SMBIOS_SLOT_COUNT       0x1
@@ -129,13 +127,6 @@
 #define PLATFORM_OVERRIDE_GICH_COUNT        0x1
 #define PLATFORM_OVERRIDE_GICMSIFRAME_COUNT 0x0
 #define PLATFORM_OVERRIDE_NONGIC_COUNT      0x0
-#define PLATFORM_OVERRIDE_GICC_TYPE         0x1000
-#define PLATFORM_OVERRIDE_GICD_TYPE         0x1001
-#define PLATFORM_OVERRIDE_GICC_GICRD_TYPE   0x1002
-#define PLATFORM_OVERRIDE_GICR_GICRD_TYPE   0x1003
-#define PLATFORM_OVERRIDE_GICITS_TYPE       0x1004
-#define PLATFORM_OVERRIDE_GICMSIFRAME_TYPE  0x1005
-#define PLATFORM_OVERRIDE_GICH_TYPE         0x1006
 #define PLATFORM_OVERRIDE_GICC_BASE         0x30000000
 #define PLATFORM_OVERRIDE_GICD_BASE         0x30000000
 #define PLATFORM_OVERRIDE_GICC_GICRD_BASE   0x0

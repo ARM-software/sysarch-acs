@@ -1,0 +1,76 @@
+diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
+index 7e985f8280..ae19e5b070 100644
+--- a/ShellPkg/ShellPkg.dsc
++++ b/ShellPkg/ShellPkg.dsc
+@@ -66,6 +66,9 @@
+   ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
+ 
+   SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
++  SbsaNistLib|ShellPkg/Application/sysarch-acs/test_pool/nist_sts/SbsaNistLib.inf
++  SbsaValNistLib|ShellPkg/Application/sysarch-acs/val/SbsaValNistLib.inf
++  SbsaPalNistLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/SbsaPalNistLib.inf
+ 
+ [PcdsFixedAtBuild]
+   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0xFF
+@@ -93,6 +96,7 @@
+   ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
+   ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
+   ShellPkg/Library/UefiShellNetwork2CommandsLib/UefiShellNetwork2CommandsLib.inf
++  ShellPkg/Application/sysarch-acs/apps/uefi/SbsaNist.inf
+ 
+   ShellPkg/Application/Shell/Shell.inf {
+     <PcdsFixedAtBuild>
+@@ -157,4 +161,10 @@
+   ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
+ 
+ [BuildOptions]
+-  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
++
++!ifdef $(ENABLE_NIST)
++        *_*_*_CC_FLAGS = -DENABLE_NIST -DTARGET_UEFI
++!else
++       *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
++!endif
++!include edk2-libc/StdLib/StdLib.inc
+diff --git a/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c b/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
+index e3b595e..cc12b38 100644
+--- a/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
++++ b/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
+@@ -38,13 +38,14 @@ __RCSID("$NetBSD: flt_rounds.c,v 1.3 2006/02/25 00:58:35 wiz Exp $");
+ 
+ #include <sys/types.h>
+ //#include <ieeefp.h>
+-
++#if 0
+ static const int map[] = {
+   1,  /* round to nearest */
+   2,  /* round to positive infinity */
+   3,  /* round to negative infinity */
+   0   /* round to zero */
+ };
++#endif
+ 
+ /*
+  * Return the current FP rounding mode
+diff --git a/edk2-libc/StdLib/LibC/Main/Main.c b/edk2-libc/StdLib/LibC/Main/Main.c
+index b203d15..8c9618e 100644
+--- a/edk2-libc/StdLib/LibC/Main/Main.c
++++ b/edk2-libc/StdLib/LibC/Main/Main.c
+@@ -31,7 +31,7 @@
+ #include  <MainData.h>
+ #include  <unistd.h>
+ 
+-extern int main( int, char**);
++extern int ShellAppMainsbsa( int, char**);
+ extern int __sse2_available;
+ 
+ struct  __MainData  *gMD;
+@@ -179,7 +179,7 @@ ShellAppMain (
+     else {
+       if( setjmp(gMD->MainExit) == 0) {
+         errno   = 0;    // Clean up any "scratch" values from startup.
+-        ExitVal = (INTN)main( (int)Argc, gMD->NArgV);
++        ExitVal = (INTN)ShellAppMainsbsa( (int)Argc, gMD->NArgV);
+         exitCleanup(ExitVal);
+       }
+       /* You reach here if:

@@ -81,6 +81,7 @@ payload()
   uint32_t timeout = 0x100000;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t data = 0;
+  uint64_t pmcr_value = val_pe_reg_read(PMCR_EL0);
 
   /* Check ID_AA64DFR0_EL1[11:8] for PMUver */
   data = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64DFR0_EL1), 8, 11);
@@ -113,6 +114,7 @@ payload()
   while ((--timeout > 0) && \
          (IS_RESULT_PENDING(val_get_status(index))));
 
+  val_pe_reg_write(PMCR_EL0, pmcr_value);
 exception_taken:
   if (timeout == 0) {
       val_print(ACS_PRINT_ERR, "\n       Interrupt not recieved within timeout", 0);

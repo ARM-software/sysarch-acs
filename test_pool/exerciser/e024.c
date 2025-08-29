@@ -329,7 +329,7 @@ err_check:
                   val_gic_free_irq(irq_pending, 0);
                   val_print(ACS_PRINT_ERR, "\n       Interrupt trigger failed for bdf 0x%x", e_bdf);
                   fail_cnt++;
-                  continue;
+                  goto disable_dpc;
               }
           }
 
@@ -380,6 +380,7 @@ err_check:
               return ;
           }
 
+disable_dpc:
           /*Disable the DPC*/
 
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, &reg_value);

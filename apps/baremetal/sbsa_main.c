@@ -320,7 +320,7 @@ ShellAppMainsbsa(
   uint32_t             Status;
   void                 *branch_label;
 
-  g_print_level = PLATFORM_OVERRIDE_SBSA_PRINT_LEVEL;
+  g_print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
   if (g_print_level < ACS_PRINT_INFO)
   {
       val_print(ACS_PRINT_ERR, "Print Level %d is not supported.\n", g_print_level);

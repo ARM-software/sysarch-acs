@@ -176,6 +176,7 @@ void *mem_alloc(size_t alignment, size_t size);
 #define CLEAN                 0x2
 #define INVALIDATE            0x3
 
+#define HEAP_INITIALISED      0xDC
 #define NOT_IMPLEMENTED       0x4B1D
 
 #define MEM_SIZE_64K              0x10000

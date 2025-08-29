@@ -77,6 +77,12 @@ function build_with_NIST()
     fi
     cd -
 
+
+    git checkout ShellPkg/ShellPkg.dsc
+    cd edk2-libc/
+    git checkout StdLib/LibC/Main/Arm/flt_rounds.c
+    git checkout StdLib/LibC/Main/Main.c
+    cd ../
     git apply ShellPkg/Application/sysarch-acs/patches/edk2_sbsa_nist.patch
     build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/SbsaNist.inf -D ENABLE_NIST -D SBSA
     status=$?

@@ -24,114 +24,78 @@ Current release require the below tool:
 
 1. unzip
 
-**Build steps**
+### 1. Building from source
+    Before you start the ACS build, ensure that the following requirements are met.
 
-To start the ACS build with NIST STS, perform the following steps:
+- Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
+- git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
+- Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
+- Install the build prerequisite packages to build EDK2.<br />
+Note:<br />
+- The details of the packages are beyond the scope of this document.
 
-1.  Add the following to the [LibraryClasses.common] section in ShellPkg/ShellPkg.dsc
-```
-    UefiRuntimeLib|MdePkg/Library/UefiRuntimeLib/UefiRuntimeLib.inf
-    !ifdef $(ENABLE_NIST)
-        SbsaNistLib|ShellPkg/Application/sbsa-acs/test_pool/nist_sts/SbsaNistLib.inf
-        SbsaValNistLib|ShellPkg/Application/bsa-acs/val/SbsaValNistLib.inf
-        SbsaPalNistLib|ShellPkg/Application/bsa-acs/pal/uefi_acpi/SbsaPalNistLib.inf
-    !else
-        SbsaValLib|ShellPkg/Application/bsa-acs/val/SbsaValLib.inf
-        SbsaPalLib|ShellPkg/Application/bsa-acs/pal/uefi_acpi/SbsaPalLib.inf
-    !endif
-```
-2.  Add the following in the [components] section of ShellPkg/ShellPkg.dsc
-```
-    !ifdef $(ENABLE_NIST)
-        ShellPkg/Application/sbsa-acs/uefi_app/SbsaAvsNist.inf
-    !else
-        ShellPkg/Application/sbsa-acs/uefi_app/SbsaAvs.inf
-    !endif
-```
-3.  Modify CC Flags in the [BuildOptions] section of ShellPkg/ShellPkg.dsc
-```
-    !ifdef $(ENABLE_NIST)
-        *_*_*_CC_FLAGS = -DENABLE_NIST
-    !else
-        *_*_*_CC_FLAGS =
-    !endif
+#### 1.1 Target Platform
+##### To start the ACS build for platform using ACPI table, perform the following steps:
+1.  cd local_edk2_path
+2.  git submodule update --init --recursive
+3.  git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
 
-    !include edk2-libc/StdLib/StdLib.inc
-```
-4.  Modify the following in the edk2-libc/StdLib/LibC/Main/Main.c
-```
-    -extern int main( int, char**);
-    +extern int ShellAppMainsbsa( int, char**);
-```
-5.  Modify the following in ShellAppMain() of edk2-libc/StdLib/LibC/Main/Main.c
-```
-    -ExitVal = (INTN)main( (int)Argc, gMD->NArgV);
-    +ExitVal = (INTN)ShellAppMainsbsa( (int)Argc, gMD->NArgV);
-```
-6. Comment the map[] variable in edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c to avoid -werror=unused-variable
-```
-    +#if 0
-    static const int map[] = {
-      1,  /* round to nearest */
-      2,  /* round to positive infinity */
-      3,  /* round to negative infinity */
-      0   /* round to zero */
-    };
-    +#endif
-```
+####    1.2 Build environment
+##### If the build environment is Linux, perform the following steps:
+1.  export GCC_AARCH64_PREFIX= GCC13.2 toolchain path pointing to /bin/aarch64-linux-gnu- in case of x86 machine.<br /> For an AArch64 build it should point to /usr/bin/
+2.  export PACKAGES_PATH= path pointing to edk2-libc
+3.  source edksetup.sh
+4.  make -C BaseTools/Source/C
+5.  source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh nist
 
+#### 1.3 Build output
 
-To build the SBSA test suite with NIST STS, execute the following commands:
-***Linux build environment***
-```
-source ShellPkg/Application/sbsa-acs/tools/scripts/acsbuild.sh NIST
-```
-
-***Windows build environment***
-```
-build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sbsa-acs/uefi_app/SbsaAvs.inf -D ENABLE_NIST
-```
+The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG_GCC/AARCH64/SbsaNist.efi
+`
 
 **Directory structure of SBSA ACS**
 
 The following figure shows the source code directory for SBSA ACS
 
-    sbsa<br/>
-    ├── docs<br/>
-    ├── linux_app<br/>
-    ├── patches<br/>
-    │   └── nist_sbsa_sts.diff  ────────> Patch to compile NIST STS with SBSA ACS<br/>
-    │<br/>
-    ├── platform<br/>
-    │   ├── pal_baremetal<br/>
-    │   ├── pal_uefi<br/>
+```text
+    sbsa
+    ├── docs
+    ├── linux_app
+    ├── patches
+    │   ├── nist_sbsa_sts.diff   ────────> Patch to compile NIST STS with SBSA ACS
+    │   └── edk2_sbsa_nist.patch ────────> EDK2 SBSA NIST compliance patch
+    │
+    ├── platform
+    │   ├── pal_baremetal
+    │   ├── pal_uefi
     |
-    ├── test_pool<br/>
-    │   ├── exerciser<br/>
-    │   ├── gic<br/>
-    │   ├── io_virt<br/>
-    │   ├── pcie<br/>
-    │   ├── pe<br/>
-    │   ├── peripherals<br/>
-    │   ├── power_wakeup<br/>
-    │   ├── mpam<br/>
-    │   ├── ras<br/>
-    │   ├── pmu<br/>
-    │   ├── smmu<br/>
-    │   ├── timer_wd<br/>
-    │   └── nist_sts<br/>
-    │       ├── test_n001.c     ────────>  NIST entry point to STS<br/>
-    │       └── sts-2.1.2<br/>
-    │           └── sts-2.1.2   ────────>  NIST STS package<br/>
-    │<br/>
-    ├── tools<br/>
-    │   └── scripts<br/>
-    ├── uefi_app<br/>
-    └── val<br/>
-        ├── include<br/>
-        └── src<br/>
-            └── avs_nist.c      ────────>  erf and erfc() implementations<br/>
-
+    ├── test_pool
+    │   ├── exerciser
+    │   ├── gic
+    │   ├── io_virt
+    │   ├── pcie
+    │   ├── pe
+    │   ├── peripherals
+    │   ├── power_wakeup
+    │   ├── mpam
+    │   ├── ras
+    │   ├── pmu
+    │   ├── smmu
+    │   ├── timer_wd
+    │   └── nist_sts
+    │       ├── test_n001.c     ────────>  NIST entry point to STS
+    │       └── sts-2.1.2
+    │           └── sts-2.1.2   ────────>  NIST STS package
+    │
+    ├── tools
+    │   └── scripts
+    ├── uefi_app
+    └── val
+        ├── include
+        └── src
+            └── avs_nist.c      ────────>  erf and erfc() implementations
+```
 **Running NIST STS**
 
 Run the UEFI Shell application with the "-nist" as an argument argument
@@ -174,4 +138,4 @@ For more details on NIST STS, see: <https://doi.org/10.6028/NIST.SP.800-22r1a>
 
 --------------
 
-*Copyright (c) 2020, 2023-2024, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020, 2023-2025, Arm Limited and Contributors. All rights reserved.*

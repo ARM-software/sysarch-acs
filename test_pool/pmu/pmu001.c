@@ -64,6 +64,7 @@ payload()
 {
   uint32_t timeout = 0x100000;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint64_t pmcr_value = val_pe_reg_read(PMCR_EL0);
 
   int_id = val_pe_get_pmu_gsiv(index);
 
@@ -84,6 +85,8 @@ payload()
 
   if (timeout == 0)
       val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+
+  val_pe_reg_write(PMCR_EL0, pmcr_value);
 }
 
 /**

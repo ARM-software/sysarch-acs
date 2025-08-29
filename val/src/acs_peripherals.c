@@ -261,7 +261,7 @@ val_peripheral_dump_info(void)
   }
 
 
-  val_print(ACS_PRINT_DEBUG, " Peripheral: Num of Network ctrl      :    %d\n", ntwk);
+  val_print(ACS_PRINT_DEBUG, "\n Peripheral: Num of Network ctrl      :    %d\n", ntwk);
   val_print(ACS_PRINT_DEBUG, " Peripheral: Num of Storage ctrl      :    %d\n", strg);
   val_print(ACS_PRINT_DEBUG, " Peripheral: Num of Display ctrl      :    %d\n", dply);
 

@@ -23,22 +23,20 @@ extern PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg;
 
 uint32_t pcie_index = 0, enumerate = 1;
 /*64-bit address initialisation*/
-uint64_t g_bar64_p_start;
-uint64_t g_rp_bar64_value;
-uint64_t g_bar64_p_max;
-uint32_t g_64_bus = 0;
-uint32_t g_bar64_size = 0;
-uint32_t g_rp_bar64_size = 0;
+static uint64_t g_bar64_p_start;
+static uint64_t g_rp_bar64_value;
+static uint64_t g_bar64_p_max;
+static uint32_t g_64_bus;
+static uint64_t g_bar64_size;
 
 /*32-bit address initialisation*/
-uint32_t g_bar32_np_start;
-uint32_t g_bar32_p_start;
-uint32_t g_rp_bar32_value;
-uint32_t g_bar32_np_max;
-uint32_t g_bar32_p_max;
-uint32_t g_np_bar_size = 0, g_p_bar_size = 0;
-uint32_t g_np_bus = 0, g_p_bus = 0;
-uint32_t g_rp_bar32_size = 0;
+static uint32_t g_bar32_np_start;
+static uint32_t g_bar32_p_start;
+static uint32_t g_rp_bar32_value;
+static uint32_t g_bar32_np_max;
+static uint32_t g_bar32_p_max;
+static uint32_t g_np_bar_size, g_p_bar_size;
+static uint32_t g_np_bus, g_p_bus;
 
 /**
   @brief   This API reads 32-bit data from PCIe config space pointed by Bus,
@@ -206,8 +204,7 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
           pal_pci_cfg_write(seg, bus, dev, func, offset, g_rp_bar64_value);
           pal_pci_cfg_write(seg, bus, dev, func, offset + 4, g_rp_bar64_value >> 32);
           offset = offset + 8;
-          g_rp_bar64_size = bar_size;
-          g_rp_bar64_value = g_rp_bar64_value + g_rp_bar64_size;
+          g_rp_bar64_value = g_rp_bar64_value + bar_size;
       }
 
       else
@@ -232,8 +229,6 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
           print(ACS_PRINT_INFO, "Value written to BAR register is %x\n", g_rp_bar32_value);
           g_rp_bar32_value = g_rp_bar32_value + bar_size;
           offset = offset + 4;
-          g_rp_bar32_size = bar_size;
-          g_rp_bar32_value = g_rp_bar32_value + g_rp_bar32_size;
       }
   }
 
@@ -568,6 +563,18 @@ void pal_pcie_enumerate(void)
 {
     uint32_t pri_bus, sec_bus;
     uint32_t hb_count = 0, count;
+
+    /* Initialize global variables to 0 */
+    g_bar64_p_max  = 0;
+    g_64_bus       = 0;
+    g_bar64_size   = 0;
+    g_bar32_np_max = 0;
+    g_bar32_p_max  = 0;
+    g_np_bar_size  = 0;
+    g_p_bar_size   = 0;
+    g_np_bus       = 0;
+    g_p_bus        = 0;
+
     if (g_pcie_info_table->num_entries == 0)
     {
          print(ACS_PRINT_TEST, "\nSkipping Enumeration", 0);

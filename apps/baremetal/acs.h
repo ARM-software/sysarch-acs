@@ -21,7 +21,7 @@
 #include "platform_image_def.h"
 #include "platform_override_fvp.h"
 
-#define SIZE_4K 0x100
+#define SIZE_4K 0x1000
 
 #define BSA_ACS_MAJOR_VER      1
 #define BSA_ACS_MINOR_VER      1

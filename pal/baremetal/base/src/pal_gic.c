@@ -47,46 +47,46 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
   GicTable->header.num_msi_frames  = platform_gic_cfg.num_msiframes;
 
   for (Index = 0; Index < platform_gic_cfg.num_gicc; Index++) {
-    GicTable->gic_info[InfoIndex].type   = PLATFORM_OVERRIDE_GICC_TYPE;
+    GicTable->gic_info[InfoIndex].type   = ENTRY_TYPE_CPUIF;
     GicTable->gic_info[InfoIndex++].base = platform_gic_cfg.gicc_base[Index];
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_gicc_rd; Index++) {
-    GicTable->gic_info[InfoIndex].type     = PLATFORM_OVERRIDE_GICC_GICRD_TYPE;
+    GicTable->gic_info[InfoIndex].type     = ENTRY_TYPE_GICC_GICRD;
     GicTable->gic_info[InfoIndex].base     = platform_gic_cfg.gicc_rd_base[Index];
     GicTable->gic_info[InfoIndex++].length = platform_gic_cfg.gicc_rd_length;
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_gicr_rd; Index++) {
-    GicTable->gic_info[InfoIndex].type     = PLATFORM_OVERRIDE_GICR_GICRD_TYPE;
+    GicTable->gic_info[InfoIndex].type     = ENTRY_TYPE_GICR_GICRD;
     GicTable->gic_info[InfoIndex].base     = platform_gic_cfg.gicr_rd_base[Index];
     GicTable->gic_info[InfoIndex++].length = platform_gic_cfg.gicr_rd_length;
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_gicd; Index++) {
-    GicTable->gic_info[InfoIndex].type   = PLATFORM_OVERRIDE_GICD_TYPE;
+    GicTable->gic_info[InfoIndex].type   = ENTRY_TYPE_GICD;
     GicTable->gic_info[InfoIndex++].base = platform_gic_cfg.gicd_base[Index];
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_gicits; Index++) {
-    GicTable->gic_info[InfoIndex].type     = PLATFORM_OVERRIDE_GICITS_TYPE;
+    GicTable->gic_info[InfoIndex].type     = ENTRY_TYPE_GICITS;
     GicTable->gic_info[InfoIndex].base     = platform_gic_cfg.gicits_base[Index];
     GicTable->gic_info[InfoIndex++].entry_id = platform_gic_cfg.gicits_id[Index];
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_gich; Index++) {
-    GicTable->gic_info[InfoIndex].type     = PLATFORM_OVERRIDE_GICH_TYPE;
+    GicTable->gic_info[InfoIndex].type     = ENTRY_TYPE_GICH;
     GicTable->gic_info[InfoIndex].base     = platform_gic_cfg.gich_base[Index];
     GicTable->gic_info[InfoIndex++].length = 0;
   }
 
   for (Index = 0; Index < platform_gic_cfg.num_msiframes; Index++) {
-    GicTable->gic_info[InfoIndex].type       = PLATFORM_OVERRIDE_GICMSIFRAME_TYPE;
+    GicTable->gic_info[InfoIndex].type       = ENTRY_TYPE_GIC_MSI_FRAME;
     GicTable->gic_info[InfoIndex].base       = platform_gic_cfg.gicmsiframe_base[Index];
     GicTable->gic_info[InfoIndex].entry_id   = platform_gic_cfg.gicmsiframe_id[Index];
     GicTable->gic_info[InfoIndex].flags      = platform_gic_cfg.gicmsiframe_flags[Index];
     GicTable->gic_info[InfoIndex].spi_count  = platform_gic_cfg.gicmsiframe_spi_count[Index];
-    GicTable->gic_info[InfoIndex++].spi_base   = platform_gic_cfg.gicmsiframe_spi_base[Index];
+    GicTable->gic_info[InfoIndex++].spi_base = platform_gic_cfg.gicmsiframe_spi_base[Index];
   }
 
   GicTable->gic_info[InfoIndex].type = 0xFF;  //Indicate end of data

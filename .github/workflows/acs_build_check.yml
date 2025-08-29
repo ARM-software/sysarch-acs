@@ -346,6 +346,49 @@ jobs:
           path: /home/runner/work/sysarch-acs/linux-pcbsa/*
           if-no-files-found: error
 
+  build_sbsa_nist:
+      name: SBSA-ACS NIST UEFI build for ACPI target
+      runs-on: ubuntu-22.04
+
+      steps:
+        - name: Install dependencies
+          run: sudo apt-get update && sudo apt-get install -y git build-essential nasm
+
+        - name: Download edk2 and its submodules
+          run: |
+            git clone --recursive https://github.com/tianocore/edk2
+            cd edk2
+            git checkout edk2-stable202505
+            cd ..
+            git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc
+
+        - name: Checkout sysarch-acs repository
+          uses: actions/checkout@v4
+          with:
+            path: 'edk2/ShellPkg/Application/sysarch-acs'
+
+        - name: Download Arm GCC cross-compiler
+          run: |
+            mkdir -p /opt/cross
+            cd /opt/cross
+            wget https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            tar -xf arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+
+        - name: Set up EDK2 environment and build SbsaNist.efi
+          run: |
+            cd edk2
+            export GCC49_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+            export PACKAGES_PATH=$PWD/edk2-libc
+            source edksetup.sh
+            make -C BaseTools/Source/C
+            source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh nist
+        - name: Save SbsaNist.efi as an artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: Sbsa_Nist_acpi_target.efi
+            path: edk2/Build/Shell/DEBUG_GCC49/AARCH64/SbsaNist.efi
+            if-no-files-found: error
+
   build_pcbsa:
       name: PCBSA-ACS UEFI build for ACPI target
       runs-on: ubuntu-22.04

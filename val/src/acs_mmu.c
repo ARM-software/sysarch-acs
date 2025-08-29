@@ -208,7 +208,7 @@ uint32_t val_mmu_update_entry(uint64_t address, uint32_t size)
 
   /* If entry is already present return success */
   if (!val_mmu_check_for_entry(address)) {
-      val_print(ACS_PRINT_DEBUG, "\n   Address is already mapped", 0);
+      val_print(ACS_PRINT_DEBUG, "\n   Address is already mapped\n", 0);
       return 0;
   }
 
