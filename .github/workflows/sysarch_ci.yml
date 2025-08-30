@@ -24,13 +24,13 @@ on:
         type: boolean
         default: true
     secrets:
-      # add if your jobs need repo/environment secrets
-      # Example: GH_PAT: { required: false }
       dummy:
         required: false
 
 jobs:
-  # ---------- UEFI builds (matrix) ----------
+  #######################################################################
+  # MATRIX: UEFI
+  #######################################################################
   uefi:
     if: ${{ inputs.run-uefi }}
     name: UEFI • ${{ matrix.name }}
@@ -112,11 +112,25 @@ jobs:
           path: edk2/Build/Shell/DEBUG_GCC/AARCH64/${{ matrix.outfile }}
           if-no-files-found: error
 
-  # ---------- Baremetal: BSA ----------
-  baremetal-bsa:
+  #######################################################################
+  # MATRIX: BAREMETAL
+  #######################################################################
+  baremetal:
     if: ${{ inputs.run-baremetal }}
-    name: Baremetal • BSA (RDN2)
+    name: Baremetal • ${{ matrix.name }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: BSA (RDN2)
+            make_target: bsa
+            out_relpath: bsa_build/output/bsa.bin
+            artifact: Bsa_baremetal_RDN2.bin
+          - name: SBSA (RDN2)
+            make_target: sbsa
+            out_relpath: sbsa_build/output/sbsa.bin
+            artifact: Sbsa_baremetal_RDN2.bin
     steps:
       - uses: actions/checkout@v4
 
@@ -130,59 +144,44 @@ jobs:
           wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
           tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
 
-      - name: Compile BSA Baremetal ACS for RDN2
+      - name: Compile ${{ matrix.name }}
         run: |
           export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
           mkdir build
           cd build
           cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
-          make bsa
+          make ${{ matrix.make_target }}
 
-      - name: Upload bsa.bin
+      - name: Upload ${{ matrix.artifact }}
         uses: actions/upload-artifact@v4
         with:
-          name: Bsa_baremetal_RDN2.bin
-          path: build/bsa_build/output/bsa.bin
+          name: ${{ matrix.artifact }}
+          path: build/${{ matrix.out_relpath }}
           if-no-files-found: error
 
-  # ---------- Baremetal: SBSA ----------
-  baremetal-sbsa:
-    if: ${{ inputs.run-baremetal }}
-    name: Baremetal • SBSA (RDN2)
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Clean build dir
-        run: rm -rf build
-
-      - name: Download Arm GCC cross-compiler (aarch64-elf)
-        run: |
-          mkdir -p /opt/cross
-          cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
-          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
-
-      - name: Compile SBSA Baremetal ACS for RDN2
-        run: |
-          export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
-          mkdir build
-          cd build
-          cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
-          make sbsa
-
-      - name: Upload sbsa.bin
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sbsa_baremetal_RDN2.bin
-          path: build/sbsa_build/output/sbsa.bin
-          if-no-files-found: error
-
-  # ---------- Linux ACS ----------
-  linux-acs:
+  #######################################################################
+  # MATRIX: LINUX
+  #######################################################################
+  linux:
     if: ${{ inputs.run-linux }}
-    name: Linux • BSA/SBSA/PC-BSA
+    name: Linux • ${{ matrix.name }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: BSA
+            short: bsa
+            ko: bsa_acs.ko
+            app: bsa_app
+          - name: SBSA
+            short: sbsa
+            ko: sbsa_acs.ko
+            app: sbsa_app
+          - name: PC-BSA
+            short: pcbsa
+            ko: pcbsa_acs.ko
+            app: pcbsa_app
     steps:
       - uses: actions/checkout@v4
 
@@ -192,36 +191,17 @@ jobs:
           wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
           chmod +x build.sh
 
-      - name: Build Linux ACS modules and apps
+      - name: Build Linux ACS (then select ${{ matrix.name }})
         run: |
           cd ..
-          mkdir -p linux-bsa linux-sbsa linux-pcbsa
           ./build.sh
-          cp build/bsa_acs.ko /home/runner/work/sysarch-acs/linux-bsa/
-          cp build/bsa_app    /home/runner/work/sysarch-acs/linux-bsa/
-          cp build/sbsa_acs.ko /home/runner/work/sysarch-acs/linux-sbsa/
-          cp build/sbsa_app    /home/runner/work/sysarch-acs/linux-sbsa/
-          cp build/pcbsa_acs.ko /home/runner/work/sysarch-acs/linux-pcbsa/
-          cp build/pcbsa_app    /home/runner/work/sysarch-acs/linux-pcbsa/
+          mkdir -p "$GITHUB_WORKSPACE/linux-${{ matrix.short }}"
+          cp build/${{ matrix.ko }}  "$GITHUB_WORKSPACE/linux-${{ matrix.short }}/"
+          cp build/${{ matrix.app }} "$GITHUB_WORKSPACE/linux-${{ matrix.short }}/"
 
-      - name: Upload BSA artifacts
+      - name: Upload ${{ matrix.name }} artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: BSA Kernel Module and App
-          path: /home/runner/work/sysarch-acs/linux-bsa/*
+          name: ${{ matrix.name }} Kernel Module and App
+          path: ${{ github.workspace }}/linux-${{ matrix.short }}/*
           if-no-files-found: error
-
-      - name: Upload SBSA artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SBSA Kernel Module and App
-          path: /home/runner/work/sysarch-acs/linux-sbsa/*
-          if-no-files-found: error
-
-      - name: Upload PC-BSA artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: PC-BSA Kernel Module and App
-          path: /home/runner/work/sysarch-acs/linux-pcbsa/*
-          if-no-files-found: error
-
