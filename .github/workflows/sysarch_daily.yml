@@ -1,0 +1,16 @@
+name: SYSARCH-ACS Daily
+
+on:
+  schedule:
+    - cron: "0 22 * * *"   # daily 22:00 UTC
+  workflow_dispatch:
+
+jobs:
+  run:
+    uses: ./.github/workflows/sysarch_ci.yml
+    with:
+      edk2-ref: edk2-stable202505
+      run-uefi: true
+      run-baremetal: true
+      run-linux: true
+    secrets: inherit

@@ -1,0 +1,227 @@
+name: SYSARCH-ACS CI (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      edk2-ref:
+        description: "edk2 ref/branch/tag to checkout"
+        required: false
+        type: string
+        default: "edk2-stable202505"
+      run-uefi:
+        description: "Run UEFI builds"
+        required: false
+        type: boolean
+        default: true
+      run-baremetal:
+        description: "Run Baremetal builds"
+        required: false
+        type: boolean
+        default: true
+      run-linux:
+        description: "Run Linux ACS build"
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      # add if your jobs need repo/environment secrets
+      # Example: GH_PAT: { required: false }
+      dummy:
+        required: false
+
+jobs:
+  # ---------- UEFI builds (matrix) ----------
+  uefi:
+    if: ${{ inputs.run-uefi }}
+    name: UEFI • ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: BSA ACPI
+            arg: bsa
+            outfile: Bsa.efi
+            artifact: Bsa_acpi_target.efi
+          - name: BSA DT
+            arg: bsa_dt
+            outfile: Bsa.efi
+            artifact: Bsa_dt_target.efi
+          - name: SBSA ACPI
+            arg: sbsa
+            outfile: Sbsa.efi
+            artifact: Sbsa.efi
+          - name: DRTM ACPI
+            arg: drtm
+            outfile: Drtm.efi
+            artifact: Drtm_acpi_target.efi
+          - name: MPAM ACPI
+            arg: mpam
+            outfile: Mpam.efi
+            artifact: Mpam_acpi_target.efi
+          - name: SBSA NIST
+            arg: nist
+            outfile: SbsaNist.efi
+            artifact: Sbsa_Nist_acpi_target.efi
+          - name: PC-BSA ACPI
+            arg: pc_bsa
+            outfile: PC_Bsa.efi
+            artifact: PC_Bsa_acpi_target.efi
+          - name: Unified ACPI
+            arg: unified
+            outfile: UnifiedAcs.efi
+            artifact: unified.efi
+
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y git build-essential nasm wget xz-utils
+
+      - name: Download edk2 and its submodules
+        run: |
+          git clone --recursive https://github.com/tianocore/edk2
+          cd edk2
+          git checkout "${{ inputs.edk2-ref }}"
+          cd ..
+          git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc
+
+      - name: Checkout sysarch-acs repository
+        uses: actions/checkout@v4
+        with:
+          path: 'edk2/ShellPkg/Application/sysarch-acs'
+
+      - name: Download Arm GCC cross-compiler (aarch64-linux-gnu)
+        run: |
+          mkdir -p /opt/cross
+          cd /opt/cross
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+
+      - name: Build ${{ matrix.name }}
+        run: |
+          cd edk2
+          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+          export PACKAGES_PATH=$PWD/edk2-libc
+          source edksetup.sh
+          make -C BaseTools/Source/C
+          source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh ${{ matrix.arg }}
+
+      - name: Upload artifact (${{ matrix.artifact }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: edk2/Build/Shell/DEBUG_GCC/AARCH64/${{ matrix.outfile }}
+          if-no-files-found: error
+
+  # ---------- Baremetal: BSA ----------
+  baremetal-bsa:
+    if: ${{ inputs.run-baremetal }}
+    name: Baremetal • BSA (RDN2)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clean build dir
+        run: rm -rf build
+
+      - name: Download Arm GCC cross-compiler (aarch64-elf)
+        run: |
+          mkdir -p /opt/cross
+          cd /opt/cross
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+
+      - name: Compile BSA Baremetal ACS for RDN2
+        run: |
+          export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
+          mkdir build
+          cd build
+          cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
+          make bsa
+
+      - name: Upload bsa.bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bsa_baremetal_RDN2.bin
+          path: build/bsa_build/output/bsa.bin
+          if-no-files-found: error
+
+  # ---------- Baremetal: SBSA ----------
+  baremetal-sbsa:
+    if: ${{ inputs.run-baremetal }}
+    name: Baremetal • SBSA (RDN2)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clean build dir
+        run: rm -rf build
+
+      - name: Download Arm GCC cross-compiler (aarch64-elf)
+        run: |
+          mkdir -p /opt/cross
+          cd /opt/cross
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+
+      - name: Compile SBSA Baremetal ACS for RDN2
+        run: |
+          export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
+          mkdir build
+          cd build
+          cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
+          make sbsa
+
+      - name: Upload sbsa.bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sbsa_baremetal_RDN2.bin
+          path: build/sbsa_build/output/sbsa.bin
+          if-no-files-found: error
+
+  # ---------- Linux ACS ----------
+  linux-acs:
+    if: ${{ inputs.run-linux }}
+    name: Linux • BSA/SBSA/PC-BSA
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Linux ACS build script
+        run: |
+          cd ..
+          wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
+          chmod +x build.sh
+
+      - name: Build Linux ACS modules and apps
+        run: |
+          cd ..
+          mkdir -p linux-bsa linux-sbsa linux-pcbsa
+          ./build.sh
+          cp build/bsa_acs.ko /home/runner/work/sysarch-acs/linux-bsa/
+          cp build/bsa_app    /home/runner/work/sysarch-acs/linux-bsa/
+          cp build/sbsa_acs.ko /home/runner/work/sysarch-acs/linux-sbsa/
+          cp build/sbsa_app    /home/runner/work/sysarch-acs/linux-sbsa/
+          cp build/pcbsa_acs.ko /home/runner/work/sysarch-acs/linux-pcbsa/
+          cp build/pcbsa_app    /home/runner/work/sysarch-acs/linux-pcbsa/
+
+      - name: Upload BSA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BSA Kernel Module and App
+          path: /home/runner/work/sysarch-acs/linux-bsa/*
+          if-no-files-found: error
+
+      - name: Upload SBSA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SBSA Kernel Module and App
+          path: /home/runner/work/sysarch-acs/linux-sbsa/*
+          if-no-files-found: error
+
+      - name: Upload PC-BSA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PC-BSA Kernel Module and App
+          path: /home/runner/work/sysarch-acs/linux-pcbsa/*
+          if-no-files-found: error
+
