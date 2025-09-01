@@ -75,4 +75,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
-  GCC:*_*_*_CC_FLAGS   = -O0
+  GCC:*_*_*_CC_FLAGS   = -O0 -DTARGET_UEFI

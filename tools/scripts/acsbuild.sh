@@ -144,7 +144,7 @@ if [ "$1" == "pfdi" ]; then
     git checkout MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c
     git checkout MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c
     git apply ShellPkg/Application/sysarch-acs/patches/edk2_pfdi.patch
-    build -a AARCH64 -t GCC49 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Pfdi.inf
+    build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Pfdi.inf
     return 0;
 fi
 

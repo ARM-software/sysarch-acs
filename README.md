@@ -379,6 +379,7 @@ shell> ./sbsa_app or ./sbsa
 #### 2.3 BSA Linux Test Log View
 ```sh
 shell> sudo dmesg | tail -500 # print last 500 kernel logs
+```
 
 After the run is complete, you can remove the BSA and SBSA module from the system if it is no longer needed.
 

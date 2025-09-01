@@ -51,16 +51,16 @@ cd ${WORK_DIR}/edk2
 make -C BaseTools
 
 rm -f ShellPkg/Application/sysarch-acs
-rm -rf Build/Shell/DEBUG_GCC49/*
+rm -rf Build/Shell/DEBUG_GCC/*
 
 ln -s ${HOME_DIR} ShellPkg/Application/sysarch-acs
 
-export GCC49_AARCH64_PREFIX=${WORK_DIR}/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+export GCC_AARCH64_PREFIX=${WORK_DIR}/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 export PACKAGES_PATH=${WORK_DIR}/edk2/edk2-libc
 
 source edksetup.sh
 source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pfdi
-cp Build/Shell/DEBUG_GCC49/AARCH64/pfdi.efi ${WORK_DIR}/output
+cp Build/Shell/DEBUG_GCC/AARCH64/pfdi.efi ${WORK_DIR}/output
 
 cd ${HOME_DIR}
 
