@@ -43,34 +43,40 @@ payload()
   tmp_reg_data = (sve_reg_details *)buffer_ptr;
   tmp_reg_data = tmp_reg_data + index;
 
+ /* Read ID_AA64ZFR0_EL1 for SVE2 support */
+  data = val_pe_reg_read(ID_AA64ZFR0_EL1);
+  tmp_reg_data->data = data;
+
+  /* For Armv9, the ID_AA64ZFR0_EL1.SVEver, bits [3:0] value 0b0000 is not permitted */
+  /* ID_AA64ZFR0_EL1.SVEver > 0 indicates FEAT_SVE2 or grater is implemented*/
+  /* If PE implements SVE2, it's a pass. No need to check architecture family, as
+   * SVE2 is required from v9 onwards. */
+  if (VAL_EXTRACT_BITS(data, 0, 3) > 0) {
+    val_set_status(index, RESULT_PASS(TEST_NUM, 1));
+    tmp_reg_data->status = ACS_STATUS_PASS;
+    return;
+  }
+
   /* Get PE family for each PE index*/
   pe_family = val_get_pe_architecture(index);
 
+  /* SVE2 is not supported and SMBIOS info missing, skipping the test*/
   if (pe_family == ACS_STATUS_ERR) {
     val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
     tmp_reg_data->status = ACS_STATUS_ERR;
     return;
   }
 
-  /* If processor is not Armv9, FEAT_SVE2 is not required */
+  /* PE does not implement SVE2 and SMBIOS does not report Armv9, skipping the test */
   if (pe_family != PROCESSOR_FAMILY_ARMV9) {
     val_set_status(index, RESULT_SKIP(TEST_NUM, 3));
     tmp_reg_data->status = ACS_STATUS_SKIP;
     return;
   }
 
- /* Read ID_AA64ZFR0_EL1 for SVE2 support */
-  data = val_pe_reg_read(ID_AA64ZFR0_EL1);
-  tmp_reg_data->data = data;
-
-  /* For Armv9, the ID_AA64ZFR0_EL1.SVEver, bits [3:0] value 0b0000 is not permitted */
-  if (VAL_EXTRACT_BITS(data, 0, 3) == 0) {
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-    tmp_reg_data->status = ACS_STATUS_FAIL;
-    return;
-  }
-
-  val_set_status(index, RESULT_PASS(TEST_NUM, 1));
+  /* PE does not implement SVE2 and SMBIOS reports Armv9, failing the test */
+  val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+  tmp_reg_data->status = ACS_STATUS_FAIL;
 }
 
 uint32_t
@@ -110,12 +116,13 @@ pe016_entry(uint32_t num_pe)
 
       if (reg_buffer->status == ACS_STATUS_SKIP)
         val_print(ACS_PRINT_DEBUG, "\n       Processor is not v9, Skipping the test", 0);
-      else if (reg_buffer->status == ACS_STATUS_FAIL)
-        val_print(ACS_PRINT_DEBUG, "\n       Reg Value = 0x%llx  FAIL", reg_buffer->data);
       else if (reg_buffer->status == ACS_STATUS_ERR)
         val_print(ACS_PRINT_DEBUG, "\n       Processor Family Not Found in SMBIOS Table", 0);
-      else
-        val_print(ACS_PRINT_DEBUG, "\n       Reg Value = 0x%llx  PASS", reg_buffer->data);
+      else if (reg_buffer->status == ACS_STATUS_FAIL) {
+        val_print(ACS_PRINT_DEBUG, "\n       Processor is v9 and FEAT_SVE2 is not implemented.", 0);
+        val_print(ACS_PRINT_DEBUG, " ID_AA64ZFR0_EL1.SVEver 0x%llx  FAIL", reg_buffer->data);
+      } else
+        val_print(ACS_PRINT_DEBUG, "\n       ID_AA64ZFR0_EL1.SVEver 0x%llx PASS", reg_buffer->data);
     }
 
     val_memory_free((void *) g_sve_reg_info);
