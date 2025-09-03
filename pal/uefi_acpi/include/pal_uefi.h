@@ -730,6 +730,7 @@ typedef struct {
   UINT32 size_property_valid;
   UINT32 cache_type_valid;
   UINT32 cache_id_valid;
+  UINT8  associativity_valid;
 } CACHE_FLAGS;
 
 /* Since most of platform doesn't support cache id field (ACPI 6.4+), ACS uses PPTT offset as key
@@ -743,6 +744,7 @@ typedef struct {
   UINT32 cache_id;          /* Unique, non-zero identifier for this cache */
   UINT32 is_private;        /* Field indicate whether cache is private */
   UINT8  cache_type;        /* Cache type */
+  UINT8  associativity;     /* N-way cache associativity */
 } CACHE_INFO_ENTRY;
 
 typedef struct {

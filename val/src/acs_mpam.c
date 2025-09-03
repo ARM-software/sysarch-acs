@@ -342,6 +342,21 @@ val_mpam_supports_ccap(uint32_t msc_index)
 }
 
 /**
+  @brief   This API checks whether MSC supports cache associativity partitioning.
+  @param   msc_index - index of the MSC node in the MPAM info table.
+  @return  1 if supported 0 otherwise.
+**/
+uint32_t
+val_mpam_supports_cassoc(uint32_t msc_index)
+{
+    if (val_mpam_supports_ccap(msc_index))
+        return BITFIELD_READ(CCAP_IDR_HAS_CASSOC,
+                   val_mpam_mmr_read(msc_index, REG_MPAMF_CCAP_IDR));
+
+    return 0;
+}
+
+/**
   @brief   This API checks whether 64 bit MPAMF_IDR is implemented for the MSC.
   @param   msc_index - index of the MSC node in the MPAM info table.
   @return  1 if supported 0 otherwise.
@@ -990,7 +1005,7 @@ val_mpam_get_max_pmg(uint32_t msc_index)
 /**
   @brief   This API gets Maximum supported value of PARTID
   @param   msc_index - index of the MSC node in the MPAM info table.
-  @return  Partion ID value.
+  @return  Partition ID value.
 **/
 uint32_t
 val_mpam_get_max_partid(uint32_t msc_index)
@@ -1001,7 +1016,7 @@ val_mpam_get_max_partid(uint32_t msc_index)
 /**
   @brief   This API gets Maximum supported value of Internal PARTID
   @param   msc_index - index of the MSC node in the MPAM info table.
-  @return  Partion ID value.
+  @return  Maximum internal Partition ID value.
 **/
 uint16_t
 val_mpam_get_max_intpartid(uint32_t msc_index)
@@ -1015,7 +1030,7 @@ val_mpam_get_max_intpartid(uint32_t msc_index)
                           selected using val_mpam_memory_configure_ris_sel
                           prior calling this API.
   @param   msc_index - index of the MSC node in the MPAM info table.
-  @return  Partion ID value.
+  @return  Number of fractional bits in CCAP control.
 **/
 uint32_t
 val_mpam_get_cmax_wd(uint32_t msc_index)
@@ -1024,12 +1039,26 @@ val_mpam_get_cmax_wd(uint32_t msc_index)
 }
 
 /**
+  @brief   This API gets number of fractional bits implemented in CASSOC control.
+           Prerequisite - If MSC supports RIS, Resource instance should be
+                          selected using val_mpam_memory_configure_ris_sel
+                          prior calling this API.
+  @param   msc_index - index of the MSC node in the MPAM info table.
+  @return  Number of fractional bits in CASSOC control.
+**/
+uint32_t
+val_mpam_get_cassoc_wd(uint32_t msc_index)
+{
+    return BITFIELD_READ(CASSOC_WD, val_mpam_mmr_read(msc_index, REG_MPAMF_CCAP_IDR));
+}
+
+/**
   @brief   This API gets number of fractional bits implemented in CCAP control.
            Prerequisite - If MSC supports RIS, Resource instance should be
                           selected using val_mpam_memory_configure_ris_sel
                           prior calling this API.
   @param   msc_index - index of the MSC node in the MPAM info table.
-  @return  Partion ID value.
+  @return  Number of implemented bits in the bandwidth allocation control.
 **/
 uint32_t
 val_mpam_get_bwa_wd(uint32_t msc_index)
@@ -1118,6 +1147,42 @@ void val_mpam_configure_ccap(uint32_t msc_index, uint16_t partid,
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_CMAX,
                       (softlim << MPAMCFG_CMAX_SOFTLIM_SHIFT) |
                       ((fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF));
+
+    val_mem_issue_dsb();
+    return;
+}
+
+/**
+  @brief   This API Configures CASSOC settings for given MSC and PARTID
+           Prerequisite - If MSC supports RIS, Resource instance should be
+                          selected using val_mpam_memory_configure_ris_sel
+                          prior calling this API.
+  @param   msc_index - index of the MSC node in the MPAM info table.
+  @param   partid - PATRTID for CASSOC configuration
+  @param   cassoc_percentage - Percentage of cache to be associated
+  @return  void.
+**/
+void val_mpam_configure_cassoc(uint32_t msc_index, uint16_t partid,
+                                                 uint32_t cassoc_percentage)
+{
+
+    uint8_t num_fractional_bits;
+    uint16_t fixed_point_fraction;
+    uint32_t data;
+
+    num_fractional_bits = val_mpam_get_cassoc_wd(msc_index);
+    fixed_point_fraction = ((1 << num_fractional_bits) * cassoc_percentage / 100) - 1;
+
+    /* Select the PARTID to configure CASSOC partition parameters */
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, (data | partid));
+
+    /*
+     * Configure the CASSOC register for the cache associativity control settings.
+     * Use num_fractional_bits fixed-point representation
+     */
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_CASSOC,
+                      (fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF);
 
     val_mem_issue_dsb();
     return;
@@ -1684,4 +1749,53 @@ uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uin
 uint64_t val_get_shared_memcpybuf(uint32_t pe_index)
 {
     return (uint64_t) (g_shared_memcpy_buffer[pe_index]);
+}
+
+/**
+  * @brief   This API programs MPAM2_EL2 register with given PARTID and PMG
+  *
+  * @param   partid - Partition ID to be programmed.
+  * @param   pmg    - PMG to be programmed.
+  *
+  * @return  1 if successfully programmed, 0 on failure.
+**/
+uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
+{
+    uint64_t mpam2_el2;
+    uint64_t mpamidr;
+    uint16_t pe_max_partid;
+    uint8_t  pe_max_pmg;
+
+    /* Extract max PARTID supported by MPAMIDR_EL1 */
+    mpamidr = val_mpam_reg_read(MPAMIDR_EL1);
+    pe_max_partid = (mpamidr >> MPAMIDR_PARTID_MAX_SHIFT) & MPAMIDR_PARTID_MAX_MASK;
+
+    if (partid > pe_max_partid) {
+        val_print(ACS_PRINT_ERR, "\n       PARTID value (0x%x)", partid);
+        val_print(ACS_PRINT_ERR, " specified more than PE supported value (0x%x)", pe_max_partid);
+        return 0;
+    }
+
+    /* Extract max PMG supported by MPAMIDR_EL1 */
+    pe_max_pmg = (mpamidr >> MPAMIDR_PMG_MAX_SHIFT) & MPAMIDR_PMG_MAX_MASK;
+    if (pmg > pe_max_pmg) {
+        val_print(ACS_PRINT_ERR, "\n       PMG value (0x%x)", pmg);
+        val_print(ACS_PRINT_ERR, " specified more than PE supported value (0x%x)", pe_max_pmg);
+        return 0;
+    }
+
+    mpam2_el2 = val_mpam_reg_read(MPAM2_EL2);
+
+    /* Clear the PARTID_D & PMG_D bits in mpam2_el2 before writing to them */
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PARTID_D_SHIFT+15, MPAMn_ELx_PARTID_D_SHIFT);
+    mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7, MPAMn_ELx_PMG_D_SHIFT);
+
+    /* Program MPAM2_EL2 with test_partid and Default PMG */
+    mpam2_el2 |= (((uint64_t)pmg << MPAMn_ELx_PMG_D_SHIFT) |
+                  ((uint64_t)partid << MPAMn_ELx_PARTID_D_SHIFT));
+
+    val_print(ACS_PRINT_DEBUG, "\n       Writing MPAM2_EL2: 0x%llx", mpam2_el2);
+    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+
+    return 1;
 }

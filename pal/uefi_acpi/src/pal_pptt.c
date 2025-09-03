@@ -53,7 +53,8 @@ pal_cache_dump_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable)
     acs_print(ACS_PRINT_INFO, L"\n  Cache ID:                0x%llx", curr_entry->cache_id);
     acs_print(ACS_PRINT_INFO, L"\n  Size:                    0x%llx", curr_entry->size);
     acs_print(ACS_PRINT_INFO, L"\n  Next level index:        %d", curr_entry->next_level_index);
-    acs_print(ACS_PRINT_INFO, L"\n  Private flag:            0x%llx\n", curr_entry->is_private);
+    acs_print(ACS_PRINT_INFO, L"\n  Private flag:            0x%llx", curr_entry->is_private);
+    acs_print(ACS_PRINT_INFO, L"\n  Associativity:           0x%llx\n", curr_entry->associativity);
     curr_entry++;
   }
 
@@ -94,6 +95,8 @@ pal_cache_store_info(CACHE_INFO_TABLE *CacheTable,
   curr_entry->flags.size_property_valid = cache_type_struct->Flags.SizePropertyValid;
   curr_entry->flags.cache_type_valid = cache_type_struct->Flags.CacheTypeValid;
   curr_entry->flags.cache_id_valid = cache_type_struct->Flags.CacheIdValid;
+  curr_entry->flags.associativity_valid = cache_type_struct->Flags.AssociativityValid;
+  curr_entry->associativity = cache_type_struct->Associativity;
   curr_entry->size = cache_type_struct->Size;
   curr_entry->cache_type = cache_type_struct->Attributes.CacheType;
   curr_entry->cache_id = cache_type_struct->CacheId;

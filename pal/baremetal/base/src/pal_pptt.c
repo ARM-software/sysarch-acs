@@ -131,6 +131,11 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
     curr_entry->cache_id = platform_cache_cfg.cache_info[i].cache_id;
     curr_entry->is_private = platform_cache_cfg.cache_info[i].is_private;
     curr_entry->next_level_index = platform_cache_cfg.cache_info[i].next_level_index;
+
+    /* TODO: Cache associativity info is only required for MPAM ACS. Not parsing in BM
+       as it requires partners to fill redundant info. */
+    curr_entry->flags.associativity_valid = 1;
+    curr_entry->associativity = 0;
     curr_entry++;
    }
 

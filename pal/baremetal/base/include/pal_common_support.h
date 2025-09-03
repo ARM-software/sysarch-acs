@@ -884,19 +884,21 @@ typedef struct {
   uint32_t size_property_valid;
   uint32_t cache_type_valid;
   uint32_t cache_id_valid;
+  uint8_t  associativity_valid;
 } CACHE_FLAGS;
 
 /* Since most of platform doesn't support cache id field (ACPI 6.4+), ACS uses PPTT offset as key
    to uniquely identify a cache, In future once platforms align with ACPI 6.4+ my_offset member
    might be removed from cache entry*/
 typedef struct {
-  CACHE_FLAGS flags;        /* Cache flags */
+  CACHE_FLAGS flags;          /* Cache flags */
   uint32_t my_offset;         /* Cache PPTT structure offset */
   uint32_t next_level_index;  /* Index of next level cache entry in CACHE_INFO_TABLE */
   uint32_t size;              /* Size of the cache in bytes */
   uint32_t cache_id;          /* Unique, non-zero identifier for this cache */
   uint32_t is_private;        /* Field indicate whether cache is private */
   uint8_t  cache_type;        /* Cache type */
+  uint8_t  associativity;     /* N-Way Cache associativity */
 } CACHE_INFO_ENTRY;
 
 typedef struct {

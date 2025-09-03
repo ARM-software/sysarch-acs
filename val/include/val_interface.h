@@ -520,7 +520,8 @@ typedef enum {
   CACHE_SIZE,
   CACHE_ID,
   CACHE_NEXT_LEVEL_IDX,
-  CACHE_PRIVATE_FLAG
+  CACHE_PRIVATE_FLAG,
+  CACHE_ASSOCIATIVITY
 } CACHE_INFO_e;
 
 void val_cache_create_info_table(uint64_t *cache_info_table);
@@ -528,6 +529,7 @@ void val_cache_free_info_table(void);
 uint64_t val_cache_get_info(CACHE_INFO_e type, uint32_t cache_index);
 uint32_t val_cache_get_llc_index(void);
 uint32_t val_cache_get_pe_l1_cache_res(uint32_t res_index);
+uint32_t val_cache_get_associativity(uint64_t cache_id);
 uint64_t val_get_primary_mpidr(void);
 
 /* MPAM tests APIs */

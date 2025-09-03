@@ -113,7 +113,9 @@ uint64_t val_mpam_memory_get_size(uint32_t msc_index, uint32_t rsrc_index);
 uint64_t val_mpam_memory_get_base(uint32_t msc_index, uint32_t rsrc_index);
 uint32_t val_mpam_supports_cpor(uint32_t msc_index);
 uint32_t val_mpam_supports_ccap(uint32_t msc_index);
+uint32_t val_mpam_supports_cassoc(uint32_t msc_index);
 uint32_t val_mpam_get_cmax_wd(uint32_t msc_index);
+uint32_t val_mpam_get_cassoc_wd(uint32_t msc_index);
 uint32_t val_mpam_get_bwa_wd(uint32_t msc_index);
 uint64_t val_mpam_msc_get_mscbw(uint32_t msc_index, uint32_t rsrc_index);
 uint32_t val_mpam_mbwu_supports_long(uint32_t msc_index);
@@ -125,6 +127,8 @@ uint32_t val_mpam_get_max_pmg(uint32_t msc_index);
 void val_mpam_configure_cpor(uint32_t msc_index, uint16_t partid, uint32_t cpbm_percentage);
 void val_mpam_configure_ccap(uint32_t msc_index, uint16_t partid,
                                                      uint8_t softlim, uint32_t ccap_percentage);
+void val_mpam_configure_cassoc(uint32_t msc_index, uint16_t partid,
+                                                 uint32_t cassoc_percentage);
 void val_mpam_configure_mbwpbm(uint32_t msc_index, uint16_t partid, uint32_t mbwpbm_percentage);
 void val_mpam_msc_configure_mbwmin(uint32_t msc_index, uint16_t partid, uint32_t mbwmin_percentage);
 void val_mpam_msc_configure_mbwmax(uint32_t msc_index, uint16_t partid,
@@ -142,7 +146,7 @@ void     val_mpam_mmr_write(uint32_t msc_index, uint32_t reg_offset, uint32_t da
 void     val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t data);
 uint32_t val_mpam_pcc_read(uint32_t msc_index, uint32_t reg_offset);
 void     val_mpam_pcc_write(uint32_t msc_index, uint32_t reg_offset, uint32_t data);
-
+uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg);
 
 uint32_t mpam001_entry(uint32_t num_pe);
 uint32_t mpam002_entry(uint32_t num_pe);
