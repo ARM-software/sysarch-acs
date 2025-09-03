@@ -754,6 +754,7 @@ uint32_t dl012_entry(uint32_t num_pe);
 
 #define ACS_MPAM_REGISTER_TEST_NUM_BASE     0
 #define ACS_MPAM_CACHE_TEST_NUM_BASE        100
+#define ACS_MPAM_MONITOR_TEST_NUM_BASE      150
 #define ACS_MPAM_ERROR_TEST_NUM_BASE        200
 #define ACS_MPAM_MEMORY_TEST_NUM_BASE       300
 

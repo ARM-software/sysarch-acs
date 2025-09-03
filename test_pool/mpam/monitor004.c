@@ -22,7 +22,7 @@
 #include "acs_mpam_reg.h"
 #include "val_interface.h"
 
-#define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 7
+#define TEST_NUM   ACS_MPAM_MONITOR_TEST_NUM_BASE + 4
 #define TEST_RULE  ""
 #define TEST_DESC  "Check PARTID Storage by CCAP Nodes    "
 
