@@ -801,6 +801,7 @@ uint32_t reg002_entry(void);
 uint32_t reg003_entry(void);
 uint32_t reg004_entry(void);
 uint32_t reg005_entry(void);
+uint32_t reg006_entry(void);
 
 // Memory Bandwidth partitioning tests entry calls
 uint32_t mem001_entry(void);

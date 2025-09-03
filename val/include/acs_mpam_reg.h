@@ -59,6 +59,7 @@
 #define REG_MPAMCFG_CMAX            0x0108
 #define REG_MPAMCFG_MBW_MIN         0x0200
 #define REG_MPAMCFG_EN              0x0300
+#define REG_MPAMCFG_DIS             0x0310
 #define REG_MPAMCFG_MBW_MAX         0x0208
 #define REG_MPAMCFG_INTPARTID       0x0600
 #define REG_MPAMCFG_CPBM            0x1000
@@ -136,6 +137,9 @@ BITFIELD_DECL(uint32_t, MSMON_IDR_NO_OFLW_INTR, 30, 30)
 /* MPAM Error Status Register Bit Shift and Mask */
 #define ESR_ERRCODE_SHIFT           0x0018
 #define ESR_ERRCODE_MASK            0x000F
+
+/* MPAMCFG_DIS Register Bit Shift */
+BITFIELD_DECL(uint32_t, MPAMCFG_DIS_NFU, 31, 31)
 
 /* MPAMCFG_CMAX Register Bit Shift */
 #define MPAMCFG_CMAX_SOFTLIM_SHIFT          31
