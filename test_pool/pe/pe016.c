@@ -47,10 +47,11 @@ payload()
   data = val_pe_reg_read(ID_AA64ZFR0_EL1);
   tmp_reg_data->data = data;
 
-  /* For Armv9, the ID_AA64ZFR0_EL1.SVEver, bits [3:0] value 0b0000 is not permitted */
-  /* ID_AA64ZFR0_EL1.SVEver > 0 indicates FEAT_SVE2 or grater is implemented*/
+  /* For Armv9, if ID_AA64ZFR0_EL1 is present the SVEver bits [3:0]
+   * value 0b0000 is not permitted */
+  /* ID_AA64ZFR0_EL1.SVEver > 0 indicates FEAT_SVE2 or greater is implemented */
   /* If PE implements SVE2, it's a pass. No need to check architecture family, as
-   * SVE2 is required from v9 onwards. */
+   * BSA mandates SVE2 from v9 */
   if (VAL_EXTRACT_BITS(data, 0, 3) > 0) {
     val_set_status(index, RESULT_PASS(TEST_NUM, 1));
     tmp_reg_data->status = ACS_STATUS_PASS;
@@ -60,21 +61,21 @@ payload()
   /* Get PE family for each PE index*/
   pe_family = val_get_pe_architecture(index);
 
-  /* SVE2 is not supported and SMBIOS info missing, skipping the test*/
+  /* SVE2 not implemented, SMBIOS info missing, cannot confirm if PE is v9. Skipping the test */
   if (pe_family == ACS_STATUS_ERR) {
     val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
     tmp_reg_data->status = ACS_STATUS_ERR;
     return;
   }
 
-  /* PE does not implement SVE2 and SMBIOS does not report Armv9, skipping the test */
+  /* SVE2 not implemented, SMBIOS does not report Armv9, skipping the test */
   if (pe_family != PROCESSOR_FAMILY_ARMV9) {
     val_set_status(index, RESULT_SKIP(TEST_NUM, 3));
     tmp_reg_data->status = ACS_STATUS_SKIP;
     return;
   }
 
-  /* PE does not implement SVE2 and SMBIOS reports Armv9, failing the test */
+  /* SVE2 not implemented, SMBIOS reports Armv9, failing the test */
   val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
   tmp_reg_data->status = ACS_STATUS_FAIL;
 }
