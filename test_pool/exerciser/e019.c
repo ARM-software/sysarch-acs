@@ -28,7 +28,7 @@
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 19)
 #define TEST_DESC  "PCIe Address translation check        "
-#define TEST_RULE  "RE_SMU_2"
+#define TEST_RULE  "RE_SMU_1"
 
 #define TEST_DATA_NUM_PAGES  4
 #define TEST_DATA 0xDE
@@ -66,9 +66,14 @@ void
 payload(void)
 {
   uint32_t pe_index;
+  uint32_t rciep_rc_index;
+  uint32_t tbl_index;
   uint32_t dma_len;
   uint32_t instance;
   uint32_t e_bdf;
+  uint32_t bdf;
+  uint32_t dp_type;
+  uint32_t test_skip = 1;
   void *dram_buf_in_virt;
   void *dram_buf_out_virt;
   uint64_t dram_buf_in_phys;
@@ -84,6 +89,8 @@ payload(void)
   uint64_t ttbr;
   uint32_t test_data_blk_size = page_size * TEST_DATA_NUM_PAGES;
   uint64_t *pgt_base_array;
+  pcie_device_bdf_table *bdf_tbl_ptr;
+  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
   num_smmus = val_iovirt_get_smmu_info(SMMU_NUM_CTRL, 0);
 
@@ -149,7 +156,27 @@ payload(void)
   for (instance = 0; instance < num_smmus; ++instance)
      val_smmu_enable(instance);
 
-  for (instance = 0; instance < num_exercisers; ++instance) {
+  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
+  {
+    bdf = bdf_tbl_ptr->device[tbl_index].bdf;
+    dp_type = val_pcie_device_port_type(bdf);
+    if (dp_type != RCiEP) {
+        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP device", bdf);
+        continue;
+    }
+
+    val_print(ACS_PRINT_DEBUG, "\n      RCiEP BDF - 0x%x ", bdf);
+
+    /* Get rc index of RCiEP in IOVIRT mapping*/
+    rciep_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
+    if (rciep_rc_index == ACS_INVALID_INDEX)
+        continue;
+
+    /* Check if RC of RCiEP bdf matches with RC of exerciser
+       If it matches, return the instance of the exerciser */
+    instance = val_exerciser_get_exerciser_instance(rciep_rc_index);
+    if (instance == ACS_INVALID_INDEX)
+      continue;
 
     /* if init fail moves to next exerciser */
     if (val_exerciser_init(instance))
@@ -157,7 +184,9 @@ payload(void)
 
     /* Get exerciser bdf */
     e_bdf = val_exerciser_get_bdf(instance);
-    val_print(ACS_PRINT_DEBUG, "\n       Exercise BDF - 0x%x", e_bdf);
+
+    val_print(ACS_PRINT_DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);
+    val_print(ACS_PRINT_DEBUG, "\n       rciep_rc_index - 0x%x", rciep_rc_index);
 
     /* Get SMMU node index for this exerciser instance */
     master.smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
@@ -175,6 +204,7 @@ payload(void)
                                        &its_id))
             continue;
 
+        test_skip = 0;
         /* Each exerciser instance accesses a unique IOVA, which, because of SMMU translations,
          * will point to the same physical address. We create the requisite page tables and
          * configure the SMMU for each exerciser as such.
@@ -249,6 +279,12 @@ payload(void)
     }
 
     clear_dram_buf(dram_buf_in_virt, test_data_blk_size);
+  }
+
+  if (test_skip == 1) {
+      val_print(ACS_PRINT_DEBUG, "\n       No RCiEP type devicefound, Skipping the test", 0);
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+      goto test_clean;
   }
 
   val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));

@@ -66,11 +66,14 @@ void
 payload(void)
 {
   uint32_t pe_index;
+  uint32_t tbl_index;
   uint32_t dma_len;
   uint32_t instance;
+  uint32_t dp_type;
   uint32_t e_bdf;
-  uint32_t erp_bdf;
+  uint32_t bdf;
   uint32_t rc_index;
+  uint32_t rciep_rc_index;
   uint32_t cap_base;
   void *dram_buf_in_virt;
   void *dram_buf_out_virt;
@@ -91,6 +94,8 @@ payload(void)
   uint64_t translated_addr;
   uint32_t test_skip = 1;
   uint32_t reg_value = 0;
+  pcie_device_bdf_table *bdf_tbl_ptr;
+  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
   /* Initialize DMA master and memory descriptors */
   val_memory_set(&master, sizeof(master), 0);
@@ -146,7 +151,28 @@ payload(void)
   for (instance = 0; instance < num_smmus; ++instance)
      val_smmu_enable(instance);
 
-  for (instance = 0; instance < num_exercisers; ++instance) {
+
+  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
+  {
+    bdf = bdf_tbl_ptr->device[tbl_index].bdf;
+    dp_type = val_pcie_device_port_type(bdf);
+    if (dp_type != RCiEP) {
+        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP device", bdf);
+        continue;
+    }
+
+    val_print(ACS_PRINT_DEBUG, "\n      RCiEP BDF - 0x%x ", bdf);
+
+    /* Get rc index of RCiEP in IOVIRT mapping*/
+    rciep_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
+    if (rciep_rc_index == ACS_INVALID_INDEX)
+        continue;
+
+    /* Check if RC of RCiEP bdf matches with RC of exerciser
+       If it matches, return the instance of the exerciser */
+    instance = val_exerciser_get_exerciser_instance(rciep_rc_index);
+    if (instance == ACS_INVALID_INDEX)
+      continue;
 
     /* if init fail moves to next exerciser */
     if (val_exerciser_init(instance))
@@ -154,21 +180,20 @@ payload(void)
 
     /* Get exerciser bdf */
     e_bdf = val_exerciser_get_bdf(instance);
+
     val_print(ACS_PRINT_DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);
 
     /* If ATS Capability Not Present, Skip. */
     if (val_pcie_find_capability(e_bdf, PCIE_ECAP, ECID_ATS, &cap_base) != PCIE_SUCCESS)
         continue;
 
-    /* Get RP of the exerciser */
-    if (val_pcie_get_rootport(e_bdf, &erp_bdf))
-        continue;
-
     /* Get index for RC in IOVIRT mapping*/
-    rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(erp_bdf));
+    rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(e_bdf));
     if (rc_index == ACS_INVALID_INDEX)
         continue;
 
+    val_print(ACS_PRINT_INFO, "\n       rc_index - 0x%x", rc_index);
+    val_print(ACS_PRINT_INFO, "\n       rciep_rc_index - 0x%x", rciep_rc_index);
     /* Continue further only if RC supports ATS - this is not standard but information
      * based on the SOC design */
     if (!val_iovirt_get_pcie_rc_info(RC_ATS_ATTRIBUTE, rc_index))

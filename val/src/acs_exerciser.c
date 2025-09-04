@@ -93,6 +93,8 @@ uint32_t val_exerciser_create_info_table(void)
       if (pal_is_bdf_exerciser(Bdf))
       {
           g_exerciser_info_table.e_info[num_exerciser_info].bdf = Bdf;
+          g_exerciser_info_table.e_info[num_exerciser_info].rc_index =
+                                               val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(Bdf));
           g_exerciser_info_table.e_info[num_exerciser_info++].initialized = 0;
           vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
           vendor_name = lookup_vendor_name(vendor_id);
@@ -152,6 +154,25 @@ uint32_t val_exerciser_get_bdf(uint32_t instance)
 {
     return g_exerciser_info_table.e_info[instance].bdf;
 }
+
+/**
+  @brief   This API returns the instance of the PCIe bdf
+  @param  rc_index  - RC index of the BDF Number
+  @return instance  - Stimulus hardware instance number
+**/
+uint32_t val_exerciser_get_exerciser_instance(uint32_t rc_index)
+{
+    uint32_t instance;
+    uint32_t num_exercisers;
+
+    num_exercisers = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+    for (instance = 0; instance < num_exercisers; ++instance) {
+      if (g_exerciser_info_table.e_info[instance].rc_index == rc_index)
+          return instance;
+    }
+    return ACS_INVALID_INDEX;
+}
+
 /**
   @brief   This API reads the configuration parameters of the PCIe stimulus generation hardware
   @param   type         - Parameter type that needs to be read from the stimulus hadrware
