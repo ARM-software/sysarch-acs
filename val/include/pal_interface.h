@@ -100,7 +100,12 @@
   typedef UINT64  uint64_t;
   typedef UINT64  addr_t;
   typedef UINT64  dma_addr_t;
-  typedef BOOLEAN bool;
+
+  #if defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L
+   /* bool is a keyword  */
+  #else
+   typedef BOOLEAN bool;
+  #endif
 
   #define MAX_SID  32
   #define MMU_PGT_IAS    48

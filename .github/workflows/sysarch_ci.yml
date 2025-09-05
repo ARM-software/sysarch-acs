@@ -3,6 +3,11 @@ name: SYSARCH-ACS CI (reusable)
 on:
   workflow_call:
     inputs:
+      toolchain:
+        description: "Choose toolchain: 'arm-toolchain', 'gcc', or 'both'"
+        required: false
+        type: string
+        default: "arm-toolchain"
       edk2-ref:
         description: "edk2 ref/branch/tag to checkout"
         required: false
@@ -28,17 +33,40 @@ on:
         required: false
 
 jobs:
+  setup:
+    runs-on: ubuntu-22.04
+    outputs:
+      toolchain-matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          input="${{ inputs.toolchain }}"
+          input=$(echo "$input" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+
+          if [[ "$input" == "arm-toolchain,gcc" || "$input" == "gcc,arm-toolchain" || "$input" == "both" ]]; then
+            echo "matrix=[\"arm-toolchain\",\"gcc\"]" >> "$GITHUB_OUTPUT"
+          elif [[ "$input" == "arm-toolchain" ]]; then
+            echo "matrix=[\"arm-toolchain\"]" >> "$GITHUB_OUTPUT"
+          elif [[ "$input" == "gcc" ]]; then
+            echo "matrix=[\"gcc\"]" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error ::Invalid toolchain input: '$input'"
+            exit 1
+          fi
+
   #######################################################################
   # MATRIX: UEFI
   #######################################################################
   uefi:
+    needs: setup
     if: ${{ inputs.run-uefi }}
-    name: UEFI • ${{ matrix.name }}
+    name: UEFI • ${{ matrix.toolchain }} • ${{ matrix.target.name }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        include:
+        toolchain: ${{ fromJson(needs.setup.outputs.toolchain-matrix) }}
+        target:
           - name: BSA ACPI
             arg: bsa
             outfile: Bsa.efi
@@ -74,7 +102,12 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y git build-essential nasm wget xz-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential nasm wget xz-utils \
+            gawk bison flex texinfo curl \
+            libgmp-dev libmpfr-dev libmpc-dev libisl-dev zlib1g-dev \
+            libc6-dev-arm64-cross linux-libc-dev-arm64-cross
 
       - name: Download edk2 and its submodules
         run: |
@@ -87,30 +120,97 @@ jobs:
       - name: Checkout sysarch-acs repository
         uses: actions/checkout@v4
         with:
-          path: 'edk2/ShellPkg/Application/sysarch-acs'
+          path: edk2/ShellPkg/Application/sysarch-acs
 
-      - name: Download Arm GCC cross-compiler (aarch64-linux-gnu)
+      - name: Cache GCC toolchain (gcc)
+        if: ${{ matrix.toolchain == 'gcc' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/gcc-linux-gnu/install
+            ~/gcc-linux-gnu/sysroot
+          key: gcc-linux-gnu-${{ runner.os }}-${{ runner.arch }}-gcc15-binutils242-armgnu143-v1
+
+      - name: Setup toolchain (${{ matrix.toolchain }})
         run: |
-          mkdir -p /opt/cross
-          cd /opt/cross
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          if [[ "${{ matrix.toolchain }}" == "arm-toolchain" ]]; then
+            echo "Downloading Arm GCC cross-compiler..."
+            mkdir -p /opt/cross
+            cd /opt/cross
+            wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+            echo "GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-" >> "$GITHUB_ENV"
 
-      - name: Build ${{ matrix.name }}
+          elif [[ "${{ matrix.toolchain }}" == "gcc" ]]; then
+            echo "Checking for existing GCC source-built toolchain..."
+            INSTALL="$HOME/gcc-linux-gnu/install"
+
+            if [ -x "$INSTALL/bin/aarch64-none-linux-gnu-gcc" ]; then
+              echo "GCC already installed at $INSTALL"
+            else
+              echo "Building GCC from source (e.g. gcc15)..."
+              SRC="$HOME/gcc-linux-gnu/src"
+              BUILD="$HOME/gcc-linux-gnu/build"
+              SYSROOT="$HOME/gcc-linux-gnu/sysroot"
+              SYSROOT_PATH="$SYSROOT/arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc"
+
+              mkdir -p "$SRC" "$BUILD" "$INSTALL" "$SYSROOT"
+              cd "$SYSROOT"
+              wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-linux-gnu.tar.xz
+              tar -xf arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-linux-gnu.tar.xz
+
+              cd "$SRC"
+              wget https://ftpmirror.gnu.org/binutils/binutils-2.42.tar.xz
+              tar -xf binutils-2.42.tar.xz
+
+              git clone --depth 1 --branch releases/gcc-15 --single-branch https://gcc.gnu.org/git/gcc.git
+              cd gcc && ./contrib/download_prerequisites
+
+              mkdir -p "$BUILD/binutils" && cd "$BUILD/binutils"
+              "$SRC/binutils-2.42/configure" --target=aarch64-none-linux-gnu --prefix="$INSTALL" --disable-nls --disable-werror
+              make -j"$(nproc)" && make install
+
+              mkdir -p "$BUILD/gcc" && cd "$BUILD/gcc"
+              "$SRC/gcc/configure" \
+                --target=aarch64-none-linux-gnu \
+                --prefix="$INSTALL" \
+                --enable-languages=c,c++ \
+                --disable-multilib \
+                --disable-bootstrap \
+                --disable-nls \
+                --with-sysroot="$SYSROOT_PATH"
+
+              make -j"$(nproc)" all-gcc && make install-gcc
+              make -j"$(nproc)" all-target-libgcc && make install-target-libgcc
+            fi
+
+            echo "$INSTALL/bin" >> "$GITHUB_PATH"
+            echo "GCC_AARCH64_PREFIX=$INSTALL/bin/aarch64-none-linux-gnu-" >> "$GITHUB_ENV"
+          else
+            echo "::error ::Invalid toolchain selected: '${{ matrix.toolchain }}'"
+            exit 1
+          fi
+
+      - name: Build ${{ matrix.target.name }}
         run: |
           cd edk2
-          export GCC_AARCH64_PREFIX=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
-          export PACKAGES_PATH=$PWD/edk2-libc
+          export PACKAGES_PATH="$PWD/edk2-libc"
           source edksetup.sh
           make -C BaseTools/Source/C
-          source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh ${{ matrix.arg }}
+          source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh ${{ matrix.target.arg }}
 
-      - name: Upload artifact (${{ matrix.artifact }})
+      - name: Move output to toolchain folder
+        run: |
+          mkdir -p "artifacts/${{ matrix.toolchain }}"
+          cp "edk2/Build/Shell/DEBUG_GCC/AARCH64/${{ matrix.target.outfile }}" "artifacts/${{ matrix.toolchain }}/${{ matrix.target.artifact }}"
+
+      - name: Upload ${{ matrix.target.artifact }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: edk2/Build/Shell/DEBUG_GCC/AARCH64/${{ matrix.outfile }}
+          name: ${{ matrix.toolchain }}-${{ matrix.target.artifact }}
+          path: artifacts/${{ matrix.toolchain }}/
           if-no-files-found: error
+
 
   #######################################################################
   # MATRIX: BAREMETAL
@@ -205,3 +305,4 @@ jobs:
           name: ${{ matrix.name }} Kernel Module and App
           path: ${{ github.workspace }}/linux-${{ matrix.short }}/*
           if-no-files-found: error
+
