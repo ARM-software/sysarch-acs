@@ -347,18 +347,21 @@ execute_tests()
   g_acs_tests_fail  = 0;
 
   /* Starting Platform Fault Detection Interface Tests */
-  Status |= val_pfdi_execute_pfdi_tests(val_pe_get_num());
-
-  /* Print Summary */
-  val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------\n", 0);
-  val_print(ACS_PRINT_TEST, "     Total Tests Run  = %4d", g_acs_tests_total);
-  val_print(ACS_PRINT_TEST, "  Tests Passed  = %4d", g_acs_tests_pass);
-  val_print(ACS_PRINT_TEST, "  Tests Failed = %4d\n", g_acs_tests_fail);
-  val_print(ACS_PRINT_TEST, "     -------------------------------------------------------\n", 0);
+  Status = val_pfdi_execute_pfdi_tests(val_pe_get_num());
+  if (Status != PFDI_ACS_NOT_IMPLEMENTED) {
+    /* Print Summary */
+    val_print(ACS_PRINT_TEST,
+                        "\n     -------------------------------------------------------\n", 0);
+    val_print(ACS_PRINT_TEST, "     Total Tests Run  = %4d", g_acs_tests_total);
+    val_print(ACS_PRINT_TEST, "  Tests Passed  = %4d", g_acs_tests_pass);
+    val_print(ACS_PRINT_TEST, "  Tests Failed = %4d\n", g_acs_tests_fail);
+    val_print(ACS_PRINT_TEST, "     -------------------------------------------------------\n", 0);
+    val_print(ACS_PRINT_TEST, "\n      *** Pfdi tests complete. *** \n\n", 0);
+  } else {
+    val_print(ACS_PRINT_ERR, "\n      PFDI not implemented - Skipping all PFDI tests\n", 0);
+  }
 
   freePfdiAcsMem();
-
-  val_print(ACS_PRINT_TEST, "\n      *** Pfdi tests complete. *** \n\n", 0);
 
   if (g_acs_log_file_handle) {
     ShellCloseFile(&g_acs_log_file_handle);

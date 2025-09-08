@@ -34,6 +34,8 @@ uint32_t
 val_pfdi_execute_pfdi_tests(uint32_t num_pe)
 {
   uint32_t status, i;
+  uint32_t f_id, test_skip = 1;
+  int64_t  pfdi_fn_status;
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_PFDI_TEST_NUM_BASE) {
@@ -48,6 +50,17 @@ val_pfdi_execute_pfdi_tests(uint32_t num_pe)
       val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all PFDI tests\n", 0);
       return ACS_STATUS_SKIP;
   }
+
+  for (f_id = PFDI_FN_PFDI_VERSION; f_id <= PFDI_FN_PFDI_FORCE_ERROR; f_id++) {
+    pfdi_fn_status = val_invoke_pfdi_fn(f_id, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+    if (pfdi_fn_status != PFDI_ACS_NOT_SUPPORTED) {
+      test_skip = 0;
+      break;
+    }
+  }
+
+  if (test_skip)
+    return PFDI_ACS_NOT_IMPLEMENTED;
 
   status = ACS_STATUS_PASS;
 

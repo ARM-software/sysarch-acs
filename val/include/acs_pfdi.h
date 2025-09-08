@@ -37,11 +37,13 @@
 #define PFDI_FN_PFDI_FW_CHECK           PFDI_FN_PFDI(0x06)
 #define PFDI_FN_PFDI_FORCE_ERROR        PFDI_FN_PFDI(0x07)
 #define PFDI_FN_PFDI_INVALID            PFDI_FN_PFDI(0x08)
+#define PFDI_FN_PFDI_RANGE_END          PFDI_FN_PFDI(0x0F)
 
 #define PFDI_VERSION_GET_MAJOR(version)     ((version >> 16) & 0x7fffU)
 #define PFDI_VERSION_GET_MINOR(version)     ((version) & 0xffffU)
 
 #define VAL_PFDI_RESERVED_BYTE_ZERO         0x0
+#define PFDI_ACS_NOT_IMPLEMENTED            0x1
 
 typedef enum {
     PFDI_ACS_SUCCESS                =  0,
