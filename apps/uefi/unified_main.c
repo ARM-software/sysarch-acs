@@ -838,9 +838,9 @@ execute_tests()
       createMpamInfoTable();
       createHmatInfoTable();
       createSratInfoTable();
+      createRasInfoTable();
       createRas2InfoTable();
       createPmuInfoTable();
-      createRasInfoTable();
   }
 
   if (g_build_pcbsa) {
