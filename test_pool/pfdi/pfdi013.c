@@ -20,7 +20,7 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 13)
-#define TEST_RULE  "R0111"
+#define TEST_RULE  "R0076"
 #define TEST_DESC  "Execute all available Test Parts on PE    "
 
 #define RUN_ALL_TEST_PARTS -1
@@ -48,7 +48,7 @@ pfdi_test_run(void)
 static void payload_run(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t timeout, i = 0, test_fail = 0;
+  uint32_t timeout, i = 0, test_fail = 0, check_x1 = 0;
   uint32_t num_pe = *(uint32_t *)arg;
   PFDI_RET_PARAMS *pfdi_buffer;
 
@@ -93,6 +93,7 @@ static void payload_run(void *arg)
     pfdi_buffer = g_pfdi_run_avail + i;
     val_pfdi_invalidate_ret_params(pfdi_buffer);
     test_fail = 0;
+    check_x1  = 0;
 
     if (pfdi_buffer->x0 < PFDI_ACS_SUCCESS) {
       if (pfdi_buffer->x0 == PFDI_ACS_FAULT_FOUND) {
@@ -104,13 +105,34 @@ static void payload_run(void *arg)
           val_print(ACS_PRINT_ERR, "triggered the fault on PE %d", i);
         }
       } else if (pfdi_buffer->x0 == PFDI_ACS_ERROR) {
+        check_x1++;
         val_print(ACS_PRINT_ERR,
               "\n       PFDI Test parts have executed but failed to complete on PE %d", i);
       } else {
         val_print(ACS_PRINT_ERR,
               "\n       PFDI PE Run function failed %lld ", pfdi_buffer->x0);
         val_print(ACS_PRINT_ERR, "on PE  %d", i);
+        test_fail++;
       }
+    } else {
+      check_x1++;
+    }
+
+    if (check_x1) {
+      if (pfdi_buffer->x1 != 0) {
+        val_print(ACS_PRINT_ERR, "\n       Register X1 is not zero:", 0);
+        val_print(ACS_PRINT_ERR, " x1=0x%llx", pfdi_buffer->x1);
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+        test_fail++;
+      }
+    }
+
+    if ((pfdi_buffer->x2 != 0) || (pfdi_buffer->x3 != 0) || (pfdi_buffer->x4 != 0)) {
+      val_print(ACS_PRINT_ERR, "\n       Registers X2-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->x2);
+      val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->x3);
+      val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->x4);
+      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
       test_fail++;
     }
 

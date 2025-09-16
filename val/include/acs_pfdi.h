@@ -36,7 +36,7 @@
 #define PFDI_FN_PFDI_PE_TEST_RESULT     PFDI_FN_PFDI(0x05)
 #define PFDI_FN_PFDI_FW_CHECK           PFDI_FN_PFDI(0x06)
 #define PFDI_FN_PFDI_FORCE_ERROR        PFDI_FN_PFDI(0x07)
-#define PFDI_FN_PFDI_INVALID            PFDI_FN_PFDI(0x08)
+#define PFDI_FN_PFDI_RESERVED           PFDI_FN_PFDI(0x08)
 #define PFDI_FN_PFDI_RANGE_END          PFDI_FN_PFDI(0x0F)
 
 #define PFDI_VERSION_GET_MAJOR(version)     ((version >> 16) & 0x7fffU)

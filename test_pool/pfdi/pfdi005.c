@@ -97,43 +97,50 @@ static void payload_pe_test_id_check(void *arg)
     temp_status  = pfdi_buffer->x0;
     version = pfdi_buffer->x1;
 
-    if (temp_status != PFDI_ACS_SUCCESS) {
+    if (temp_status == PFDI_ACS_SUCCESS) {
+      /* Return status Bits[63:32] must be zero */
+      if (val_pfdi_reserved_bits_check_is_zero(
+             VAL_EXTRACT_BITS(version, 32, 63)) != ACS_STATUS_PASS) {
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+        test_fail++;
+      }
+
+      /* Return status Bits[23:20] must be zero */
+      if (val_pfdi_reserved_bits_check_is_zero(
+             VAL_EXTRACT_BITS(version, 20, 23)) != ACS_STATUS_PASS) {
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+        test_fail++;
+      }
+
+      major = VAL_EXTRACT_BITS(version, 8, 15);
+      val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Major Version = %d", major);
+
+      minor = VAL_EXTRACT_BITS(version, 0, 7);
+      val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Minor Version = %d", minor);
+
+      vendor_id = VAL_EXTRACT_BITS(version, 24, 31);
+      val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Vendor ID     = %d", vendor_id);
+    } else if (temp_status == PFDI_ACS_UNKNOWN) {
+      val_print(ACS_PRINT_ERR, "\n       PFDI Self test metadata not available on PE %d ", i);
+      if (pfdi_buffer->x1 != 0) {
+        val_print(ACS_PRINT_ERR, "\n       Registers X1 is not zero:", 0);
+        val_print(ACS_PRINT_ERR, " x1=0x%llx", pfdi_buffer->x1);
+        test_fail++;
+      }
+    } else {
       val_print(ACS_PRINT_ERR,
                 "\n       PFDI PE Test ID failed err = %lld", temp_status);
       test_fail++;
     }
 
-    /* Return status Bits[63:32] must be zero */
-    if (val_pfdi_reserved_bits_check_is_zero(
-             VAL_EXTRACT_BITS(version, 32, 63)) != ACS_STATUS_PASS) {
-      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
-      test_fail++;
-    }
-
-    /* Return status Bits[23:20] must be zero */
-    if (val_pfdi_reserved_bits_check_is_zero(
-             VAL_EXTRACT_BITS(version, 20, 23)) != ACS_STATUS_PASS) {
-      val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
-      test_fail++;
-    }
-
     if ((pfdi_buffer->x2 != 0) || (pfdi_buffer->x3 != 0) || (pfdi_buffer->x4 != 0)) {
-      val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+      val_print(ACS_PRINT_ERR, "\n       Registers X2-X4 are not zero:", 0);
       val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->x2);
       val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->x3);
       val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->x4);
       val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
       test_fail++;
     }
-
-    major = VAL_EXTRACT_BITS(version, 8, 15);
-    val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Major Version = %d", major);
-
-    minor = VAL_EXTRACT_BITS(version, 0, 7);
-    val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Minor Version = %d", minor);
-
-    vendor_id = VAL_EXTRACT_BITS(version, 24, 31);
-    val_print(ACS_PRINT_DEBUG, "\n       PFDI Self Test Vendor ID     = %d", vendor_id);
 
     if (test_fail)
       val_set_status(i, RESULT_FAIL(TEST_NUM, 3));

@@ -91,7 +91,11 @@ static void payload_fw_check(void *arg)
     val_pfdi_invalidate_ret_params(pfdi_buffer);
     test_fail = 0;
 
-    if (pfdi_buffer->x0 < PFDI_ACS_SUCCESS) {
+    if (pfdi_buffer->x0 == PFDI_ACS_FAULT_FOUND) {
+      val_print(ACS_PRINT_ERR,
+            "\n       PFDI FW Check fault found status %lld", pfdi_buffer->x0);
+      val_print(ACS_PRINT_ERR, "on PE  %d", i);
+    } else if (pfdi_buffer->x0 < PFDI_ACS_SUCCESS) {
       val_print(ACS_PRINT_ERR,
             "\n       PFDI FW Check function failed %lld", pfdi_buffer->x0);
       val_print(ACS_PRINT_ERR, "on PE  %d", i);

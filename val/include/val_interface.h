@@ -809,7 +809,8 @@ int64_t val_pfdi_pe_test_run(int64_t start, int64_t end,
                              int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
 int64_t val_pfdi_pe_test_result(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
 int64_t val_pfdi_fw_check(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
-int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value);
+int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
 int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
               unsigned long arg2, unsigned long arg3,
               unsigned long arg4, unsigned long arg5,

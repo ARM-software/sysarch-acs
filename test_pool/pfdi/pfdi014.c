@@ -30,6 +30,9 @@
 typedef struct {
     int64_t status[NUM_INVALID_CASES];
     int64_t fault_id[NUM_INVALID_CASES];
+    int64_t x2[NUM_INVALID_CASES];
+    int64_t x3[NUM_INVALID_CASES];
+    int64_t x4[NUM_INVALID_CASES];
 } pfdi_pe_test_support_info;
 
 static pfdi_pe_test_support_info *g_pe_test_support_info;
@@ -67,9 +70,13 @@ run_invalid_param_case(void)
 
   for (i = 0; i < NUM_INVALID_CASES; ++i) {
     pfdi_buffer->status[i] = val_pfdi_pe_test_run(invalid_cases[i][0], invalid_cases[i][1],
-                                                  &pfdi_buffer->fault_id[i], NULL, NULL, NULL);
+                                                  &pfdi_buffer->fault_id[i], &pfdi_buffer->x2[i],
+                                                  &pfdi_buffer->x3[i], &pfdi_buffer->x4[i]);
     val_data_cache_ops_by_va((addr_t)&pfdi_buffer->status[i], CLEAN_AND_INVALIDATE);
     val_data_cache_ops_by_va((addr_t)&pfdi_buffer->fault_id[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x2[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x3[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x4[i], CLEAN_AND_INVALIDATE);
   }
 
 
@@ -101,6 +108,9 @@ payload_run_invalid_param_check(void *arg)
     for (j = 0; j < NUM_INVALID_CASES; j++) {
       val_data_cache_ops_by_va((addr_t)&pfdi_buffer->status[j], CLEAN_AND_INVALIDATE);
       val_data_cache_ops_by_va((addr_t)&pfdi_buffer->fault_id[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x2[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x3[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x4[j], CLEAN_AND_INVALIDATE);
     }
   }
 
@@ -129,6 +139,9 @@ payload_run_invalid_param_check(void *arg)
     for (j = 0; j < NUM_INVALID_CASES; j++) {
       val_data_cache_ops_by_va((addr_t)&pfdi_buffer->status[j], CLEAN_AND_INVALIDATE);
       val_data_cache_ops_by_va((addr_t)&pfdi_buffer->fault_id[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x2[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x3[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&pfdi_buffer->x4[j], CLEAN_AND_INVALIDATE);
     }
     test_fail = 0;
 
@@ -152,6 +165,16 @@ payload_run_invalid_param_check(void *arg)
         val_print(ACS_PRINT_ERR,
                   "\n       Fault ID check failed on PE: %d ", i);
         val_print(ACS_PRINT_ERR, "expected fault 0, return fault %ld", pfdi_buffer->fault_id[j]);
+        val_print(ACS_PRINT_ERR, " for case %d", j);
+        test_fail++;
+      }
+
+      if ((pfdi_buffer->x2[j] != 0) || (pfdi_buffer->x3[j] != 0) || (pfdi_buffer->x4[j] != 0)) {
+        val_print(ACS_PRINT_ERR, "\n       Registers X2-X4 are not zero:", 0);
+        val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->x2[j]);
+        val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->x3[j]);
+        val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->x4[j]);
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
         val_print(ACS_PRINT_ERR, " for case %d", j);
         test_fail++;
       }

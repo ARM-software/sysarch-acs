@@ -251,10 +251,26 @@ int64_t val_pfdi_fw_check(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
  *
  *  @return  status
  */
-int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value)
+int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4)
+
 {
-    return val_invoke_pfdi_fn(PFDI_FN_PFDI_FORCE_ERROR, function_id,
-                                error_value, 0, 0, 0, NULL, NULL, NULL, NULL);
+    int64_t status;
+    unsigned long _x1, _x2, _x3, _x4;
+
+    status = val_invoke_pfdi_fn(PFDI_FN_PFDI_FORCE_ERROR, function_id,
+                                error_value, 0, 0, 0, &_x1, &_x2, &_x3, &_x4);
+
+    if (x1)
+        *x1 = (int64_t)_x1;
+    if (x2)
+        *x2 = (int64_t)_x2;
+    if (x3)
+        *x3 = (int64_t)_x3;
+    if (x4)
+        *x4 = (int64_t)_x4;
+
+    return status;
 }
 
 /**

@@ -63,6 +63,10 @@ static const int64_t fail_status[STATUS_COUNT] = {
 
 typedef struct {
   int64_t status[STATUS_COUNT];
+  int64_t x1[STATUS_COUNT];
+  int64_t x2[STATUS_COUNT];
+  int64_t x3[STATUS_COUNT];
+  int64_t x4[STATUS_COUNT];
 } pfdi_fun_status;
 
 typedef struct {
@@ -90,52 +94,67 @@ static void pfdi_error_injection(void)
   fun = &status_buffer->pfdi_func;
 
   /* ---- PFDI_VERSION force NOT_SUPPORTED---- */
-  err->status[VERSION_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED);
+  err->status[VERSION_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED,
+                                               &err->x1[VERSION_UNSUPP], &err->x2[VERSION_UNSUPP],
+                                               &err->x3[VERSION_UNSUPP], &err->x4[VERSION_UNSUPP]);
   if (err->status[VERSION_UNSUPP] == PFDI_ACS_SUCCESS) {
     fun->status[VERSION_UNSUPP] = val_pfdi_version(NULL, NULL, NULL, NULL);
   }
 
   /* ---- PFDI_FEATURES force NOT_SUPPORTED ---- */
   err->status[FEATURE_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_FEATURES,
-                                                        PFDI_ACS_NOT_SUPPORTED);
+                        PFDI_ACS_NOT_SUPPORTED, &err->x1[FEATURE_UNSUPP], &err->x2[FEATURE_UNSUPP],
+                          &err->x3[FEATURE_UNSUPP], &err->x4[FEATURE_UNSUPP]);
   if (err->status[FEATURE_UNSUPP] == PFDI_ACS_SUCCESS) {
     fun->status[FEATURE_UNSUPP] = val_pfdi_features(PFDI_FN_PFDI_VERSION, NULL, NULL, NULL, NULL);
   }
 
   /* ---- PE_TEST_ID force UNKNOWN ---- */
-  err->status[TESTID_UNKNOWN] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_ID, PFDI_ACS_UNKNOWN);
+  err->status[TESTID_UNKNOWN] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_ID, PFDI_ACS_UNKNOWN,
+                                               &err->x1[TESTID_UNKNOWN], &err->x2[TESTID_UNKNOWN],
+                                               &err->x3[TESTID_UNKNOWN], &err->x4[TESTID_UNKNOWN]);
   if (err->status[TESTID_UNKNOWN] == PFDI_ACS_SUCCESS) {
     fun->status[TESTID_UNKNOWN] = val_pfdi_pe_test_id(NULL, NULL, NULL, NULL);
   }
 
   /* ---- TEST_PART_COUNT force NOT_SUPPORTED ---- */
   err->status[TESTPART_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_PART_COUNT,
-                                        PFDI_ACS_NOT_SUPPORTED);
+                     PFDI_ACS_NOT_SUPPORTED, &err->x1[TESTPART_UNSUPP], &err->x2[TESTPART_UNSUPP],
+                       &err->x3[TESTPART_UNSUPP], &err->x4[TESTPART_UNSUPP]);
   if (err->status[TESTPART_UNSUPP] == PFDI_ACS_SUCCESS) {
     fun->status[TESTPART_UNSUPP] = val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
   }
 
   /* ---- TEST_RUN force FAULT_FOUND ---- */
-  err->status[TESTRUN_FAULT] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RUN, PFDI_ACS_FAULT_FOUND);
+  err->status[TESTRUN_FAULT] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RUN, PFDI_ACS_FAULT_FOUND,
+                                               &err->x1[TESTRUN_FAULT], &err->x2[TESTRUN_FAULT],
+                                               &err->x3[TESTRUN_FAULT], &err->x4[TESTRUN_FAULT]);
   if (err->status[TESTRUN_FAULT] == PFDI_ACS_SUCCESS) {
     fun->status[TESTRUN_FAULT] = val_pfdi_pe_test_run(-1, -1, NULL, NULL, NULL, NULL);
   }
 
   /* ---- TEST_RESULT force ERROR ---- */
-  err->status[RESULT_ERROR] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RESULT, PFDI_ACS_ERROR);
+  err->status[RESULT_ERROR] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RESULT, PFDI_ACS_ERROR,
+                                               &err->x1[RESULT_ERROR], &err->x2[RESULT_ERROR],
+                                               &err->x3[RESULT_ERROR], &err->x4[RESULT_ERROR]);
   if (err->status[RESULT_ERROR] == PFDI_ACS_SUCCESS) {
     fun->status[RESULT_ERROR] = val_pfdi_pe_test_result(NULL, NULL, NULL, NULL);
   }
 
   /* ---- FW_CHECK force NOT_SUPPORTED ---- */
   err->status[FWCHECK_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_FW_CHECK,
-                                                    PFDI_ACS_NOT_SUPPORTED);
+                        PFDI_ACS_NOT_SUPPORTED, &err->x1[FWCHECK_UNSUPP], &err->x2[FWCHECK_UNSUPP],
+                        &err->x3[FWCHECK_UNSUPP], &err->x4[FWCHECK_UNSUPP]);
   if (err->status[FWCHECK_UNSUPP] == PFDI_ACS_SUCCESS) {
     fun->status[FWCHECK_UNSUPP] = val_pfdi_fw_check(NULL, NULL, NULL, NULL);
   }
 
   for (i = 0; i < STATUS_COUNT; i++) {
     val_data_cache_ops_by_va((addr_t)&err->status[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&err->x1[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&err->x2[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&err->x3[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&err->x4[i], CLEAN_AND_INVALIDATE);
     val_data_cache_ops_by_va((addr_t)&fun->status[i], CLEAN_AND_INVALIDATE);
   }
 
@@ -218,6 +237,10 @@ static void payload_pfdi_error_injection(void *arg)
     status_buffer = g_pfdi_force_error_check + i;
     for (j = 0; j < STATUS_COUNT; j++) {
       val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x1[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x2[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x3[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x4[j], CLEAN_AND_INVALIDATE);
       val_data_cache_ops_by_va((addr_t)&status_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
     }
   }
@@ -249,9 +272,18 @@ static void payload_pfdi_error_injection(void *arg)
 
     for (j = 0; j < STATUS_COUNT; j++) {
       val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x1[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x2[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x3[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x4[j], CLEAN_AND_INVALIDATE);
       val_data_cache_ops_by_va((addr_t)&status_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
 
-      if (status_buffer->force_err.status[j] != PFDI_ACS_SUCCESS) {
+      if (status_buffer->force_err.status[j] == PFDI_ACS_ERROR) {
+        val_print(ACS_PRINT_ERR, "\n       PFDI Force Error can not be scheduled for %a",
+                                                    (uint64_t)pfdi_test_names[j]);
+        val_print(ACS_PRINT_ERR, " status %ld", status_buffer->force_err.status[j]);
+        val_print(ACS_PRINT_ERR, " on PE index %d", i);
+      } else if (status_buffer->force_err.status[j] != PFDI_ACS_SUCCESS) {
         val_print(ACS_PRINT_ERR, "\n       PFDI Force Error failed for %a",
                                                     (uint64_t)pfdi_test_names[j]);
         val_print(ACS_PRINT_ERR, " err %ld", status_buffer->force_err.status[j]);
@@ -261,6 +293,18 @@ static void payload_pfdi_error_injection(void *arg)
         val_print(ACS_PRINT_ERR, "\n       PFDI return %a", (uint64_t)pfdi_test_names[j]);
         val_print(ACS_PRINT_ERR, " check failed err  %ld", status_buffer->pfdi_func.status[j]);
         val_print(ACS_PRINT_ERR, " on PE index %d", i);
+        run_fail++;
+      }
+
+      if ((status_buffer->force_err.x1[j] != 0) || (status_buffer->force_err.x2[j] != 0) ||
+           (status_buffer->force_err.x3[j] != 0) || (status_buffer->force_err.x4[j] != 0)) {
+        val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+        val_print(ACS_PRINT_ERR, " x1=0x%llx", status_buffer->force_err.x1[j]);
+        val_print(ACS_PRINT_ERR, " x2=0x%llx", status_buffer->force_err.x2[j]);
+        val_print(ACS_PRINT_ERR, " x3=0x%llx", status_buffer->force_err.x3[j]);
+        val_print(ACS_PRINT_ERR, " x4=0x%llx", status_buffer->force_err.x4[j]);
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+        val_print(ACS_PRINT_ERR, " for %a", (uint64_t)pfdi_test_names[j]);
         run_fail++;
       }
     }
