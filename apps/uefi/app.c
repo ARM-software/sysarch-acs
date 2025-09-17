@@ -37,7 +37,11 @@ ShellAppMain (
   IN CHAR16 **Argv
   )
 {
-  command_init();
-  execute_tests();
-  return 0;
+  UINT32 CommandInitReturn = command_init();
+
+  if (CommandInitReturn != 0) {
+    return 0;        // do NOT run tests, prints HelpMsg()
+  }
+
+  return (INTN)execute_tests();
 }

@@ -120,4 +120,8 @@ unsigned long __stack_chk_fail =  0xBAAFAAAD;
 
 uint32_t command_init(void);
 
+#ifndef ACS_PARSE_SKIP_RUN
+#define ACS_PARSE_SKIP_RUN 1
+#endif
+
 #endif

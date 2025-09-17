@@ -386,7 +386,7 @@ command_init ()
       if (EFI_ERROR(Status))
       {
         Print(L"Allocate memory for -skip failed\n", 0);
-        return 0;
+        return ACS_PARSE_SKIP_RUN;
       }
 
       g_skip_test_num[0] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg+0));
@@ -478,7 +478,7 @@ command_init ()
   // Options with Flags
   if ((ShellCommandLineGetFlag (ParamPackage, L"-help")) || (ShellCommandLineGetFlag (ParamPackage, L"-h"))){
      HelpMsg();
-     return 0;
+     return ACS_PARSE_SKIP_RUN;
   }
 
   // Options with Values
@@ -498,7 +498,7 @@ command_init ()
           if (EFI_ERROR(Status))
           {
               Print(L"Allocate memory for -t failed\n", 0);
-              return 0;
+              return ACS_PARSE_SKIP_RUN;
           }
 
           /* Check if the first value to -t is a decimal character. */
@@ -537,7 +537,7 @@ command_init ()
           if (EFI_ERROR(Status))
           {
               Print(L"Allocate memory for -m failed\n", 0);
-              return 0;
+              return ACS_PARSE_SKIP_RUN;
           }
 
           /* Check if the first value to -m is a decimal character. */
