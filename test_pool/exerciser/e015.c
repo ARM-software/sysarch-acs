@@ -112,16 +112,6 @@ payload(void)
           continue;
       }
 
-      /* Enable the ARI forwarding enable bit in Exerciser */
-      if (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
-          val_print(ACS_PRINT_DEBUG, "\n       PCIe Express Capability not present ", 0);
-          continue;
-      }
-      val_pcie_read_cfg(e_bdf, cap_base + DCTL2R_OFFSET, &reg_value);
-      reg_value &= DCTL2R_MASK;
-      reg_value |= (DCTL2R_AFE_MASK << DCTL2R_AFE_SHIFT);
-      val_pcie_write_cfg(e_bdf, cap_base + DCTL2R_OFFSET, reg_value);
-
       /* Read the secondary, subordinate bus and segment number */
       val_pcie_read_cfg(erp_bdf, TYPE1_PBN, &bus_value);
       sec_bus = ((bus_value >> SECBN_SHIFT) & SECBN_MASK);
