@@ -19,22 +19,22 @@
 #include "val/include/val_interface.h"
 #include "val/include/acs_memory.h"
 
-#define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 10)
-#define TEST_RULE  "R0156"
-#define TEST_DESC  "PFDI reserved function support check      "
+#define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 16)
+#define TEST_RULE  "R0157"
+#define TEST_DESC  "Check PFDI feature for invalid function   "
 
-PFDI_RET_PARAMS *g_pfdi_invalid_fn_check_details;
+PFDI_RET_PARAMS *g_pfdi_invalid_feature_check;
 
 void
-check_invalid_fn()
+check_invalid_feature()
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   PFDI_RET_PARAMS  *pfdi_buffer;
 
-  pfdi_buffer = g_pfdi_invalid_fn_check_details + index;
+  pfdi_buffer = g_pfdi_invalid_feature_check + index;
 
   /* Invoke PFDI Feature function with invalid function for current PE index */
-  pfdi_buffer->x0 = val_pfdi_features(PFDI_FN_PFDI_RESERVED, &pfdi_buffer->x1, &pfdi_buffer->x2,
+  pfdi_buffer->x0 = val_pfdi_features(PFDI_FN_PFDI_INVALID, &pfdi_buffer->x1, &pfdi_buffer->x2,
                                         &pfdi_buffer->x3, &pfdi_buffer->x4);
 
   val_pfdi_invalidate_ret_params(pfdi_buffer);
@@ -43,7 +43,7 @@ check_invalid_fn()
   return;
 }
 
-static void payload_invalid_fn_check(void *arg)
+static void payload_invalid_feature_check(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t timeout, i = 0, run_fail = 0;
@@ -51,28 +51,28 @@ static void payload_invalid_fn_check(void *arg)
   uint32_t num_pe = *(uint32_t *)arg;
 
   /* Allocate memory to save all PFDI function status for all PE's */
-  g_pfdi_invalid_fn_check_details = (PFDI_RET_PARAMS *)
+  g_pfdi_invalid_feature_check = (PFDI_RET_PARAMS *)
                     val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
-  if (g_pfdi_invalid_fn_check_details == NULL) {
+  if (g_pfdi_invalid_feature_check == NULL) {
     val_print(ACS_PRINT_ERR,
-                "\n       Allocation for PFDI Reserved Function Support Check Failed", 0);
+                "\n       Allocation for PFDI Invalid Feature Support Check Failed", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
     return;
   }
 
   for (i = 0; i < num_pe; i++) {
-    pfdi_buffer = g_pfdi_invalid_fn_check_details + i;
+    pfdi_buffer = g_pfdi_invalid_feature_check + i;
     val_pfdi_invalidate_ret_params(pfdi_buffer);
   }
 
   /* Invoke PFDI Invalid function for current PE index */
-  check_invalid_fn();
+  check_invalid_feature();
 
-  /* Execute check_invalid_fn function in All PE's */
+  /* Execute check_invalid_feature function in All PE's */
   for (i = 0; i < num_pe; i++) {
     if (i != index) {
       timeout = TIMEOUT_LARGE;
-      val_execute_on_pe(i, check_invalid_fn, 0);
+      val_execute_on_pe(i, check_invalid_feature, 0);
 
       while ((--timeout) && (IS_RESULT_PENDING(val_get_status(i))));
 
@@ -87,12 +87,12 @@ static void payload_invalid_fn_check(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    pfdi_buffer = g_pfdi_invalid_fn_check_details + i;
+    pfdi_buffer = g_pfdi_invalid_feature_check + i;
     val_pfdi_invalidate_ret_params(pfdi_buffer);
     run_fail = 0;
 
-    if (pfdi_buffer->x0 != PFDI_ACS_NOT_SUPPORTED) {
-      val_print(ACS_PRINT_ERR, "\n       PFDI Reserved function support check failed err = %ld",
+    if (pfdi_buffer->x0 != PFDI_ACS_INVALID_PARAMETERS) {
+      val_print(ACS_PRINT_ERR, "\n       PFDI Invalid feature support check failed err = %ld",
                                                         pfdi_buffer->x0);
       val_print(ACS_PRINT_ERR, " on PE index = %d", i);
       run_fail++;
@@ -116,19 +116,19 @@ static void payload_invalid_fn_check(void *arg)
   }
 
 free_pfdi_details:
-  val_memory_free((void *) g_pfdi_invalid_fn_check_details);
+  val_memory_free((void *) g_pfdi_invalid_feature_check);
 
   return;
 }
 
-uint32_t pfdi010_entry(uint32_t num_pe)
+uint32_t pfdi016_entry(uint32_t num_pe)
 {
   uint32_t status = ACS_STATUS_FAIL;
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)
-    val_run_test_configurable_payload(&num_pe, payload_invalid_fn_check);
+    val_run_test_configurable_payload(&num_pe, payload_invalid_feature_check);
 
   /* get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
