@@ -2457,3 +2457,32 @@ uint32_t val_pcie_get_bist(uint32_t bdf)
 
   return reg_value;
 }
+
+/**
+    @brief   Check if a PCIe Function supports ARI Forwarding.
+    @param   bdf  - Bus/Dev/Func in PCIE_CREATE_BDF format
+    @return  1 -> ARI Forwarding supported
+             0 -> Not supported or capability not present
+             NOT_IMPLEMENTED -> If PCIe Capability structure not found or error in reading register
+**/
+uint32_t val_pcie_ari_forwarding_support(uint32_t bdf)
+{
+    uint32_t cap_base;
+    uint32_t reg_value;
+
+    /* Locate PCI Express Capability */
+    if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
+        val_print(ACS_PRINT_ERR, "\n       PCI Capability not found for bdf 0x%x", bdf);
+        return NOT_IMPLEMENTED;
+    }
+
+    /* Read Device Capabilities 2 register (offset 0x24 from PCIe Cap base) */
+    if (val_pcie_read_cfg(bdf, cap_base + DCAP2R_OFFSET, &reg_value)) {
+        val_print(ACS_PRINT_ERR,
+                    "\n       Failed to read Device Capabilities 2 register for bdf 0x%x", bdf);
+        return NOT_IMPLEMENTED;
+    }
+
+    /* Return ARI Forwarding Supported bit status (bit 5) */
+    return ((reg_value >> DCAP2R_AFS_SHIFT) & DCAP2R_AFS_MASK);
+}

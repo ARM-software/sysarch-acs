@@ -60,11 +60,8 @@ payload(void)
       /* Check entry is Downstream port or RP */
       if ((dp_type == DP) || (dp_type == iEP_RP))
       {
-          /* Disable the ARI forwarding enable bit */
-          val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base);
-          val_pcie_read_cfg(bdf, cap_base + DCTL2R_OFFSET, &reg_value);
-          reg_value &= DCTL2R_AFE_NORMAL;
-          val_pcie_write_cfg(bdf, cap_base + DCTL2R_OFFSET, reg_value);
+
+          val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x", bdf);
 
           /* Read the secondary and subordinate bus number */
           val_pcie_read_cfg(bdf, TYPE1_PBN, &reg_value);
@@ -73,11 +70,49 @@ payload(void)
           status = val_pcie_data_link_layer_status(bdf);
 
           /* Skip the port, if switch is present below it or no device present*/
-          if ((sec_bus != sub_bus) || (status != PCIE_DLL_LINK_STATUS_ACTIVE))
+          if ((sec_bus != sub_bus) || (status == PCIE_DLL_LINK_STATUS_NOT_ACTIVE))
               continue;
 
-          /* If test runs for atleast an endpoint */
+          if (status == PCIE_DLL_LINK_ACTIVE_NOT_SUPPORTED)
+          {
+              seg_num = PCIE_EXTRACT_BDF_SEG(bdf);
+              dev_bdf = PCIE_CREATE_BDF(seg_num, sec_bus, 0, 0);
+              status = val_pcie_read_cfg(dev_bdf, TYPE01_VIDR, &reg_value);
+              if (status || (reg_value == PCIE_UNKNOWN_RESPONSE))
+                  continue;
+          }
+
+          /* Check if iEP_RP/ DP support ARI Forwarding. Skip if PCI Express Capability structure
+             is not found or failed to read Device Capabilites 2 register */
+          status = val_pcie_ari_forwarding_support(bdf);
+          if (status == NOT_IMPLEMENTED)
+            continue;
+
+          /* If the iEP_RP/ DP does not support ARI forwarding, print a warning.
+             Continue the test since this validates the disabled ARI forwarding case. */
+          if (status == 0)
+              val_print(ACS_PRINT_WARN, "\n       ARI Forwarding not supported for bdf 0x%x", bdf);
+
+          /* If test runs on atleast one device */
           test_skip = 0;
+
+          /* Disable the ARI forwarding enable bit */
+          val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base);
+          val_pcie_read_cfg(bdf, cap_base + DCTL2R_OFFSET, &reg_value);
+          reg_value &= DCTL2R_AFE_NORMAL;
+          val_pcie_write_cfg(bdf, cap_base + DCTL2R_OFFSET, reg_value);
+
+          /* Read back the value of ARI Forwarding enable bit */
+          val_pcie_read_cfg(bdf, cap_base + DCTL2R_OFFSET, &reg_value);
+          reg_value = (reg_value >> DCTL2R_AFE_SHIFT) & DCTL2R_AFE_MASK;
+
+          /* Fail the test if the bitfied does not respond to the write */
+          if (reg_value != 0) {
+              val_print(ACS_PRINT_ERR, "\n       ARI Forwarding Enable bit not cleared for", 0);
+              val_print(ACS_PRINT_ERR, " bdf 0x%x", bdf);
+              test_fails++;
+              continue;
+          }
 
           seg_num = PCIE_EXTRACT_BDF_SEG(bdf);
           dev_bdf = PCIE_CREATE_BDF(seg_num, sec_bus, 0, 0);
