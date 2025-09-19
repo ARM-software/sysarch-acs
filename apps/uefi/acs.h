@@ -44,7 +44,7 @@
 
 /* PFDI Release versions */
 #define PFDI_ACS_MAJOR_VER      0
-#define PFDI_ACS_MINOR_VER      5
+#define PFDI_ACS_MINOR_VER      8
 #define PFDI_ACS_SUBMINOR_VER   0
 
 #define G_PRINT_LEVEL ACS_PRINT_TEST

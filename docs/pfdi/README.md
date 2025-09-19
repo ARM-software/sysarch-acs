@@ -6,8 +6,8 @@
 
 
 ## Release details
- - Code Quality: Alpha 0
- - The tests are written for alpha version of the PFDI Specification.
+ - Code Quality: BET
+ - The tests are written for BET0 version of the PFDI Specification.
 
 ## Downloading PFDI ACS
 
