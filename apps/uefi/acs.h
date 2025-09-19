@@ -21,12 +21,12 @@
 /* BSA Release versions */
 #define BSA_ACS_MAJOR_VER       1
 #define BSA_ACS_MINOR_VER       1
-#define BSA_ACS_SUBMINOR_VER    1
+#define BSA_ACS_SUBMINOR_VER    2
 
 /* SBSA Release versions */
 #define SBSA_ACS_MAJOR_VER       7
 #define SBSA_ACS_MINOR_VER       2
-#define SBSA_ACS_SUBMINOR_VER    3
+#define SBSA_ACS_SUBMINOR_VER    4
 
 /* PC BSA Release versions */
 #define PC_BSA_ACS_MAJOR_VER     0

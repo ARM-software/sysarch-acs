@@ -25,11 +25,11 @@
 
 #define BSA_ACS_MAJOR_VER      1
 #define BSA_ACS_MINOR_VER      1
-#define BSA_ACS_SUBMINOR_VER   0
+#define BSA_ACS_SUBMINOR_VER   2
 
 #define SBSA_ACS_MAJOR_VER       7
 #define SBSA_ACS_MINOR_VER       2
-#define SBSA_ACS_SUBMINOR_VER    2
+#define SBSA_ACS_SUBMINOR_VER    4
 #define SBSA_FR_LEVEL            0x8
 
 #define INVALID_MPIDR     0xffffffff
