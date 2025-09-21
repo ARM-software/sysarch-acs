@@ -21,7 +21,7 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 18)
-#define TEST_RULE  "PCI_PP_05"
+#define TEST_RULE  "PCI_PP_04"
 #define TEST_DESC  "Check RP Adv Error Report             "
 
 static
