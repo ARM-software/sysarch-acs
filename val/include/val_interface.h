@@ -823,6 +823,7 @@ uint32_t error008_entry(void);
 uint32_t error009_entry(void);
 uint32_t error010_entry(void);
 uint32_t error011_entry(void);
+uint32_t error012_entry(void);
 uint32_t intr001_entry(void);
 uint32_t intr002_entry(void);
 uint32_t intr003_entry(void);
