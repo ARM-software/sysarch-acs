@@ -13,14 +13,14 @@
 
 PFDI ACS code is present in a sub-directory in sysarch-acs repository.
 
-$ git clone "ssh://balgon01@ap-gerrit-1.ap01.arm.com:29418/avk/sysarch-acs" <br/>
+$ git clone https://github.com/ARM-software/sysarch-acs.git <br/>
 $ cd sysarch-acs <br/>
 
 ## Building PFDI ACS
 ### UEFI application
 #### Prerequisites
 
-ACS build requires that the following requirements are met, Please skip this if you are using [PFDI Application Build Script](tools/scripts/build_pfdi_uefi.sh).
+ACS build requires that the following requirements are met, Please skip this if you are using [PFDI Application Build Script](../../tools/scripts/build_pfdi_uefi.sh).
 
 - Any mainstream Linux based OS distribution.
 - git clone EDK2 tree.
@@ -31,7 +31,7 @@ ACS build requires that the following requirements are met, Please skip this if 
 #### Build Steps
 
 $ cd /path/to/sysarch-acs/<br/>
-$ source tools/scripts/pfdi_build.sh
+$ source tools/scripts/build_pfdi_uefi.sh
 
 #### Build Output
 
@@ -105,7 +105,7 @@ Runs PFDI ACS with verbosity INFO, skips test 15, 20 and 30 and saves the test r
 
 ## Limitations
 
- - Since this is a Alpha quality release, contains limited number of tests based on PFDI Specification.
+ - PFDI ACS currently supports only Device Tree (DT)-based platforms. ACPI support is planned for a future release.
 
 ## License
 PFDI ACS is distributed under Apache v2.0 License.
