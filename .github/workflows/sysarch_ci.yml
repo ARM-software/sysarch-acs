@@ -99,7 +99,10 @@ jobs:
             arg: unified
             outfile: UnifiedAcs.efi
             artifact: unified.efi
-
+          - name: PFDI DT
+            arg: pfdi
+            outfile: Pfdi.efi
+            artifact: Pfdi_dt_target.efi
     steps:
       - name: Install dependencies
         run: |
