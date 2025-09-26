@@ -101,7 +101,7 @@ jobs:
             artifact: unified.efi
           - name: PFDI DT
             arg: pfdi
-            outfile: Pfdi.efi
+            outfile: pfdi.efi
             artifact: Pfdi_dt_target.efi
     steps:
       - name: Install dependencies
