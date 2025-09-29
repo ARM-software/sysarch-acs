@@ -538,8 +538,11 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
 
   case GENERATE_MSI:
         /* Param is the msi_index */
-        pal_mmio_write(Base + MSICTL, (pal_mmio_read(Base + MSICTL) |
-                                                                (MSI_GENERATION_MASK) | (Param)));
+        data = pal_mmio_read(Base + MSICTL);
+        /* Clear the MSICTLID[10:0] and MSICTLTRG[31] bits while preserving the reserved bits */
+        data &= ~(MSI_GENERATION_MASK | MSICTL_ID_MASK);
+        data |= ((Param & MSICTL_ID_MASK) | MSI_GENERATION_MASK);
+        pal_mmio_write(Base + MSICTL, data);
         return 0;
 
   case GENERATE_L_INTR:

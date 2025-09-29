@@ -783,6 +783,7 @@
 #define ERROR_INJECT_BIT       17
 #define ERR_CODE_SHIFT         20
 #define FATAL_SHIFT            31
+#define MSICTL_ID_MASK         ((1u << 11) - 1)
 #define MSI_GENERATION_MASK    (1 << 31)
 #define NO_SNOOP_START_MASK    0x20
 #define NO_SNOOP_STOP_MASK     0xFFFFFFDF
