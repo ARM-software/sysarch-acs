@@ -146,6 +146,8 @@
   ../../test_pool/pcie/p091.c
   ../../test_pool/pcie/p092.c
   ../../test_pool/pcie/p093.c
+  ../../test_pool/exerciser/e003.c
+  ../../test_pool/exerciser/e007.c
   ../../test_pool/exerciser/e008.c
   ../../test_pool/exerciser/e017.c
   ../../test_pool/exerciser/e019.c
