@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,191 +30,252 @@ test_config_t test_entries[] = {
     { ACS_PFDI_TEST_NUM_BASE + 15, "PFDI recovery after forced error          ", "R0100"}
 };
 
-enum {
-  VERSION_UNSUPP = 0,
-  FEATURE_UNSUPP,
-  TESTID_UNKNOWN,
-  TESTPART_UNSUPP,
-  TESTRUN_FAULT,
-  RESULT_ERROR,
-  FWCHECK_UNSUPP,
-  STATUS_COUNT
+static const char *pfdi_test_names[PFDI_FN_MAX_IDX] = {
+  [PFDI_FN_VERSION_IDX]  = "Version Unsupported",
+  [PFDI_FN_FEATURES_IDX]  = "Feature Unsupported",
+  [PFDI_FN_PE_TEST_ID_IDX]  = "TEST ID Unknown",
+  [PFDI_FN_PE_TEST_PART_COUNT_IDX] = "TEST PART Unsupported",
+  [PFDI_FN_PE_TEST_RUN_IDX]   = "TEST RUN Fault",
+  [PFDI_FN_PE_TEST_RESULT_IDX] = "Result Error",
+  [PFDI_FN_FW_CHECK_IDX]  = "FW CHECK Unsupported",
+  [PFDI_FN_FORCE_ERROR_IDX] = "Force Error Unsupported",
 };
 
-static const char *pfdi_test_names[STATUS_COUNT] = {
- [VERSION_UNSUPP]  = "Version Unsupported",
- [FEATURE_UNSUPP]  = "Feature Unsupported",
- [TESTID_UNKNOWN]  = "TEST_ID Unknown",
- [TESTPART_UNSUPP] = "TEST_PART Unsupported",
- [TESTRUN_FAULT]   = "TEST_RUN Fault",
- [RESULT_ERROR]    = "Result Error",
- [FWCHECK_UNSUPP]  = "FW_CHECK Unsupported",
-};
-
-static const int64_t fail_status[STATUS_COUNT] = {
- [VERSION_UNSUPP]  = PFDI_ACS_NOT_SUPPORTED,
- [FEATURE_UNSUPP]  = PFDI_ACS_NOT_SUPPORTED,
- [TESTID_UNKNOWN]  = PFDI_ACS_UNKNOWN,
- [TESTPART_UNSUPP] = PFDI_ACS_NOT_SUPPORTED,
- [TESTRUN_FAULT]   = PFDI_ACS_FAULT_FOUND,
- [RESULT_ERROR]    = PFDI_ACS_ERROR,
- [FWCHECK_UNSUPP]  = PFDI_ACS_NOT_SUPPORTED,
+static const int64_t fail_status[PFDI_FN_MAX_IDX] = {
+  [PFDI_FN_VERSION_IDX]  = PFDI_ACS_NOT_SUPPORTED,
+  [PFDI_FN_FEATURES_IDX]  = PFDI_ACS_NOT_SUPPORTED,
+  [PFDI_FN_PE_TEST_ID_IDX]  = PFDI_ACS_UNKNOWN,
+  [PFDI_FN_PE_TEST_PART_COUNT_IDX] = PFDI_ACS_NOT_SUPPORTED,
+  [PFDI_FN_PE_TEST_RUN_IDX]   = PFDI_ACS_FAULT_FOUND,
+  [PFDI_FN_PE_TEST_RESULT_IDX]    = PFDI_ACS_ERROR,
+  [PFDI_FN_FW_CHECK_IDX]  = PFDI_ACS_NOT_SUPPORTED,
+  [PFDI_FN_FORCE_ERROR_IDX] = PFDI_ACS_NOT_SUPPORTED,
 };
 
 typedef struct {
-  int64_t status[STATUS_COUNT];
-  int64_t x1[STATUS_COUNT];
-  int64_t x2[STATUS_COUNT];
-  int64_t x3[STATUS_COUNT];
-  int64_t x4[STATUS_COUNT];
-} pfdi_fun_status;
-
-typedef struct {
-  pfdi_fun_status force_err;
-  pfdi_fun_status pfdi_func;
+  PFDI_RET_PARAMS force_err[PFDI_FN_MAX_IDX];
 } pfdi_force_error_check;
 
 typedef struct {
-  int64_t status[STATUS_COUNT];
+  int64_t force_err_status[PFDI_FN_MAX_IDX];
+  int64_t alt_status[PFDI_FN_MAX_IDX];
+  PFDI_RET_PARAMS rec_status[PFDI_FN_MAX_IDX];
+  int64_t norm_mode_status[PFDI_FN_MAX_IDX];
 } pfdi_err_recovery_check;
 
 static uint32_t test_num;
 pfdi_force_error_check *g_pfdi_force_error_check;
 pfdi_err_recovery_check *g_pfdi_err_recovery_check;
 
-static volatile uint32_t g_pfdi_set_status = 1;
-
 static void pfdi_error_injection(void)
 {
   uint32_t i, index = val_pe_get_index_mpid(val_pe_get_mpid());
-  pfdi_force_error_check *status_buffer;
-  pfdi_fun_status *err;
-  pfdi_fun_status *fun;
+  pfdi_force_error_check *pfdi_buffer;
+  PFDI_RET_PARAMS *err;
 
-  status_buffer = g_pfdi_force_error_check + index;
-  err = &status_buffer->force_err;
-  fun = &status_buffer->pfdi_func;
+  pfdi_buffer = g_pfdi_force_error_check + index;
+  err = pfdi_buffer->force_err;
 
-  /* ---- PFDI_VERSION force NOT_SUPPORTED---- */
-  err->status[VERSION_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED,
-                                               &err->x1[VERSION_UNSUPP], &err->x2[VERSION_UNSUPP],
-                                               &err->x3[VERSION_UNSUPP], &err->x4[VERSION_UNSUPP]);
-  if (err->status[VERSION_UNSUPP] == PFDI_ACS_SUCCESS) {
-    fun->status[VERSION_UNSUPP] = val_pfdi_version(NULL, NULL, NULL, NULL);
+  /* PFDI_VERSION force NOT_SUPPORTED */
+  err[PFDI_FN_VERSION_IDX].x0 = val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED,
+            &err[PFDI_FN_VERSION_IDX].x1, &err[PFDI_FN_VERSION_IDX].x2,
+            &err[PFDI_FN_VERSION_IDX].x3, &err[PFDI_FN_VERSION_IDX].x4);
+  val_pfdi_version(NULL, NULL, NULL, NULL);
+
+  /* PFDI_FEATURES force NOT_SUPPORTED */
+  err[PFDI_FN_FEATURES_IDX].x0 = val_pfdi_force_error(PFDI_FN_PFDI_FEATURES,
+            PFDI_ACS_NOT_SUPPORTED, &err[PFDI_FN_FEATURES_IDX].x1, &err[PFDI_FN_FEATURES_IDX].x2,
+            &err[PFDI_FN_FEATURES_IDX].x3, &err[PFDI_FN_FEATURES_IDX].x4);
+  val_pfdi_features(PFDI_FN_PFDI_VERSION, NULL, NULL, NULL, NULL);
+
+  /* PFDI_PE_TEST_ID force UNKNOWN */
+  err[PFDI_FN_PE_TEST_ID_IDX].x0 = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_ID, PFDI_ACS_UNKNOWN,
+            &err[PFDI_FN_PE_TEST_ID_IDX].x1, &err[PFDI_FN_PE_TEST_ID_IDX].x2,
+            &err[PFDI_FN_PE_TEST_ID_IDX].x3, &err[PFDI_FN_PE_TEST_ID_IDX].x4);
+  val_pfdi_pe_test_id(NULL, NULL, NULL, NULL);
+
+  /* PFDI_PE_TEST_PART_COUNT force NOT_SUPPORTED */
+  err[PFDI_FN_PE_TEST_PART_COUNT_IDX].x0 =
+            val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_PART_COUNT, PFDI_ACS_NOT_SUPPORTED,
+            &err[PFDI_FN_PE_TEST_PART_COUNT_IDX].x1, &err[PFDI_FN_PE_TEST_PART_COUNT_IDX].x2,
+            &err[PFDI_FN_PE_TEST_PART_COUNT_IDX].x3, &err[PFDI_FN_PE_TEST_PART_COUNT_IDX].x4);
+  val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
+
+  /* PFDI_PE_TEST_RUN force FAULT_FOUND */
+  err[PFDI_FN_PE_TEST_RUN_IDX].x0 =
+            val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RUN, PFDI_ACS_FAULT_FOUND,
+            &err[PFDI_FN_PE_TEST_RUN_IDX].x1, &err[PFDI_FN_PE_TEST_RUN_IDX].x2,
+            &err[PFDI_FN_PE_TEST_RUN_IDX].x3, &err[PFDI_FN_PE_TEST_RUN_IDX].x4);
+  val_pfdi_pe_test_run(PFDI_RUN_ALL_TEST_PARTS, PFDI_RUN_ALL_TEST_PARTS, NULL, NULL, NULL, NULL);
+
+  /* PFDI_PE_TEST_RESULT force ERROR */
+  err[PFDI_FN_PE_TEST_RESULT_IDX].x0 =
+            val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RESULT, PFDI_ACS_ERROR,
+            &err[PFDI_FN_PE_TEST_RESULT_IDX].x1, &err[PFDI_FN_PE_TEST_RESULT_IDX].x2,
+            &err[PFDI_FN_PE_TEST_RESULT_IDX].x3, &err[PFDI_FN_PE_TEST_RESULT_IDX].x4);
+  val_pfdi_pe_test_result(NULL, NULL, NULL, NULL);
+
+  /* PFDI_FW_CHECK force NOT_SUPPORTED */
+  err[PFDI_FN_FW_CHECK_IDX].x0 =
+            val_pfdi_force_error(PFDI_FN_PFDI_FW_CHECK,  PFDI_ACS_NOT_SUPPORTED,
+            &err[PFDI_FN_FW_CHECK_IDX].x1, &err[PFDI_FN_FW_CHECK_IDX].x2,
+            &err[PFDI_FN_FW_CHECK_IDX].x3, &err[PFDI_FN_FW_CHECK_IDX].x4);
+  val_pfdi_fw_check(NULL, NULL, NULL, NULL);
+
+  /* PFDI_FORCE_ERROR force NOT_SUPPORTED */
+  err[PFDI_FN_FORCE_ERROR_IDX].x0 =
+            val_pfdi_force_error(PFDI_FN_PFDI_FORCE_ERROR, PFDI_ACS_NOT_SUPPORTED,
+            &err[PFDI_FN_FORCE_ERROR_IDX].x1, &err[PFDI_FN_FORCE_ERROR_IDX].x2,
+            &err[PFDI_FN_FORCE_ERROR_IDX].x3, &err[PFDI_FN_FORCE_ERROR_IDX].x4);
+  val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED,
+            NULL, NULL, NULL, NULL);
+
+  for (i = 0; i < PFDI_FN_MAX_IDX; i++) {
+    val_pfdi_invalidate_ret_params(&err[i]);
   }
 
-  /* ---- PFDI_FEATURES force NOT_SUPPORTED ---- */
-  err->status[FEATURE_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_FEATURES,
-                        PFDI_ACS_NOT_SUPPORTED, &err->x1[FEATURE_UNSUPP], &err->x2[FEATURE_UNSUPP],
-                          &err->x3[FEATURE_UNSUPP], &err->x4[FEATURE_UNSUPP]);
-  if (err->status[FEATURE_UNSUPP] == PFDI_ACS_SUCCESS) {
-    fun->status[FEATURE_UNSUPP] = val_pfdi_features(PFDI_FN_PFDI_VERSION, NULL, NULL, NULL, NULL);
-  }
-
-  /* ---- PE_TEST_ID force UNKNOWN ---- */
-  err->status[TESTID_UNKNOWN] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_ID, PFDI_ACS_UNKNOWN,
-                                               &err->x1[TESTID_UNKNOWN], &err->x2[TESTID_UNKNOWN],
-                                               &err->x3[TESTID_UNKNOWN], &err->x4[TESTID_UNKNOWN]);
-  if (err->status[TESTID_UNKNOWN] == PFDI_ACS_SUCCESS) {
-    fun->status[TESTID_UNKNOWN] = val_pfdi_pe_test_id(NULL, NULL, NULL, NULL);
-  }
-
-  /* ---- TEST_PART_COUNT force NOT_SUPPORTED ---- */
-  err->status[TESTPART_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_PART_COUNT,
-                     PFDI_ACS_NOT_SUPPORTED, &err->x1[TESTPART_UNSUPP], &err->x2[TESTPART_UNSUPP],
-                       &err->x3[TESTPART_UNSUPP], &err->x4[TESTPART_UNSUPP]);
-  if (err->status[TESTPART_UNSUPP] == PFDI_ACS_SUCCESS) {
-    fun->status[TESTPART_UNSUPP] = val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
-  }
-
-  /* ---- TEST_RUN force FAULT_FOUND ---- */
-  err->status[TESTRUN_FAULT] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RUN, PFDI_ACS_FAULT_FOUND,
-                                               &err->x1[TESTRUN_FAULT], &err->x2[TESTRUN_FAULT],
-                                               &err->x3[TESTRUN_FAULT], &err->x4[TESTRUN_FAULT]);
-  if (err->status[TESTRUN_FAULT] == PFDI_ACS_SUCCESS) {
-    fun->status[TESTRUN_FAULT] = val_pfdi_pe_test_run(-1, -1, NULL, NULL, NULL, NULL);
-  }
-
-  /* ---- TEST_RESULT force ERROR ---- */
-  err->status[RESULT_ERROR] = val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RESULT, PFDI_ACS_ERROR,
-                                               &err->x1[RESULT_ERROR], &err->x2[RESULT_ERROR],
-                                               &err->x3[RESULT_ERROR], &err->x4[RESULT_ERROR]);
-  if (err->status[RESULT_ERROR] == PFDI_ACS_SUCCESS) {
-    fun->status[RESULT_ERROR] = val_pfdi_pe_test_result(NULL, NULL, NULL, NULL);
-  }
-
-  /* ---- FW_CHECK force NOT_SUPPORTED ---- */
-  err->status[FWCHECK_UNSUPP] = val_pfdi_force_error(PFDI_FN_PFDI_FW_CHECK,
-                        PFDI_ACS_NOT_SUPPORTED, &err->x1[FWCHECK_UNSUPP], &err->x2[FWCHECK_UNSUPP],
-                        &err->x3[FWCHECK_UNSUPP], &err->x4[FWCHECK_UNSUPP]);
-  if (err->status[FWCHECK_UNSUPP] == PFDI_ACS_SUCCESS) {
-    fun->status[FWCHECK_UNSUPP] = val_pfdi_fw_check(NULL, NULL, NULL, NULL);
-  }
-
-  for (i = 0; i < STATUS_COUNT; i++) {
-    val_data_cache_ops_by_va((addr_t)&err->status[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&err->x1[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&err->x2[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&err->x3[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&err->x4[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&fun->status[i], CLEAN_AND_INVALIDATE);
-  }
-
-  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
-  if (g_pfdi_set_status)
-    val_set_status(index, RESULT_PASS(test_num, 1));
-
+  val_set_status(index, RESULT_PASS(test_num, 1));
   return;
 }
 
 static void pfdi_error_recovery(void)
 {
   uint32_t i, index = val_pe_get_index_mpid(val_pe_get_mpid());
-  pfdi_force_error_check *error_buffer;
-  pfdi_err_recovery_check *recovery_buffer;
+  pfdi_err_recovery_check *rec_buffer;
+  PFDI_RET_PARAMS *rec;
 
-  error_buffer = g_pfdi_force_error_check + index;
-  recovery_buffer = g_pfdi_err_recovery_check + index;
+  rec_buffer = g_pfdi_err_recovery_check + index;
+  rec = rec_buffer->rec_status;
 
-  /* Invoke PFDI Force Error Injection for current PE index */
-  pfdi_error_injection();
-
-  for (i = 0; i < STATUS_COUNT; i++) {
-    val_data_cache_ops_by_va((addr_t)&error_buffer->force_err.status[i], CLEAN_AND_INVALIDATE);
-    val_data_cache_ops_by_va((addr_t)&error_buffer->pfdi_func.status[i], CLEAN_AND_INVALIDATE);
+  /* PFDI_VERSION should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_VERSION_IDX] =
+            val_pfdi_force_error(PFDI_FN_PFDI_VERSION, PFDI_ACS_NOT_SUPPORTED,
+            NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_VERSION_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_VERSION is called */
+    rec_buffer->alt_status[PFDI_FN_VERSION_IDX] =
+            val_pfdi_features(PFDI_FN_PFDI_VERSION, NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_VERSION_IDX].x0 = val_pfdi_version(&rec[PFDI_FN_VERSION_IDX].x1,
+        &rec[PFDI_FN_VERSION_IDX].x2, &rec[PFDI_FN_VERSION_IDX].x3, &rec[PFDI_FN_VERSION_IDX].x4);
+    /* Normal behaviour of PFDI_VERSION function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_VERSION_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
   }
 
-  /* ---- PFDI_VERSION should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[VERSION_UNSUPP] == fail_status[VERSION_UNSUPP])
-    recovery_buffer->status[VERSION_UNSUPP] = val_pfdi_version(NULL, NULL, NULL, NULL);
+  /* PFDI_FEATURES should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_FEATURES_IDX] =
+            val_pfdi_force_error(PFDI_FN_PFDI_FEATURES, PFDI_ACS_NOT_SUPPORTED,
+            NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_FEATURES_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_FEATURES is called */
+    rec_buffer->alt_status[PFDI_FN_FEATURES_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_FEATURES_IDX].x0 = val_pfdi_features(PFDI_FN_PFDI_VERSION,
+                &rec[PFDI_FN_FEATURES_IDX].x1, &rec[PFDI_FN_FEATURES_IDX].x2,
+                &rec[PFDI_FN_FEATURES_IDX].x3, &rec[PFDI_FN_FEATURES_IDX].x4);
+    /* Normal behaviour of PFDI_FEATURES function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_FEATURES_IDX] =
+                val_pfdi_features(PFDI_FN_PFDI_VERSION, NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- PFDI_FEATURES should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[FEATURE_UNSUPP] == fail_status[FEATURE_UNSUPP])
-    recovery_buffer->status[FEATURE_UNSUPP] = val_pfdi_features(PFDI_FN_PFDI_VERSION,
-                                                        NULL, NULL, NULL, NULL);
+  /* PE_TEST_ID should behave normally after forced error */
+    rec_buffer->force_err_status[PFDI_FN_PE_TEST_ID_IDX] =
+                val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_ID, PFDI_ACS_UNKNOWN,
+                NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_PE_TEST_ID_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_PE_TEST_ID is called */
+    rec_buffer->alt_status[PFDI_FN_PE_TEST_ID_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_PE_TEST_ID_IDX].x0 =
+            val_pfdi_pe_test_id(&rec[PFDI_FN_PE_TEST_ID_IDX].x1, &rec[PFDI_FN_PE_TEST_ID_IDX].x2,
+            &rec[PFDI_FN_PE_TEST_ID_IDX].x3, &rec[PFDI_FN_PE_TEST_ID_IDX].x4);
+    /* Normal behaviour of PFDI_PE_TEST_ID function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_PE_TEST_ID_IDX] =
+            val_pfdi_pe_test_id(NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- PE_TEST_ID should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[TESTID_UNKNOWN] == fail_status[TESTID_UNKNOWN])
-    recovery_buffer->status[TESTID_UNKNOWN] = val_pfdi_pe_test_id(NULL, NULL, NULL, NULL);
+  /* PE_TEST_PART_COUNT should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_PE_TEST_PART_COUNT_IDX] =
+                val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_PART_COUNT, PFDI_ACS_NOT_SUPPORTED,
+                NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_PE_TEST_PART_COUNT_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_PE_TEST_PART_COUNT is called */
+    rec_buffer->alt_status[PFDI_FN_PE_TEST_PART_COUNT_IDX] =
+                val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_PE_TEST_PART_COUNT_IDX].x0 =
+            val_pfdi_pe_test_part_count(&rec[PFDI_FN_PE_TEST_PART_COUNT_IDX].x1,
+            &rec[PFDI_FN_PE_TEST_PART_COUNT_IDX].x2, &rec[PFDI_FN_PE_TEST_PART_COUNT_IDX].x3,
+            &rec[PFDI_FN_PE_TEST_PART_COUNT_IDX].x4);
+    /* Normal behaviour of PFDI_PE_TEST_PART_COUNT function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_PE_TEST_PART_COUNT_IDX] =
+            val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- PE_TEST_PART_COUNT should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[TESTPART_UNSUPP] == fail_status[TESTPART_UNSUPP])
-  recovery_buffer->status[TESTPART_UNSUPP] = val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
+  /* PE_TEST_RUN should behave normally after forced error */
+    rec_buffer->force_err_status[PFDI_FN_PE_TEST_RUN_IDX] =
+                    val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RUN, PFDI_ACS_FAULT_FOUND,
+                    NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_PE_TEST_RUN_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_PE_TEST_RUN is called */
+    rec_buffer->alt_status[PFDI_FN_PE_TEST_RUN_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_PE_TEST_RUN_IDX].x0 =
+            val_pfdi_pe_test_run(PFDI_RUN_ALL_TEST_PARTS, PFDI_RUN_ALL_TEST_PARTS,
+            &rec[PFDI_FN_PE_TEST_RUN_IDX].x1, &rec[PFDI_FN_PE_TEST_RUN_IDX].x2,
+            &rec[PFDI_FN_PE_TEST_RUN_IDX].x3, &rec[PFDI_FN_PE_TEST_RUN_IDX].x4);
+    /* Normal behaviour of PFDI_PE_TEST_RUN function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_PE_TEST_RUN_IDX] =
+            val_pfdi_pe_test_run(PFDI_RUN_ALL_TEST_PARTS, PFDI_RUN_ALL_TEST_PARTS,
+            NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- PE_TEST_RUN should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[TESTRUN_FAULT] == fail_status[TESTRUN_FAULT])
-  recovery_buffer->status[TESTRUN_FAULT] = val_pfdi_pe_test_run(-1, -1, NULL, NULL, NULL, NULL);
+  /* PE_TEST_RESULT should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_PE_TEST_RESULT_IDX] =
+                    val_pfdi_force_error(PFDI_FN_PFDI_PE_TEST_RESULT, PFDI_ACS_ERROR,
+                    NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_PE_TEST_RESULT_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_PE_TEST_RESULT is called */
+    rec_buffer->alt_status[PFDI_FN_PE_TEST_RESULT_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_PE_TEST_RESULT_IDX].x0 =
+            val_pfdi_pe_test_result(&rec[PFDI_FN_PE_TEST_RESULT_IDX].x1,
+            &rec[PFDI_FN_PE_TEST_RESULT_IDX].x2, &rec[PFDI_FN_PE_TEST_RESULT_IDX].x3,
+            &rec[PFDI_FN_PE_TEST_RESULT_IDX].x4);
+    /* Normal behaviour of PFDI_PE_TEST_RESULT function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_PE_TEST_RESULT_IDX] =
+            val_pfdi_pe_test_result(NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- PE_TEST_RESULT should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[RESULT_ERROR] == fail_status[RESULT_ERROR])
-    recovery_buffer->status[RESULT_ERROR] = val_pfdi_pe_test_result(NULL, NULL, NULL, NULL);
+  /* FW_CHECK should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_FW_CHECK_IDX] =
+                val_pfdi_force_error(PFDI_FN_PFDI_FW_CHECK, PFDI_ACS_NOT_SUPPORTED,
+                NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_FW_CHECK_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_FW_CHECK is called */
+    rec_buffer->alt_status[PFDI_FN_FW_CHECK_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_FW_CHECK_IDX].x0 =
+            val_pfdi_fw_check(&rec[PFDI_FN_FW_CHECK_IDX].x1, &rec[PFDI_FN_FW_CHECK_IDX].x2,
+            &rec[PFDI_FN_FW_CHECK_IDX].x3, &rec[PFDI_FN_FW_CHECK_IDX].x4);
+    /* Normal behaviour of PFDI_FW_CHECK function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_FW_CHECK_IDX] =
+            val_pfdi_fw_check(NULL, NULL, NULL, NULL);
+  }
 
-  /* ---- FW_CHECK should behave normally after forced error ---- */
-  if (error_buffer->pfdi_func.status[FWCHECK_UNSUPP] == fail_status[FWCHECK_UNSUPP])
-    recovery_buffer->status[FWCHECK_UNSUPP] = val_pfdi_fw_check(NULL, NULL, NULL, NULL);
+  /* FORCE_ERROR should behave normally after forced error */
+  rec_buffer->force_err_status[PFDI_FN_FORCE_ERROR_IDX] =
+                    val_pfdi_force_error(PFDI_FN_PFDI_FORCE_ERROR, PFDI_ACS_NOT_SUPPORTED,
+                    NULL, NULL, NULL, NULL);
+  if (rec_buffer->force_err_status[PFDI_FN_FORCE_ERROR_IDX] == PFDI_ACS_SUCCESS) {
+    /* Error should remain pending until PFDI_FORCE_ERROR is called */
+    rec_buffer->alt_status[PFDI_FN_FORCE_ERROR_IDX] = val_pfdi_version(NULL, NULL, NULL, NULL);
+    rec[PFDI_FN_FORCE_ERROR_IDX].x0 = val_pfdi_force_error(PFDI_FN_PFDI_FORCE_ERROR, 0,
+        &rec[PFDI_FN_FORCE_ERROR_IDX].x1, &rec[PFDI_FN_FORCE_ERROR_IDX].x2,
+        &rec[PFDI_FN_FORCE_ERROR_IDX].x3, &rec[PFDI_FN_FORCE_ERROR_IDX].x4);
+    /* Normal behaviour of PFDI_FORCE_ERROR function after injected error */
+    rec_buffer->norm_mode_status[PFDI_FN_FORCE_ERROR_IDX] =
+            val_pfdi_force_error(PFDI_FN_PFDI_FORCE_ERROR, 0, NULL, NULL, NULL, NULL);
+  }
 
-  for (i = 0; i < STATUS_COUNT; i++) {
-    val_data_cache_ops_by_va((addr_t)&recovery_buffer->status[i], CLEAN_AND_INVALIDATE);
+  for (i = 0; i < PFDI_FN_MAX_IDX; i++) {
+    val_data_cache_ops_by_va((addr_t)&rec_buffer->force_err_status[i], CLEAN_AND_INVALIDATE);
+    val_data_cache_ops_by_va((addr_t)&rec_buffer->alt_status[i], CLEAN_AND_INVALIDATE);
+    val_pfdi_invalidate_ret_params(&rec[i]);
+    val_data_cache_ops_by_va((addr_t)&rec_buffer->norm_mode_status[i], CLEAN_AND_INVALIDATE);
   }
 
   val_set_status(index, RESULT_PASS(test_num, 1));
@@ -224,32 +285,24 @@ static void pfdi_error_recovery(void)
 static void payload_pfdi_error_injection(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t timeout, i = 0, j = 0, run_fail = 0;
-  pfdi_force_error_check *status_buffer;
+  uint32_t timeout = 0, i = 0, j = 0, run_fail = 0;
+  pfdi_force_error_check *pfdi_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
-
-  g_pfdi_set_status = 1;
-  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
 
   /* Allocate memory to save all PFDI function status for all PE's */
   g_pfdi_force_error_check = (pfdi_force_error_check *)
                     val_memory_calloc(num_pe, sizeof(pfdi_force_error_check));
   if (g_pfdi_force_error_check == NULL) {
     val_print(ACS_PRINT_ERR,
-                "\n       Allocation for PFDI Invalid Function Check Failed", 0);
+                "\n       Allocation for PFDI Force Error Check Failed", 0);
     val_set_status(index, RESULT_FAIL(test_num, 1));
     return;
   }
 
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_force_error_check + i;
-    for (j = 0; j < STATUS_COUNT; j++) {
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x1[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x2[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x3[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x4[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
+    pfdi_buffer = g_pfdi_force_error_check + i;
+    for (j = 0; j < PFDI_FN_MAX_IDX; j++) {
+      val_pfdi_invalidate_ret_params(&pfdi_buffer->force_err[j]);
     }
   }
 
@@ -275,42 +328,32 @@ static void payload_pfdi_error_injection(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    status_buffer = g_pfdi_force_error_check + i;
+    pfdi_buffer = g_pfdi_force_error_check + i;
     run_fail = 0;
 
-    for (j = 0; j < STATUS_COUNT; j++) {
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x1[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x2[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x3[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->force_err.x4[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&status_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
+    for (j = 0; j < PFDI_FN_MAX_IDX; j++) {
+      val_pfdi_invalidate_ret_params(&pfdi_buffer->force_err[j]);
 
-      if (status_buffer->force_err.status[j] == PFDI_ACS_ERROR) {
+      if (pfdi_buffer->force_err[j].x0 == PFDI_ACS_ERROR) {
         val_print(ACS_PRINT_ERR, "\n       PFDI Force Error can not be scheduled for %a",
                                                     (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " status %ld", status_buffer->force_err.status[j]);
+        val_print(ACS_PRINT_ERR, " status %ld", pfdi_buffer->force_err[j].x0);
         val_print(ACS_PRINT_ERR, " on PE index %d", i);
-      } else if (status_buffer->force_err.status[j] != PFDI_ACS_SUCCESS) {
+      } else if (pfdi_buffer->force_err[j].x0 != PFDI_ACS_SUCCESS) {
         val_print(ACS_PRINT_ERR, "\n       PFDI Force Error failed for %a",
                                                     (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " err %ld", status_buffer->force_err.status[j]);
-        val_print(ACS_PRINT_ERR, " on PE index %d", i);
-        run_fail++;
-      } else if (status_buffer->pfdi_func.status[j] != fail_status[j]) {
-        val_print(ACS_PRINT_ERR, "\n       PFDI return %a", (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " check failed err  %ld", status_buffer->pfdi_func.status[j]);
+        val_print(ACS_PRINT_ERR, " err %ld", pfdi_buffer->force_err[j].x0);
         val_print(ACS_PRINT_ERR, " on PE index %d", i);
         run_fail++;
       }
 
-      if ((status_buffer->force_err.x1[j] != 0) || (status_buffer->force_err.x2[j] != 0) ||
-           (status_buffer->force_err.x3[j] != 0) || (status_buffer->force_err.x4[j] != 0)) {
+      if ((pfdi_buffer->force_err[j].x1 != 0) || (pfdi_buffer->force_err[j].x2 != 0) ||
+           (pfdi_buffer->force_err[j].x3 != 0) || (pfdi_buffer->force_err[j].x4 != 0)) {
         val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
-        val_print(ACS_PRINT_ERR, " x1=0x%llx", status_buffer->force_err.x1[j]);
-        val_print(ACS_PRINT_ERR, " x2=0x%llx", status_buffer->force_err.x2[j]);
-        val_print(ACS_PRINT_ERR, " x3=0x%llx", status_buffer->force_err.x3[j]);
-        val_print(ACS_PRINT_ERR, " x4=0x%llx", status_buffer->force_err.x4[j]);
+        val_print(ACS_PRINT_ERR, " x1=0x%llx", pfdi_buffer->force_err[j].x1);
+        val_print(ACS_PRINT_ERR, " x2=0x%llx", pfdi_buffer->force_err[j].x2);
+        val_print(ACS_PRINT_ERR, " x3=0x%llx", pfdi_buffer->force_err[j].x3);
+        val_print(ACS_PRINT_ERR, " x4=0x%llx", pfdi_buffer->force_err[j].x4);
         val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
         val_print(ACS_PRINT_ERR, " for %a", (uint64_t)pfdi_test_names[j]);
         run_fail++;
@@ -332,41 +375,27 @@ free_pfdi_details:
 static void payload_pfdi_error_recovery_check(void *arg)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t timeout, i = 0, j = 0, run_fail = 0, run_skip = 0;
-  pfdi_force_error_check *error_buffer;
-  pfdi_err_recovery_check *recovery_buffer;
+  uint32_t timeout = 0, i = 0, j = 0, run_fail = 0, run_skip = 0;
+  pfdi_err_recovery_check *rec_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
-
-  g_pfdi_set_status = 0;
-  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
-
-  /* Allocate memory to save Force Error status for all PE's */
-  g_pfdi_force_error_check = (pfdi_force_error_check *)
-                    val_memory_calloc(num_pe, sizeof(pfdi_force_error_check));
-  if (g_pfdi_force_error_check == NULL) {
-    val_print(ACS_PRINT_ERR,
-                "\n       Allocation for PFDI Invalid Function Check Failed", 0);
-    val_set_status(index, RESULT_FAIL(test_num, 1));
-    return;
-  }
 
   /* Allocate memory to save Error Recovery status for all PE's */
   g_pfdi_err_recovery_check = (pfdi_err_recovery_check *)
                     val_memory_calloc(num_pe, sizeof(pfdi_err_recovery_check));
   if (g_pfdi_err_recovery_check == NULL) {
     val_print(ACS_PRINT_ERR,
-                "\n       Allocation for PFDI Invalid Function Check Failed", 0);
+                "\n       Allocation for PFDI Error Recovery Check Failed", 0);
     val_set_status(index, RESULT_FAIL(test_num, 2));
-    goto free_pfdi_force_error;
+    return;
   }
 
   for (i = 0; i < num_pe; i++) {
-    error_buffer = g_pfdi_force_error_check + i;
-    recovery_buffer = g_pfdi_err_recovery_check + i;
-    for (j = 0; j < STATUS_COUNT; j++) {
-      val_data_cache_ops_by_va((addr_t)&error_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&error_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&recovery_buffer->status[j], CLEAN_AND_INVALIDATE);
+    rec_buffer = g_pfdi_err_recovery_check + i;
+    for (j = 0; j < PFDI_FN_MAX_IDX; j++) {
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->force_err_status[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->alt_status[j], CLEAN_AND_INVALIDATE);
+      val_pfdi_invalidate_ret_params(&rec_buffer->rec_status[j]);
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->norm_mode_status[j], CLEAN_AND_INVALIDATE);
     }
   }
 
@@ -392,34 +421,58 @@ static void payload_pfdi_error_recovery_check(void *arg)
 
   /* Check return status of function for all PE's */
   for (i = 0; i < num_pe; i++) {
-    error_buffer = g_pfdi_force_error_check + i;
-    recovery_buffer = g_pfdi_err_recovery_check + i;
+    rec_buffer = g_pfdi_err_recovery_check + i;
     run_fail = 0;
     run_skip = 0;
 
-    for (j = 0; j < STATUS_COUNT; j++) {
-      val_data_cache_ops_by_va((addr_t)&error_buffer->force_err.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&error_buffer->pfdi_func.status[j], CLEAN_AND_INVALIDATE);
-      val_data_cache_ops_by_va((addr_t)&recovery_buffer->status[j], CLEAN_AND_INVALIDATE);
+    for (j = 0; j < PFDI_FN_MAX_IDX; j++) {
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->force_err_status[j], CLEAN_AND_INVALIDATE);
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->alt_status[j], CLEAN_AND_INVALIDATE);
+      val_pfdi_invalidate_ret_params(&rec_buffer->rec_status[j]);
+      val_data_cache_ops_by_va((addr_t)&rec_buffer->norm_mode_status[j], CLEAN_AND_INVALIDATE);
 
-      if (error_buffer->force_err.status[j] != PFDI_ACS_SUCCESS) {
+      if (rec_buffer->force_err_status[j] != PFDI_ACS_SUCCESS) {
         val_print(ACS_PRINT_ERR, "\n       PFDI Force Error failed for %a",
                                                     (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " err %ld", error_buffer->force_err.status[j]);
+        val_print(ACS_PRINT_ERR, " err %ld", rec_buffer->force_err_status[j]);
         val_print(ACS_PRINT_ERR, " on PE index %d, Skipping the test", i);
         run_skip++;
-      } else if (error_buffer->pfdi_func.status[j] != fail_status[j]) {
+      }
+
+      if (rec_buffer->alt_status[j] == fail_status[j]) {
+        val_print(ACS_PRINT_ERR,
+            "\n       PFDI Scheduled error affected unrelated function, return status %ld",
+            rec_buffer->alt_status[j]);
+        run_fail++;
+      }
+
+      if (rec_buffer->rec_status[j].x0 != fail_status[j]) {
         val_print(ACS_PRINT_ERR, "\n       PFDI return %a", (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " check failed err  %ld", error_buffer->pfdi_func.status[j]);
-        val_print(ACS_PRINT_ERR, " on PE index %d, Skipping the test", i);
-        run_skip++;
-      } else if (recovery_buffer->status[j] < PFDI_ACS_SUCCESS) {
-        val_print(ACS_PRINT_ERR, "\n       PFDI Error Recovery for  %a",
-                                                    (uint64_t)pfdi_test_names[j]);
-        val_print(ACS_PRINT_ERR, " failed err  %ld", recovery_buffer->status[j]);
+        val_print(ACS_PRINT_ERR, " check failed err  %ld", rec_buffer->rec_status[j].x0);
         val_print(ACS_PRINT_ERR, " on PE index %d", i);
         run_fail++;
       }
+
+      if (rec_buffer->norm_mode_status[j] == fail_status[j]) {
+        val_print(ACS_PRINT_ERR, "\n       PFDI Error recovery failed for  %a",
+                                                    (uint64_t)pfdi_test_names[j]);
+        val_print(ACS_PRINT_ERR, " failed err  %ld", rec_buffer->norm_mode_status[j]);
+        val_print(ACS_PRINT_ERR, " on PE index %d", i);
+        run_fail++;
+      }
+
+      if ((rec_buffer->rec_status[j].x1 != 0) || (rec_buffer->rec_status[j].x2 != 0) ||
+           (rec_buffer->rec_status[j].x3 != 0) || (rec_buffer->rec_status[j].x4 != 0)) {
+        val_print(ACS_PRINT_ERR, "\n       Registers X1-X4 are not zero:", 0);
+        val_print(ACS_PRINT_ERR, " x1=0x%llx", rec_buffer->rec_status[j].x1);
+        val_print(ACS_PRINT_ERR, " x2=0x%llx", rec_buffer->rec_status[j].x2);
+        val_print(ACS_PRINT_ERR, " x3=0x%llx", rec_buffer->rec_status[j].x3);
+        val_print(ACS_PRINT_ERR, " x4=0x%llx", rec_buffer->rec_status[j].x4);
+        val_print(ACS_PRINT_ERR, "\n       Failed on PE = %d", i);
+        val_print(ACS_PRINT_ERR, " for %a", (uint64_t)pfdi_test_names[j]);
+        run_fail++;
+      }
+
     }
 
     if (run_fail)
@@ -433,9 +486,6 @@ static void payload_pfdi_error_recovery_check(void *arg)
 free_pfdi_error_recovery:
   val_memory_free((void *) g_pfdi_err_recovery_check);
   g_pfdi_err_recovery_check = NULL;
-free_pfdi_force_error:
-  val_memory_free((void *) g_pfdi_force_error_check);
-  g_pfdi_force_error_check = NULL;
 
   return;
 }
