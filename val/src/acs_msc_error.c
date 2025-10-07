@@ -37,8 +37,9 @@ uint32_t val_mpam_msc_reset_errcode(uint32_t msc_index)
 
     esr_value = val_mpam_mmr_read(msc_index, REG_MPAMF_ESR);
 
-    /* Create a mask to clear bits 24-27 */
-    uint64_t mask = ~(ESR_ERRCODE_MASK << ESR_ERRCODE_SHIFT);
+    /* Create a mask to clear bits ERRCODE 24-27, RIS 32-35 */
+    uint64_t mask = ~(((uint64_t)ESR_ERRCODE_MASK << ESR_ERRCODE_SHIFT) |
+                      ((uint64_t)ESR_RIS_MASK << ESR_RIS_SHIFT));
 
     /* Update ESR and write back to the register */
     esr_value &= mask;
