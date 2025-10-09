@@ -41,6 +41,7 @@ static uint32_t
 check_smmu_pmcg(uint32_t check_counter)
 {
     uint32_t num_smmu, num_pmcg, i;
+    uint32_t test_skip = 1;
     uint32_t smmu_version;
     uint64_t smmu_base, pmcg_base, pmcg_smmu_base, num_pmcg_count;
     uint32_t test_fail = 0, num_pmcg_found;
@@ -53,9 +54,9 @@ check_smmu_pmcg(uint32_t check_counter)
         return ACS_STATUS_SKIP;
     } else if (num_pmcg == 0) {
         /* If SMMUs are present in system and no PMCGs detected, report test as FAIL*/
-        val_print(ACS_PRINT_DEBUG, "\n       SMMUs in the system don't implement SMMUv3"
+        val_print(ACS_PRINT_ERR, "\n       SMMUs in the system don't implement SMMUv3"
                                    " Performance Monitors Extension ", 0);
-        return ++test_fail;
+        return ACS_STATUS_FAIL;
     }
 
     while (num_smmu--) {
@@ -66,6 +67,7 @@ check_smmu_pmcg(uint32_t check_counter)
             continue;
         }
 
+        test_skip = 0; // At least one SMMU v3 found
         smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, num_smmu);
         num_pmcg_found = 0;
 
@@ -96,6 +98,9 @@ check_smmu_pmcg(uint32_t check_counter)
             test_fail++;
         }
     }
+
+    if (test_skip)
+        return ACS_STATUS_SKIP;
 
     return test_fail ? ACS_STATUS_FAIL : ACS_STATUS_PASS;
 }
