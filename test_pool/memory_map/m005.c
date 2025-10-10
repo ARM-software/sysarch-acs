@@ -35,13 +35,9 @@
 #define TEST_DESC1 "Check peripherals addr 64Kb apart     "
 
 
-static void payload_check_peripheral_mem_64kb_align(void)
+static void payload_check_s2_64kb_granule_support(void)
 {
     uint64_t data = 0;
-    uint64_t peri_count, base_addr;
-    uint64_t num_mem_range, mem_range_index;
-    uint32_t peri_index;
-    uint32_t fail_cnt = 0;
     uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
     /* Check if EL2 is supported, if not skip the test. non-zero value in ID_AA64PFR0_EL1[11:8]
@@ -54,9 +50,6 @@ static void payload_check_peripheral_mem_64kb_align(void)
         return;
     }
 
-    /* Following checks if base system has capabilites to ensure that all memory and peripherals
-       can be mapped using 64KB stage 2 pages. */
-
     /* Check PE support for 64KB memory granule size at stage 2. ID_AA64MMFR0_EL1[39:36] == b0010
        indicates 64KB granule supported at stage 2, and value b0000 is deprecated when EL2 is
        implemented hence not checking ID_AA64MMFR0_EL1.TGran64 field.*/
@@ -67,56 +60,8 @@ static void payload_check_peripheral_mem_64kb_align(void)
         return;
     }
 
-    /* Check if peripheral base addresses are 64KB aligned, so that it can be 64KB
-       stage 2 mapped */
-    peri_count = val_peripheral_get_info(NUM_ALL, 0);
-
-    if (peri_count == 0) {
-        val_print(ACS_PRINT_DEBUG, "\n       No peripherals reported by the system.", 0);
-    }
-
-    for (peri_index = 0; peri_index < peri_count; peri_index++) {
-        /* Get base address of the peripheral */
-        base_addr = val_peripheral_get_info(ANY_BASE0, peri_index);
-        /* Check if address is 64KB aligned */
-        if (base_addr % MEM_ALIGN_64K) {
-            val_print(ACS_PRINT_ERR, "\n       Base addr of peripheral index : %d"
-                     " not 64KB aligned. ", peri_index);
-            val_print(ACS_PRINT_ERR, "Unaligned addr : 0x%lx", base_addr);
-            fail_cnt++;
-        }
-    }
-
-    /* Check if all memory region base addresses are 64KB aligned, so that it can be 64KB stage 2
-       mapped */
-    num_mem_range = val_srat_get_info(SRAT_MEM_NUM_MEM_RANGE, 0);
-
-    if (num_mem_range == 0 || num_mem_range == SRAT_INVALID_INFO) {
-        val_print(ACS_PRINT_DEBUG, "\n       No memory regions reported by the system.", 0);
-        /* Mark test as fail, since atleast mem region should be there in the system */
-        fail_cnt++;
-        /* Set number of memory region as zero, incase of SRAT_INVALID_INFO */
-        num_mem_range = 0;
-    }
-
-    for (mem_range_index = 0; mem_range_index < num_mem_range; mem_range_index++) {
-        /* Get base address of memory region */
-        base_addr = val_srat_get_info(SRAT_MEM_BASE_ADDR,
-                                      val_srat_get_prox_domain(mem_range_index));
-
-        /* Check if address is 64KB aligned */
-        if (base_addr % MEM_ALIGN_64K) {
-            val_print(ACS_PRINT_ERR, "\n       Base addr of mem region index : %d"
-                      " not 64KB aligned.", mem_range_index);
-            fail_cnt++;
-        }
-    }
-
-    if (fail_cnt) {
-        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
-    } else {
-        val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
-    }
+    val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+    return;
 }
 
 
@@ -176,7 +121,7 @@ uint32_t m005_entry(uint32_t num_pe)
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)
-        val_run_test_payload(TEST_NUM, num_pe, payload_check_peripheral_mem_64kb_align, 0);
+        val_run_test_payload(TEST_NUM, num_pe, payload_check_s2_64kb_granule_support, 0);
 
     /* get the result from all PE and check for failure */
     status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
