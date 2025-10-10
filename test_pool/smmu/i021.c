@@ -45,6 +45,7 @@ check_smmu_pmcg(uint32_t check_counter)
     uint32_t smmu_version;
     uint64_t smmu_base, pmcg_base, pmcg_smmu_base, num_pmcg_count;
     uint32_t test_fail = 0, num_pmcg_found;
+    uint32_t status;
 
     num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
     num_pmcg = val_iovirt_get_pmcg_info(PMCG_NUM_CTRL, 0);
@@ -76,6 +77,14 @@ check_smmu_pmcg(uint32_t check_counter)
             pmcg_smmu_base = val_iovirt_get_pmcg_info(PMCG_NODE_SMMU_BASE, i);
             if (smmu_base == pmcg_smmu_base) {
                 pmcg_base = val_iovirt_get_pmcg_info(PMCG_CTRL_BASE, i);
+
+                /* Check if PMCG node memory is mapped. If not, map it */
+                status = val_mmu_update_entry(pmcg_base, SIZE_1K);
+                if (status) {
+                    val_print(ACS_PRINT_ERR, "\n       Could not map PMCG node memory", 0);
+                    return ACS_STATUS_FAIL;
+                }
+
                 num_pmcg_count = VAL_EXTRACT_BITS(val_mmio_read(pmcg_base + SMMU_PMCG_CFGR), 0, 5)
                                  + 1;
 
