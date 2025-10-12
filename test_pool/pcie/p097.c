@@ -146,10 +146,12 @@ payload (void)
        * descriptors is causing an exception and for the devices
        * with base class codes greater than 13h as they
        * are reserved */
-      if ((g_pcie_skip_dp_nic_ms && (base_cc == CNTRL_CC)) || (base_cc > RES_CC))
+      if ((g_pcie_skip_dp_nic_ms &&
+          ((base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)))
+          || (base_cc > RES_CC))
       {
         tbl_index++;
-        val_print(ACS_PRINT_DEBUG, "\n        Skipping N/W ctrl device", 0);
+        val_print(ACS_PRINT_DEBUG, "\n        Skipping DP/NIC/MAS/RES device.", 0);
         continue;
       }
 
@@ -181,9 +183,11 @@ payload (void)
                 * descriptors is causing an exception and for the devices
                 * with base class codes greater than 13h as they
                 * are reserved */
-                if ((g_pcie_skip_dp_nic_ms && (base_cc == CNTRL_CC)) || (base_cc > RES_CC))
+                if ((g_pcie_skip_dp_nic_ms &&
+                    ((base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)))
+                    || (base_cc > RES_CC))
                 {
-                  val_print(ACS_PRINT_DEBUG, "\n        Skipping ..N/W ctrl device", 0);
+                  val_print(ACS_PRINT_DEBUG, "\n        Skipping DP/NIC/MAS/RES device.", 0);
                   tbl_index_next++;
                   continue;
                 }
