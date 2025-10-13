@@ -58,41 +58,17 @@ payload_check_secure_state_support()
   uint64_t data  = val_pe_reg_read(ID_AA64PFR0_EL1);
 
   /* Extract bitfields of ID_AA64PFR0_EL1 */
-  /* RME   : bits [55:52] */
-  uint32_t feat_rme      = VAL_EXTRACT_BITS(data, 52, 55);
   /* SEL2  : bits [39:36] */
   uint32_t feat_sel2     = VAL_EXTRACT_BITS(data, 36, 39);
   /* EL3   : bits [15:12] */
   uint32_t feat_el3      = VAL_EXTRACT_BITS(data, 12, 15);
-  /* EL2   : bits [11:8]  (non-zero  EL2 present) */
-  uint32_t el2_present   = VAL_EXTRACT_BITS(data,  8, 11);
 
-
-  if (!(feat_rme) && feat_el3) {
-      /* If EL2 and Secure state (provided by FEAT_EL3) is present then SEL2 must be present */
-      if (el2_present) {
-        if (feat_sel2) {
-            val_set_status(index, RESULT_PASS(TEST_NUM1, 1));
-            return;
-        } else {
-            val_set_status(index, RESULT_FAIL(TEST_NUM1, 1));
-            return;
-        }
-      }
-      /* If execution reach here then EL2 not present Secure state implemented by FEAT_EL3 alone */
-      val_set_status(index, RESULT_PASS(TEST_NUM1, 2));
+  /* Pass the test if Secure state is implemented via EL3 or SEL2 */
+  if (feat_sel2 || feat_el3) {
+      val_set_status(index, RESULT_PASS(TEST_NUM1, 1));
       return;
-  /* if RME present, check if SEL2 supported if EL2 present */
-  } else if (el2_present) {
-    if (feat_sel2) {
-        val_set_status(index, RESULT_PASS(TEST_NUM1, 3));
-        return;
-    } else {
-        val_set_status(index, RESULT_FAIL(TEST_NUM1, 2));
-        return;
-    }
   } else {
-      val_set_status(index, RESULT_FAIL(TEST_NUM1, 3));
+      val_set_status(index, RESULT_FAIL(TEST_NUM1, 1));
       return;
   }
 
