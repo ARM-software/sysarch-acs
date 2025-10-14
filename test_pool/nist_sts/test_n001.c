@@ -71,7 +71,7 @@ check_prerequisite_nist(void)
           val_print(ACS_PRINT_ERR, "\nMax # of opened files has been reached. "
                                    "NIST prerequistite failed: %d", i);
           status = ACS_STATUS_FAIL;
-	  break;
+          break;
       }
   }
 
@@ -144,9 +144,15 @@ create_random_file(void)
   {
       /* Get a 32-bit random number */
       status = val_nist_generate_rng(&buffer);
+      if (status == NOT_IMPLEMENTED) {
+          val_print(ACS_PRINT_ERR, "\n       PAL API pal_nist_generate_rng is unimplemented", 0);
+          val_print(ACS_PRINT_ERR, "\n       Implement the PAL API for the test to run", 0);
+          return ACS_STATUS_SKIP;
+      }
+
       if (status != ACS_STATUS_PASS) {
-	  val_print(ACS_PRINT_ERR, "\n       Random number generation failed", 0);
-	  fclose(fp);
+          val_print(ACS_PRINT_ERR, "\n       Random number generation failed", 0);
+          fclose(fp);
           return ACS_STATUS_FAIL;
       }
 
@@ -156,7 +162,7 @@ create_random_file(void)
       for (j = 31; j >= 0; j--) {
           k = buffer >> j;
           if (k & 1)
-	      fwrite(&one, sizeof(char), 1, fp);
+              fwrite(&one, sizeof(char), 1, fp);
           else
               fwrite(&zero, sizeof(char), 1, fp);
       }
@@ -187,7 +193,7 @@ payload()
   /* Generate a Random file with binary ASCII values */
   status = create_random_file();
   if (status != ACS_STATUS_PASS) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
+      val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
       return;
   }
 
@@ -227,7 +233,7 @@ payload()
   status |= mkdir(dirname, 0777);
   if (status != ACS_STATUS_PASS) {
       val_print(ACS_PRINT_ERR, "\n       Directory not created", 0);
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
+      val_set_status(index, RESULT_SKIP(TEST_NUM, 03));
       return;
   }
   else
@@ -243,7 +249,7 @@ payload()
           if (status == ACS_STATUS_NIST_PASS) {
               val_set_status(index, RESULT_PASS(TEST_NUM, 01));
           } else {
-              val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
+              val_set_status(index, RESULT_SKIP(TEST_NUM, 04));
               return;
           }
       }
@@ -256,7 +262,7 @@ payload()
       if (status == ACS_STATUS_NIST_PASS) {
           val_set_status(index, RESULT_PASS(TEST_NUM, 01));
       } else {
-          val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
+          val_set_status(index, RESULT_SKIP(TEST_NUM, 05));
           return;
       }
   }
@@ -277,10 +283,10 @@ n001_entry(uint32_t num_pe)
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
 
-  /* get the result from all PE and check for failure */
-//  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from PE and check for failure */
+  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
-//  val_report_status(0, ACS_END(TEST_NUM), TEST_RULE);
+  val_report_status(0, ACS_END(TEST_NUM), TEST_RULE);
 
   return status;
 }
