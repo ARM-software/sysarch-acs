@@ -23,7 +23,7 @@
 #include "val/common/include/acs_std_smc.h"
 
 #define TEST_NUM   (ACS_WAKEUP_TEST_NUM_BASE + 6)
-#define TEST_RULE  "B_WAK_02, B_WAK_09, B_WAK_10"
+#define TEST_RULE  "B_WAK_02, B_WAK_10"
 #define TEST_DESC  "Test No-Wake from Power Semantic F    "
 
 static uint32_t intid, wakeup_event, cnt_base_n;
