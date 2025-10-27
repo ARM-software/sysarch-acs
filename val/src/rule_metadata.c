@@ -2067,35 +2067,35 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = G012_ENTRY,
             .module_id        = GIC,
             .rule_desc        = "Check GIC version",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PP_01] = {
             .test_entry_id    = G014_ENTRY,
             .module_id        = GIC,
             .rule_desc        = "Check All PPI Interrupt IDs",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1GI_03] = {
             .test_entry_id    = INTERFACE010_ENTRY,
             .module_id        = GIC,
             .rule_desc        = "Check GIC supports disabling LPIs",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1GI_04] = {
             .test_entry_id    = INTERFACE011_ENTRY,
             .module_id        = GIC,
             .rule_desc        = "Check GICR_PENDBASER when LPIs enabled",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1MM_01] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = MEM_MAP,
             .rule_desc        = "NS-EL2 Stage-2 64KB Mapping Check",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = ALIAS_RULE,
         },
         [P_L1PE_01] = {
@@ -2109,56 +2109,56 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = PE024_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check for 16-bit ASID support",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_03] = {
             .test_entry_id    = PE025_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check AARCH64 implementation",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_04] = {
             .test_entry_id    = PE015_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check for FEAT_LSE support",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_05] = {
             .test_entry_id    = PE026_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check FEAT_LPA Requirements",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_06] = {
             .test_entry_id    = PE028_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check DC CVAP support",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_07] = {
             .test_entry_id    = PE029_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check for 16-Bit VMID",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1PE_08] = {
             .test_entry_id    = PE030_ENTRY,
             .module_id        = PE,
             .rule_desc        = "Check for Virtual host extensions",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1SM_02] = {
             .test_entry_id    = I008_ENTRY,
             .module_id        = SMMU,
             .rule_desc        = "Check Stage 1 SMMUv3 functionality",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1SM_03] = {
@@ -2172,49 +2172,49 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = I020_ENTRY,
             .module_id        = SMMU,
             .rule_desc        = "Check SMMU Coherent Access Support",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1SM_05] = {
             .test_entry_id    = I022_ENTRY,
             .module_id        = SMMU,
             .rule_desc        = "Check if all DMA reqs behind SMMU",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L2WD_01] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = WATCHDOG,
             .rule_desc        = "Non-secure Generic watchdog check",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = ALIAS_RULE,
         },
         [P_L1TP_01] = {
             .test_entry_id    = TPM001_ENTRY,
             .module_id        = TPM,
             .rule_desc        = "Check TPM Version",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1TP_03] = {
             .test_entry_id    = TPM002_ENTRY,
             .module_id        = TPM,
             .rule_desc        = "Check TPM interface locality support",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [P_L1GI_02] = {
             .test_entry_id    = P046_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check all MSI(X) vectors are LPIs",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
         },
         [P_L1PCI_2] = {
             .test_entry_id    = P087_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check EA Capability",
-            .platform_bitmask = PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
     };
@@ -2599,6 +2599,163 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 
 /* TARGET_BAREMETAL */
 #if defined(TARGET_BAREMETAL)
+#if defined(BAREMETAL_PCBSA_BUILD)
+/* PC_BSA Baremetal build to selected test entries only */
+    [PE001_ENTRY] = pe001_entry,
+    [PE002_ENTRY] = pe002_entry,
+    [PE003_ENTRY] = pe003_entry,
+    [PE004_ENTRY] = pe004_entry,
+    [PE006_ENTRY] = pe006_entry,
+    [PE007_ENTRY] = pe007_entry,
+    [PE008_ENTRY] = pe008_entry,
+    [PE009_ENTRY] = pe009_entry,
+    [PE010_ENTRY] = pe010_entry,
+    [PE011_ENTRY] = pe011_entry,
+    [PE012_ENTRY] = pe012_entry,
+    [PE013_ENTRY] = pe013_entry,
+    [PE015_ENTRY] = pe015_entry,
+    [PE016_ENTRY] = pe016_entry,
+    [PE017_ENTRY] = pe017_entry,
+    [PE018_ENTRY] = pe018_entry,
+    [PE019_ENTRY] = pe019_entry,
+    [PE020_ENTRY] = pe020_entry,
+    [PE021_ENTRY] = pe021_entry,
+    [PE022_ENTRY] = pe022_entry,
+    [PE024_ENTRY] = pe024_entry,
+    [PE025_ENTRY] = pe025_entry,
+    [PE026_ENTRY] = pe026_entry,
+    [PE028_ENTRY] = pe028_entry,
+    [PE029_ENTRY] = pe029_entry,
+    [PE030_ENTRY] = pe030_entry,
+    [PE063_ENTRY] = pe063_entry,
+    [P_L1PE_01_ENTRY] = p_l1pe_01_entry,
+    [G001_ENTRY] = g001_entry,
+    [G002_ENTRY] = g002_entry,
+    [G003_ENTRY] = g003_entry,
+    [G004_ENTRY] = g004_entry,
+    [G005_ENTRY] = g005_entry,
+    [G012_ENTRY] = g012_entry,
+    [G014_ENTRY] = g014_entry,
+    [B_PPI_00_ENTRY] = b_ppi_00_entry,
+    [M001_ENTRY] = m001_entry,
+    [M002_ENTRY] = m002_entry,
+    [M003_ENTRY] = m003_entry,
+    [M004_ENTRY] = m004_entry,
+    [M005_ENTRY] = m005_entry,
+    [M007_ENTRY] = m007_entry,
+    [M008_ENTRY] = m008_entry,
+    [I001_ENTRY] = i001_entry,
+    [I002_ENTRY] = i002_entry,
+    [I003_ENTRY] = i003_entry,
+    [I004_ENTRY] = i004_entry,
+    [I005_ENTRY] = i005_entry,
+    [I006_ENTRY] = i006_entry,
+    [I007_ENTRY] = i007_entry,
+    [I008_ENTRY] = i008_entry,
+    [I020_ENTRY] = i020_entry,
+    [I022_ENTRY] = i022_entry,
+    [I025_ENTRY] = i025_entry,
+    [I029_ENTRY] = i029_entry,
+    [T001_ENTRY] = t001_entry,
+    [T002_ENTRY] = t002_entry,
+    [T003_ENTRY] = t003_entry,
+    [T004_ENTRY] = t004_entry,
+    [T005_ENTRY] = t005_entry,
+    [T007_ENTRY] = t007_entry,
+    [W001_ENTRY] = w001_entry,
+    [W002_ENTRY] = w002_entry,
+    [D001_ENTRY] = d001_entry,
+    [D002_ENTRY] = d002_entry,
+    [D003_ENTRY] = d003_entry,
+    [D004_ENTRY] = d004_entry,
+    [D006_ENTRY] = d006_entry,
+    [D007_ENTRY] = d007_entry,
+    [D008_ENTRY] = d008_entry,
+    [P001_ENTRY] = p001_entry,
+    [P002_ENTRY] = p002_entry,
+    [P003_ENTRY] = p003_entry, // used in wrapper.
+    [P004_ENTRY] = p004_entry, // used in wrapper.
+    [P005_ENTRY] = p005_entry, // used in wrapper.
+    [P006_ENTRY] = p006_entry, // used in wrapper.
+    [P008_ENTRY] = p008_entry,
+    [P009_ENTRY] = p009_entry,
+    [P011_ENTRY] = p011_entry,
+    [P017_ENTRY] = p017_entry,
+    [P018_ENTRY] = p018_entry,
+    [P019_ENTRY] = p019_entry,
+    [P020_ENTRY] = p020_entry, // used in wrapper.
+    [P021_ENTRY] = p021_entry,
+    [P022_ENTRY] = p022_entry, // used in wrapper.
+    [P023_ENTRY] = p023_entry, // used in wrapper.
+    [P024_ENTRY] = p024_entry, // used in wrapper.
+    [P025_ENTRY] = p025_entry, // used in wrapper.
+    [P026_ENTRY] = p026_entry, // used in wrapper.
+    [P027_ENTRY] = p027_entry, // used in wrapper.
+    [P033_ENTRY] = p033_entry, // used in wrapper.
+    [P035_ENTRY] = p035_entry,
+    [P036_ENTRY] = p036_entry, // used in wrapper.
+    [P037_ENTRY] = p037_entry,
+    [P038_ENTRY] = p038_entry,
+    [P039_ENTRY] = p039_entry,
+    [P042_ENTRY] = p042_entry,
+    [P045_ENTRY] = p045_entry, // used in wrapper.
+    [P046_ENTRY] = p046_entry,
+    [P047_ENTRY] = p047_entry,
+    [P064_ENTRY] = p064_entry, // used in wrapper.
+    [P068_ENTRY] = p068_entry, // used in wrapper.
+    [P071_ENTRY] = p071_entry, // used in wrapper.
+    [P072_ENTRY] = p072_entry, // used in wrapper.
+    [P078_ENTRY] = p078_entry, // used in wrapper.
+    [P095_ENTRY] = p095_entry,
+    [P096_ENTRY] = p096_entry, // used in wrapper.
+    [P097_ENTRY] = p097_entry, // used in wrapper.
+    [P087_ENTRY] = p087_entry,
+    [P094_ENTRY] = p094_entry, // used in wrapper.
+    [P103_ENTRY] = p103_entry, // used in wrapper.
+    [P104_ENTRY] = p104_entry, // used in wrapper.
+    [P105_ENTRY] = p105_entry,
+    [PCI_IC_11_ENTRY] = pci_ic_11_entry,
+    [PCI_IN_04_ENTRY] = pci_in_04_entry,
+    [PCI_IN_05_ENTRY] = pci_in_05_entry,
+    [PCI_IN_13_ENTRY] = pci_in_13_entry,
+    [PCI_IN_17_ENTRY] = pci_in_17_entry,
+    [PCI_IN_19_ENTRY] = pci_in_19_entry,
+    [PCI_LI_01_ENTRY] = pci_li_01_entry,
+    [PCI_LI_02_ENTRY] = pci_li_02_entry,
+    [PCI_LI_03_ENTRY] = pci_li_03_entry,
+    [PCI_MM_01_ENTRY] = pci_mm_01_entry,
+    [PCI_MM_03_ENTRY] = pci_mm_03_entry,
+    [PCI_MSI_2_ENTRY] = pci_msi_2_entry,
+    [PCI_PP_04_ENTRY] = pci_pp_04_entry,
+    [PCI_PP_05_ENTRY] = pci_pp_05_entry,
+    [E001_ENTRY] = e001_entry,
+    [E002_ENTRY] = e002_entry,
+    [E003_ENTRY] = e003_entry,
+    [E006_ENTRY] = e006_entry,
+    [E007_ENTRY] = e007_entry,
+    [E010_ENTRY] = e010_entry,
+    [E014_ENTRY] = e014_entry,
+    [E015_ENTRY] = e015_entry, // used in wrapper.
+    [E016_ENTRY] = e016_entry, // used in wrapper.
+    [E017_ENTRY] = e017_entry, // used in wrapper.
+    [E033_ENTRY] = e033_entry, // used in wrapper.
+    [E039_ENTRY] = e039_entry, // used in wrapper.
+    [B_WAK_03_07_ENTRY] = b_wak_03_07_entry,
+    [TPM001_ENTRY] = tpm001_entry,
+    [TPM002_ENTRY] = tpm002_entry,
+    [INTERFACE010_ENTRY] = interface010_entry,
+    [INTERFACE011_ENTRY] = interface011_entry,
+    [U001_ENTRY] = u001_entry, // used in wrapper.
+    [U002_ENTRY] = u002_entry, // used in wrapper.
+    [U003_ENTRY] = u003_entry, // used in wrapper.
+    [U004_ENTRY] = u004_entry, // used in wrapper.
+    [U005_ENTRY] = u005_entry, // used in wrapper.
+    [G006_ENTRY] = g006_entry, // used in wrapper.
+    [G007_ENTRY] = g007_entry, // used in wrapper.
+    [G009_ENTRY] = g009_entry, // used in wrapper.
+    [G010_ENTRY] = g010_entry, // used in wrapper.
+    [G011_ENTRY] = g011_entry, // used in wrapper.
+#else
 /* Drop compiling entries not required for Bare Metal BSA compliance */
 #ifndef BAREMETAL_BSA_BUILD
     [G012_ENTRY] = g012_entry,
@@ -2947,6 +3104,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P004_ENTRY] = p004_entry, // used in wrapper.
     [P026_ENTRY] = p026_entry, // used in wrapper.
     [P105_ENTRY] = p105_entry,
+#endif /* TARGET_PC_BAREMETAL */
 #endif /* TARGET_BAREMETAL */
 };
 
