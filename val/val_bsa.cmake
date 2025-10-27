@@ -44,10 +44,10 @@
 list(REMOVE_ITEM VAL_SRC
  "${ROOT_DIR}/val/src/AArch64/Drtm.S"
  "${ROOT_DIR}/apps/baremetal/sbsa_main.c"
+ "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
  "${ROOT_DIR}/val/src/AArch64/SbsaBootEntry.S"
  "${ROOT_DIR}/val/src/sbsa_execute_test.c"
  "${ROOT_DIR}/val/src/mpam_execute_test.c"
- "${ROOT_DIR}/val/src/acs_tpm.c"
 )
 
 

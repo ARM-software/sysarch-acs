@@ -40,6 +40,7 @@ payload(uint32_t num_pe)
   uint32_t its_id, num_its;
 
   /* Get RDBase Address for current PE */
+  (void)num_pe;
   pe_rdbase = val_gic_get_pe_rdbase(index);
   val_print(ACS_PRINT_DEBUG, "\n       PE RD base address %llx", pe_rdbase);
   if (pe_rdbase == 0)
