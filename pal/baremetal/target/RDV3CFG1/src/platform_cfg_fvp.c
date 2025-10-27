@@ -1233,3 +1233,10 @@ PLATFORM_OVERRIDE_PCC_INFO_TABLE platform_pcc_cfg = {
     .pcc_info[0].type_spec_info.pcc_ss_type_3.cmd_complete_update_set
                                                 = PLATFORM_PCC_SUBSPACE0_CMD_COMPLETE_UPDATE_SET */
 };
+
+PLATFORM_OVERRIDE_TPM2_INFO_TABLE platform_tpm2_cfg = {
+    .tpm_present        = PLATFORM_TPM_PRESENT,
+    .tpm_version        = PLATFORM_TPM_VERSION,
+    .tpm_base           = PLATFORM_TPM_BASE_ADDR,
+    .tpm_interface_type = PLATFORM_TPM_INTERFACE_TYPE,
+};

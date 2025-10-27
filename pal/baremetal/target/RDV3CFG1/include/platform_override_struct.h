@@ -489,3 +489,10 @@ typedef struct {
   PLATFORM_OVERRIDE_PCC_INFO  pcc_info[PLATFORM_PCC_SUBSPACE_COUNT];
                                             /* array of PCC info blocks */
 } PLATFORM_OVERRIDE_PCC_INFO_TABLE;
+
+typedef struct {
+    uint64_t tpm_present;         /* 1 = TPM present, 0 = not present */
+    uint64_t tpm_version;         /* 2 = TPM2.0, 1 = TPM1.2, 0 = unknown */
+    uint64_t tpm_base;            /* TPM MMIO base address */
+    uint64_t tpm_interface_type;  /* StartMethod (6=TIS,7=CRB,...) */
+} PLATFORM_OVERRIDE_TPM2_INFO_TABLE;

@@ -32,6 +32,10 @@
 #define SBSA_ACS_SUBMINOR_VER    2
 #define SBSA_FR_LEVEL            0x8
 
+#define PC_BSA_ACS_MAJOR_VER     1
+#define PC_BSA_ACS_MINOR_VER     0
+#define PC_BSA_ACS_SUBMINOR_VER  0
+
 #define INVALID_MPIDR     0xffffffff
 
 #define STACK_SIZE          0x1000
@@ -138,6 +142,7 @@ void     createHmatInfoTable(void);
 void     createSratInfoTable(void);
 void     createPccInfoTable(void);
 void     createRas2InfoTable(void);
+void     createTpm2InfoTable(void);
 
 #endif /* __ASSEMBLER__ */
 #endif /* __BSA_AVS_LEVEL_H__ */

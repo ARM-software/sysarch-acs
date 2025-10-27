@@ -264,3 +264,13 @@ createRas2InfoTable(
                         + PLATFORM_OVERRIDE_NUM_RAS2_MEM_BLOCK * sizeof(RAS2_MEM_INFO);
     createInfoTable(val_ras2_create_info_table, ras2_size, "RAS2");
 }
+
+void
+createTpm2InfoTable(
+)
+{
+  uint64_t *Tpm2InfoTable;
+
+  Tpm2InfoTable = val_aligned_alloc(SIZE_4K, sizeof(TPM2_INFO_TABLE));
+  val_tpm2_create_info_table(Tpm2InfoTable);
+}

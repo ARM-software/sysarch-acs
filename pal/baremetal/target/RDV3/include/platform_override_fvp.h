@@ -19,6 +19,7 @@
 #define PLATFORM_OVERRIDE_PRINT_LEVEL        0x3     /* Console log level (1-5)                  */
 #define PLATFORM_OVERRIDE_BSA_LEVEL          0x1     /* Target BSA compliance level (only 1)     */
 #define PLATFORM_OVERRIDE_SBSA_LEVEL         0x7     /* Target SBSA compliance level (3-7)       */
+#define PLATFORM_OVERRIDE_PCBSA_LEVEL        0x1     /* Target PCBSA compliance level (only 1)   */
 
 /* ------------------------------  MMU page table ------------------------------ */
 #define PLATFORM_PAGE_SIZE              0x1000       /* MMU Memory Page Size                     */
@@ -1403,4 +1404,11 @@
 #define PLATFORM_PCC_SUBSPACE0_DOORBELL_REG                 {0x0, 0x0, 0x0, 0x0, 0xDEADDEAD}
 #define PLATFORM_PCC_SUBSPACE0_CMD_COMPLETE_UPDATE_REG      {0x0, 0x0, 0x0, 0x0, 0xDEADDEAD}
 #define PLATFORM_PCC_SUBSPACE0_CMD_COMPLETE_CHK_REG         {0x0, 0x0, 0x0, 0x0, 0xDEADDEAD}
+
+/* ------------------------  TPM2 Info  ----------------------- */
+#define PLATFORM_TPM_PRESENT              0x0     /* TPM enable flag (set to 1 when present)  */
+#define PLATFORM_TPM_VERSION              0x0     /* 2 = TPM 2.0, adjust if different */
+#define PLATFORM_TPM_BASE_ADDR            0x0     /* FIFO locality 0 base address */
+#define PLATFORM_TPM_INTERFACE_TYPE       0x0     /* StartMethod (6=TIS, 7=CRB, etc.) */
+
 /** End config **/
