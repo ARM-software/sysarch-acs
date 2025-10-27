@@ -47,6 +47,8 @@ elseif(ACS STREQUAL "sbsa")
         "${ROOT_DIR}/tools/cmake/infra/sbsa_test.txt"
         "${ROOT_DIR}/tools/cmake/infra/bsa_test.txt"
     )
+elseif(ACS STREQUAL "pc_bsa")
+    set(LIST_FILES "${ROOT_DIR}/tools/cmake/infra/pc_bsa_test.txt")
 endif()
 
 # Aggregate file names from one or more list files

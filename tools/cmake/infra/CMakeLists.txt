@@ -31,5 +31,12 @@ set(PAL_LIB ${EXE_NAME}_pal_lib)
 include(${ROOT_DIR}/val/val_sbsa.cmake)
 endif()
 
+if(ACS STREQUAL "pc_bsa")
+set(EXE_NAME pc_bsa)
+set(VAL_LIB ${EXE_NAME}_val_lib)
+set(PAL_LIB ${EXE_NAME}_pal_lib)
+include(${ROOT_DIR}/val/val_pcbsa.cmake)
+endif()
+
 include(${ROOT_DIR}/pal/baremetal/pal.cmake)
 include(${ROOT_DIR}/test_pool/test.cmake)

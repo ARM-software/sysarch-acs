@@ -43,7 +43,7 @@ include(${ROOT_DIR}/tools/cmake/toolchain/default.cmake)
 ### Valid value range for command line argument ###
 
 list(APPEND ARM_ARCH_MAJOR_LIST 8 9)
-list(APPEND ACS_LIST "bsa" "sbsa")
+list(APPEND ACS_LIST "bsa" "sbsa" "pc_bsa")
 
 ###
 set(CROSS_COMPILE $ENV{CROSS_COMPILE})
@@ -112,10 +112,18 @@ add_custom_target(sbsa
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/sbsa_build
 )
 
+add_custom_target(pc_bsa
+    COMMAND ${CMAKE_COMMAND} -DACS=pc_bsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/pc_bsa_build
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/pc_bsa_build
+)
+
 if(ACS MATCHES "sbsa")
     message(STATUS "[ACS] : ACS is set to ${ACS}")
     add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 elseif(ACS MATCHES "bsa")
+    message(STATUS "[ACS] : ACS is set to ${ACS}")
+    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
+elseif(ACS MATCHES "pc_bsa")
     message(STATUS "[ACS] : ACS is set to ${ACS}")
     add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 endif()
