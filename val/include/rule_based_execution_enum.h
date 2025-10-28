@@ -533,6 +533,7 @@ typedef enum {
     PE063_ENTRY,
     PE037_ENTRY,
     PE015_ENTRY,
+    PE066_ENTRY,
     PE043_ENTRY,
     PE044_ENTRY,
     PE045_ENTRY,

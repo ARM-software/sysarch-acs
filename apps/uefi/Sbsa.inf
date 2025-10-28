@@ -57,6 +57,7 @@
   ../../test_pool/pe/pe020.c
   ../../test_pool/pe/pe021.c
   ../../test_pool/pe/pe022.c
+  ../../test_pool/pe/pe066.c
   ../../test_pool/gic/g001.c
   ../../test_pool/gic/g002.c
   ../../test_pool/gic/g003.c
