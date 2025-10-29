@@ -140,7 +140,11 @@ BITFIELD_DECL(uint32_t, MSMON_IDR_NO_OFLW_INTR, 30, 30)
 #define ESR_ERRCODE_SHIFT           0x0018
 #define ESR_ERRCODE_MASK            0x000F
 
-/* MPAMCFG_DIS Register Bit Shift */
+/* MPAMCFG_EN Register Bit Decl */
+BITFIELD_DECL(uint32_t, MPAMCFG_EN_PARTID, 15, 0)
+
+/* MPAMCFG_DIS Register Bit Decl */
+BITFIELD_DECL(uint32_t, MPAMCFG_DIS_PARTID, 15, 0)
 BITFIELD_DECL(uint32_t, MPAMCFG_DIS_NFU, 31, 31)
 
 /* MPAMCFG_CMAX Register Bit Shift */

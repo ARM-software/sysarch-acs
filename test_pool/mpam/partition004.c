@@ -198,7 +198,7 @@ payload(void)
 
             /* Program MPAM2_EL2 with test_partid and default PMG */
             status = val_mpam_program_el2(test_partid, DEFAULT_PMG);
-            if (status == 0) {
+            if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
                 val_memory_free_aligned(src_buf);
@@ -251,7 +251,7 @@ payload(void)
 
             /* Program MPAM2_EL2 with test_partid-1 and default PMG */
             status = val_mpam_program_el2(test_partid - 1, DEFAULT_PMG);
-            if (status == 0) {
+            if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
                 val_memory_free_aligned(src_buf);
@@ -304,7 +304,7 @@ payload(void)
 
             /* Program MPAM2_EL2 with test_partid-2 and default PMG */
             status = val_mpam_program_el2(test_partid - 2, DEFAULT_PMG);
-            if (status == 0) {
+            if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
                 val_memory_free_aligned(src_buf);

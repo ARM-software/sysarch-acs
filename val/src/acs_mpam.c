@@ -517,6 +517,21 @@ val_mpam_msc_supports_partid_nrw(uint32_t msc_index)
 }
 
 /**
+  @brief   This API checks if the MSC supports PARTID Enable/Disable feature
+  @param   msc_index - index of the MSC node in the MPAM info table.
+  @return  1 if supported 0 otherwise.
+**/
+uint32_t
+val_mpam_msc_supports_partid_endis(uint32_t msc_index)
+{
+
+  if (val_mpam_msc_supports_ext_idr(msc_index))
+      return BITFIELD_READ(IDR_HAS_ENDIS, val_mpam_mmr_read64(msc_index, REG_MPAMF_IDR));
+
+  return 0;
+}
+
+/**
   @brief   This API returns number of MBWU monitors in an MSC
            Prerequisite - If MSC supports RIS, Resource instance should be
                           selected using val_mpam_memory_configure_ris_sel
@@ -1773,7 +1788,7 @@ uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
     if (partid > pe_max_partid) {
         val_print(ACS_PRINT_ERR, "\n       PARTID value (0x%x)", partid);
         val_print(ACS_PRINT_ERR, " specified more than PE supported value (0x%x)", pe_max_partid);
-        return 0;
+        return 1;
     }
 
     /* Extract max PMG supported by MPAMIDR_EL1 */
@@ -1781,7 +1796,7 @@ uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
     if (pmg > pe_max_pmg) {
         val_print(ACS_PRINT_ERR, "\n       PMG value (0x%x)", pmg);
         val_print(ACS_PRINT_ERR, " specified more than PE supported value (0x%x)", pe_max_pmg);
-        return 0;
+        return 1;
     }
 
     mpam2_el2 = val_mpam_reg_read(MPAM2_EL2);
@@ -1797,5 +1812,71 @@ uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
     val_print(ACS_PRINT_DEBUG, "\n       Writing MPAM2_EL2: 0x%llx", mpam2_el2);
     val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
 
-    return 1;
+    return 0;
+}
+
+/*
+    @brief   This API enables/disables PARTID in the given MSC
+    @param   msc_index - index of the MSC node in the MPAM info table
+    @param   enable - 1 to enable, 0 to disable PARTID
+    @param   nfu_flag - No future Use if PARTID is to be disabled
+    @param   partid - PARTID to be enabled/disabled
+    @return  1 on success, 0 on failure.
+*/
+uint32_t
+val_mpam_msc_endis_partid(uint32_t msc_index, bool enable, bool nfu_flag, uint16_t partid)
+{
+
+    /* Check if the PARTID is valid */
+    if (partid >= val_mpam_get_max_partid(msc_index)) {
+        val_print(ACS_PRINT_ERR, "\n       PARTID value (0x%x)", partid);
+        val_print(ACS_PRINT_ERR, " specified more than MSC supported value (0x%x)",
+                  val_mpam_get_max_partid(msc_index));
+        return 1;
+    }
+
+    if (enable == 1)
+        val_mpam_mmr_write(msc_index, REG_MPAMCFG_EN, BITFIELD_SET(MPAMCFG_EN_PARTID, partid));
+    else
+        val_mpam_mmr_write(msc_index, REG_MPAMCFG_DIS, BITFIELD_SET(MPAMCFG_DIS_NFU, nfu_flag) |
+                                                       BITFIELD_SET(MPAMCFG_DIS_PARTID, partid));
+
+    val_mem_issue_dsb();
+    return 0;
+}
+
+/*
+    @brief   This API resets the CSU monitor value to zero.
+             Prerequisite - If MSC supports RIS, Resource instance should be
+                            selected using val_mpam_memory_configure_ris_sel
+                            prior calling this API.
+                            - MSC should support CSU monitoring, can be checked
+                            using val_mpam_supports_csumon API.
+
+    @param   msc_index - index of the MSC node in the MPAM info table.
+    @return  1 on success, 0 on failure.
+*/
+uint32_t
+val_mpam_reset_csumon(uint32_t msc_index, uint16_t mon_sel)
+{
+
+    uint32_t data;
+
+    /* retaining other configured fields e.g, RIS index if supported */
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MON_SEL);
+    /* Select the monitor instance */
+    data = BITFIELD_WRITE(data, MON_SEL_MON_SEL, mon_sel);
+    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MON_SEL, data);
+
+    /* if CSUMON_IDR.CSU_RO == 1, accesses to this register are R0 */
+    if (BITFIELD_READ(CSUMON_IDR_CSU_RO,
+                                        val_mpam_mmr_read(msc_index, REG_MPAMF_CSUMON_IDR))) {
+         val_print(ACS_PRINT_WARN,
+                   "\n       Cannot reset CSU monitor value as it is Read-Only", 0);
+        return 1;
+    }
+
+    val_mpam_mmr_write(msc_index, REG_MSMON_CSU, 0);
+    val_mem_issue_dsb();
+    return 0;
 }

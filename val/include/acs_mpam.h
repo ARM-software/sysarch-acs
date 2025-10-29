@@ -98,6 +98,7 @@ uint32_t val_mpam_msc_supports_ext_idr(uint32_t msc_index);
 uint32_t val_mpam_msc_supports_ris(uint32_t msc_index);
 uint32_t val_mpam_msc_supports_extd_esr(uint32_t msc_index);
 uint32_t val_mpam_msc_supports_esr(uint32_t msc_index);
+uint32_t val_mpam_msc_supports_partid_endis(uint32_t msc_index);
 uint64_t val_mpam_memory_mbwumon_read_count(uint32_t msc_index);
 uint32_t val_mpam_get_msc_count(void);
 uint32_t val_mpam_get_max_ris_count(uint32_t msc_index);
@@ -147,6 +148,9 @@ void     val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t 
 uint32_t val_mpam_pcc_read(uint32_t msc_index, uint32_t reg_offset);
 void     val_mpam_pcc_write(uint32_t msc_index, uint32_t reg_offset, uint32_t data);
 uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg);
+uint32_t val_mpam_msc_endis_partid(uint32_t msc_index, bool endis_flag,
+                                  bool nfu_flag, uint16_t partid);
+uint32_t val_mpam_reset_csumon(uint32_t msc_index, uint16_t mon_sel);
 
 uint32_t mpam001_entry(uint32_t num_pe);
 uint32_t mpam002_entry(uint32_t num_pe);
