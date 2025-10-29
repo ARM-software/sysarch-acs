@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -151,6 +151,7 @@ uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg);
 uint32_t val_mpam_msc_endis_partid(uint32_t msc_index, bool endis_flag,
                                   bool nfu_flag, uint16_t partid);
 uint32_t val_mpam_reset_csumon(uint32_t msc_index, uint16_t mon_sel);
+uint32_t val_mpam_write_csumon(uint32_t msc_index, uint32_t value);
 
 uint32_t mpam001_entry(uint32_t num_pe);
 uint32_t mpam002_entry(uint32_t num_pe);

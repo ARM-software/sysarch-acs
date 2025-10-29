@@ -1772,7 +1772,7 @@ uint64_t val_get_shared_memcpybuf(uint32_t pe_index)
   * @param   partid - Partition ID to be programmed.
   * @param   pmg    - PMG to be programmed.
   *
-  * @return  1 if successfully programmed, 0 on failure.
+  * @return  0 if successfully programmed, 1 on failure.
 **/
 uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
 {
@@ -1877,6 +1877,31 @@ val_mpam_reset_csumon(uint32_t msc_index, uint16_t mon_sel)
     }
 
     val_mpam_mmr_write(msc_index, REG_MSMON_CSU, 0);
+    val_mem_issue_dsb();
+    return 0;
+}
+
+/**
+  @brief   This API writes the CSU montior counter value.
+           Prerequisite - val_mpam_configure_csu_mon,
+           This API can be called only after configuring CSU monitor.
+
+  @param   msc_index  - MPAM feature page index for this MSC.
+  @return  0 - Success, 1 - Failure.
+**/
+uint32_t
+val_mpam_write_csumon(uint32_t msc_index, uint32_t value)
+{
+
+    /* if CSUMON_IDR.CSU_RO == 1, accesses to this register are R0 */
+    if (BITFIELD_READ(CSUMON_IDR_CSU_RO,
+                                        val_mpam_mmr_read(msc_index, REG_MPAMF_CSUMON_IDR))) {
+      val_print(ACS_PRINT_WARN,
+                   "\n       Cannot write CSU monitor value as it is Read-Only", 0);
+      return 1;
+    }
+
+    val_mpam_mmr_write(msc_index, REG_MSMON_CSU, value);
     val_mem_issue_dsb();
     return 0;
 }

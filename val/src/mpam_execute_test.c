@@ -213,6 +213,7 @@ val_mpam_execute_cache_tests(uint32_t num_pe)
   status |= monitor002_entry();
   status |= monitor003_entry();
   status |= monitor004_entry();
+  status |= monitor005_entry();
 
   val_print_test_end(status, "CACHE");
 
