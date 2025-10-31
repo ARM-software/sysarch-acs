@@ -82,6 +82,8 @@ static uint32_t test_num;
 pfdi_force_error_check *g_pfdi_force_error_check;
 pfdi_err_recovery_check *g_pfdi_err_recovery_check;
 
+static volatile uint32_t g_pfdi_set_status = 1;
+
 static void pfdi_error_injection(void)
 {
   uint32_t i, index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -158,7 +160,10 @@ static void pfdi_error_injection(void)
     val_data_cache_ops_by_va((addr_t)&fun->status[i], CLEAN_AND_INVALIDATE);
   }
 
-  val_set_status(index, RESULT_PASS(test_num, 1));
+  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
+  if (g_pfdi_set_status)
+    val_set_status(index, RESULT_PASS(test_num, 1));
+
   return;
 }
 
@@ -222,6 +227,9 @@ static void payload_pfdi_error_injection(void *arg)
   uint32_t timeout, i = 0, j = 0, run_fail = 0;
   pfdi_force_error_check *status_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
+
+  g_pfdi_set_status = 1;
+  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
 
   /* Allocate memory to save all PFDI function status for all PE's */
   g_pfdi_force_error_check = (pfdi_force_error_check *)
@@ -328,6 +336,9 @@ static void payload_pfdi_error_recovery_check(void *arg)
   pfdi_force_error_check *error_buffer;
   pfdi_err_recovery_check *recovery_buffer;
   uint32_t num_pe = *(uint32_t *)arg;
+
+  g_pfdi_set_status = 0;
+  val_data_cache_ops_by_va((addr_t)&g_pfdi_set_status, CLEAN_AND_INVALIDATE);
 
   /* Allocate memory to save Force Error status for all PE's */
   g_pfdi_force_error_check = (pfdi_force_error_check *)
