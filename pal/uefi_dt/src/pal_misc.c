@@ -157,10 +157,6 @@ pal_mmio_read(UINT64 addr)
 {
   UINT32 data;
 
-  if (addr & 0x3) {
-      acs_print(ACS_PRINT_WARN, L"\n  Error-Input address is not aligned. Masking the last 2 bits\n");
-      addr = addr & ~(0x3);  //make sure addr is aligned to 4 bytes
-  }
   data = (*(volatile UINT32 *)addr);
 
   if (g_print_mmio || (g_curr_module & g_enable_module))
