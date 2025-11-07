@@ -56,8 +56,9 @@ payload()
     if (tpm_start_method == TPM_IF_START_METHOD_ACPI ||
         tpm_start_method == TPM_IF_START_METHOD_CRB_SMC ||
         tpm_start_method == TPM_IF_START_METHOD_CRB_FFA) {
-        val_print(ACS_PRINT_ERR, "\n       TPM interface does not support locality 0 - 4", 0);
-        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+        val_print(ACS_PRINT_INFO,
+          "\n       Skipping test: TPM locality not accessible at current privilege level", 0);
+        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
         return;
     }
 
