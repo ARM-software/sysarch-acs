@@ -434,5 +434,7 @@ The below table provides the following details
 |PMU app|Latency events                              |L7   |PMU_EV_10                                           |Yes             |No  |No        |Yes  |No                 |
 +-------+--------------------------------------------+-----+----------------------------------------------------+----------------+----+----------+-----+-------------------+
 
+# - Tests that are ported from Linux to the UEFI environment and can be executed once the UEFI PAL layer is implemented. They are recommended to run at Pre-Silicon.
+
 For running tests on a bare-metal environment, integration of ACS with platform boot code is required. See `arm SBSA Bare-metal User Guide <arm_sbsa_architecture_compliance_bare-metal_user_guide.pdf>`_
 
