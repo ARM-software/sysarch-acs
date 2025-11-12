@@ -94,7 +94,8 @@ payload(void)
        * init can get corrupted when FLR is done */
       val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
       base_cc = reg_value >> TYPE01_BCC_SHIFT;
-      if (g_pcie_skip_dp_nic_ms && ((base_cc == MAS_CC) || (base_cc == CNTRL_CC)))
+      if (g_pcie_skip_dp_nic_ms &&
+          ((base_cc == MAS_CC) || (base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC)))
       {
           val_print(ACS_PRINT_DEBUG, "\n       Skipping for BDF - 0x%x ", bdf);
           val_print(ACS_PRINT_DEBUG, " Classcode is : 0x%x ", base_cc);
