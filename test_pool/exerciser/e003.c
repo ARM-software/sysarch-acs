@@ -220,6 +220,7 @@ cfgspace_transactions_order_check(void)
   char *baseptr;
   uint32_t cid_offset;
   uint64_t bdf_addr;
+  uint32_t status;
 
   /* Read the number of excerciser cards */
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
@@ -244,7 +245,14 @@ cfgspace_transactions_order_check(void)
     bdf_addr = val_pcie_get_bdf_config_addr(bdf);
 
     /* Map config space to ARM device memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRnE);
+    status = val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRnE, (void **)&baseptr);
+
+    /* Handle unimplemented PAL -> SKIP gracefully */
+    if (status == NOT_IMPLEMENTED) {
+        val_print(ACS_PRINT_ERR,
+                "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+        goto test_skip_unimplemented;
+    }
 
     if (!baseptr) {
         val_print(ACS_PRINT_DEBUG, "\n       Failed in config ioremap for instance 0x%x", instance);
@@ -264,6 +272,8 @@ cfgspace_transactions_order_check(void)
     fail_cnt += test_sequence_4B((uint32_t *)baseptr, 0, instance);
 
   }
+test_skip_unimplemented:
+    return;
 }
 
 /* Read and Write on BAR space mapped to Device memory */
@@ -309,7 +319,15 @@ barspace_transactions_order_check(void)
     }
 
     /* Map mmio space to ARM device memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRnE);
+    status = val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRnE,
+                                (void **)&baseptr);
+
+    /* Handle unimplemented PAL -> SKIP gracefully */
+    if (status == NOT_IMPLEMENTED) {
+        val_print(ACS_PRINT_ERR,
+                "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+        goto test_skip_unimplemented;
+    }
 
     if (!baseptr) {
         val_print(ACS_PRINT_ERR, "\n       Failed in BAR ioremap for instance 0x%x", instance);
@@ -328,6 +346,8 @@ barspace_transactions_order_check(void)
     fail_cnt += test_sequence_4B((uint32_t *)baseptr, 0, instance);
     fail_cnt += test_sequence_8B((uint64_t *)baseptr, 0, instance);
   }
+test_skip_unimplemented:
+    return;
 }
 
 static

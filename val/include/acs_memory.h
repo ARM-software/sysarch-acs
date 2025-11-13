@@ -23,7 +23,7 @@
 #define MEM_MAP_FAILURE  0x2
 #define MEM_SIZE_64KB    65536
 
-addr_t val_memory_ioremap(void *addr, uint32_t size, uint32_t attr);
+uint32_t val_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr);
 addr_t val_memory_get_addr(MEMORY_INFO_e mem_type, uint32_t instance, uint64_t *attr);
 
 
