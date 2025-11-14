@@ -12,7 +12,7 @@ on:
         description: "edk2 ref/branch/tag to checkout"
         required: false
         type: string
-        default: "edk2-stable202505"
+        default: "edk2-stable202508"
       run-uefi:
         description: "Run UEFI builds"
         required: false

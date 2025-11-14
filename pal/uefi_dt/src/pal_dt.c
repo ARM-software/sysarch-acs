@@ -23,7 +23,7 @@
 #include <Library/PrintLib.h>
 #include <Library/DtPlatformDtbLoaderLib.h>
 
-#include <Include/libfdt.h>
+#include <libfdt.h>
 #include "Include/Guid/Acpi.h"
 #include <Protocol/AcpiTable.h>
 #include "Include/IndustryStandard/Acpi61.h"

@@ -22,7 +22,7 @@
 
 #include "Include/IndustryStandard/Acpi61.h"
 #include <Protocol/AcpiTable.h>
-#include <Include/libfdt.h>
+#include <libfdt.h>
 #include <Protocol/HardwareInterrupt.h>
 #include <Protocol/HardwareInterrupt2.h>
 

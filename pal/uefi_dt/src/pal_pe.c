@@ -20,7 +20,7 @@
 #include <Library/UefiLib.h>
 
 #include "Include/IndustryStandard/Acpi61.h"
-#include <Include/libfdt.h>
+#include <libfdt.h>
 #include <Protocol/AcpiTable.h>
 #include <Protocol/Cpu.h>
 #include "Include/IndustryStandard/SmBios.h"

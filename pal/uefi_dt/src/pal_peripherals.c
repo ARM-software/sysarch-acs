@@ -23,7 +23,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/DxeServicesTableLib.h>
 
-#include <Include/libfdt.h>
+#include <libfdt.h>
 
 #include <Protocol/AcpiTable.h>
 #include "Include/IndustryStandard/Acpi61.h"

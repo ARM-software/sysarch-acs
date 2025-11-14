@@ -23,7 +23,7 @@
 #include <Protocol/AcpiTable.h>
 #include "Include/IndustryStandard/Acpi61.h"
 
-#include <Include/libfdt.h>
+#include <libfdt.h>
 #include "../include/platform_override.h"
 #include "include/pal_uefi.h"
 #include "include/pal_dt.h"

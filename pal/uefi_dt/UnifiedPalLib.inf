@@ -63,7 +63,7 @@
   ShellCEntryLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
-  FdtLib
+  BaseFdtLib
 
 [Protocols]
   gEfiAcpiTableProtocolGuid                     ## CONSUMES
@@ -81,5 +81,5 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   =  -O0 -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
+  GCC:*_*_*_CC_FLAGS   =  -O0 -I${ACS_PATH}/pal/baremetal/target/RDN2/include/ -I$(WORKSPACE)/MdePkg/Library/BaseFdtLib/libfdt/libfdt
 
