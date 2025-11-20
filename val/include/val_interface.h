@@ -20,6 +20,7 @@
 
 #include "pal_interface.h"
 #include "acs_drtm.h"
+#include "acs_pfdi.h"
 
 /* set G_PRINT_LEVEL to one of the below values in your application entry
   to control the verbosity of the prints */
@@ -92,7 +93,7 @@ void val_get_test_data(uint32_t index, uint64_t *data0, uint64_t *data1);
 void *val_memcpy(void *dest_buffer, void *src_buffer, uint32_t len);
 void val_dump_dtb(void);
 void view_print_info(uint32_t view);
-void val_log_context(uint32_t level, char8_t *file, char8_t *func, uint32_t line);
+void val_log_context(char8_t *file, char8_t *func, uint32_t line);
 
 /* Print consolidated ACS test status summary from global counters */
 void val_print_acs_test_status_summary(void);
@@ -810,4 +811,61 @@ uint32_t monitor004_entry(void);
 // Accessing system registers from .S -> can be moved to respective .h
 uint64_t arm64_write_sp(uint64_t write_data);
 uint64_t arm64_read_sp(void);
+
+
+typedef enum {
+    PFDI_MODULE,
+} PFDI_MODULE_ID_e;
+
+typedef struct{
+  int64_t x0;
+  int64_t x1;
+  int64_t x2;
+  int64_t x3;
+  int64_t x4;
+} PFDI_RET_PARAMS;
+
+
+uint32_t val_pfdi_reserved_bits_check_is_zero(uint32_t reserved_bits);
+int64_t val_pfdi_version(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_features(uint32_t function_id, int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_id(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_part_count(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_run(int64_t start, int64_t end,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_pe_test_result(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_fw_check(int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_pfdi_force_error(uint32_t function_id, int64_t error_value,
+                             int64_t *x1, int64_t *x2, int64_t *x3, int64_t *x4);
+int64_t val_invoke_pfdi_fn(unsigned long function_id, unsigned long arg1,
+              unsigned long arg2, unsigned long arg3,
+              unsigned long arg4, unsigned long arg5,
+              unsigned long *ret1, unsigned long *ret2,
+              unsigned long *ret3, unsigned long *ret4);
+void
+val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
+              uint64_t pre_smc_regs[REG_COUNT_X5_X17],
+              uint64_t post_smc_regs[REG_COUNT_X5_X17]);
+void val_pfdi_invalidate_ret_params(PFDI_RET_PARAMS *args);
+
+uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
+
+uint32_t pfdi001_entry(uint32_t num_pe);
+uint32_t pfdi002_entry(uint32_t num_pe);
+uint32_t pfdi003_entry(uint32_t num_pe);
+uint32_t pfdi004_entry(uint32_t num_pe);
+uint32_t pfdi005_entry(uint32_t num_pe);
+uint32_t pfdi006_entry(uint32_t num_pe);
+uint32_t pfdi007_entry(uint32_t num_pe);
+uint32_t pfdi008_entry(uint32_t num_pe);
+uint32_t pfdi009_entry(uint32_t num_pe);
+uint32_t pfdi010_entry(uint32_t num_pe);
+uint32_t pfdi011_entry(uint32_t num_pe);
+uint32_t pfdi012_entry(uint32_t num_pe);
+uint32_t pfdi013_entry(uint32_t num_pe);
+uint32_t pfdi014_entry(uint32_t num_pe);
+uint32_t pfdi015_entry(uint32_t num_pe);
+uint32_t pfdi016_entry(uint32_t num_pe);
+uint32_t pfdi017_entry(uint32_t num_pe);
+
 #endif

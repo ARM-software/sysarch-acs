@@ -366,7 +366,8 @@
 #define DCTL2R_AFE_SHIFT  5
 
 /* Device Control 2 reg mask */
-#define DCTL2R_AFE_MASK  0x1
+#define DCTL2R_AFE_MASK   0x1
+#define DCTL2R_AFE_SHIFT  5
 #define DCTL2R_AFE_NORMAL 0xFFDF
 
 /* Link Capabilities 2 reg mask and shift */

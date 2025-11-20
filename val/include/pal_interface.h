@@ -100,7 +100,12 @@
   typedef UINT64  uint64_t;
   typedef UINT64  addr_t;
   typedef UINT64  dma_addr_t;
-  typedef BOOLEAN bool;
+
+  #if defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L
+   /* bool is a keyword  */
+  #else
+   typedef BOOLEAN bool;
+  #endif
 
   #define MAX_SID  32
   #define MMU_PGT_IAS    48
@@ -1385,4 +1390,10 @@ typedef struct drtm_log_control {
 
 int32_t pal_invoke_psci_fn(uint64_t function_id, uint64_t arg0,
                                     uint64_t arg1, uint64_t arg2);
+
+#define REG_COUNT_X5_X17 13
+
+void pal_pfdi_verify_regs(ARM_SMC_ARGS *ArmSmcArgs, int32_t Conduit,
+                     uint64_t PreSmcRegs[REG_COUNT_X5_X17],
+                     uint64_t PostSmcRegs[REG_COUNT_X5_X17]);
 #endif

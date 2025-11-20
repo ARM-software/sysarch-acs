@@ -39,6 +39,7 @@ typedef struct {
     char8_t          rule_desc[RULE_DESC_SIZE];
     char8_t          platform_bitmask;
     RULE_FLAG_e      flag;
+    uint32_t         test_num;
 } rule_test_map_t;
 
 /* Alias rules to Base rule mapping definition

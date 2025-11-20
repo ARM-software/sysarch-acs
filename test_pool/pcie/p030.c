@@ -142,10 +142,14 @@ payload(void)
 
 exception_return:
       /*
-       * Check if either of UR response or abort isn't received.
+       * If none of below condition are met, device MSE check is considered fail
+       *   - UR bit detected set
+       *   - All 1's response received
+       *   - Abort is not received.
        */
       val_print(ACS_PRINT_DEBUG, "    bar_data %x ", bar_data);
-      if (!(IS_TEST_PASS(val_get_status(pe_index)) || (bar_data == PCIE_UNKNOWN_RESPONSE)))
+      if (!(IS_TEST_PASS(val_get_status(pe_index)) || (bar_data == PCIE_UNKNOWN_RESPONSE)
+            || (val_pcie_is_urd(bdf))))
       {
            val_print(ACS_PRINT_ERR, "\n       BDF %x MSE functionality failure", bdf);
            test_fails++;
@@ -174,7 +178,7 @@ p030_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

@@ -23,7 +23,7 @@
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 64)
 #define TEST_DESC  "Check ARI forwarding support rule     "
-#define TEST_RULE  "PCI_IN_17"
+#define TEST_RULE  "IE_REG_4"
 
 static
 void
@@ -101,7 +101,7 @@ p064_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

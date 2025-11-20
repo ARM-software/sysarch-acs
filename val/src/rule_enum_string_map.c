@@ -35,7 +35,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [B_PE_12]     = "B_PE_12",
     [B_PE_13]     = "B_PE_13",
     [B_PE_14]     = "B_PE_14",
-    [B_PE_15]     = "B_PE_15",
     [B_PE_16]     = "B_PE_16",
     [B_PE_17]     = "B_PE_17",
     [B_PE_18]     = "B_PE_18",

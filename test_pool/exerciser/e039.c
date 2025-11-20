@@ -56,6 +56,7 @@ payload(void)
   uint32_t bdf;
   uint32_t status;
   uint32_t instance;
+  bool     test_skip = 1;
   exerciser_data_t e_data;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -95,6 +96,9 @@ payload(void)
     /* Do additional checks if the BAR is pcie prefetchable mmio space */
     if (e_data.bar_space.type == MMIO_PREFETCHABLE) {
 
+        /* test runs on atleast one device */
+        test_skip = 0;
+
         /* Map the mmio space to ARM normal memory in MMU page tables */
         for (idx = 0; idx < sizeof(ARM_NORMAL_MEM_ARRAY)/sizeof(ARM_NORMAL_MEM_ARRAY[0]); idx++) {
             baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr,
@@ -123,6 +127,13 @@ payload(void)
     }
   }
 
+  if (test_skip) {
+      val_print(ACS_PRINT_DEBUG,
+                "\n       No exerciser with prefetchable mmio space, Skipping test", 0);
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+      return;
+  }
+
   val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
   return;
 
@@ -141,7 +152,7 @@ e039_entry(uint32_t num_pe)
   /* Run test on single PE */
   num_pe = 1;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
      if (val_exerciser_test_init() != ACS_STATUS_PASS)

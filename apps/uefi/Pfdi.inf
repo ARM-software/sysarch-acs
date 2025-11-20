@@ -1,0 +1,84 @@
+## @file
+#  Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+#  SPDX-License-Identifier : Apache-2.0
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+##
+
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = pfdi
+  FILE_GUID                      = b9f21198-7f0e-4803-c908-c75708c6ec83
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = ShellCEntryLib
+
+#
+#  VALID_ARCHITECTURES           = AARCH64
+#
+
+[Sources.AARCH64]
+  ../
+  ../../
+  app.c
+  pfdi_main.c
+  ../../test_pool/pfdi/pfdi001.c
+  ../../test_pool/pfdi/pfdi002.c
+  ../../test_pool/pfdi/pfdi003.c
+  ../../test_pool/pfdi/pfdi004.c
+  ../../test_pool/pfdi/pfdi005.c
+  ../../test_pool/pfdi/pfdi006.c
+  ../../test_pool/pfdi/pfdi007.c
+  ../../test_pool/pfdi/pfdi008.c
+  ../../test_pool/pfdi/pfdi009.c
+  ../../test_pool/pfdi/pfdi010.c
+  ../../test_pool/pfdi/pfdi011.c
+  ../../test_pool/pfdi/pfdi012.c
+  ../../test_pool/pfdi/pfdi013.c
+  ../../test_pool/pfdi/pfdi014.c
+  ../../test_pool/pfdi/pfdi016.c
+  ../../test_pool/pfdi/pfdi017.c
+
+[Packages]
+  StdLib/StdLib.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ShellPkg/ShellPkg.dec
+
+[LibraryClasses]
+  UnifiedValLib
+  UnifiedPalLib
+  UefiLib
+  ShellLib
+  DebugLib
+  BaseMemoryLib
+  ShellCEntryLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+
+[Protocols]
+  gEfiAcpiTableProtocolGuid                     ## CONSUMES
+  gHardwareInterruptProtocolGuid                ## CONSUMES
+  gEfiCpuArchProtocolGuid                       ## CONSUMES
+  gEfiPciIoProtocolGuid                         ## CONSUMES
+  gEfiLoadedImageProtocolGuid                   ## CONSUMES
+
+[Guids]
+  gEfiAcpi20TableGuid
+  gEfiAcpiTableGuid
+
+[BuildOptions]
+  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
+  GCC:*_*_*_CC_FLAGS   = -O0 -DTARGET_UEFI -DEXCLUDE_RBX

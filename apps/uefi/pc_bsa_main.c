@@ -61,6 +61,8 @@ HelpMsg (VOID)
         "        for debugging purposes only.\n"
         "-f      Name of the log file to record the test results in\n"
         "-fr     Run rules up to the Future requirements (FR) level.\n"
+        "-h, -help\n"
+        "        Print this message\n"
         "-l <n>  Run compliance tests up till inputted level.\n"
         "-m      Run only the specified modules (comma-separated names).\n"
         "        Accepted: PE, GIC, PERIPHERAL, MEM_MAP, PMU, RAS, SMMU,\n"

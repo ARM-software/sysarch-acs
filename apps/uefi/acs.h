@@ -25,12 +25,12 @@
 /* BSA Release versions */
 #define BSA_ACS_MAJOR_VER       1
 #define BSA_ACS_MINOR_VER       1
-#define BSA_ACS_SUBMINOR_VER    1
+#define BSA_ACS_SUBMINOR_VER    2
 
 /* SBSA Release versions */
 #define SBSA_ACS_MAJOR_VER       7
 #define SBSA_ACS_MINOR_VER       2
-#define SBSA_ACS_SUBMINOR_VER    3
+#define SBSA_ACS_SUBMINOR_VER    4
 
 /* PC BSA Release versions */
 #define PC_BSA_ACS_MAJOR_VER     0
@@ -50,6 +50,11 @@
 #define MPAM_ACS_MAJOR_VER      0
 #define MPAM_ACS_MINOR_VER      5
 #define MPAM_ACS_SUBMINOR_VER   1
+
+/* PFDI Release versions */
+#define PFDI_ACS_MAJOR_VER      0
+#define PFDI_ACS_MINOR_VER      8
+#define PFDI_ACS_SUBMINOR_VER   0
 
 #define G_PRINT_LEVEL ACS_PRINT_TEST
 
@@ -125,6 +130,14 @@ unsigned long __stack_chk_guard = 0xBAAAAAAD;
 unsigned long __stack_chk_fail =  0xBAAFAAAD;
 #endif
 
+#ifndef ACS_PARSE_SKIP_RUN
+#define ACS_PARSE_SKIP_RUN 1
+#endif
+
+uint32_t command_init(void);
+
+/* TODO remove #if once all ACS app using this header moves to rule based infra.*/
+#ifndef EXCLUDE_RBX
 /* Extern declarations */
 extern UINT32  g_pcie_p2p;
 extern UINT32  g_pcie_cache_present;
@@ -157,6 +170,7 @@ extern uint32_t   g_arch_selection;
 extern uint32_t   g_level_filter_mode;
 extern uint32_t   g_level_value;
 extern uint32_t   g_bsa_sw_view_mask;
+extern BOOLEAN    g_invalid_arg_seen;
 extern CONST SHELL_PARAM_ITEM ParamList[];
 /* Use rule string map from VAL to translate -r inputs */
 extern char8_t *rule_id_string[RULE_ID_SENTINEL];
@@ -165,7 +179,6 @@ extern char8_t *module_name_string[MODULE_ID_SENTINEL];
 
 /* Function declarations */
 void HelpMsg(VOID);
-uint32_t command_init(void);
 uint32_t createPeInfoTable(void);
 uint32_t createGicInfoTable(void);
 uint32_t createRasInfoTable(void);
@@ -184,5 +197,6 @@ void     createRas2InfoTable(void);
 void     createTpm2InfoTable(void);
 void     print_selection_summary(void);
 void     FlushImage(void);
+#endif /* EXCLUDE_RBX */
 
 #endif

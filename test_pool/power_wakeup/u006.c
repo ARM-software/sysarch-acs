@@ -23,7 +23,7 @@
 #include "val/common/include/acs_std_smc.h"
 
 #define TEST_NUM   (ACS_WAKEUP_TEST_NUM_BASE + 6)
-#define TEST_RULE  ""
+#define TEST_RULE  "B_WAK_02, B_WAK_10"
 #define TEST_DESC  "Test No-Wake from Power Semantic F    "
 
 static uint32_t intid, wakeup_event, cnt_base_n;
@@ -280,7 +280,7 @@ u006_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor, which will start and trigger interrupt to
                // target PE.
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status_test = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status_test != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

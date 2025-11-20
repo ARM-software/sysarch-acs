@@ -28,6 +28,7 @@
   src/AArch64/ArmSmc.S
   src/AArch64/AcsTestInfra.S
   src/AArch64/ModuleEntryPoint.S
+  src/AArch64/AcsPfdiTest.S
   src/pal_misc.c
   src/pal_acpi.c
   src/pal_pe.c
@@ -41,8 +42,10 @@
   src/pal_smmu.c
   src/pal_dt.c
   src/pal_dt_debug.c
+  src/pal_pfdi.c
 
 [Packages]
+  StdLib/StdLib.dec
   ArmPkg/ArmPkg.dec
   MdePkg/MdePkg.dec
   ShellPkg/ShellPkg.dec
@@ -60,7 +63,7 @@
   ShellCEntryLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
-  FdtLib
+  BaseFdtLib
 
 [Protocols]
   gEfiAcpiTableProtocolGuid                     ## CONSUMES
@@ -78,5 +81,5 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   =  -O0 -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
+  GCC:*_*_*_CC_FLAGS   =  -O0 -I${ACS_PATH}/pal/baremetal/target/RDN2/include/ -I$(WORKSPACE)/MdePkg/Library/BaseFdtLib/libfdt/libfdt
 

@@ -27,6 +27,7 @@
 #include "include/pal_interface.h"
 
 extern GIC_INFO_TABLE  *g_gic_info_table;
+extern uint32_t  g_its_init;
 GIC_INFO_ENTRY  *g_gic_entry = NULL;
 GIC_ITS_INFO    *g_gic_its_info;
 
@@ -215,6 +216,10 @@ uint32_t val_gic_its_configure()
 {
   uint32_t Status;
 
+  /* Return early if GIC ITS init was done previously */
+  if (g_its_init)
+      return 0;
+
   if (pal_target_is_dt())
     return ACS_STATUS_SKIP;
   g_gic_entry = g_gic_info_table->gic_info;
@@ -282,6 +287,8 @@ uint32_t val_gic_its_configure()
     goto its_fail;
   }
 
+  /* Set g_its_init global flag to mark GIC ITS init is successful */
+  g_its_init = 1;
   return 0;
 
 its_fail:

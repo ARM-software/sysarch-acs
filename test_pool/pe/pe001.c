@@ -393,10 +393,10 @@ payload(uint32_t num_pe)
   if (total_fail) {
       val_print(ACS_PRINT_ERR, "\n\n    Total Register and cache fail for all PE: %d \n",
                                                                              total_fail);
-      val_set_status(total_fail, RESULT_FAIL(TEST_NUM, 4));
+      val_set_status(my_index, RESULT_FAIL(TEST_NUM, 4));
   }
   else
-      val_set_status(1, RESULT_PASS(TEST_NUM, 2));
+      val_set_status(my_index, RESULT_PASS(TEST_NUM, 2));
 
   val_memory_free((void *) g_pe_reg_info);
   return;
@@ -408,15 +408,16 @@ pe001_entry(uint32_t num_pe)
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, val_pe_get_num());
 
   if (status != ACS_STATUS_SKIP)
   /* execute payload, which will execute relevant functions on current and other PEs */
       payload(num_pe);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* The test status depends solely on overall status as seen by primary PE,
+     hence passing num_pe as zero to get that. */
+  status = val_check_for_error(TEST_NUM, 1, TEST_RULE);
 
   val_report_status(0, ACS_END(TEST_NUM), NULL);
 

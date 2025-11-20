@@ -72,6 +72,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Arch symmetry across PE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  1,
         },
         [B_PE_02] = {
             .test_entry_id    = PE002_ENTRY,
@@ -79,6 +80,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for number of PE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  2,
         },
         [B_PE_03] = {
             .test_entry_id    = PE003_ENTRY,
@@ -86,6 +88,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for AdvSIMD and FP support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  3,
         },
         [B_PE_04] = {
             .test_entry_id    = PE004_ENTRY,
@@ -93,6 +96,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PE 4KB Granule Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  4,
         },
         [B_PE_06] = {
             .test_entry_id    = PE006_ENTRY,
@@ -100,6 +104,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Cryptographic extensions",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  6,
         },
         [B_PE_07] = {
             .test_entry_id    = PE007_ENTRY,
@@ -107,6 +112,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Little Endian support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  7,
         },
         [B_PE_08] = {
             .test_entry_id    = PE008_ENTRY,
@@ -114,6 +120,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check EL1 and EL0 implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  8,
         },
         [B_PE_09] = {
             .test_entry_id    = PE009_ENTRY,
@@ -121,6 +128,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for PMU and PMU counters",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  9,
         },
         [B_PE_10] = {
             .test_entry_id    = PE010_ENTRY,
@@ -128,6 +136,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PMU Overflow signal",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  10,
         },
         [B_PE_11] = {
             .test_entry_id    = PE011_ENTRY,
@@ -135,6 +144,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check num of Breakpoints and type",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  11,
         },
         [B_PE_12] = {
             .test_entry_id    = PE012_ENTRY,
@@ -142,6 +152,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Synchronous Watchpoints",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  12,
         },
         [B_PE_13] = {
             .test_entry_id    = PE013_ENTRY,
@@ -149,6 +160,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check CRC32 instruction support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  13,
         },
         [B_PE_14] = {
             .test_entry_id    = PE016_ENTRY,
@@ -156,13 +168,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SVE2 for v9 PE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
-        },
-        [B_PE_15] = {
-            .test_entry_id    = PE014_ENTRY,
-            .module_id        = PE,
-            .rule_desc        = "Check PAuth if implementation",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  16,
         },
         [B_PE_18] = {
             .test_entry_id    = PE017_ENTRY,
@@ -170,6 +176,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check EL2 implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 17,
         },
         [B_PE_19] = {
             .test_entry_id    = PE018_ENTRY,
@@ -177,6 +184,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage 2 4KB Granule Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  18,
         },
         [B_PE_20] = {
             .test_entry_id    = PE019_ENTRY,
@@ -184,6 +192,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage2 and Stage1 Granule match",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 19,
         },
         [B_PE_21] = {
             .test_entry_id    = PE020_ENTRY,
@@ -191,6 +200,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for PMU counters",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  20,
         },
         [B_PE_22] = {
             .test_entry_id    = PE021_ENTRY,
@@ -198,6 +208,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check VMID breakpoint number",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  21,
         },
         [B_PE_23] = {
             .test_entry_id    = PE022_ENTRY,
@@ -205,6 +216,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for EL3 AArch64 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  22,
         },
         [B_PE_24] = {
             .test_entry_id    = PE063_ENTRY,
@@ -212,6 +224,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for Secure state implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  63,
         },
         [B_PE_17] = {
             .test_entry_id    = PE037_ENTRY,
@@ -219,6 +232,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SPE if implemented",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  37,
         },
         [B_PE_25] = {
             .test_entry_id    = PE015_ENTRY,
@@ -226,6 +240,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for FEAT_LSE support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  15,
         },
         [B_SEC_01] = {
             .test_entry_id    = PE043_ENTRY,
@@ -233,6 +248,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Speculation Restriction",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  43,
         },
         [B_SEC_02] = {
             .test_entry_id    = PE044_ENTRY,
@@ -240,6 +256,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Speculative Str Bypass Safe",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  44,
         },
         [B_SEC_03] = {
             .test_entry_id    = PE045_ENTRY,
@@ -247,6 +264,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PEs Impl CSDB,SSBB,PSSBB",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 45,
         },
         [B_SEC_04] = {
             .test_entry_id    = PE046_ENTRY,
@@ -254,6 +272,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PEs Implement SB Barrier",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  46,
         },
         [B_SEC_05] = {
             .test_entry_id    = PE047_ENTRY,
@@ -261,6 +280,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PE Impl CFP,DVP,CPP RCTX",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  47,
         },
         [S_L3PE_01] = {
             .test_entry_id    = PE023_ENTRY,
@@ -268,6 +288,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PE Granule Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  23,
         },
         [S_L3PE_02] = {
             .test_entry_id    = PE024_ENTRY,
@@ -275,6 +296,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for 16-bit ASID support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  24,
         },
         [S_L3PE_03] = {
             .test_entry_id    = PE025_ENTRY,
@@ -282,6 +304,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check AARCH64 implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  25,
         },
         [S_L3PE_04] = {
             .test_entry_id    = PE026_ENTRY,
@@ -289,6 +312,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check FEAT_LPA Requirements",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 26,
         },
         [S_L4PE_01] = {
             .test_entry_id    = PE027_ENTRY,
@@ -296,6 +320,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for RAS extension",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 27,
         },
         [S_L4PE_02] = {
             .test_entry_id    = PE028_ENTRY,
@@ -303,6 +328,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check DC CVAP support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 28,
         },
         [S_L4PE_03] = {
             .test_entry_id    = PE029_ENTRY,
@@ -310,6 +336,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for 16-Bit VMID",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 29,
         },
         [S_L4PE_04] = {
             .test_entry_id    = PE030_ENTRY,
@@ -317,6 +344,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for Virtual host extensions",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 30,
         },
         [S_L5PE_01] = {
             .test_entry_id    = PE031_ENTRY,
@@ -324,6 +352,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Support Page table map size change",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  31,
         },
         [S_L5PE_02] = {
             .test_entry_id    = PE032_ENTRY,
@@ -331,6 +360,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for addr and generic auth",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  32,
         },
         [S_L5PE_04] = {
             .test_entry_id    = PE033_ENTRY,
@@ -338,6 +368,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Activity monitors extension",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  33,
         },
         [S_L5PE_05] = {
             .test_entry_id    = PE034_ENTRY,
@@ -345,6 +376,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for SHA3 and SHA512 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  34,
         },
         [S_L5PE_06] = {
             .test_entry_id    = PE035_ENTRY,
@@ -352,6 +384,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Stage 2 control of mem and cache",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  35,
         },
         [S_L5PE_07] = {
             .test_entry_id    = PE036_ENTRY,
@@ -359,6 +392,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for nested virtualization",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  36,
+        },
+        [S_L6PE_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check PE security features",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
         },
         [S_L6PE_02] = {
             .test_entry_id    = PE038_ENTRY,
@@ -366,6 +407,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Branch Target Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  38,
         },
         [S_L6PE_03] = {
             .test_entry_id    = PE039_ENTRY,
@@ -373,6 +415,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Protect Against Timing Fault",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  39,
         },
         [S_L6PE_04] = {
             .test_entry_id    = PE040_ENTRY,
@@ -380,6 +423,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PMU Version v3.5 or higher",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  40,
         },
         [S_L6PE_05] = {
             .test_entry_id    = PE041_ENTRY,
@@ -387,6 +431,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check AccessFlag DirtyState Update",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  41,
         },
         [S_L6PE_06] = {
             .test_entry_id    = PE042_ENTRY,
@@ -394,6 +439,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Enhanced Virtualization Trap",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  42,
         },
         [S_L7PE_01] = {
             .test_entry_id    = PE048_ENTRY,
@@ -401,6 +447,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Fine Grain Trap Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  48,
         },
         [S_L7PE_02] = {
             .test_entry_id    = PE049_ENTRY,
@@ -408,6 +455,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for ECV support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  49,
         },
         [S_L7PE_04] = {
             .test_entry_id    = PE051_ENTRY,
@@ -415,6 +463,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Checks ASIMD Int8 matrix multiplc",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  51,
         },
         [S_L7PE_05] = {
             .test_entry_id    = PE052_ENTRY,
@@ -422,6 +471,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for BFLOAT16 extension",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 52,
         },
         [S_L7PE_06] = {
             .test_entry_id    = PE053_ENTRY,
@@ -429,6 +479,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PAuth2, FPAC & FPACCOMBINE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 53,
         },
         [S_L7PE_07] = {
             .test_entry_id    = PE054_ENTRY,
@@ -436,6 +487,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for SVE Int8 matrix multiple",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 54,
         },
         // [S_L7PE_08] = {
         //     .test_entry_id    = CO35_ENTRY,
@@ -457,6 +509,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check XS attribute functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 58,
         },
         [S_L8PE_02] = {
             .test_entry_id    = PE059_ENTRY,
@@ -464,6 +517,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check WFET and WFIT functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 59,
         },
         [S_L8PE_03] = {
             .test_entry_id    = PE060_ENTRY,
@@ -471,6 +525,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check atomic 64 byte store support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 60,
         },
         [S_L8PE_04] = {
             .test_entry_id    = PE057_ENTRY,
@@ -478,6 +533,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for enhanced PAN feature",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 57,
         },
         [S_L8PE_05] = {
             .test_entry_id    = PE064_ENTRY,
@@ -485,6 +541,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PMU Version v3.7 or higher",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  64,
         },
         [S_L8PE_06] = {
             .test_entry_id    = PE061_ENTRY,
@@ -492,6 +549,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for FEAT_BRBE support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 61,
         },
         [S_L8PE_07] = {
             .test_entry_id    = PE062_ENTRY,
@@ -499,6 +557,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for unsupported PBHA bits",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 62,
         },
     /* GIC */
         [B_GIC_01] = {
@@ -507,6 +566,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GIC version",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 1,
         },
         [B_GIC_02] = {
             .test_entry_id    = G002_ENTRY,
@@ -514,6 +574,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICv2 Valid Configuration",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 2,
         },
         [B_GIC_03] = {
             .test_entry_id    = G003_ENTRY,
@@ -521,6 +582,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "If PCIe, GICv3 then ITS, LPI",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 3,
         },
         [B_GIC_04] = {
             .test_entry_id    = G004_ENTRY,
@@ -528,6 +590,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICv3 Security States",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 4,
         },
         [B_GIC_05] = {
             .test_entry_id    = G005_ENTRY,
@@ -535,6 +598,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Non-secure SGIs are implemented",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 5,
         },
         [ITS_01] = {
             .test_entry_id    = ITS001_ENTRY,
@@ -542,6 +606,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check number of ITS blocks in a group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 1,
         },
         [ITS_02] = {
             .test_entry_id    = ITS002_ENTRY,
@@ -549,6 +614,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ITS block association with group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 2,
         },
         [ITS_DEV_2] = {
             .test_entry_id    = ITS003_ENTRY,
@@ -556,6 +622,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check uniqueness of StreamID",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 3,
         },
         [ITS_DEV_7] = {
             .test_entry_id    = ITS004_ENTRY,
@@ -563,6 +630,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Device's SID/RID/DID behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 4,
         },
         [ITS_DEV_8] = {
             .test_entry_id    = ITS005_ENTRY,
@@ -570,6 +638,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Device IDs not behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 5,
         },
         [S_L3GI_01] = {
             .test_entry_id    = G012_ENTRY,
@@ -577,6 +646,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GIC version",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 12,
         },
         [B_PPI_00] = {
             .test_entry_id    = B_PPI_00_ENTRY,
@@ -591,6 +661,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check All PPI Interrupt IDs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 14,
         },
         [S_L5GI_01] = {
             .test_entry_id    = G016_ENTRY,
@@ -598,6 +669,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Non GIC Interrupts",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 16,
         },
         [S_L5PP_01] = {
             .test_entry_id    = G013_ENTRY,
@@ -605,6 +677,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Reserved PPI Assignments",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 13,
         },
         [S_L8GI_01] = {
             .test_entry_id    = G015_ENTRY,
@@ -612,6 +685,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICv4.1 or higher compliant",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 15,
         },
         [Appendix_I_5] = {
             .test_entry_id    = V2M004_ENTRY,
@@ -619,6 +693,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICv2m SPI allocated to MSI Ctrl",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_V2M_TEST_NUM_BASE + 4,
         },
         [Appendix_I_6] = {
             .test_entry_id    = APPENDIX_I_6_ENTRY,
@@ -633,6 +708,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICv2m MSI Frame Register",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_V2M_TEST_NUM_BASE + 2,
         },
     /* PERIPHERAL */
         [B_PER_01] = {
@@ -641,6 +717,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "USB CTRL Interface EHCI check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 1,
         },
         [B_PER_02] = {
             .test_entry_id    = D008_ENTRY,
@@ -648,6 +725,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "USB CTRL Interface XHCI check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 8,
         },
         [B_PER_03] = {
             .test_entry_id    = D002_ENTRY,
@@ -655,6 +733,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SATA CTRL Interface",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 2,
         },
         [B_PER_05] = {
             .test_entry_id    = D003_ENTRY,
@@ -662,6 +741,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check UART type Arm Generic or 16550",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 3,
         },
         [S_L3PR_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -676,6 +756,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ARM Generic UART Interrupt",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 6,
         },
         [B_PER_08] = {
             .test_entry_id    = NULL_ENTRY,
@@ -690,6 +771,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Memory Attributes of DMA",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 4,
         },
         [B_PER_10] = {
             .test_entry_id    = D007_ENTRY,
@@ -697,6 +779,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check DMA for I/O coherency",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 7,
         },
     /* MEM_MAP */
         [B_MEM_01] = {
@@ -705,6 +788,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Mem Access Response in finite time",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 2,
         },
         [B_MEM_02] = {
             .test_entry_id    = M001_ENTRY,
@@ -712,6 +796,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Memory Access to Un-Populated addr",
             .platform_bitmask = PLATFORM_BAREMETAL,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 1,
         },
         [B_MEM_03] = {
             .test_entry_id    = M004_ENTRY,
@@ -719,6 +804,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Addressability",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 4,
         },
         [B_MEM_04] = {
             .test_entry_id    = M006_ENTRY,
@@ -726,6 +812,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check dev DMA behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 6,
         },
         [B_MEM_06] = {
             .test_entry_id    = M007_ENTRY,
@@ -733,6 +820,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check non-DMA dev behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 7,
         },
         [B_MEM_05] = {
             .test_entry_id    = M003_ENTRY,
@@ -740,20 +828,23 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "PE must access all NS addr space",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 3,
         },
         [S_L3MM_01] = {
             .test_entry_id    = M005_ENTRY,
             .module_id        = MEM_MAP,
-            .rule_desc        = "",
+            .rule_desc        = "NS-EL2 Stage-2 64KB Mapping Check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 5,
         },
         [S_L3MM_02] = {
             .test_entry_id    = M008_ENTRY,
             .module_id        = MEM_MAP,
-            .rule_desc        = "",
+            .rule_desc        = "Check peripherals addr 64Kb apart",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 8,
         },
     /* PMU */
         [PMU_PE_02] = {
@@ -762,6 +853,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check PMU Overflow signal",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE  +  1,
         },
         [PMU_PE_03] = {
             .test_entry_id    = PMU002_ENTRY,
@@ -769,6 +861,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check number of PMU counters",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE  +  2,
         },
         [PMU_SYS_1] = {
             .test_entry_id    = PMU004_ENTRY,
@@ -776,6 +869,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Test Simultaneous 4 traffic measures",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 4,
         },
         [PMU_SYS_2] = {
             .test_entry_id    = PMU005_ENTRY,
@@ -783,6 +877,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Test Simultaneous 6 traffic measures",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 5,
         },
         // [PMU_SYS_5] = {
         //     .test_entry_id    = pmu008_entry,
@@ -797,6 +892,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check multiple type traffic measurement",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 9,
         },
         [PMU_BM_1] = {
             .test_entry_id    = PMU007_ENTRY,
@@ -804,6 +900,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for memory bandwidth monitors",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 7,
         },
         [PMU_MEM_1] = {
             .test_entry_id    = PMU010_ENTRY,
@@ -811,6 +908,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for memory latency monitors",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 10,
         },
         [PMU_BM_2] = {
             .test_entry_id    = PMU011_ENTRY,
@@ -818,6 +916,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for PCIe bandwidth monitors",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 11,
         },
         [PMU_EV_11] = {
             .test_entry_id    = PMU003_ENTRY,
@@ -825,6 +924,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for multi-threaded PMU ext",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 3,
         },
         [PMU_SPE] = {
             .test_entry_id    = PMU006_ENTRY,
@@ -832,6 +932,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for PMU SPE Requirements",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PMU_TEST_NUM_BASE + 6,
         },
     /* RAS */
         [RAS_01] = {
@@ -840,6 +941,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Error Counter",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 1,
         },
         [RAS_02] = {
             .test_entry_id    = RAS002_ENTRY,
@@ -847,6 +949,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check CFI, DUI, UI Controls",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 2,
         },
         [RAS_03] = {
             .test_entry_id    = RAS003_ENTRY,
@@ -854,6 +957,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check FHI in Error Record Group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 3,
         },
         [RAS_04] = {
             .test_entry_id    = RAS004_ENTRY,
@@ -861,6 +965,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ERI in Error Record Group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 4,
         },
         [RAS_06] = {
             .test_entry_id    = RAS005_ENTRY,
@@ -868,6 +973,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ERI/FHI Connected to GIC",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 5,
         },
         [RAS_07] = {
             .test_entry_id    = RAS006_ENTRY,
@@ -875,6 +981,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "RAS ERR<n>ADDR.AI bit status check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 6,
         },
         [RAS_08] = {
             .test_entry_id    = RAS007_ENTRY,
@@ -882,6 +989,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Error Group Status",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 7,
         },
         [RAS_11] = {
             .test_entry_id    = RAS008_ENTRY,
@@ -889,6 +997,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Software Fault Error Check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 8,
         },
         [S_L7RAS_1] = {
             .test_entry_id    = RAS009_ENTRY,
@@ -896,6 +1005,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Data abort on Containable err",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 9,
         },
         [S_RAS_01] = {
             .test_entry_id    = RAS014_ENTRY,
@@ -903,6 +1013,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RAS SR Interface ERI/FHI are PPI",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 14,
         },
         [SYS_RAS] = {
             .test_entry_id    = NULL_ENTRY,
@@ -917,6 +1028,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for patrol scrubbing support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 10,
         },
         [SYS_RAS_2] = {
             .test_entry_id    = SYS_RAS_2_ENTRY,
@@ -931,6 +1043,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Error when Poison unsupported",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 15,
         },
         [SYS_RAS_4] = {
             .test_entry_id    = RAS013_ENTRY,
@@ -938,6 +1051,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RAS memory mapped view supp",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 13,
         },
     /* SMMU */
         [B_SMMU_01] = {
@@ -946,6 +1060,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "All SMMUs have same Arch Revision",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 1,
         },
         [B_SMMU_02] = {
             .test_entry_id    = I002_ENTRY,
@@ -953,6 +1068,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Granule Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 2,
         },
         [B_SMMU_03] = {
             .test_entry_id    = I016_ENTRY,
@@ -960,6 +1076,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Large VA Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 16,
         },
         [B_SMMU_04] = {
             .test_entry_id    = I017_ENTRY,
@@ -967,6 +1084,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check TLB Range Invalidation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 17,
         },
         [B_SMMU_05] = {
             .test_entry_id    = I030_ENTRY,
@@ -974,6 +1092,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check DVM capabilities",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 30,
         },
         [B_SMMU_06] = {
             .test_entry_id    = I003_ENTRY,
@@ -981,6 +1100,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Large Physical Addr Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 3,
         },
         [B_SMMU_08] = {
             .test_entry_id    = I004_ENTRY,
@@ -988,6 +1108,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU S-EL2 & stage1 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 4,
         },
         [B_SMMU_09] = {
             .test_entry_id    = I010_ENTRY,
@@ -995,6 +1116,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check S-EL2 & SMMU Stage1 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 10,
         },
         [B_SMMU_11] = {
             .test_entry_id    = I012_ENTRY,
@@ -1002,6 +1124,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU for MPAM support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 12,
         },
         [B_SMMU_13] = {
             .test_entry_id    = I018_ENTRY,
@@ -1009,6 +1132,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU 16 Bit ASID Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 18,
         },
         [B_SMMU_14] = {
             .test_entry_id    = I019_ENTRY,
@@ -1016,6 +1140,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Endianess Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 19,
         },
         [B_SMMU_16] = {
             .test_entry_id    = I005_ENTRY,
@@ -1023,6 +1148,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMUs stage2 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 5,
         },
         [B_SMMU_18] = {
             .test_entry_id    = I029_ENTRY,
@@ -1030,6 +1156,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU S-EL2 & stage2 support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 29,
         },
         [B_SMMU_19] = {
             .test_entry_id    = I006_ENTRY,
@@ -1037,6 +1164,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "SMMUv2 unique intr per ctxt bank",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 6,
         },
         [B_SMMU_20] = {
             .test_entry_id    = I011_ENTRY,
@@ -1044,6 +1172,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check S-EL2 & SMMU Stage2 Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 11,
         },
         [B_SMMU_21] = {
             .test_entry_id    = NULL_ENTRY,
@@ -1058,6 +1187,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU 16 Bit VMID Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 15,
         },
         [SMMU_01] = {
             .test_entry_id    = I007_ENTRY,
@@ -1065,6 +1195,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "SMMUv3 Integration compliance",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 7,
         },
         [S_L4SM_01] = {
             .test_entry_id    = I008_ENTRY,
@@ -1072,6 +1203,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage 1 SMMUv3 functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 8,
         },
         [S_L4SM_02] = {
             .test_entry_id    = I025_ENTRY,
@@ -1079,6 +1211,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage 2 SMMUv3 functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 25,
         },
         [S_L4SM_03] = {
             .test_entry_id    = I020_ENTRY,
@@ -1086,6 +1219,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Coherent Access Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 20,
         },
         [S_L5SM_01] = {
             .test_entry_id    = I009_ENTRY,
@@ -1093,6 +1227,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMUv3.2 or higher",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 9,
         },
         [S_L5SM_02] = {
             .test_entry_id    = I026_ENTRY,
@@ -1100,6 +1235,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU L1 and L2 table resizing",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 26,
         },
         [S_L5SM_03] = {
             .test_entry_id    = I012_ENTRY,
@@ -1107,6 +1243,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU for MPAM support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 12,
         },
         [S_L6SM_02] = {
             .test_entry_id    = I013_ENTRY,
@@ -1114,6 +1251,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU HTTU Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 13,
         },
         [S_L6SM_03] = {
             .test_entry_id    = I014_ENTRY,
@@ -1121,6 +1259,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU MSI Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 14,
         },
         [S_L7SM_01] = {
             .test_entry_id    = I022_ENTRY,
@@ -1128,6 +1267,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check if all DMA reqs behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 22,
         },
         [S_L7SM_02] = {
             .test_entry_id    = I023_ENTRY,
@@ -1135,6 +1275,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for SMMU/CATU in ETR Path",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 23,
         },
         [S_L7SM_03] = {
             .test_entry_id    = I021_ENTRY,
@@ -1142,6 +1283,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU PMU Extension presence",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 21,
         },
         [S_L7SM_04] = {
             .test_entry_id    = I027_ENTRY,
@@ -1149,6 +1291,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU PMCG has >= 4 counters",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 27,
         },
         [S_L8SM_01] = {
             .test_entry_id    = I028_ENTRY,
@@ -1156,6 +1299,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMUv3.3 or higher",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 28,
         },
     /* TIMER */
         [B_TIME_01] = {
@@ -1164,6 +1308,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for Generic System Counter",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
         [B_TIME_02] = {
             .test_entry_id    = T007_ENTRY,
@@ -1171,6 +1316,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check System Counter Frequency",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
         },
         [B_TIME_06] = {
             .test_entry_id    = T002_ENTRY,
@@ -1178,6 +1324,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "SYS Timer if PE Timer not ON",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 2,
         },
         [B_TIME_07] = {
             .test_entry_id    = T003_ENTRY,
@@ -1185,6 +1332,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Memory mapped timer check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 3,
         },
         [B_TIME_08] = {
             .test_entry_id    = T004_ENTRY,
@@ -1192,6 +1340,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Generate Mem Mapped SYS Timer Intr",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 4,
         },
         [B_TIME_09] = {
             .test_entry_id    = T005_ENTRY,
@@ -1199,6 +1348,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Restore PE timer on PE wake up",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 5,
         },
         [S_L8TI_01] = {
             .test_entry_id    = T006_ENTRY,
@@ -1206,6 +1356,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Minimum Counter Frequency 50MHz",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 6,
         },
     /* WATCHDOG */
         [B_WD_00] = {
@@ -1221,6 +1372,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Non Secure Watchdog Access ",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_WD_TEST_NUM_BASE + 1,
         },
         [B_WD_03] = {
             .test_entry_id    = W002_ENTRY,
@@ -1228,6 +1380,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Watchdog WS0 interrupt ",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_WD_TEST_NUM_BASE + 2,
         },
         [S_L3WD_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -1242,6 +1395,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check NS Watchdog Revision",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_WD_TEST_NUM_BASE + 3,
         },
     /* NIST */
         // TODO nist suite compilation with rule based infra
@@ -1288,6 +1442,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Type 0 config header rules",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 21,
         },
         [GPU_03] = {
             .test_entry_id    = P093_ENTRY,
@@ -1295,6 +1450,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Switches must support ACS if P2P",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 93,
         },
         [GPU_04] = {
             .test_entry_id    = GPU_04_ENTRY,
@@ -1309,6 +1465,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ACS Cap on p2p support: iEP EP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 82,
         },
         [IE_ACS_2] = {
             .test_entry_id    = P081_ENTRY,
@@ -1316,6 +1473,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check iEP-RootPort P2P Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 81,
         },
         [IE_BAR_1] = {
             .test_entry_id    = P029_ENTRY,
@@ -1323,6 +1481,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Read and write to BAR reg: iEP pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 29,
         },
         [IE_BAR_3] = {
             .test_entry_id    = P041_ENTRY,
@@ -1330,6 +1489,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check BAR memory space & type: iEP/RP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 41,
         },
         [IE_INT_1] = {
             .test_entry_id    = P055_ENTRY,
@@ -1337,6 +1497,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check MSI and MSI-X support: iEP/RP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 55,
         },
         [IE_ORD_1] = {
             .test_entry_id    = E031_ENTRY,
@@ -1344,6 +1505,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Arrival order & Gathering Check: iEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         =  ACS_EXERCISER_TEST_NUM_BASE + 31,
         },
         [IE_ORD_4] = {
             .test_entry_id    = E038_ENTRY,
@@ -1351,6 +1513,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Tx pending bit clear correctness: iEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 38,
         },
         [IE_PWR_1] = {
             .test_entry_id    = P034_ENTRY,
@@ -1358,6 +1521,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Power Management rules: iEP/RP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 34,
         },
         [IE_REG_1] = {
             .test_entry_id    = IE_REG_1_ENTRY,
@@ -1393,6 +1557,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Power Mgmt Cap/Ctrl/Status - iEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 57,
         },
         [IE_REG_6] = {
             .test_entry_id    = P092_ENTRY,
@@ -1400,6 +1565,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Secondary PCIe ECap Check: iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 92,
         },
         [IE_REG_7] = {
             .test_entry_id    = P012_ENTRY,
@@ -1407,6 +1573,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Datalink feature ECap Check: iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 12,
         },
         [IE_REG_8] = {
             .test_entry_id    = P013_ENTRY,
@@ -1414,6 +1581,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Phy Layer 16GT/s ECap Check: iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 13,
         },
         [IE_REG_9] = {
             .test_entry_id    = P014_ENTRY,
@@ -1421,6 +1589,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Lane Margining at Rec ECap Check: iEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 14,
         },
         [IE_RST_1] = {
             .test_entry_id    = P040_ENTRY,
@@ -1428,6 +1597,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Function level reset: iEP_EP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 40,
         },
         [IE_RST_2] = {
             .test_entry_id    = P079_ENTRY,
@@ -1435,6 +1605,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Sec Bus Reset For iEP_RP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 79,
         },
         [IE_SMU_1] = {
             .test_entry_id    = P080_ENTRY,
@@ -1442,6 +1613,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ATS Support Rule: iEP/RP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 80,
         },
         [IE_SMU_3] = {
             .test_entry_id    = E037_ENTRY,
@@ -1449,6 +1621,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Generate PASID transactions: iEP EP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 37,
         },
         [ITS_03] = {
             .test_entry_id    = E011_ENTRY,
@@ -1456,6 +1629,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "MSI-capable device linked to ITS group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 11,
         },
         [ITS_04] = {
             .test_entry_id    = E035_ENTRY,
@@ -1463,6 +1637,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "MSI-cap device can target any ITS blk",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 35,
         },
         [ITS_05] = {
             .test_entry_id    = E012_ENTRY,
@@ -1470,6 +1645,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "MSI to ITS Blk outside assigned group",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 12,
         },
         [ITS_DEV_4] = {
             .test_entry_id    = E013_ENTRY,
@@ -1477,6 +1653,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "MSI originating from different master",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 13,
         },
         [ITS_DEV_6] = {
             .test_entry_id    = E004_ENTRY,
@@ -1484,6 +1661,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Write to ITS GITS_TRANSLATER",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 4,
         },
         [PCI_ER_01] = {
             .test_entry_id    = P010_ENTRY,
@@ -1491,6 +1669,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RP AER feature",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 10,
         },
         [PCI_ER_04] = {
             .test_entry_id    = E023_ENTRY,
@@ -1498,6 +1677,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check AER functionality for RPs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 23,
         },
         [PCI_ER_05] = {
             .test_entry_id    = P007_ENTRY,
@@ -1505,6 +1685,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RP DPC feature",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 7,
         },
         [PCI_ER_06] = {
             .test_entry_id    = E024_ENTRY,
@@ -1512,6 +1693,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check DPC funcionality for RPs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 24,
         },
         [PCI_ER_07] = {
             .test_entry_id    = E029_ENTRY,
@@ -1519,6 +1701,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "RAS ERR record for external abort",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 29,
         },
         [PCI_ER_08] = {
             .test_entry_id    = E028_ENTRY,
@@ -1526,6 +1709,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "RAS ERR record for poisoned data",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 28,
         },
         [PCI_ER_09] = {
             .test_entry_id    = P090_ENTRY,
@@ -1533,6 +1717,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RP Extensions for DPC",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 90,
         },
         [PCI_ER_10] = {
             .test_entry_id    = E027_ENTRY,
@@ -1540,6 +1725,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "DPC trig when RP-PIO unimplemented",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 27,
         },
         [PCI_IC_11] = {
             .test_entry_id    = PCI_IC_11_ENTRY,
@@ -1554,6 +1740,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Arrival order Check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 3,
         },
         [PCI_IN_01] = {
             .test_entry_id    = P001_ENTRY,
@@ -1561,6 +1748,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ECAM Presence",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 1,
         },
         [PCI_IN_02] = {
             .test_entry_id    = P002_ENTRY,
@@ -1568,6 +1756,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ECAM Memory accessibility",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 2,
         },
         [PCI_IN_03] = {
             .test_entry_id    = P038_ENTRY,
@@ -1575,6 +1764,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check all RP in HB is in same ECAM",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 38,
         },
         [PCI_IN_04] = {
             .test_entry_id    = PCI_IN_04_ENTRY,
@@ -1596,6 +1786,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RP Sec Bus transaction are TYPE0",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 10,
         },
         [PCI_IN_12] = {
             .test_entry_id    = P037_ENTRY,
@@ -1603,12 +1794,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Config Txn for RP in HB",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 37,
         },
         [PCI_IN_13] = {
             .test_entry_id    = PCI_IN_13_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check RootPort NP Memory Access",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .platform_bitmask = PLATFORM_BAREMETAL,
             .flag             = BASE_RULE,
         },
         [PCI_IN_16] = {
@@ -1617,6 +1809,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check all 1's for out of range",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 8,
         },
         [PCI_IN_17] = {
             .test_entry_id    = PCI_IN_17_ENTRY,
@@ -1631,6 +1824,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RP Byte Enable Rules",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 11,
         },
         [PCI_IN_19] = {
             .test_entry_id    = PCI_IN_19_ENTRY,
@@ -1645,11 +1839,12 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Vendor specific data is PCIe compliant",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 9,
         },
         [PCI_LI_01] = {
             .test_entry_id    = PCI_LI_01_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "Check Legacy Intrrupt is SPI",
+            .rule_desc        = "Check Legacy Interrupt is SPI",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
@@ -1687,6 +1882,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "NP type-1 pcie only support 32-bit",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 47,
         },
         [PCI_MM_05] = {
             .test_entry_id    = P095_ENTRY,
@@ -1694,6 +1890,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "PCIe & PE common physical memory view",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 95,
         },
         [PCI_MM_07] = {
             .test_entry_id    = P105_ENTRY,
@@ -1701,6 +1898,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "No extra address translation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 105,
         },
         [PCI_MSI_1] = {
             .test_entry_id    = P039_ENTRY,
@@ -1708,6 +1906,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check MSI support for PCIe dev",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 39,
         },
         [PCI_MSI_2] = {
             .test_entry_id    = PCI_MSI_2_ENTRY,
@@ -1722,6 +1921,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "PASID support atleast 16 bits",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 42,
         },
         [PCI_PP_02] = {
             .test_entry_id    = E014_ENTRY,
@@ -1729,6 +1929,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "P2P transactions must not deadlock",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 14,
         },
         [PCI_PP_03] = {
             .test_entry_id    = P019_ENTRY,
@@ -1736,6 +1937,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "RP must suprt ACS if P2P Txn are allow",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 19,
         },
         [PCI_PP_04] = {
             .test_entry_id    = PCI_PP_04_ENTRY,
@@ -1757,6 +1959,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Function level reset",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 35,
         },
         [S_L3GI_02] = {
             .test_entry_id    = P046_ENTRY,
@@ -1764,6 +1967,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check all MSI(X) vectors are LPIs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 46,
         },
         [S_L4PCI_2] = {
             .test_entry_id    = P087_ENTRY,
@@ -1771,6 +1975,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check EA Capability",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 87,
         },
         [RE_ACS_1] = {
             .test_entry_id    = P015_ENTRY,
@@ -1778,6 +1983,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ACS Cap on p2p support: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 15,
         },
         [RE_ACS_2] = {
             .test_entry_id    = P016_ENTRY,
@@ -1785,6 +1991,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check AER Cap on ACS Cap support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 16,
         },
         [RE_BAR_1] = {
             .test_entry_id    = P083_ENTRY,
@@ -1792,6 +1999,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Read and write to BAR reg: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 83,
         },
         [RE_BAR_3] = {
             .test_entry_id    = P062_ENTRY,
@@ -1799,6 +2007,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check BAR memory space & type: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 62,
         },
         [RE_INT_1] = {
             .test_entry_id    = P069_ENTRY,
@@ -1806,6 +2015,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check MSI and MSI-X support: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 69,
         },
         [RE_ORD_1] = {
             .test_entry_id    = E021_ENTRY,
@@ -1813,6 +2023,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Arrival order & Gathering Check: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  21,
         },
         [RE_ORD_4] = {
             .test_entry_id    = E008_ENTRY,
@@ -1820,6 +2031,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Tx pending bit clear correctness RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  8,
         },
         [RE_PCI_1] = {
             .test_entry_id    = P085_ENTRY,
@@ -1827,6 +2039,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RCiEP Hdr type & link Cap",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 85,
         },
         [RE_PCI_2] = {
             .test_entry_id    = P084_ENTRY,
@@ -1834,6 +2047,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RCEC Class code and Ext Cap",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 84,
         },
         [RE_PWR_1] = {
             .test_entry_id    = P070_ENTRY,
@@ -1841,6 +2055,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Power Management rules: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 70,
         },
         [RE_REC_1] = {
             .test_entry_id    = RE_REC_1_ENTRY,
@@ -1862,6 +2077,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Power Mgmt Cap/Ctrl/Status - RC",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 56,
         },
         [RE_REG_3] = {
             .test_entry_id    = P052_ENTRY,
@@ -1869,6 +2085,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Dev Cap & Ctrl Reg rule - RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 52,
         },
         [RE_RST_1] = {
             .test_entry_id    = P063_ENTRY,
@@ -1876,6 +2093,15 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Function level reset: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 63,
+        },
+        [RE_SMU_1] = {
+            .test_entry_id    = E019_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check ATS Support Rule: RCiEP",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 19,
         },
         [RE_SMU_2] = {
             .test_entry_id    = RE_SMU_2_ENTRY,
@@ -1890,6 +2116,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Generate PASID transactions: RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  36,
         },
         [S_L6PCI_1] = {
             .test_entry_id    = NULL_ENTRY,
@@ -1904,6 +2131,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check RootPort P&NP Memory Access",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 86,
         },
         [S_PCIe_03] = {
             .test_entry_id    = E022_ENTRY,
@@ -1911,6 +2139,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "PE 2/4/8B writes to PCIe as 2/4/8B",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 22,
         },
         [S_PCIe_04] = {
             .test_entry_id    = E025_ENTRY,
@@ -1918,6 +2147,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check 2/4/8 Bytes targeted writes",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 25,
         },
         [S_PCIe_07] = {
             .test_entry_id    = E026_ENTRY,
@@ -1925,6 +2155,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Inbound writes seen in order",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 26,
         },
         [S_PCIe_08] = {
             .test_entry_id    = E032_ENTRY,
@@ -1932,6 +2163,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ordered writes flush prev writes",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  32,
         },
         [S_PCIe_10] = {
             .test_entry_id    = E030_ENTRY,
@@ -1939,6 +2171,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Enable and disable STE.DCP bit",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 30,
         },
         [S_PCIe_11] = {
             .test_entry_id    = P091_ENTRY,
@@ -1946,6 +2179,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Steering Tag value properties",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 91,
         },
     /* MPAM */
         [S_L7MP_01] = {
@@ -1954,6 +2188,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for MPAM extension",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MPAM_TEST_NUM_BASE + 1,
         },
         [S_L7MP_02] = {
             .test_entry_id    = MPAM008_ENTRY,
@@ -1961,6 +2196,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for MPAM partition IDs ",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MPAM_TEST_NUM_BASE + 8,
         },
         [S_L7MP_03] = {
             .test_entry_id    = S_L7MP_03_ENTRY,
@@ -1975,6 +2211,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for MPAM LLC CSU Monitor count",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MPAM_TEST_NUM_BASE + 2,
         },
         [S_L7MP_05] = {
             .test_entry_id    = MPAM003_ENTRY,
@@ -1982,6 +2219,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for MPAM MBWUs Monitor func",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MPAM_TEST_NUM_BASE + 3,
         },
         // [S_L7MP_07] = {
         //     .test_entry_id    = mpam004_entry,
@@ -1996,6 +2234,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for MPAM MSC address overlap",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_MPAM_TEST_NUM_BASE + 5,
         },
     /* ETE */
         [ETE_02] = {
@@ -2004,6 +2243,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for FEAT_ETE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 1,
         },
         [ETE_03] = {
             .test_entry_id    = ETE002_ENTRY,
@@ -2011,6 +2251,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check trace unit ETE supports",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 2,
         },
         [ETE_04] = {
             .test_entry_id    = ETE003_ENTRY,
@@ -2018,6 +2259,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ETE Same Trace Timestamp Source",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 3,
         },
         [ETE_05] = {
             .test_entry_id    = ETE004_ENTRY,
@@ -2025,6 +2267,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Trace Same Timestamp Source",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 4,
         },
         [ETE_06] = {
             .test_entry_id    = ETE009_ENTRY,
@@ -2032,6 +2275,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Concurrent Trace Generation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 9,
         },
         [ETE_07] = {
             .test_entry_id    = ETE005_ENTRY,
@@ -2039,6 +2283,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for FEAT_TRBE",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 5,
         },
         [ETE_08] = {
             .test_entry_id    = ETE006_ENTRY,
@@ -2046,6 +2291,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check trace buffers flag updates",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 6,
         },
         [ETE_09] = {
             .test_entry_id    = ETE007_ENTRY,
@@ -2053,6 +2299,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check TRBE trace buffers alignment",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 7,
         },
         [ETE_10] = {
             .test_entry_id    = ETE008_ENTRY,
@@ -2060,6 +2307,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICC TRBE Interrupt field",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_ETE_TEST_NUM_BASE + 8,
         },
 
     /* PC-BSA rule test mapping */
@@ -2069,6 +2317,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GIC version",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 12,
         },
         [P_L1PP_01] = {
             .test_entry_id    = G014_ENTRY,
@@ -2076,6 +2325,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check All PPI Interrupt IDs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE + 14,
         },
         [P_L1GI_03] = {
             .test_entry_id    = INTERFACE010_ENTRY,
@@ -2083,6 +2333,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GIC supports disabling LPIs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE  +  10,
         },
         [P_L1GI_04] = {
             .test_entry_id    = INTERFACE011_ENTRY,
@@ -2090,6 +2341,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check GICR_PENDBASER when LPIs enabled",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_TEST_NUM_BASE  +  11,
         },
         [P_L1MM_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -2111,6 +2363,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for 16-bit ASID support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  24,
         },
         [P_L1PE_03] = {
             .test_entry_id    = PE025_ENTRY,
@@ -2118,6 +2371,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check AARCH64 implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  25,
         },
         [P_L1PE_04] = {
             .test_entry_id    = PE015_ENTRY,
@@ -2125,6 +2379,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for FEAT_LSE support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  15,
         },
         [P_L1PE_05] = {
             .test_entry_id    = PE026_ENTRY,
@@ -2132,6 +2387,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check FEAT_LPA Requirements",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 26,
         },
         [P_L1PE_06] = {
             .test_entry_id    = PE028_ENTRY,
@@ -2139,6 +2395,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check DC CVAP support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 28,
         },
         [P_L1PE_07] = {
             .test_entry_id    = PE029_ENTRY,
@@ -2146,6 +2403,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for 16-Bit VMID",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 29,
         },
         [P_L1PE_08] = {
             .test_entry_id    = PE030_ENTRY,
@@ -2153,6 +2411,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check for Virtual host extensions",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  + 30,
         },
         [P_L1SM_02] = {
             .test_entry_id    = I008_ENTRY,
@@ -2160,6 +2419,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage 1 SMMUv3 functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 8,
         },
         [P_L1SM_03] = {
             .test_entry_id    = I025_ENTRY,
@@ -2167,6 +2427,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Stage 2 SMMUv3 functionality",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 25,
         },
         [P_L1SM_04] = {
             .test_entry_id    = I020_ENTRY,
@@ -2174,6 +2435,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check SMMU Coherent Access Support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 20,
         },
         [P_L1SM_05] = {
             .test_entry_id    = I022_ENTRY,
@@ -2181,6 +2443,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check if all DMA reqs behind SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 22,
         },
         [P_L2WD_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -2195,6 +2458,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check TPM Version",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TPM2_TEST_NUM_BASE  +  1,
         },
         [P_L1TP_03] = {
             .test_entry_id    = TPM002_ENTRY,
@@ -2202,6 +2466,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check TPM interface locality support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_TPM2_TEST_NUM_BASE  +  2,
         },
         [P_L1GI_02] = {
             .test_entry_id    = P046_ENTRY,
@@ -2209,6 +2474,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check all MSI(X) vectors are LPIs",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 46,
         },
         [P_L1PCI_2] = {
             .test_entry_id    = P087_ENTRY,
@@ -2216,6 +2482,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check EA Capability",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 87,
         },
     };
 
@@ -2493,7 +2760,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE011_ENTRY] = pe011_entry,
     [PE012_ENTRY] = pe012_entry,
     [PE013_ENTRY] = pe013_entry,
-    [PE014_ENTRY] = pe014_entry,
     [PE015_ENTRY] = pe015_entry,
     [PE016_ENTRY] = pe016_entry,
     [PE017_ENTRY] = pe017_entry,
@@ -3000,7 +3266,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE019_ENTRY] = pe019_entry,
     [PE007_ENTRY] = pe007_entry,
     [PE001_ENTRY] = pe001_entry,
-    [PE014_ENTRY] = pe014_entry,
     [PE008_ENTRY] = pe008_entry,
     [PE004_ENTRY] = pe004_entry,
     [PE010_ENTRY] = pe010_entry,
@@ -3439,6 +3704,9 @@ RULE_ID_e s_l6pci_1_rule_list[] = {
 
         RULE_ID_SENTINEL
     };
+/* S_L6PE_01 */
+RULE_ID_e s_l6pe_01_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
+                                     RULE_ID_SENTINEL};
 /* SYS_RAS */
 RULE_ID_e sys_ras_rule_list[] = {
     /* SBSA Section B Server RAS */
@@ -3471,6 +3739,7 @@ alias_rule_map_t alias_rule_map[] = {
     {S_L3PR_01, s_l3pr_01_rule_list},
     {S_L3WD_01, s_l3wd_01_rule_list},
     {S_L6PCI_1, s_l6pci_1_rule_list},
+    {S_L6PE_01, s_l6pe_01_rule_list},
     {SYS_RAS,   sys_ras_rule_list},
     /* PCBSA alias rules */
     {P_L1_01,  bsa_l1_rule_list},

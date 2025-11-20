@@ -80,19 +80,37 @@ payload(void)
                   continue;
           }
 
-          /* Disable the ARI forwarding enable bit */
-          if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
-              val_print(ACS_PRINT_INFO, "  PCIe Express Capability not present ", 0);
-              continue;
-          }
+          /* Check if RP/ DP support ARI Forwarding. Skip if PCI Express Capability structure
+             is not found or failed to read Device Capabilites 2 register */
+          status = val_pcie_ari_forwarding_support(bdf);
+          if (status == NOT_IMPLEMENTED)
+            continue;
 
+          /* If the RP/DP does not support ARI forwarding, print a warning.
+             Continue the test since this validates the disabled ARI forwarding case. */
+          if (status == 0)
+              val_print(ACS_PRINT_WARN, "\n       ARI Forwarding not supported for bdf 0x%x", bdf);
+
+          /* If test runs on atleast one device */
+          test_skip = 0;
+
+          /* Disable the ARI forwarding enable bit */
+          val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base);
           val_pcie_read_cfg(bdf, cap_base + DCTL2R_OFFSET, &reg_value);
           reg_value &= DCTL2R_AFE_NORMAL;
           val_pcie_write_cfg(bdf, cap_base + DCTL2R_OFFSET, reg_value);
 
+          /* Read back the value of ARI Forwarding enable bit */
+          val_pcie_read_cfg(bdf, cap_base + DCTL2R_OFFSET, &reg_value);
+          reg_value = (reg_value >> DCTL2R_AFE_SHIFT) & DCTL2R_AFE_MASK;
 
-          /* If test runs for atleast an endpoint */
-          test_skip = 0;
+          /* Fail the test if the bitfied does not respond to the write */
+          if (reg_value != 0) {
+              val_print(ACS_PRINT_ERR, "\n       ARI Forwarding Enable bit not cleared for", 0);
+              val_print(ACS_PRINT_ERR, " bdf 0x%x", bdf);
+              test_fails++;
+              continue;
+          }
 
           seg_num = PCIE_EXTRACT_BDF_SEG(bdf);
           dev_bdf = PCIE_CREATE_BDF(seg_num, sec_bus, 0, 0);
@@ -139,7 +157,7 @@ p036_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

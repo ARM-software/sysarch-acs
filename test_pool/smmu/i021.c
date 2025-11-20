@@ -41,9 +41,11 @@ static uint32_t
 check_smmu_pmcg(uint32_t check_counter)
 {
     uint32_t num_smmu, num_pmcg, i;
+    uint32_t test_skip = 1;
     uint32_t smmu_version;
     uint64_t smmu_base, pmcg_base, pmcg_smmu_base, num_pmcg_count;
     uint32_t test_fail = 0, num_pmcg_found;
+    uint32_t status;
 
     num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
     num_pmcg = val_iovirt_get_pmcg_info(PMCG_NUM_CTRL, 0);
@@ -53,9 +55,9 @@ check_smmu_pmcg(uint32_t check_counter)
         return ACS_STATUS_SKIP;
     } else if (num_pmcg == 0) {
         /* If SMMUs are present in system and no PMCGs detected, report test as FAIL*/
-        val_print(ACS_PRINT_DEBUG, "\n       SMMUs in the system don't implement SMMUv3"
+        val_print(ACS_PRINT_ERR, "\n       SMMUs in the system don't implement SMMUv3"
                                    " Performance Monitors Extension ", 0);
-        return ++test_fail;
+        return ACS_STATUS_FAIL;
     }
 
     while (num_smmu--) {
@@ -66,6 +68,7 @@ check_smmu_pmcg(uint32_t check_counter)
             continue;
         }
 
+        test_skip = 0; // At least one SMMU v3 found
         smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, num_smmu);
         num_pmcg_found = 0;
 
@@ -74,6 +77,14 @@ check_smmu_pmcg(uint32_t check_counter)
             pmcg_smmu_base = val_iovirt_get_pmcg_info(PMCG_NODE_SMMU_BASE, i);
             if (smmu_base == pmcg_smmu_base) {
                 pmcg_base = val_iovirt_get_pmcg_info(PMCG_CTRL_BASE, i);
+
+                /* Check if PMCG node memory is mapped. If not, map it */
+                status = val_mmu_update_entry(pmcg_base, SIZE_4KB);
+                if (status) {
+                    val_print(ACS_PRINT_ERR, "\n       Could not map PMCG node memory", 0);
+                    return ACS_STATUS_FAIL;
+                }
+
                 num_pmcg_count = VAL_EXTRACT_BITS(val_mmio_read(pmcg_base + SMMU_PMCG_CFGR), 0, 5)
                                  + 1;
 
@@ -96,6 +107,9 @@ check_smmu_pmcg(uint32_t check_counter)
             test_fail++;
         }
     }
+
+    if (test_skip)
+        return ACS_STATUS_SKIP;
 
     return test_fail ? ACS_STATUS_FAIL : ACS_STATUS_PASS;
 }
@@ -141,7 +155,7 @@ i021_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
     num_pe = 1; /* This test is run on single PE */
 
-    val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     if (status != ACS_STATUS_SKIP)
         val_run_test_payload(TEST_NUM, num_pe, payload_pmcg_present, 0);
@@ -161,7 +175,7 @@ i027_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
     num_pe = 1; /* This test is run on single PE */
 
-    val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM1, TEST_DESC1, num_pe);
     if (status != ACS_STATUS_SKIP)
         val_run_test_payload(TEST_NUM1, num_pe, payload_counter_check, 0);

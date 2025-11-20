@@ -69,6 +69,7 @@
 typedef struct {
     uint32_t bdf;
     uint32_t initialized;
+    uint32_t rc_index;
 } EXERCISER_INFO_BLOCK;
 
 typedef struct {
@@ -118,6 +119,7 @@ uint32_t val_exerciser_get_state(EXERCISER_STATE *state, uint32_t instance);
 uint32_t val_exerciser_ops(EXERCISER_OPS ops, uint64_t param, uint32_t instance);
 uint32_t val_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data, uint32_t instance);
 uint32_t val_exerciser_get_bdf(uint32_t instance);
+uint32_t val_exerciser_get_exerciser_instance(uint32_t rc_index);
 uint32_t val_get_exerciser_err_info(EXERCISER_ERROR_CODE type);
 void     val_exerciser_disable_rp_pio_register(uint32_t bdf);
 uint32_t val_exerciser_check_poison_data_forwarding_support(void);

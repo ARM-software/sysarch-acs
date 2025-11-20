@@ -77,25 +77,40 @@ payload(void)
           continue;
       }
 
-      /* Enable the ARI forwarding enable bit in RP */
-      if (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
-          val_print(ACS_PRINT_DEBUG, "\n       PCIe Express Capability not present ", 0);
+      /* Check if Exerciser's root port supports ARI forwarding. Skip if PCI Express Capability
+         structure is not found or failed to read Device Capabilites 2 reg */
+      status = val_pcie_ari_forwarding_support(erp_bdf);
+      if (status == NOT_IMPLEMENTED)
+          continue;
+
+      /* Skip the device if the RP does not support ARI forwarding */
+      if (status == 0) {
+          val_print(ACS_PRINT_WARN, "\n       ARI Forwarding not supported for bdf 0x%x", erp_bdf);
+          val_print(ACS_PRINT_WARN, "\n       Skipping test for exerciser bdf 0x%x", e_bdf);
           continue;
       }
+
+      /* If test runs for atleast an exerciser */
+      test_skip = 0;
+
+      /* Enable the ARI forwarding enable bit in Root Port */
+      val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_PCIECS, &cap_base);
       val_pcie_read_cfg(erp_bdf, cap_base + DCTL2R_OFFSET, &reg_value);
       reg_value &= DCTL2R_MASK;
       reg_value |= (DCTL2R_AFE_MASK << DCTL2R_AFE_SHIFT);
       val_pcie_write_cfg(erp_bdf, cap_base + DCTL2R_OFFSET, reg_value);
 
-      /* Enable the ARI forwarding enable bit in Exerciser */
-      if (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
-          val_print(ACS_PRINT_DEBUG, "\n       PCIe Express Capability not present ", 0);
+      /* Read back the value of ARI Forwarding enable bit */
+      val_pcie_read_cfg(erp_bdf, cap_base + DCTL2R_OFFSET, &reg_value);
+      reg_value = (reg_value >> DCTL2R_AFE_SHIFT) & DCTL2R_AFE_MASK;
+
+      /* Fail the test if the bitfied does not respond to the write */
+      if (reg_value != 1) {
+          val_print(ACS_PRINT_ERR, "\n       ARI Forwarding Enable bit not set for", 0);
+          val_print(ACS_PRINT_ERR, " bdf 0x%x", erp_bdf);
+          fail_cnt++;
           continue;
       }
-      val_pcie_read_cfg(e_bdf, cap_base + DCTL2R_OFFSET, &reg_value);
-      reg_value &= DCTL2R_MASK;
-      reg_value |= (DCTL2R_AFE_MASK << DCTL2R_AFE_SHIFT);
-      val_pcie_write_cfg(e_bdf, cap_base + DCTL2R_OFFSET, reg_value);
 
       /* Read the secondary, subordinate bus and segment number */
       val_pcie_read_cfg(erp_bdf, TYPE1_PBN, &bus_value);
@@ -118,8 +133,6 @@ payload(void)
               if (status == PCIE_CAP_NOT_FOUND)
                   goto test_result;
 
-              /* If test runs for atleast an endpoint */
-              test_skip = 0;
               val_pcie_read_cfg(dev_bdf, TYPE01_VIDR, &reg_value);
               val_exerciser_ops(STOP_TXN_MONITOR, CFG_READ, instance);
               val_exerciser_get_param(CFG_TXN_ATTRIBUTES, (uint64_t *)&header_type, 0, instance);
@@ -195,7 +208,7 @@ e015_entry(uint32_t num_pe)
   num_pe = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)

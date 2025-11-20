@@ -76,9 +76,13 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
       return;
 
   /* Get TPM capability information */
+  ZeroMem(&Capability, sizeof(Capability));
+  Capability.Size = sizeof(EFI_TCG2_BOOT_SERVICE_CAPABILITY);
   Status = Tcg2->GetCapability(Tcg2, &Capability);
   if (EFI_ERROR(Status)) {
-      acs_print(ACS_PRINT_ERR, L" Failed to retrieve TPM capability from TCG2 protocol.\n", 0);
+      acs_print(ACS_PRINT_ERR,
+                L" Failed to retrieve TPM capability from TCG2 protocol, Status: 0x%x\n",
+                Status);
       return;
   }
 

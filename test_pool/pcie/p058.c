@@ -180,10 +180,14 @@ payload(void *arg)
 
 exception_return:
       /*
-       * Check if either of UR response or abort isn't received.
+       * If none of below condition are met, device MSE check is considered fail
+       *   - UR bit detected set
+       *   - All 1's response received
+       *   - Abort is not received.
        */
       val_print(ACS_PRINT_DEBUG, "       bar_data %x ", bar_data);
-      if (!(IS_TEST_PASS(val_get_status(pe_index)) || (bar_data == PCIE_UNKNOWN_RESPONSE)))
+      if (!(IS_TEST_PASS(val_get_status(pe_index)) || (bar_data == PCIE_UNKNOWN_RESPONSE)
+            || (val_pcie_is_urd(bdf))))
       {
           val_print(ACS_PRINT_ERR, "\n       BDF %x MSE functionality failure", bdf);
           test_fails++;
@@ -216,7 +220,7 @@ p058_entry(uint32_t num_pe)
   num_pe = 1;  //This test is run on single processor
   test_num = test_entries[0].test_num;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(test_num, test_entries[0].desc, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_configurable_payload(&data, payload);
@@ -238,7 +242,7 @@ p059_entry(uint32_t num_pe)
   num_pe = 1;  //This test is run on single processor
   test_num = test_entries[1].test_num;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(test_num, test_entries[1].desc, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_configurable_payload(&data, payload);
@@ -260,7 +264,7 @@ p060_entry(uint32_t num_pe)
   num_pe = 1;  //This test is run on single processor
   test_num = test_entries[2].test_num;
 
-  val_log_context(ACS_PRINT_TEST, (char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(test_num, test_entries[2].desc, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_configurable_payload(&data, payload);

@@ -40,7 +40,7 @@ export ACS_PATH=$(realpath "$acs_path")
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh <acs_type>"
-    echo "where acs_type is unified, bsa, bsa_dt, sbsa, nist, mpam, drtm, mem_test"
+    echo "where acs_type is unified, bsa, bsa_dt, sbsa, nist, mpam, drtm, mem_test, pfdi"
     return 1;
 fi
 
@@ -138,6 +138,16 @@ if [ "$1" == "drtm" ]; then
     build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Drtm.inf
     return 0;
 fi
+
+if [ "$1" == "pfdi" ]; then
+    git checkout ShellPkg/ShellPkg.dsc
+    git checkout MdePkg/Library/UefiMemoryAllocationLib/MemoryAllocationLib.c
+    git checkout MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c
+    git apply ShellPkg/Application/sysarch-acs/patches/edk2_pfdi.patch
+    build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Pfdi.inf
+    return 0;
+fi
+
 
 if [ "$1" == "mem_test" ]; then
     git checkout ShellPkg/ShellPkg.dsc

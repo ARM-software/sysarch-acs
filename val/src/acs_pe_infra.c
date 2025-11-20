@@ -510,7 +510,8 @@ val_smbios_create_info_table(uint64_t *smbios_info_table)
   g_smbios_info_table = (PE_SMBIOS_PROCESSOR_INFO_TABLE *)smbios_info_table;
 
   pal_smbios_create_info_table(g_smbios_info_table);
-  val_print(ACS_PRINT_TEST, " SMBIOS: Num of slots :    %d\n", g_smbios_info_table->slot_count);
+  val_print(ACS_PRINT_TEST, " SMBIOS: Num of slots                 : %4d\n",
+            g_smbios_info_table->slot_count);
 }
 
 /**

@@ -59,6 +59,7 @@ SHELL_FILE_HANDLE g_acs_log_file_handle;
    of EL1 phy and virt timer, Below command line option is added only for debug
    purpose to complete SBSA run on these systems */
 UINT32  g_el1physkip = FALSE;
+UINT32  g_build_sbsa = TRUE;
 
 #define SBSA_LEVEL_PRINT_FORMAT(level, only) ((level > SBSA_MAX_LEVEL_SUPPORTED) ? \
     ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
@@ -387,7 +388,7 @@ command_init ()
       if (EFI_ERROR(Status))
       {
         Print(L"Allocate memory for -skip failed\n", 0);
-        return 0;
+        return ACS_PARSE_SKIP_RUN;
       }
 
       g_skip_test_num[0] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg+0));
@@ -479,7 +480,7 @@ command_init ()
   // Options with Flags
   if ((ShellCommandLineGetFlag (ParamPackage, L"-help")) || (ShellCommandLineGetFlag (ParamPackage, L"-h"))){
      HelpMsg();
-     return 0;
+     return ACS_PARSE_SKIP_RUN;
   }
 
   // Options with Values
@@ -499,7 +500,7 @@ command_init ()
           if (EFI_ERROR(Status))
           {
               Print(L"Allocate memory for -t failed\n", 0);
-              return 0;
+              return ACS_PARSE_SKIP_RUN;
           }
 
           /* Check if the first value to -t is a decimal character. */
@@ -538,7 +539,7 @@ command_init ()
           if (EFI_ERROR(Status))
           {
               Print(L"Allocate memory for -m failed\n", 0);
-              return 0;
+              return ACS_PARSE_SKIP_RUN;
           }
 
           /* Check if the first value to -m is a decimal character. */

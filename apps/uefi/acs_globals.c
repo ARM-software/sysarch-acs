@@ -72,6 +72,9 @@ uint32_t g_level_filter_mode = LVL_FILTER_NONE;
 uint32_t g_level_value       = 0;
 uint32_t g_bsa_sw_view_mask  = 0;
 
+/* Set when invalid rule/module token encountered during CLI parsing */
+BOOLEAN g_invalid_arg_seen = FALSE;
+
 /*
  * Global counters for rule/test outcomes.
  * Updated in val/src/rule_based_execution_helpers.c::print_rule_test_status().

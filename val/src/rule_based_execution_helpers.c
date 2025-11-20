@@ -153,6 +153,18 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
     }
     val_print(ACS_PRINT_TEST, " ", 0);
     val_print(ACS_PRINT_TEST, rule_id_string[rule_enum], 0);
+
+    /* TODO
+       Note: Test ID print would be deprecated in future, please use rule id as primary key to
+       identify tests and comment on coverage */
+    val_print(ACS_PRINT_TEST, " ", 0);
+    if (rule_test_map[rule_enum].test_num == INVALID_ENTRY) {
+        val_print(ACS_PRINT_TEST, "-", 0);
+    }
+    else {
+        val_print(ACS_PRINT_TEST, "%d", rule_test_map[rule_enum].test_num);
+    }
+
     val_print(ACS_PRINT_TEST, " : ", 0);
     /* Print rule  description */
     if (rule_test_map[rule_enum].flag != INVALID_ENTRY) {

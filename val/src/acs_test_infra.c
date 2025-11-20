@@ -49,7 +49,6 @@ val_print(uint32_t level, char8_t *string, uint64_t data)
           1. Caller       - Application/VAL layers
           2. Prerequisite - None
 
-  @param level  print verbosity to use with val_print
   @param file   source file name (typically __FILE__)
   @param func   function name (typically __func__)
   @param line   source line number (typically __LINE__)
@@ -57,15 +56,35 @@ val_print(uint32_t level, char8_t *string, uint64_t data)
   @return None
  **/
 void
-val_log_context(uint32_t level, char8_t *file, char8_t *func, uint32_t line)
+val_log_context(char8_t *file, char8_t *func, uint32_t line)
 {
-  val_print(level, "\n    [", 0);
-  val_print(level, file, 0);
-  val_print(level, ":", 0);
-  val_print(level, "%d", line);
-  val_print(level, " ", 0);
-  val_print(level, func, 0);
-  val_print(level, "] ", 0);
+  char8_t *trimmed_file;
+  char8_t *marker;
+  /* Substring to locate in full file path */
+  const char8_t pattern[] = "test_pool";
+  uint32_t i;
+
+  trimmed_file = file;
+  marker = file;
+
+  /* Scan file path for pattern and trim from first occurrence */
+  while (*marker != 0) {
+      for (i = 0; (pattern[i] != 0) && (marker[i] == pattern[i]); i++) {
+          /* Intentionally empty */
+      }
+      if (pattern[i] == 0) {
+          trimmed_file = marker;
+          break;
+      }
+      marker++;
+  }
+
+  val_print(ACS_PRINT_TEST, "\n    ", 0);
+  val_print(ACS_PRINT_TEST, trimmed_file, 0);
+  val_print(ACS_PRINT_TEST, ":", 0);
+  val_print(ACS_PRINT_TEST, "%d", line);
+  val_print(ACS_PRINT_TEST, " ", 0);
+  val_print(ACS_PRINT_TEST, func, 0);
 }
 
 /**
@@ -151,14 +170,14 @@ val_print_acs_test_status_summary(void)
   val_print(ACS_PRINT_TEST, "   Total Rules Run        : %d\n",
             g_rule_test_stats.total_rules_run);
   val_print(ACS_PRINT_TEST, "   Passed                 : %d\n", g_rule_test_stats.passed);
-  val_print(ACS_PRINT_TEST, "   Passed (Partial)       : %d\n",
+  val_print(ACS_PRINT_TEST, "   Passed (*Partial)      : %d\n",
             g_rule_test_stats.partial_coverage);
   val_print(ACS_PRINT_TEST, "   Warnings               : %d\n", g_rule_test_stats.warnings);
   val_print(ACS_PRINT_TEST, "   Skipped                : %d\n", g_rule_test_stats.skipped);
   val_print(ACS_PRINT_TEST, "   Failed                 : %d\n", g_rule_test_stats.failed);
   val_print(ACS_PRINT_TEST, "   PAL Not Supported      : %d\n",
             g_rule_test_stats.pal_not_supported);
-  val_print(ACS_PRINT_TEST, "   Not Implemented        : %d\n",
+  val_print(ACS_PRINT_TEST, "   Test Not Implemented   : %d\n",
             g_rule_test_stats.not_implemented);
   val_print(ACS_PRINT_TEST, "---------------------------------\n", 0);
 
@@ -381,7 +400,7 @@ val_check_skip_module(uint32_t module_base)
   (void)module_base;
   return ACS_STATUS_PASS;
 }
-#endif
+#endif /* COMPILE_RB_EXE */
 
 /**
   @brief  This API prints the test number, description and
@@ -395,13 +414,14 @@ val_check_skip_module(uint32_t module_base)
 
   @return         Skip - if the user has overriden to skip the test.
  **/
+#ifndef COMPILE_RB_EXE
 uint32_t
 val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
 {
-/* Test header and skip logic is implemented by rule bases orchestrator */
-#ifndef COMPILE_RB_EXE
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+
   uint32_t i;
+  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+
   g_override_skip = 0;
 
   for (i = 0; i < num_pe; i++)
@@ -440,16 +460,29 @@ val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
 
   val_print(ACS_PRINT_ERR, "%4d : ", test_num); //Always print this
   val_print(ACS_PRINT_TEST, desc, 0);
-  g_acs_tests_total++;
-#else
-  (void)desc;
-  (void)num_pe;
-#endif
   val_report_status(0, ACS_START(test_num), NULL);
   val_pe_initialize_default_exception_handler(val_pe_default_esr);
 
+  g_acs_tests_total++;
+
   return ACS_STATUS_PASS;
 }
+#else
+uint32_t
+val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
+{
+  uint32_t i;
+  (void)desc;
+  (void)num_pe;
+
+  /* Set TEST_PENDING_VAL status for all PEs, hint for val_wait_for_test_completion */
+  for (i = 0; i < num_pe; i++)
+      val_set_status(i, RESULT_PENDING(test_num));
+
+  val_pe_initialize_default_exception_handler(val_pe_default_esr);
+  return ACS_STATUS_PASS;
+}
+#endif /* COMPILE_RB_EXE */
 
 /**
   @brief  Allocate memory which is to be shared across PEs
@@ -717,29 +750,36 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
 
   uint32_t i;
   uint32_t overall_status;
-  uint32_t status = TEST_FAIL_VAL;
+  uint32_t status = TEST_FAIL;
+  uint32_t checkpoint;
   uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   if (num_pe == 1) {
       status = val_get_status(my_index);
+      checkpoint = status & STATUS_MASK;
       status = (status >> STATE_BIT) & STATE_MASK;
-      return status;
+      overall_status = status;
   } else {
       /* Start with least severe status */
-      overall_status = TEST_PASS_VAL;
+      overall_status = TEST_PASS;
       for (i = 0; i < num_pe; i++) {
           status = val_get_status(i);
+          /* Checkpoint info from last PE would be reflected */
+          checkpoint = status & STATUS_MASK;
           status = (status >> STATE_BIT) & STATE_MASK;
-          // DEBUG_PRINT
-          // val_print(ACS_PRINT_ERR, "\n PE index = %d", i);
-          // val_print(ACS_PRINT_ERR, " status = 0x%x", status);
           /* Overwrite status if higher severity status found*/
           if (status > overall_status) {
               overall_status = status;
           }
       }
-      return overall_status;
   }
+  if (overall_status == TEST_FAIL) {
+      val_print(ACS_PRINT_ERR, "\n        Failed at checkpoint - %2d", checkpoint);
+  } else if (overall_status == TEST_SKIP) {
+      val_print(ACS_PRINT_ERR, "\n        Skipped at checkpoint - %2d", checkpoint);
+  }
+
+  return overall_status;
 }
 #endif
 /**
