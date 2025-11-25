@@ -343,24 +343,26 @@
 #define DSR_TP_MASK   0x1
 
 /* Device Capabilities 2 reg shift */
-#define DCAP2R_AFS_SHIFT  5
-#define DCAP2R_OBFF_SHIFT 18
-#define DCAP2R_CTRS_SHIFT 0
-#define DCAP2R_CTDS_SHIFT 4
-#define DCAP2R_A32C_SHIFT 7
-#define DCAP2R_A64C_SHIFT 8
+#define DCAP2R_CTRS_SHIFT  0
+#define DCAP2R_CTDS_SHIFT  4
+#define DCAP2R_AFS_SHIFT   5
+#define DCAP2R_ARS_SHIFT   6
+#define DCAP2R_A32C_SHIFT  7
+#define DCAP2R_A64C_SHIFT  8
 #define DCAP2R_A128C_SHIFT 9
-#define DCAP2R_ARS_SHIFT 6
+#define DCAP2R_OBFF_SHIFT  18
+#define DCAP2R_FRS_SHIFT   31
 
 /* Device Capabilities 2 reg mask */
-#define DCAP2R_AFS_MASK  0x1
-#define DCAP2R_OBFF_MASK 0x3
-#define DCAP2R_CTRS_MASK 0xf
-#define DCAP2R_CTDS_MASK 0x1
-#define DCAP2R_A32C_MASK 0x1
-#define DCAP2R_A64C_MASK 0x1
+#define DCAP2R_AFS_MASK   0x1
+#define DCAP2R_OBFF_MASK  0x3
+#define DCAP2R_CTRS_MASK  0xf
+#define DCAP2R_CTDS_MASK  0x1
+#define DCAP2R_A32C_MASK  0x1
+#define DCAP2R_A64C_MASK  0x1
 #define DCAP2R_A128C_MASK 0x1
-#define DCAP2R_ARS_MASK 0x01
+#define DCAP2R_ARS_MASK   0x01
+#define DCAP2R_FRS_MASK   0x1
 
 /* Device Control 2 reg shift */
 #define DCTL2R_AFE_SHIFT  5

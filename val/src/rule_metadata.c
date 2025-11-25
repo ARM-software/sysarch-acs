@@ -2197,6 +2197,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 91,
         },
+        [BJLPB] = {
+            .test_entry_id    = P100_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check MSI/MSI-X if FRS is supported",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 100,
+        },
     /* MPAM */
         [S_L7MP_01] = {
             .test_entry_id    = MPAM001_ENTRY,
@@ -3385,6 +3393,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P022_ENTRY] = p022_entry, // used in wrapper.
     [P004_ENTRY] = p004_entry, // used in wrapper.
     [P026_ENTRY] = p026_entry, // used in wrapper.
+    [P100_ENTRY] = p100_entry,
     [P105_ENTRY] = p105_entry,
 #endif /* TARGET_PC_BAREMETAL */
 #endif /* TARGET_BAREMETAL */

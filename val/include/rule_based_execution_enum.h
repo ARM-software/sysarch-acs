@@ -860,6 +860,7 @@ typedef enum {
     P094_ENTRY,
     P096_ENTRY,
     P097_ENTRY,
+    P100_ENTRY,
     P104_ENTRY,
     GPU_04_ENTRY,
     TEST_ENTRY_SENTINEL

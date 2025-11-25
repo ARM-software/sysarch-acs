@@ -544,6 +544,12 @@ val_bsa_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
     }
 #endif
 
+#ifndef TARGET_LINUX
+    if (g_bsa_level > 1 || g_bsa_only_level == 2) {
+        status |= p100_entry(num_pe);
+    }
+
+#endif
   }
 
   view_print_info(MODULE_END);
