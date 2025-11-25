@@ -4,7 +4,7 @@
 ## Table of Contents
 
 * [Introduction](#introduction)
-* [Repository Structure](#repository-structure)
+* [Repository Structure](#-repository-structure)
 * [Architecture Compliance Suites](#architecture-compliance-suites)
   * [BSA ACS](#bsa-architecture-compliance-suite)
   * [SBSA ACS](#sbsa-architecture-compliance-suite)
@@ -13,10 +13,11 @@
   * [DRTM ACS](#drtm-architecture-compliance-suite)
   * [MemTest ACS](#memtest-architecture-compliance-suite)
   * [PFDI ACS](#pfdi-architecture-compliance-suite)
-* [Security Implications](#security-implications)
-* [Limitations](#limitations)
-* [Feedback and Support](#feedback-and-support)
-* [License](#license)
+* [Unified ACS](#unified-architecture-compliance-suite)
+* [Security Implications](#-security-implications)
+* [Limitations](#-limitations)
+* [Feedback and Support](#-feedback-and-support)
+* [License](#-license)
 
 ---
 
@@ -50,6 +51,7 @@ sysarch-acs/
 │   ├── uefi/
 │   |   └── <acs_name>_main.c
 ├── docs/
+│   ├── unified/
 │   ├── bsa/
 │   ├── sbsa/
 │   ├── drtm/
@@ -182,6 +184,14 @@ Validates platform compliance with Arm PFDI specification.
 
 ####  Reference for Build, Execution, and More
 Refer to the [PFDI ACS README](docs/pfdi/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
+
+---
+
+## Unified Architecture Compliance Suite
+Provides a unified entry point for running BSA, SBSA, PC-BSA validation from a single UEFI application.
+
+####  Reference for Build, Execution, and More
+Refer to the [Unified ACS README](docs/unified/README.md) for build steps, execution procedures, additional information, and known limitations.
 
 ---
 
