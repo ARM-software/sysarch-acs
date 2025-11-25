@@ -279,12 +279,12 @@ pci_mm_03_entry(uint32_t num_pe)
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
 }
 
-/* RE_SMU_2 */
+/* RI_SMU_1 */
 uint32_t
-re_smu_2_entry(uint32_t num_pe)
+ri_smu_1_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e p_list[] = { P028_ENTRY, TEST_ENTRY_SENTINEL };
-    TEST_ENTRY_ID_e e_list[] = { E020_ENTRY, TEST_ENTRY_SENTINEL };
+    TEST_ENTRY_ID_e p_list[] = { P080_ENTRY, TEST_ENTRY_SENTINEL };
+    TEST_ENTRY_ID_e e_list[] = { E019_ENTRY, E020_ENTRY, TEST_ENTRY_SENTINEL };
 
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
 }

@@ -19,25 +19,16 @@
 #include "val/include/acs_pcie.h"
 #include "val/include/acs_pe.h"
 
-static const
-test_config_t test_entries[] = {
-        { ACS_PCIE_TEST_NUM_BASE + 83, "Read and write to BAR reg: RCiEP      ", "RE_BAR_1"},
-        { ACS_PCIE_TEST_NUM_BASE + 29, "Read and write to BAR reg: iEP pair   ", "IE_BAR_1"}
-    };
-
-/* Declare and define struct - passed as argument to payload */
-typedef struct {
-    uint32_t test_num;
-    uint32_t dev_type1;
-    uint32_t dev_type2;
-} test_data_t;
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 83)
+#define TEST_RULE  "RI_BAR_1"
+#define TEST_DESC  "Check RCiEP/iEP/RP R/W to BAR reg     "
 
 #define TEST_DATA_1  0xDEADDAED
 #define TEST_DATA_2  0xABABABAB
 
 static
 void
-payload(void *arg)
+payload(void)
 {
   uint32_t bdf, offset;
   uint32_t bar_value;
@@ -54,7 +45,6 @@ payload(void *arg)
   uint64_t bar_orig;
   uint64_t bar_new;
   uint64_t bar_upper_bits;
-  test_data_t *test_data = (test_data_t *)arg;
 
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -66,7 +56,8 @@ payload(void *arg)
   {
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
-      if ((dp_type == test_data->dev_type1) || (dp_type == test_data->dev_type2)) {
+      if (dp_type == RCiEP || dp_type == iEP_EP || dp_type == iEP_RP)
+      {
           /* If test runs for atleast an endpoint */
           test_skip = 0;
           offset = BAR0_OFFSET;
@@ -155,52 +146,31 @@ payload(void *arg)
 
   if (test_skip == 1) {
       val_print(ACS_PRINT_DEBUG, "\n       No target device type found. Skipping test", 0);
-      val_set_status(pe_index, RESULT_SKIP(test_data->test_num, 1));
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
   }
   else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(test_data->test_num, fail_cnt));
+      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(test_data->test_num, 1));
+      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
 p083_entry(uint32_t num_pe)
 {
+
   uint32_t status = ACS_STATUS_FAIL;
-  test_data_t data = {.test_num = test_entries[0].test_num, .dev_type1 = (uint32_t)RCiEP};
 
   num_pe = 1;  //This test is run on single processor
 
   val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(test_entries[0].test_num, test_entries[0].desc, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_configurable_payload(&data, payload);
+      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
 
   /* get the result from all PE and check for failure */
-  status = val_check_for_error(test_entries[0].test_num, num_pe, test_entries[0].rule);
+  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
-  val_report_status(0, ACS_END(test_entries[0].test_num), test_entries[0].rule);
-  return status;
-}
+  val_report_status(0, ACS_END(TEST_NUM), NULL);
 
-uint32_t
-p029_entry(uint32_t num_pe)
-{
-  uint32_t status = ACS_STATUS_FAIL;
-  test_data_t data = {.test_num = test_entries[1].test_num,
-                        .dev_type1 = (uint32_t)iEP_EP,
-                        .dev_type2 = (uint32_t)iEP_RP};
-
-  num_pe = 1;  //This test is run on single processor
-
-  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(test_entries[1].test_num, test_entries[1].desc, num_pe);
-  if (status != ACS_STATUS_SKIP)
-      val_run_test_configurable_payload(&data, payload);
-
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(test_entries[1].test_num, num_pe, test_entries[1].rule);
-
-  val_report_status(0, ACS_END(test_entries[1].test_num), test_entries[1].rule);
   return status;
 }

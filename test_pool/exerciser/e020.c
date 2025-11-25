@@ -28,7 +28,7 @@
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 20)
 #define TEST_DESC  "ATS Functionality Check               "
-#define TEST_RULE  "RE_SMU_2"
+#define TEST_RULE  "RI_SMU_1"
 
 #define TEST_DATA_NUM_PAGES  1
 #define TEST_DATA 0xDE
@@ -73,7 +73,7 @@ payload(void)
   uint32_t e_bdf;
   uint32_t bdf;
   uint32_t rc_index;
-  uint32_t rciep_rc_index;
+  uint32_t dev_rc_index;
   uint32_t cap_base;
   void *dram_buf_in_virt;
   void *dram_buf_out_virt;
@@ -156,21 +156,21 @@ payload(void)
   {
     bdf = bdf_tbl_ptr->device[tbl_index].bdf;
     dp_type = val_pcie_device_port_type(bdf);
-    if (dp_type != RCiEP) {
-        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP device", bdf);
+    if ((dp_type != RCiEP) && (dp_type != iEP_EP) && (dp_type != iEP_RP)) {
+        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP/iEP device", bdf);
         continue;
     }
 
-    val_print(ACS_PRINT_DEBUG, "\n      RCiEP BDF - 0x%x ", bdf);
+    val_print(ACS_PRINT_DEBUG, "\n      RCiEP/iEP BDF - 0x%x ", bdf);
 
     /* Get rc index of RCiEP in IOVIRT mapping*/
-    rciep_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
-    if (rciep_rc_index == ACS_INVALID_INDEX)
+    dev_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
+    if (dev_rc_index == ACS_INVALID_INDEX)
         continue;
 
-    /* Check if RC of RCiEP bdf matches with RC of exerciser
+    /* Check if RC of RCiEP/iEP bdf matches with RC of exerciser
        If it matches, return the instance of the exerciser */
-    instance = val_exerciser_get_exerciser_instance(rciep_rc_index);
+    instance = val_exerciser_get_exerciser_instance(dev_rc_index);
     if (instance == ACS_INVALID_INDEX)
       continue;
 
@@ -193,7 +193,7 @@ payload(void)
         continue;
 
     val_print(ACS_PRINT_INFO, "\n       rc_index - 0x%x", rc_index);
-    val_print(ACS_PRINT_INFO, "\n       rciep_rc_index - 0x%x", rciep_rc_index);
+    val_print(ACS_PRINT_INFO, "\n       dev_rc_index - 0x%x", dev_rc_index);
     /* Continue further only if RC supports ATS - this is not standard but information
      * based on the SOC design */
     if (!val_iovirt_get_pcie_rc_info(RC_ATS_ATTRIBUTE, rc_index))

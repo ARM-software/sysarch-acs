@@ -28,7 +28,7 @@
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 19)
 #define TEST_DESC  "PCIe Address translation check        "
-#define TEST_RULE  "RE_SMU_1"
+#define TEST_RULE  "RI_SMU_1"
 
 #define TEST_DATA_NUM_PAGES  4
 #define TEST_DATA 0xDE
@@ -66,7 +66,7 @@ void
 payload(void)
 {
   uint32_t pe_index;
-  uint32_t rciep_rc_index;
+  uint32_t rc_index;
   uint32_t tbl_index;
   uint32_t dma_len;
   uint32_t instance;
@@ -160,21 +160,21 @@ payload(void)
   {
     bdf = bdf_tbl_ptr->device[tbl_index].bdf;
     dp_type = val_pcie_device_port_type(bdf);
-    if (dp_type != RCiEP) {
-        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP device", bdf);
+    if ((dp_type != RCiEP) && (dp_type != iEP_EP) && (dp_type != iEP_RP)) {
+        val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x not an RCiEP/iEP device", bdf);
         continue;
     }
 
-    val_print(ACS_PRINT_DEBUG, "\n      RCiEP BDF - 0x%x ", bdf);
+    val_print(ACS_PRINT_DEBUG, "\n      RCiEP/iEP BDF - 0x%x ", bdf);
 
-    /* Get rc index of RCiEP in IOVIRT mapping*/
-    rciep_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
-    if (rciep_rc_index == ACS_INVALID_INDEX)
+    /* Get rc index of RCiEP/iEP in IOVIRT mapping*/
+    rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
+    if (rc_index == ACS_INVALID_INDEX)
         continue;
 
-    /* Check if RC of RCiEP bdf matches with RC of exerciser
+    /* Check if RC of RCiEP/iEP bdf matches with RC of exerciser
        If it matches, return the instance of the exerciser */
-    instance = val_exerciser_get_exerciser_instance(rciep_rc_index);
+    instance = val_exerciser_get_exerciser_instance(rc_index);
     if (instance == ACS_INVALID_INDEX)
       continue;
 
@@ -186,7 +186,7 @@ payload(void)
     e_bdf = val_exerciser_get_bdf(instance);
 
     val_print(ACS_PRINT_DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);
-    val_print(ACS_PRINT_DEBUG, "\n       rciep_rc_index - 0x%x", rciep_rc_index);
+    val_print(ACS_PRINT_DEBUG, "\n       rc_index - 0x%x", rc_index);
 
     /* Get SMMU node index for this exerciser instance */
     master.smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
@@ -282,7 +282,7 @@ payload(void)
   }
 
   if (test_skip == 1) {
-      val_print(ACS_PRINT_DEBUG, "\n       No RCiEP type devicefound, Skipping the test", 0);
+      val_print(ACS_PRINT_DEBUG, "\n       No RCiEP/iEP type devicefound, Skipping the test", 0);
       val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
       goto test_clean;
   }

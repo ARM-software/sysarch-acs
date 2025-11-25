@@ -157,13 +157,11 @@ uint32_t e027_entry(uint32_t num_pe);
 uint32_t e028_entry(uint32_t num_pe);
 uint32_t e029_entry(uint32_t num_pe);
 uint32_t e030_entry(uint32_t num_pe);
-uint32_t e031_entry(uint32_t num_pe);
 uint32_t e032_entry(uint32_t num_pe);
 uint32_t e033_entry(uint32_t num_pe);
 uint32_t e034_entry(uint32_t num_pe);
 uint32_t e035_entry(uint32_t num_pe);
 uint32_t e036_entry(uint32_t num_pe);
-uint32_t e037_entry(uint32_t num_pe);
 uint32_t e038_entry(uint32_t num_pe);
 uint32_t e039_entry(uint32_t num_pe);
 

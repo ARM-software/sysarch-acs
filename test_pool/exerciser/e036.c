@@ -26,17 +26,9 @@
 #include "val/include/acs_exerciser.h"
 #include "val/include/acs_pcie.h"
 
-static const
-test_config_t test_entries[] = {
-    { ACS_EXERCISER_TEST_NUM_BASE + 36, "Generate PASID transactions: RCiEP    ", "RE_SMU_4"},
-    { ACS_EXERCISER_TEST_NUM_BASE + 37, "Generate PASID transactions: iEP EP   ", "IE_SMU_3"}
-};
-
-/* Declare and define struct - passed as argument to payload */
-typedef struct {
-    uint32_t test_num;
-    uint32_t dev_type;
-} test_data_t;
+#define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 36)
+#define TEST_RULE  "RI_SMU_3"
+#define TEST_DESC  "Generate PASID transactions"
 
 #define TEST_DATA_NUM_PAGES  2
 #define TEST_DATA 0xDE
@@ -84,7 +76,7 @@ clear_dram_buf(void *buf, uint32_t size)
  */
 static
 void
-payload(void *arg)
+payload(void)
 {
   uint32_t pe_index;
   uint32_t instance;
@@ -105,7 +97,6 @@ payload(void *arg)
   uint32_t page_size;
   uint32_t dp_type;
   uint32_t test_data_blk_size;
-  test_data_t *test_data = (test_data_t *)arg;
 
   memory_region_descriptor_t mem_desc_array[2], *mem_desc;
   smmu_master_attributes_t master = {0, 0, 0, 0, 0};
@@ -129,7 +120,7 @@ payload(void *arg)
   dram_buf_base_virt = val_memory_alloc_pages(TEST_DATA_NUM_PAGES * 2);
   if (!dram_buf_base_virt) {
       val_print(ACS_PRINT_ERR, "\n       Cacheable mem alloc failure %x", 2);
-      val_set_status(pe_index, RESULT_FAIL(test_data->test_num, 1));
+      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
       return;
   }
 
@@ -148,13 +139,13 @@ payload(void *arg)
   if (val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr))
   {
     val_print(ACS_PRINT_ERR, "\n       TCR read failure %x", 3);
-    val_set_status(pe_index, RESULT_FAIL(test_data->test_num, 3));
+    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 3));
     return;
   }
   if (val_pe_reg_read_ttbr(0 /*TTBR0*/, &ttbr))
   {
     val_print(ACS_PRINT_ERR, "\n       TTBR0 read failure %x", 4);
-    val_set_status(pe_index, RESULT_FAIL(test_data->test_num, 4));
+    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 4));
     return;
   }
 
@@ -182,7 +173,7 @@ payload(void *arg)
 
     dp_type = val_pcie_device_port_type(e_bdf);
 
-    if (dp_type != test_data->dev_type)
+    if ((dp_type != RCiEP) && (dp_type != iEP_EP))
         continue;
 
     val_print(ACS_PRINT_DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);
@@ -402,14 +393,14 @@ payload(void *arg)
   }
 
   if (e_valid_cnt)
-    val_set_status(pe_index, RESULT_PASS(test_data->test_num, 1));
+    val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
   else
-    val_set_status(pe_index, RESULT_SKIP(test_data->test_num, 1));
+    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
 
   goto test_clean;
 
 test_fail:
-  val_set_status(pe_index, RESULT_FAIL(test_data->test_num, 2));
+  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
 
 test_clean:
   val_memory_free_pages(dram_buf_base_virt, TEST_DATA_NUM_PAGES * 2);
@@ -421,47 +412,22 @@ test_clean:
 uint32_t
 e036_entry(uint32_t num_pe)
 {
-  uint32_t status = ACS_STATUS_FAIL;
   /* Run test on single PE */
   num_pe = 1;
-  test_data_t data = {.test_num = test_entries[0].test_num, .dev_type = (uint32_t)RCiEP};
+  uint32_t status = ACS_STATUS_FAIL;
 
   val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(test_entries[0].test_num, test_entries[0].desc, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
           return TEST_SKIP_VAL;
-      val_run_test_configurable_payload(&data, payload);
+      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(test_entries[0].test_num, num_pe, test_entries[0].rule);
+  /* Get the result from all PE and check for failure */
+  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
-  val_report_status(0, ACS_END(test_entries[0].test_num), test_entries[0].rule);
-
-  return status;
-}
-
-uint32_t
-e037_entry(uint32_t num_pe)
-{
-  uint32_t status = ACS_STATUS_FAIL;
-  /* Run test on single PE */
-  num_pe = 1;
-  test_data_t data = {.test_num = test_entries[1].test_num, .dev_type = (uint32_t)iEP_EP};
-
-  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(test_entries[1].test_num, test_entries[1].desc, num_pe);
-  if (status != ACS_STATUS_SKIP) {
-      if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return TEST_SKIP_VAL;
-      val_run_test_configurable_payload(&data, payload);
-  }
-
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(test_entries[1].test_num, num_pe, test_entries[1].rule);
-
-  val_report_status(0, ACS_END(test_entries[1].test_num), test_entries[1].rule);
+  val_report_status(0, ACS_END(TEST_NUM), NULL);
 
   return status;
 }

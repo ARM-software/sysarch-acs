@@ -390,13 +390,9 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p015_entry(num_pe);
       status |= p016_entry(num_pe); /* Depends on p015; run it prior to this test */
       status |= p027_entry(num_pe);
-      status |= p028_entry(num_pe);
-      status |= p029_entry(num_pe);
       status |= p034_entry(num_pe);
       status |= p037_entry(num_pe);
       status |= p038_entry(num_pe);
-      status |= p040_entry(num_pe);
-      status |= p041_entry(num_pe);
       status |= p047_entry(num_pe);
       status |= p048_entry(num_pe);
       status |= p049_entry(num_pe);
@@ -405,7 +401,6 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p052_entry(num_pe);
       status |= p053_entry(num_pe);
       status |= p054_entry(num_pe);
-      status |= p055_entry(num_pe);
       status |= p056_entry(num_pe);
       status |= p057_entry(num_pe);
       status |= p058_entry(num_pe);
@@ -664,10 +659,8 @@ val_sbsa_exerciser_execute_tests(uint32_t level, uint32_t num_pe)
       status |= e019_entry(num_pe);
       status |= e020_entry(num_pe);
       status |= e021_entry(num_pe);
-      status |= e031_entry(num_pe);
       status |= e034_entry(num_pe);
       status |= e036_entry(num_pe);
-      status |= e037_entry(num_pe);
       status |= e038_entry(num_pe);
   }
 
