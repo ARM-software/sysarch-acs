@@ -3655,6 +3655,9 @@ RULE_ID_e s_l6pci_1_rule_list[] = {
 /* S_L6PE_01 */
 RULE_ID_e s_l6pe_01_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
                                      RULE_ID_SENTINEL};
+/* LVQBC */
+RULE_ID_e lvqbc_rule_list[]   = {ZVDJG, RKLPK, RULE_ID_SENTINEL};
+
 /* SYS_RAS */
 RULE_ID_e sys_ras_rule_list[] = {
     /* SBSA Section B Server RAS */
@@ -3689,6 +3692,8 @@ alias_rule_map_t alias_rule_map[] = {
     {S_L6PCI_1, s_l6pci_1_rule_list},
     {S_L6PE_01, s_l6pe_01_rule_list},
     {SYS_RAS,   sys_ras_rule_list},
+    {LVQBC,     lvqbc_rule_list},
+
     /* PCBSA alias rules */
     {P_L1_01,  bsa_l1_rule_list},
     {P_L2WD_01, p_l2wd_01_rule_list},

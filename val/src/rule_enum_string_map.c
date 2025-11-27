@@ -182,6 +182,10 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [SYS_RAS_2]   = "SYS_RAS_2",
     [SYS_RAS_3]   = "SYS_RAS_3",
     [SYS_RAS_4]   = "SYS_RAS_4",
+    [KBRZG]       = "KBRZG",
+    [LVQBC]       = "LVQBC",
+    [ZVDJG]       = "ZVDJG",
+    [RKLPK]       = "RKLPK",
 
     /* SMMU rules */
     [B_SMMU_01]   = "B_SMMU_01",
@@ -290,6 +294,8 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     /* PCIe */
     [B_PCIe_10]   = "B_PCIe_10",
     [B_PCIe_11]   = "B_PCIe_11",
+    [S_PCIe_10]   = "S_PCIe_10",
+    [XDGKZ]       = "XDGKZ",
     [GPU_01]      = "GPU_01",
     [GPU_02]      = "GPU_02",
     [GPU_03]      = "GPU_03",

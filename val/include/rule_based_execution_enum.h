@@ -206,6 +206,10 @@ typedef enum {
     SYS_RAS_2,
     SYS_RAS_3,
     SYS_RAS_4,
+    KBRZG,
+    LVQBC,
+    ZVDJG,
+    RKLPK,
 
     /* SMMU rules */
     B_SMMU_01,
@@ -335,6 +339,8 @@ typedef enum {
     B_PER_12,  // revisit peripheral rule in pcie module
     B_PCIe_10,
     B_PCIe_11,
+    S_PCIe_10,
+    XDGKZ,
     GPU_01,
     GPU_02,
     GPU_03,
@@ -884,6 +890,7 @@ typedef enum {
     SBSA_LEVEL_5  = 5,
     SBSA_LEVEL_6  = 6,
     SBSA_LEVEL_7  = 7,
+    SBSA_VER_8_0  = 8,
     SBSA_LEVEL_FR,
     SBSA_LEVEL_SENTINEL /* Keep last */
 } SBSA_LEVEL_e;
