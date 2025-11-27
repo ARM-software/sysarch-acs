@@ -5,7 +5,7 @@ This repository provides **prebuilt ACS images** for partners and users for each
 ---
 
 ## Current Prebuilt Images
-The latest **unified prebuilt binaries** for all ACS suites supported under `sysarch-acs` are available here:
+The latest **prebuilt binaries** for all ACS suites supported under `sysarch-acs` are available here:
 
 👉 [sysarch-acs/prebuilt_images](https://github.com/ARM-software/sysarch-acs/tree/main/prebuilt_images)
 

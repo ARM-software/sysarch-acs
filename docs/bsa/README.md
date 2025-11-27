@@ -1,3 +1,8 @@
+> **Important change — BSA ACS rule-based execution**
+>
+> BSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.  
+> For details on using BSA Specification rule IDs to run the latest BSA binaries and to collate results per rule, see the [Rule-Based Guide](../common/RuleBasedGuide.md)
+
 ## Table of Contents
 
 - [Base System Architecture](#base-system-architecture)
@@ -58,7 +63,7 @@ Tests can also run in a bare-metal environment. Initialization of the bare-metal
 - To get the latest code with bug fixes and new features, use the **main** branch.
 
 #### Prebuilt release binaries
-Prebuilt images for each release are available in the [`prebuilt_images`](prebuilt_images/BSA) folder of the main branch.  
+Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.  
 
 ## Documentation and Guides
 - [Arm BSA Test Scenario Document](docs/arm_bsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.  
@@ -175,7 +180,7 @@ On a system with a functional USB port:
 
 - **For u-boot firmware Systems, additional steps**
   1. Copy `Shell.efi` to the USB device.
-  *Note:* `Shell.efi` is available in `prebuilt_images/IR` (under `prebuilt_images`).
+  *Note:* `Shell.efi` is available in [prebuilt_images](../../prebuilt_images/BSA).
   
   2. Boot to the **U-Boot** shell.  
   3. Determine the USB device with:

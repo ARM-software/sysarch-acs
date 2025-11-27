@@ -1,3 +1,8 @@
+> **Important change — SBSA ACS rule-based execution**
+>
+> SBSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.  
+> For details on using SBSA Specification rule IDs to run the latest SBSA binaries and to collate results per rule, see the [Rule-Based Guide](../common/RuleBasedGuide.md)
+
 ## Table of Contents
 
 - [Server Base System Architecture](#server-base-system-architecture)
@@ -64,7 +69,7 @@ The tests can also be executed in a Bare-metal environment. The initialization o
   - To get the latest version of the code with bug fixes and new features, use the **main** branch.
 
 ##### Prebuilt release binaries
-Prebuilt images for each release are available in the [`prebuilt_images`](prebuilt_images/SBSA) folder of the main branch
+Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/SBSA) folder of the main branch
 
 ## Documentation and Guides
 - [Arm SBSA Test Scenario Document](docs/arm_sbsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.  
