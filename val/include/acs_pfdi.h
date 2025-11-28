@@ -45,6 +45,7 @@
 
 #define VAL_PFDI_RESERVED_BYTE_ZERO         0x0
 #define PFDI_ACS_NOT_IMPLEMENTED            0x1
+#define PFDI_INVALID_X_VALUE                0xF
 
 typedef enum {
     PFDI_ACS_SUCCESS                =  0,
