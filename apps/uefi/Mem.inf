@@ -139,6 +139,7 @@
   ../../test_pool/exerciser/e015.c
   ../../test_pool/exerciser/e016.c
   ../../test_pool/exerciser/e017.c
+  ../../test_pool/exerciser/e030.c
   ../../test_pool/exerciser/e033.c
   ../../test_pool/exerciser/e035.c
   ../../test_pool/exerciser/e039.c

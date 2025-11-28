@@ -83,15 +83,15 @@ payload()
         continue;
     }
 
-    /* Check DUI[17:16] != 0 of FR Register For DUI Control */
-    if (!(value & ERR_FR_DUI_MASK)) {
+    /* Check only if DE[52] != 0 then DUI[17:16] != 0 of FR Register For DUI Control */
+    if ((value & ERR_FR_DE_MASK) && !(value & ERR_FR_DUI_MASK)) {
       val_print(ACS_PRINT_ERR, "\n       DUI not implemented for node_index %d", node_index);
       fail_cnt++;
       continue;
     }
 
-    /* Check CFI[11:10] != 0 of FR Register For CFI Control */
-    if (!(value & ERR_FR_CFI_MASK)) {
+    /* Check only if ERR_FR.CE != 0 -> Check CFI[11:10] != 0 of FR Register For CFI Control */
+    if ((value & ERR_FR_CE_MASK) && !(value & ERR_FR_CFI_MASK)) {
       val_print(ACS_PRINT_ERR, "\n       CFI not implemented for node_index %d", node_index);
       fail_cnt++;
       continue;
