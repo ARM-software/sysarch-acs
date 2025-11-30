@@ -25,12 +25,14 @@
 typedef enum {
   CntFrq = 0,
   CntPct,
+  CntPctSS,
   CntkCtl,
   CntpTval,
   CntpCtl,
   CntvTval,
   CntvCtl,
   CntvCt,
+  CntVctSS,
   CntpCval,
   CntvCval,
   CntvOff,
@@ -71,6 +73,11 @@ uint64_t
 ArmReadCntPct (
   void
   );
+
+uint64_t
+ArmReadCntPctSS (
+  void
+);
 
 uint64_t
 ArmReadCntkCtl (
@@ -119,6 +126,7 @@ ArmReadCntvCtl (
 
 void ArmWriteCntvCtl (uint64_t   Val);
 uint64_t ArmReadCntvCt (void);
+uint64_t ArmReadCntVctSS (void);
 uint64_t ArmReadCntpCval (void);
 void ArmWriteCntpCval (uint64_t   Val);
 

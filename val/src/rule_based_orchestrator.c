@@ -127,9 +127,10 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
     MODULE_NAME_e module;
     bool found;
     /* Pointers to lookup tables for selected arch (if any) */
-    const bsa_rule_entry_t  *bsa_tbl = NULL;
-    const sbsa_rule_entry_t *sbsa_tbl = NULL;
+    const bsa_rule_entry_t   *bsa_tbl   = NULL;
+    const sbsa_rule_entry_t  *sbsa_tbl  = NULL;
     const pcbsa_rule_entry_t *pcbsa_tbl = NULL;
+    const vbsa_rule_entry_t  *vbsa_tbl  = NULL;
     uint32_t tbl_count = 0;
 
     /* if pointer is NULL, API misuse return */
@@ -153,6 +154,10 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
             while (pcbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
                 add_count++;
             pcbsa_tbl = pcbsa_rule_list;
+        } else if (g_arch_selection == ARCH_VBSA) {
+            while (vbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
+                add_count++;
+            vbsa_tbl = vbsa_rule_list;
         }
 
         if (add_count > 0) {
@@ -184,6 +189,12 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
                         if (!rule_in_list(rid, new_list, new_count))
                             new_list[new_count++] = rid;
                     }
+                } else if (vbsa_tbl) {
+                    for (i = 0; i < add_count; i++) {
+                        RULE_ID_e rid = vbsa_tbl[i].rule_id;
+                        if (!rule_in_list(rid, new_list, new_count))
+                            new_list[new_count++] = rid;
+                    }
                 }
 
                 /* Free old buffer (if allocated via VAL) and update pointer */
@@ -204,6 +215,9 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
         } else if (g_arch_selection == ARCH_PCBSA) {
             pcbsa_tbl = pcbsa_rule_list;
             while (pcbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
+        } else if (g_arch_selection == ARCH_VBSA) {
+            vbsa_tbl = vbsa_rule_list;
+            while (vbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
         }
     }
 
@@ -314,6 +328,24 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
                                     skip = 1;
                             } else if (g_level_filter_mode == LVL_FILTER_MAX) {
                                 if ((uint32_t)pcbsa_tbl[ti].level > g_level_value)
+                                    skip = 1;
+                            }
+                            break;
+                        }
+                    }
+                } else if (vbsa_tbl) {
+                    for (uint32_t ti = 0; ti < tbl_count; ti++) {
+                        if (vbsa_tbl[ti].rule_id == rule) {
+                            found_entry = 1;
+                            if (g_level_filter_mode == LVL_FILTER_FR) {
+                                /* Treat FR mode as MAX up to FR */
+                                if ((uint32_t)vbsa_tbl[ti].level > (uint32_t)VBSA_LEVEL_FR)
+                                    skip = 1;
+                            } else if (g_level_filter_mode == LVL_FILTER_ONLY) {
+                                if ((uint32_t)vbsa_tbl[ti].level != g_level_value)
+                                    skip = 1;
+                            } else if (g_level_filter_mode == LVL_FILTER_MAX) {
+                                if ((uint32_t)vbsa_tbl[ti].level > g_level_value)
                                     skip = 1;
                             }
                             break;

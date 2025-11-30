@@ -19,8 +19,8 @@
 
 [Defines]
   INF_VERSION                    = 0x00010006
-  BASE_NAME                      = Sbsa
-  FILE_GUID                      = 3606caff-b7f2-4b05-a343-ac83de27940c
+  BASE_NAME                      = Vbsa
+  FILE_GUID                      = c2f42137-b20a-4d57-ba76-a84c6146706e
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 0.1
   ENTRY_POINT                    = ShellCEntryLib
@@ -35,8 +35,8 @@
   app.c
   acs_globals.c
   acs_helpers.c
-  sbsa_main.c
-   ../../test_pool/pe/pe001.c
+  vbsa_main.c
+  ../../test_pool/pe/pe001.c
   ../../test_pool/pe/pe002.c
   ../../test_pool/pe/pe003.c
   ../../test_pool/pe/pe004.c
@@ -57,7 +57,6 @@
   ../../test_pool/pe/pe020.c
   ../../test_pool/pe/pe021.c
   ../../test_pool/pe/pe022.c
-  ../../test_pool/pe/pe066.c
   ../../test_pool/gic/g001.c
   ../../test_pool/gic/g002.c
   ../../test_pool/gic/g003.c
@@ -131,7 +130,6 @@
   ../../test_pool/pcie/p038.c
   ../../test_pool/pcie/p039.c
   ../../test_pool/pcie/p042.c
-  ../../test_pool/pcie/p100.c
   ../../test_pool/exerciser/e001.c
   ../../test_pool/exerciser/e002.c
   ../../test_pool/exerciser/e003.c
@@ -186,8 +184,9 @@
   ../../test_pool/pe/pe060.c
   ../../test_pool/pe/pe061.c
   ../../test_pool/pe/pe062.c
-  ../../test_pool/pe/pe068.c
   ../../test_pool/pe/pe065.c
+  ../../test_pool/pe/pe066.c
+  ../../test_pool/pe/pe068.c
   ../../test_pool/gic/g012.c
   ../../test_pool/gic/g013.c
   ../../test_pool/gic/g014.c
@@ -200,6 +199,7 @@
   ../../test_pool/smmu/i011.c
   ../../test_pool/smmu/i012.c
   ../../test_pool/smmu/i013.c
+  ../../test_pool/smmu/i014.c
   ../../test_pool/smmu/i015.c
   ../../test_pool/smmu/i016.c
   ../../test_pool/smmu/i017.c
@@ -256,8 +256,6 @@
   ../../test_pool/pcie/p091.c
   ../../test_pool/pcie/p092.c
   ../../test_pool/pcie/p093.c
-  ../../test_pool/exerciser/e003.c
-  ../../test_pool/exerciser/e007.c
   ../../test_pool/exerciser/e008.c
   ../../test_pool/exerciser/e019.c
   ../../test_pool/exerciser/e020.c
@@ -311,7 +309,6 @@
   ../../test_pool/drtm/interface011.c
   ../../test_pool/tpm/tpm001.c
   ../../test_pool/tpm/tpm002.c
-
 
 [Packages]
   StdLib/StdLib.dec

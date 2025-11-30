@@ -350,3 +350,54 @@ const bsa_rule_entry_t bsa_rule_list[] = {
 /* sentinel */
     { RULE_ID_SENTINEL, BSA_LEVEL_SENTINEL, SW_OS }
 };
+
+const vbsa_rule_entry_t vbsa_rule_list[] = {
+
+    /* L1 PE Rules */
+    { V_L1PE_01, VBSA_LEVEL_1 },
+    { V_L1PE_02, VBSA_LEVEL_1 },
+
+    /* L1 Memory map rules */
+    { V_L1MM_01, VBSA_LEVEL_1 },
+    { V_L1MM_02, VBSA_LEVEL_1 },
+
+    /* L1 GIC and PPI assignment rules */
+    { V_L1GI_01, VBSA_LEVEL_1 },
+    { V_L1PP_00, VBSA_LEVEL_1 },
+
+    /* L1 SMMU rules */
+    { V_L1SM_01, VBSA_LEVEL_1 },
+    { V_L1SM_02, VBSA_LEVEL_1 },
+    { V_L1SM_03, VBSA_LEVEL_1 },
+
+    /* L1 Timer rules */
+    { V_L1TM_01, VBSA_LEVEL_1 },
+    { V_L1TM_02, VBSA_LEVEL_1 },
+    { V_L1TM_03, VBSA_LEVEL_1 },
+    { V_L1TM_04, VBSA_LEVEL_1 },
+
+    /* L1 Wakeup rules */
+    { V_L1WK_01, VBSA_LEVEL_1 },
+    { V_L1WK_02, VBSA_LEVEL_1 },
+    { V_L1WK_03, VBSA_LEVEL_1 },
+    { V_L1WK_04, VBSA_LEVEL_1 },
+    { V_L1WK_05, VBSA_LEVEL_1 },
+    { V_L1WK_06, VBSA_LEVEL_1 },
+    { V_L1WK_07, VBSA_LEVEL_1 },
+    { V_L1WK_08, VBSA_LEVEL_1 },
+    { V_L1WK_09, VBSA_LEVEL_1 },
+
+    /* L1 Peripheral rules */
+    { V_L1PR_01, VBSA_LEVEL_1 },
+    { V_L1PR_02, VBSA_LEVEL_1 },
+
+    /* FR (L2) PE rules */
+    { V_L2PE_01, VBSA_LEVEL_FR },
+    { V_L2PE_02, VBSA_LEVEL_FR },
+
+    /* FR (L2) Watchdog rules */
+    { V_L2WD_01, VBSA_LEVEL_FR },
+
+    /* Sentinel to indicate end-of-list */
+    { RULE_ID_SENTINEL, VBSA_LEVEL_SENTINEL }
+};

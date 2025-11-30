@@ -181,6 +181,7 @@
   ../../test_pool/pe/pe060.c
   ../../test_pool/pe/pe061.c
   ../../test_pool/pe/pe062.c
+  ../../test_pool/pe/pe068.c
   ../../test_pool/pe/pe065.c
   ../../test_pool/gic/g012.c
   ../../test_pool/gic/g013.c
@@ -188,6 +189,7 @@
   ../../test_pool/gic/g015.c
   ../../test_pool/gic/g016.c
   ../../test_pool/timer/t006.c
+  ../../test_pool/timer/t008.c
   ../../test_pool/watchdog/w003.c
   ../../test_pool/smmu/i008.c
   ../../test_pool/smmu/i009.c

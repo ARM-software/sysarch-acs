@@ -30,7 +30,6 @@
 #define ACS_PRINT_DEBUG 2      /* For Debug statements. contains register dumps etc */
 #define ACS_PRINT_INFO  1      /* Print all statements. Do not use unless really needed */
 
-
 #define ACS_STATUS_FAIL      0x90000000
 #define ACS_STATUS_ERR       0xEDCB1234  //some impropable value?
 #define ACS_STATUS_SKIP      0x10000000

@@ -284,6 +284,7 @@ uint64_t AA64ReadTrcidr0(void);
 uint64_t AA64ReadTrcidr4(void);
 uint64_t AA64ReadTrcidr5(void);
 
+void AA64IssueISB(void);
 void DisableSpe(void);
 void ArmCallWFI(void);
 void ArmExecuteMemoryBarrier(void);
@@ -374,6 +375,8 @@ uint32_t pe063_entry(uint32_t num_pe);
 uint32_t pe064_entry(uint32_t num_pe);
 uint32_t pe065_entry(uint32_t num_pe);
 uint32_t pe066_entry(uint32_t num_pe);
+uint32_t pe067_entry(uint32_t num_pe);
+uint32_t pe068_entry(uint32_t num_pe);
 
 #endif
 

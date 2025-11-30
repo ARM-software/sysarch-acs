@@ -497,6 +497,35 @@ typedef enum {
     P_L1PCI_1,
     P_L1PCI_2,
 
+    /* VBSA rules */
+    V_L1PE_01,
+    V_L1PE_02,
+    V_L1MM_01,
+    V_L1MM_02,
+    V_L1GI_01,
+    V_L1PP_00,
+    V_L1SM_01,
+    V_L1SM_02,
+    V_L1SM_03,
+    V_L1TM_01,
+    V_L1TM_02,
+    V_L1TM_03,
+    V_L1TM_04,
+    V_L1WK_01,
+    V_L1WK_02,
+    V_L1WK_03,
+    V_L1WK_04,
+    V_L1WK_05,
+    V_L1WK_06,
+    V_L1WK_07,
+    V_L1WK_08,
+    V_L1WK_09,
+    V_L1PR_01,
+    V_L1PR_02,
+    V_L2PE_01,
+    V_L2PE_02,
+    V_L2WD_01,
+
     /* Sentinel must remain last */
     RULE_ID_SENTINEL
 } RULE_ID_e;
@@ -565,6 +594,9 @@ typedef enum {
     PE064_ENTRY,
     PE061_ENTRY,
     PE062_ENTRY,
+    PE067_ENTRY,
+    PE068_ENTRY,
+    V_L1PE_02_ENTRY,
     PE065_ENTRY,
     G001_ENTRY,
     G002_ENTRY,
@@ -583,6 +615,7 @@ typedef enum {
     G011_ENTRY,
     G012_ENTRY,
     B_PPI_00_ENTRY,
+    V_L1PP_00_ENTRY,
     G014_ENTRY,
     G016_ENTRY,
     G013_ENTRY,
@@ -665,6 +698,7 @@ typedef enum {
     I021_ENTRY,
     I027_ENTRY,
     I028_ENTRY,
+    I031_ENTRY,
     T001_ENTRY,
     T007_ENTRY,
     T002_ENTRY,
@@ -672,6 +706,7 @@ typedef enum {
     T004_ENTRY,
     T005_ENTRY,
     T006_ENTRY,
+    T008_ENTRY,
     W001_ENTRY,
     W002_ENTRY,
     W003_ENTRY,
@@ -683,6 +718,7 @@ typedef enum {
     U005_ENTRY,
     U006_ENTRY,
     B_WAK_03_07_ENTRY,
+    V_L1WK_02_05_ENTRY,
     P_L1PE_01_ENTRY,
     P021_ENTRY,
     P093_ENTRY,
@@ -909,6 +945,13 @@ typedef enum {
     PCBSA_LEVEL_SENTINEL /* Keep last */
 } PCBSA_LEVEL_e;
 
+/* VBSA levels enum */
+typedef enum {
+    VBSA_LEVEL_1 = 1,
+    VBSA_LEVEL_FR,
+    VBSA_LEVEL_SENTINEL /* Keep last */
+} VBSA_LEVEL_e;
+
 /* Software views enum for BSA */
 typedef enum {
     SW_OS,
@@ -928,7 +971,8 @@ typedef enum {
     ARCH_NONE = 0,
     ARCH_BSA,
     ARCH_SBSA,
-    ARCH_PCBSA
+    ARCH_PCBSA,
+    ARCH_VBSA
 } ARCH_SEL_e;
 
 /* Level filter mode for CLI selection */

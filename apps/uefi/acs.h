@@ -37,6 +37,11 @@
 #define PC_BSA_ACS_MINOR_VER     8
 #define PC_BSA_ACS_SUBMINOR_VER  0
 
+/* VBSA Release versions */
+#define VBSA_ACS_MAJOR_VER       0
+#define VBSA_ACS_MINOR_VER       7
+#define VBSA_ACS_SUBMINOR_VER    0
+
 /* Unified ACS Release versions */
 #define UNI_ACS_MAJOR_VER     1
 #define UNI_ACS_MINOR_VER     0

@@ -51,4 +51,9 @@ uint32_t pci_in_17_entry(uint32_t num_pe);
 uint32_t pci_in_05_entry(uint32_t num_pe);
 uint32_t gpu_04_entry(uint32_t num_pe);
 
+/* VBSA test wrappers */
+uint32_t v_l1pe_02_entry(uint32_t num_pe);
+uint32_t v_l1wk_02_05_entry(uint32_t num_pe);
+uint32_t v_l1pp_00_entry(uint32_t num_pe);
+
 #endif // TEST_WRAPPERS_H

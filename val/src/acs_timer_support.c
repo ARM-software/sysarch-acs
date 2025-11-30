@@ -76,6 +76,9 @@ ArmArchTimerReadReg (
     case CntPct:
       return ArmReadCntPct();
 
+    case CntPctSS:
+      return ArmReadCntPctSS();
+
     case CntkCtl:
       return effective_e2h ? ArmReadCntkCtl12() : ArmReadCntkCtl();
 
@@ -95,6 +98,9 @@ ArmArchTimerReadReg (
 
     case CntvCt:
       return ArmReadCntvCt();
+
+    case CntVctSS:
+      return ArmReadCntVctSS();
 
     case CntpCval:
       return effective_e2h ? ArmReadCntpCval02() : ArmReadCntpCval();

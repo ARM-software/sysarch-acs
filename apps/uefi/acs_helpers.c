@@ -425,9 +425,10 @@ command_init (void)
     ArchArg = ShellCommandLineGetValue(ParamPackage, L"-a");
     if (ArchArg != NULL) {
         if (!(w_ascii_streq_caseins(ArchArg, L"bsa") ||
-                    w_ascii_streq_caseins(ArchArg, L"sbsa") ||
-                    w_ascii_streq_caseins(ArchArg, L"pcbsa"))) {
-            Print(L"Invalid value for -a. Use 'bsa', 'sbsa', or 'pcbsa'\n");
+                    w_ascii_streq_caseins(ArchArg, L"sbsa")  ||
+                    w_ascii_streq_caseins(ArchArg, L"pcbsa") ||
+                    w_ascii_streq_caseins(ArchArg, L"vbsa"))) {
+            Print(L"Invalid value for -a. Use 'bsa', 'sbsa', 'pcbsa' or 'vbsa'\n");
             HelpMsg();
             return SHELL_INVALID_PARAMETER;
         }
@@ -441,6 +442,9 @@ command_init (void)
         else if (w_ascii_streq_caseins(ArchArg, L"pcbsa")) {
             g_arch_selection = ARCH_PCBSA;
             g_build_pcbsa = 1;
+        }
+        else if (w_ascii_streq_caseins(ArchArg, L"vbsa")) {
+            g_arch_selection = ARCH_VBSA;
         }
     }
 

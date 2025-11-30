@@ -2445,6 +2445,147 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 87,
         },
+        /* VBSA ACS entries */
+        [V_L1PE_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check vPE architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1PE_02] = {
+            .test_entry_id    = V_L1PE_02_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check PMUv3 support in vPE",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE
+        },
+        [V_L1MM_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = MEM_MAP,
+            .rule_desc        = "Check VE Mem architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1MM_02] = {
+            .test_entry_id    = M004_ENTRY,
+            .module_id        = MEM_MAP,
+            .rule_desc        = "DMA requestors access to NS addr space",
+            .platform_bitmask = PLATFORM_LINUX,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 4,
+        },
+        [V_L1GI_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "Check vGIC architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1PP_00] = {
+            .test_entry_id    = V_L1PP_00_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "Check VE PPI assignment mapping",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE
+        },
+        [V_L1SM_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = SMMU,
+            .rule_desc        = "Check vSMMU architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1SM_02] = {
+            .test_entry_id    = I031_ENTRY,
+            .module_id        = SMMU,
+            .rule_desc        = "Check SMMU stage 1 support for VE",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 31,
+        },
+        [V_L1TM_01] = {
+            .test_entry_id    = T001_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check Virt and Phy counter presence",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
+        },
+        [V_L1TM_02] = {
+            .test_entry_id    = T007_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check Virt and Phy counter min freq",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
+        },
+        [V_L1TM_03] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check Timer architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1TM_04] = {
+            .test_entry_id    = T008_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check uniform passage of time in VE",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 8,
+        },
+        [V_L1WK_02] = {
+            .test_entry_id    = V_L1WK_02_05_ENTRY,
+            .module_id        = POWER_WAKEUP,
+            .rule_desc        = "Check power wakeup interrupts",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE
+        },
+        [V_L1WK_05] = {
+            .test_entry_id    = V_L1WK_02_05_ENTRY,
+            .module_id        = POWER_WAKEUP,
+            .rule_desc        = "Check vPE power state semantics",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE
+        },
+        [V_L1WK_04] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = WATCHDOG,
+            .rule_desc        = "Check Watchdog architectural compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1PR_01] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PERIPHERAL,
+            .rule_desc        = "Check Peripheral arch compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L1PR_02] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PERIPHERAL,
+            .rule_desc        = "Check Virt PCIe arch compliance",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = ALIAS_RULE
+        },
+        [V_L2PE_01] = {
+            .test_entry_id    = PE068_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check num PMU counters for vPEs",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  68,
+        },
+        [V_L2PE_02] = {
+            .test_entry_id    = PE010_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check vPE PMU overflow signal",
+            .platform_bitmask = PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  10,
+        },
     };
 
 /* Following structure maps test entry enums with entry function pointers
@@ -2567,6 +2708,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_PP_05_ENTRY]  = pci_pp_05_entry,
     [RE_REC_1_ENTRY]   = re_rec_1_entry,
     [RE_REG_1_ENTRY]   = re_reg_1_entry,
+    [V_L1PE_02_ENTRY]  = v_l1pe_02_entry,
     [RI_SMU_1_ENTRY]   = ri_smu_1_entry,
     [G013_ENTRY] = g013_entry,
     [G014_ENTRY] = g014_entry,
@@ -2600,6 +2742,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I028_ENTRY] = i028_entry,
     [I029_ENTRY] = i029_entry,
     [I030_ENTRY] = i030_entry,
+    [I031_ENTRY] = i031_entry,
     [INTERFACE010_ENTRY] = interface010_entry,
     [INTERFACE011_ENTRY] = interface011_entry,
     [ITS001_ENTRY] = its001_entry,
@@ -2761,6 +2904,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE064_ENTRY] = pe064_entry,
     [PE065_ENTRY] = pe065_entry,
     [PE066_ENTRY] = pe066_entry,
+    [PE067_ENTRY] = pe067_entry,
+    [PE068_ENTRY] = pe068_entry,
 /* The following test entries are excluded from compilation for the BSA DT UEFI App, as they are
    not required for the BSA DT build. These tests invoke VAL APIs, which in turn call PAL APIs,
    and PAL_DT lacks a few necessary implementations.*/
@@ -2803,6 +2948,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T005_ENTRY] = t005_entry,
     [T006_ENTRY] = t006_entry,
     [T007_ENTRY] = t007_entry,
+    [T008_ENTRY] = t008_entry,
     [U001_ENTRY] = u001_entry, // used in wrapper.
     [U002_ENTRY] = u002_entry, // used in wrapper.
     [U003_ENTRY] = u003_entry, // used in wrapper.
@@ -2815,6 +2961,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [W001_ENTRY] = w001_entry,
     [W002_ENTRY] = w002_entry,
     [W003_ENTRY] = w003_entry,
+    [V_L1WK_02_05_ENTRY] = v_l1wk_02_05_entry,
+    [V_L1PP_00_ENTRY] = v_l1pp_00_entry,
 #endif /* TARGET_UEFI */
 
 /* TARGET_BAREMETAL */
@@ -3677,6 +3825,69 @@ RULE_ID_e p_l1mm_01_rule_list[]   = {S_L3MM_01, S_L3MM_02, RULE_ID_SENTINEL};
 /* B_SMMU_21 */
 RULE_ID_e b_smmu_21_rule_list[]   = {SMMU_01, SMMU_02, RULE_ID_SENTINEL};
 
+
+/* VBSA alias lists */
+RULE_ID_e v_l1pe_01_rule_list[]   = {B_PE_01, B_PE_02, B_PE_03, B_PE_04, B_PE_05,
+                                     B_PE_06, B_PE_07, B_PE_08, B_PE_10, B_PE_13,
+                                     B_PE_14, RULE_ID_SENTINEL};
+RULE_ID_e v_l1mm_01_rule_list[]   = {B_MEM_01, B_MEM_02, B_MEM_04, B_MEM_05,
+                                     B_MEM_07, RULE_ID_SENTINEL};
+RULE_ID_e v_l1gi_01_rule_list[]   = {B_GIC_01, B_GIC_02, B_GIC_03, B_GIC_05,
+                                     RULE_ID_SENTINEL};
+RULE_ID_e v_l1sm_01_rule_list[]   = {B_SMMU_01, B_SMMU_02, B_SMMU_06,
+                                     B_SMMU_07, B_SMMU_12, RULE_ID_SENTINEL};
+RULE_ID_e v_l1tm_03_rule_list[]   = {B_TIME_03, B_TIME_04, RULE_ID_SENTINEL};
+RULE_ID_e v_l1wk_04_rule_list[]   = {B_WAK_05,  B_WAK_06,  RULE_ID_SENTINEL};
+RULE_ID_e v_l1pr_01_rule_list[]   = {B_PER_01,  B_PER_02,  B_PER_03,
+                                     B_PER_04,  B_PER_05,  B_PER_06,
+                                     B_PER_09,  B_PER_10,  B_PER_11,
+                                     B_PER_12,  RULE_ID_SENTINEL};
+RULE_ID_e v_l1pr_02_rule_list[]   = {
+                                     /* E.1 - Configuration Space */
+                                     PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
+                                     PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
+                                     PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
+                                     PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
+                                     PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
+
+                                     /* E.2 - PCI Express memory space (Except PCI_MM_02) */
+                                     PCI_MM_01, PCI_MM_03, PCI_MM_04,
+
+                                     /* E.3 - PCI Express deivce view of memory */
+                                     PCI_MM_05, PCI_MM_06, PCI_MM_07,
+
+                                     /* E.4 - Message Signaled Interrupts */
+                                     PCI_MSI_1, PCI_MSI_2,
+
+                                     /* E.6 - Legacy Interrupts */
+                                     PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+
+                                     /* E.7 - System MMU and Device Assignment */
+                                     PCI_SM_01, PCI_SM_02,
+
+                                     /* E.8 - I/O Coherency */
+                                     PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
+                                     PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
+
+                                     /* E.9 - Legacy I/O */
+                                     PCI_IO_01,
+
+                                     /* E.10 - Integrated End Points */
+                                     PCI_IEP_1,
+
+                                     /* E.11 - Peer-to-Peer */
+                                     PCI_PP_01, PCI_PP_02, PCI_PP_03,
+                                     PCI_PP_04, PCI_PP_05, PCI_PP_06,
+
+                                     /* E.12 - PASID Support */
+                                     PCI_PAS_1,
+
+                                     /* E.13 - PCIe Precision Time Measurement */
+                                     PCI_PTM_1,
+
+                                     RULE_ID_SENTINEL};
+
+// TODO update all alias rules in xbsa specs
 alias_rule_map_t alias_rule_map[] = {
     /* BSA alias rules */
     {B_WD_00,   b_wd_00_rule_list},
@@ -3686,7 +3897,7 @@ alias_rule_map_t alias_rule_map[] = {
     {B_SMMU_21, b_smmu_21_rule_list},
 
     /* SBSA alias rules */
-    {S_L3_01,  bsa_l1_rule_list},
+    {S_L3_01,   bsa_l1_rule_list},
     {S_L3PR_01, s_l3pr_01_rule_list},
     {S_L3WD_01, s_l3wd_01_rule_list},
     {S_L6PCI_1, s_l6pci_1_rule_list},
@@ -3695,9 +3906,19 @@ alias_rule_map_t alias_rule_map[] = {
     {LVQBC,     lvqbc_rule_list},
 
     /* PCBSA alias rules */
-    {P_L1_01,  bsa_l1_rule_list},
+    {P_L1_01,   bsa_l1_rule_list},
     {P_L2WD_01, p_l2wd_01_rule_list},
     {P_L1MM_01, p_l1mm_01_rule_list},
+
+    /* VBSA alias rules */
+    {V_L1PE_01, v_l1pe_01_rule_list},
+    {V_L1MM_01, v_l1mm_01_rule_list},
+    {V_L1GI_01, v_l1gi_01_rule_list},
+    {V_L1SM_01, v_l1sm_01_rule_list},
+    {V_L1TM_03, v_l1tm_03_rule_list},
+    {V_L1WK_04, v_l1wk_04_rule_list},
+    {V_L1PR_01, v_l1pr_01_rule_list},
+    {V_L1PR_02, v_l1pr_02_rule_list},
 
 };
 

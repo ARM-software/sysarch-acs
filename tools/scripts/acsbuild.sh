@@ -131,6 +131,12 @@ if [ "$1" == "pc_bsa" ]; then
     return 0;
 fi
 
+if [ "$1" == "vbsa" ]; then
+    git checkout ShellPkg/ShellPkg.dsc
+    git apply ShellPkg/Application/sysarch-acs/patches/edk2_vbsa.patch
+    build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/vbsa.inf
+    return 0;
+fi
 
 if [ "$1" == "drtm" ]; then
     git checkout ShellPkg/ShellPkg.dsc

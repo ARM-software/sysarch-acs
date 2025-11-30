@@ -46,4 +46,5 @@ uint32_t t004_entry(uint32_t num_pe);
 uint32_t t005_entry(uint32_t num_pe);
 uint32_t t006_entry(uint32_t num_pe);
 uint32_t t007_entry(uint32_t num_pe);
+uint32_t t008_entry(uint32_t num_pe);
 #endif // __ACS_TIMER_H__

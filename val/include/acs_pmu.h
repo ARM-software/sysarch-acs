@@ -35,6 +35,8 @@
 #define PMCR_C_RESET_BIT        2
 #define PMCR_EN_BIT             0
 
+#define PMCR_NUM_COUNTERS_MASK  0xF800
+
 uint64_t AA64ReadPmccntr(void);
 uint64_t AA64ReadPmccfiltr(void);
 uint64_t AA64ReadPmcntenset(void);
