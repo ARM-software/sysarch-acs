@@ -95,6 +95,10 @@ jobs:
             arg: pc_bsa
             outfile: PC_Bsa.efi
             artifact: PC_Bsa_acpi_target.efi
+          - name: VBSA ACPI
+            arg: vbsa
+            outfile: Vbsa.efi
+            artifact: Vbsa_acpi_target.efi
           - name: Unified ACPI
             arg: unified
             outfile: UnifiedAcs.efi
@@ -309,4 +313,3 @@ jobs:
           name: ${{ matrix.name }} Kernel Module and App
           path: ${{ github.workspace }}/linux-${{ matrix.short }}/*
           if-no-files-found: error
-
