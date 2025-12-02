@@ -2520,13 +2520,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
         },
-        [V_L1TM_03] = {
-            .test_entry_id    = NULL_ENTRY,
-            .module_id        = TIMER,
-            .rule_desc        = "Check Timer architectural compliance",
-            .platform_bitmask = PLATFORM_UEFI,
-            .flag             = ALIAS_RULE
-        },
         [V_L1TM_04] = {
             .test_entry_id    = T008_ENTRY,
             .module_id        = TIMER,
@@ -2548,13 +2541,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check vPE power state semantics",
             .platform_bitmask = PLATFORM_UEFI,
             .flag             = BASE_RULE
-        },
-        [V_L1WK_04] = {
-            .test_entry_id    = NULL_ENTRY,
-            .module_id        = WATCHDOG,
-            .rule_desc        = "Check Watchdog architectural compliance",
-            .platform_bitmask = PLATFORM_UEFI,
-            .flag             = ALIAS_RULE
         },
         [V_L1PR_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -2660,6 +2646,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E034_ENTRY] = e034_entry, // used in wrapper.
     [E035_ENTRY] = e035_entry,
     [E036_ENTRY] = e036_entry,
+    [E038_ENTRY] = e038_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
     [ETE001_ENTRY] = ete001_entry,
     [ETE002_ENTRY] = ete002_entry,
@@ -2842,6 +2829,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P093_ENTRY] = p093_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
+    [P100_ENTRY] = p100_entry,
     [P103_ENTRY] = p103_entry, // used in wrapper.
     [PE001_ENTRY] = pe001_entry,
     [PE002_ENTRY] = pe002_entry,
@@ -3836,8 +3824,6 @@ RULE_ID_e v_l1gi_01_rule_list[]   = {B_GIC_01, B_GIC_02, B_GIC_03, B_GIC_05,
                                      RULE_ID_SENTINEL};
 RULE_ID_e v_l1sm_01_rule_list[]   = {B_SMMU_01, B_SMMU_02, B_SMMU_06,
                                      B_SMMU_07, B_SMMU_12, RULE_ID_SENTINEL};
-RULE_ID_e v_l1tm_03_rule_list[]   = {B_TIME_03, B_TIME_04, RULE_ID_SENTINEL};
-RULE_ID_e v_l1wk_04_rule_list[]   = {B_WAK_05,  B_WAK_06,  RULE_ID_SENTINEL};
 RULE_ID_e v_l1pr_01_rule_list[]   = {B_PER_01,  B_PER_02,  B_PER_03,
                                      B_PER_04,  B_PER_05,  B_PER_06,
                                      B_PER_09,  B_PER_10,  B_PER_11,
@@ -3915,8 +3901,6 @@ alias_rule_map_t alias_rule_map[] = {
     {V_L1MM_01, v_l1mm_01_rule_list},
     {V_L1GI_01, v_l1gi_01_rule_list},
     {V_L1SM_01, v_l1sm_01_rule_list},
-    {V_L1TM_03, v_l1tm_03_rule_list},
-    {V_L1WK_04, v_l1wk_04_rule_list},
     {V_L1PR_01, v_l1pr_01_rule_list},
     {V_L1PR_02, v_l1pr_02_rule_list},
 

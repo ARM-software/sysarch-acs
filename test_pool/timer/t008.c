@@ -26,7 +26,7 @@
 #define TEST_RULE  "V_L1TM_04"
 
 /* Test to be run on virtual environments */
-#define NUM_ITERATIONS  1000000
+#define NUM_ITERATIONS  2000000
 
 static
 void payload(void)

@@ -34,6 +34,12 @@ payload(void)
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+      val_print(ACS_PRINT_DEBUG, "\n        No ECAMs discovered, Skipping test", 0);
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      return;
+  }
+
   table_entries = sizeof(bf_info_table21)/sizeof(bf_info_table21[0]);
   ret = val_pcie_register_bitfields_check((void *)&bf_info_table21, table_entries);
 

@@ -353,7 +353,18 @@ gpu_04_entry(uint32_t num_pe)
 uint32_t
 v_l1wk_02_05_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e tst_entry_list[] = {U001_ENTRY, U002_ENTRY, U005_ENTRY, TEST_ENTRY_SENTINEL};
+#ifdef TARGET_LINUX
+    // Test not applicable for Linux target
+    return TEST_SKIP;
+#endif
+
+    if (g_el1physkip) {
+        val_print(ACS_PRINT_TEST,
+                    "\n       Skipping rule as EL1 physical timer access not supported", 0);
+        return TEST_SKIP;
+    }
+
+    TEST_ENTRY_ID_e tst_entry_list[] = {U001_ENTRY, U002_ENTRY, TEST_ENTRY_SENTINEL};
     return run_test_entries(tst_entry_list, num_pe);
 }
 
@@ -369,6 +380,15 @@ v_l1pe_02_entry(uint32_t num_pe)
 uint32_t
 v_l1pp_00_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e tst_entry_list[] = {G006_ENTRY, G007_ENTRY, TEST_ENTRY_SENTINEL};
-    return run_test_entries(tst_entry_list, num_pe);
+#ifdef TARGET_LINUX
+    // Test not applicable for Linux target
+    return TEST_SKIP;
+#endif
+
+    TEST_ENTRY_ID_e skip_list[] = {G007_ENTRY, TEST_ENTRY_SENTINEL};
+    TEST_ENTRY_ID_e default_list[] = {G006_ENTRY, G007_ENTRY, TEST_ENTRY_SENTINEL};
+
+    TEST_ENTRY_ID_e *entry_list = g_el1physkip ? skip_list : default_list;
+
+    return run_test_entries(entry_list, num_pe);
 }
