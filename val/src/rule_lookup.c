@@ -340,7 +340,7 @@ const bsa_rule_entry_t bsa_rule_list[] = {
     { B_SMMU_24, BSA_LEVEL_FR, SW_OS },
     { B_SMMU_25, BSA_LEVEL_FR, SW_OS },
 
-/* SMMU FR */
+/* PCIe FR */
     { B_REP_1,   BSA_LEVEL_FR, SW_OS },
     { B_IEP_1,   BSA_LEVEL_FR, SW_OS },
     { BJLPB,     BSA_LEVEL_FR, SW_OS },
