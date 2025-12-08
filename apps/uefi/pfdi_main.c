@@ -266,17 +266,7 @@ createPeInfoTable (
 
   UINT64   *PeInfoTable;
 
-/* allowing room for growth, at present each entry is 16 bytes,
- * so we can support upto 511 PEs with 8192 bytes */
-  Status = gBS->AllocatePool (EfiBootServicesData,
-                               PE_INFO_TBL_SZ,
-                               (VOID **) &PeInfoTable);
-
-  if (EFI_ERROR(Status))
-  {
-    Print(L"Allocate Pool failed %x\n", Status);
-    return Status;
-  }
+  PeInfoTable = val_aligned_alloc(SIZE_4K, PE_INFO_TBL_SZ);
 
   Status = val_pe_create_info_table(PeInfoTable);
 
@@ -291,15 +281,7 @@ createGicInfoTable (
   EFI_STATUS Status;
   UINT64     *GicInfoTable;
 
-  Status = gBS->AllocatePool (EfiBootServicesData,
-                               GIC_INFO_TBL_SZ,
-                               (VOID **) &GicInfoTable);
-
-  if (EFI_ERROR(Status))
-  {
-    Print(L"Allocate Pool failed %x\n", Status);
-    return Status;
-  }
+  GicInfoTable = val_aligned_alloc(SIZE_4K, GIC_INFO_TBL_SZ);
 
   Status = val_gic_create_info_table(GicInfoTable);
 
