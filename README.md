@@ -13,6 +13,7 @@
   * [DRTM ACS](#drtm-architecture-compliance-suite)
   * [MemTest ACS](#memtest-architecture-compliance-suite)
   * [PFDI ACS](#pfdi-architecture-compliance-suite)
+  * [VBSA ACS](#vbsa-architecture-compliance-suite)
 * [Unified ACS](#unified-architecture-compliance-suite)
 * [Security Implications](#-security-implications)
 * [Limitations](#-limitations)
@@ -31,6 +32,7 @@ The **Arm sysarch-acs** repository is a collection of **Architecture Compliance 
 * **[MPAM (Memory system resource partitioning and monitoring) system component](https://developer.arm.com/documentation/ihi0099/latest/)**
 * **[DRTM – Dynamic Root of Trust for Measurement](https://developer.arm.com/documentation/den0113/latest/)**
 * **[PFDI – Platform Fault Detection Interface](https://documentation-service.arm.com/static/68593b17961937560be90fbe)**
+* **[VBSA – Virtual Base System Architecture](https://developer.arm.com/documentation/den0150/latest/)**
 
 Additionally, it also includes ACS for ...
 * **MemTest – Memory Model Consistency tests**
@@ -57,7 +59,8 @@ sysarch-acs/
 │   ├── drtm/
 │   ├── pfdi/
 │   ├── mpam/
-│   └── pc_bsa/
+│   ├── pc_bsa/
+│   └── vbsa/
 ├── test_pool/
 │   ├── <module>/
 ├── val/
@@ -73,7 +76,8 @@ sysarch-acs/
 │   ├── drtm/
 │   ├── pfdi/
 │   ├── mpam/
-│   └── pc_bsa/
+│   ├── pc_bsa/
+│   └── vbsa/
 ```
 
 
@@ -184,6 +188,20 @@ Validates platform compliance with Arm PFDI specification.
 
 ####  Reference for Build, Execution, and More
 Refer to the [PFDI ACS README](docs/pfdi/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
+
+---
+
+###  VBSA Architecture Compliance Suite
+Validates platform compliance with Arm VBSA specification.
+
+####  Latest Release
+
+| Version | Code Quality | Prebuilt Binary | Spec Reference |
+|---------|--------------|-----------------|---------------------|
+| v0.7.0  | BET          | TBD             | [VBSA 1.0 ](https://developer.arm.com/documentation/den0150/a/?lang=en) |
+
+####  Reference for Build, Execution, and More
+Refer to the [VBSA ACS README](docs/vbsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
 
 ---
 
