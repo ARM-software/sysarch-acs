@@ -36,10 +36,10 @@ A few tests are executed by running the SBSA ACS Linux application which in turn
 The tests can also be executed in a Bare-metal environment. The initialization of the Bare-metal environment is specific to the environment and is out of scope of this document.
 
 ## Release details
-- **Latest release version:** v7.2.2 
-- **Execution levels:** Pre-Silicon and Silicon.  
-- **Scope:** The compliance suite is **not** a substitute for design verification.  
-- **Access to logs:** Arm licensees can contact Arm through their partner managers.  
+- **Latest release version:** v8.0.0
+- **Execution levels:** Pre-Silicon and Silicon.
+- **Scope:** The compliance suite is **not** a substitute for design verification.
+- **Access to logs:** Arm licensees can contact Arm through their partner managers.
 - For complete coverage of the SBSA rules, availability of an Exerciser is required for Exerciser tests to be run during verficiation at Pre-Silicon level.
 - For complete coverage, both SBSA and BSA ACS should be run.
 
@@ -47,6 +47,7 @@ The tests can also be executed in a Bare-metal environment. The initialization o
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 |   SBSA Spec Version   |   ACS Coverage Mapping   |   SBSA ACS Version   |        SBSA Tag ID         |   BSA ACS Version   |          BSA Tag ID         |    Pre-Si Support    |
 |-----------------------|:------------------------:|:--------------------:|:--------------------------:|:-------------------:|:---------------------------:|:--------------------:|
+|       SBSA v8.0       |    BSA ACS + SBSA ACS    |      v8.0.0          |   v25.12_SBSA_8.0.0        |        v1.2.0       |       v25.12_BSA_1.2.0      |       Yes            |
 |       SBSA v7.2       |    BSA ACS + SBSA ACS    |      v7.2.2          |   v25.03_REL7.2.2          |        v1.1.0       |       v25.03_REL1.1.0       |       Yes            |
 |       SBSA v7.2       |    BSA ACS + SBSA ACS    |      v7.2.1          |   v24.11_REL7.2.1          |        v1.0.9       |       v24.11_REL1.0.9       |       Yes            |
 |       SBSA v7.1       |    BSA ACS + SBSA ACS    |      v7.2.0 BETA-0   |   v24.03_REL7.2.0_BETA-0   |        v1.0.8       | v24.03_SBSA_REL7.2.0_BETA-0 |       Yes            |

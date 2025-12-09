@@ -35,15 +35,16 @@ A subset runs from Linux via a BSA ACS user-space application and its kernel mod
 Tests can also run in a bare-metal environment. Initialization of the bare-metal environment is platform-specific and out of scope for this document.
 
 ## Release details
-- **Latest release version:** v1.1.2 
-- **Execution levels:** Pre-Silicon and Silicon.  
-- **Scope:** The compliance suite is **not** a substitute for design verification.  
-- **Access to logs:** Arm licensees can contact Arm through their partner managers.  
+- **Latest release version:** v1.2.0
+- **Execution levels:** Pre-Silicon and Silicon.
+- **Scope:** The compliance suite is **not** a substitute for design verification.
+- **Access to logs:** Arm licensees can contact Arm through their partner managers.
 
 #### BSA ACS version mapping
 
 |   BSA ACS Version   |      BSA Tag ID     | BSA Spec Version |    Pre-Si Support |
 |:-------------------:|:-------------------:|:----------------:|------------------:|
+|        v1.2.0       |   v25.12_BSA_1.2.0  |   BSA v1.2       |       Yes         |
 |        v1.1.2       |   v25.10_BSA_1.1.2  |   BSA v1.1       |       Yes         |
 |        v1.1.0       |   v25.03_REL1.1.0   |   BSA v1.1       |       Yes         |
 |        v1.0.9       |   v24.11_REL1.0.9   |   BSA v1.1       |       Yes         |
