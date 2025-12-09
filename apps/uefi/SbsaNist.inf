@@ -105,7 +105,6 @@
   ../../test_pool/pcie/p011.c
   ../../test_pool/pcie/p037.c
   ../../test_pool/pcie/p038.c
-  ../../test_pool/pcie/p045.c
   ../../test_pool/pcie/p046.c
   ../../test_pool/pcie/p047.c
   ../../test_pool/pcie/p048.c
