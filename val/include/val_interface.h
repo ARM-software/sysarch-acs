@@ -557,6 +557,7 @@ typedef enum {
 
 uint32_t val_ras_create_info_table(uint64_t *ras_info_table);
 uint32_t val_ras_get_info(uint32_t info_type, uint32_t param1, uint64_t *ret_data);
+void val_ras_free_info_table(void);
 void val_ras2_create_info_table(uint64_t *ras2_info_table);
 void val_ras2_free_info_table(void);
 uint64_t val_ras2_get_mem_info(RAS2_MEM_INFO_e type, uint32_t index);

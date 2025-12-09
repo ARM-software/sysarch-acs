@@ -107,12 +107,24 @@ endif()
 # Setup toolchain parameters for compilation and link
 include(${ROOT_DIR}/tools/cmake/toolchain/common.cmake)
 
+# Propagate ACS_ENABLED_MODULE_LIST into compiler definitions for all sources
+if(DEFINED ACS_ENABLED_MODULE_LIST)
+    message(STATUS "[ACS] : ACS_ENABLED_MODULE_LIST (compile defs) = ${ACS_ENABLED_MODULE_LIST}")
+    add_compile_definitions(ACS_ENABLED_MODULE_LIST=${ACS_ENABLED_MODULE_LIST})
+endif()
 
 ### Cmake clean target ###
 list(APPEND CLEAN_LIST
         ${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_HEADER}
         ${CMAKE_CURRENT_BINARY_DIR}/output
 )
+
+# Optional forwarding of ACS_ENABLED_MODULE_LIST to inner configure
+set(DEFAULT_ENABLED_MODULES "")
+if(DEFINED ACS_ENABLED_MODULE_LIST)
+    message(STATUS "[ACS] : ACS_ENABLED_MODULE_LIST (top-level) = ${ACS_ENABLED_MODULE_LIST}")
+    list(APPEND DEFAULT_ENABLED_MODULES -DACS_ENABLED_MODULE_LIST=${ACS_ENABLED_MODULE_LIST})
+endif()
 
 # Include the files for make clean
 foreach(clean_item ${CLEAN_LIST})
@@ -132,7 +144,8 @@ endif()
 # Generate per-ACS custom targets and an aggregate target
 foreach(_acs IN LISTS ACS_LIST)
     add_custom_target(${_acs}
-        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
+        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} ${DEFAULT_ENABLED_MODULES}
+        -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
     )
 endforeach()

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -811,7 +811,7 @@
 #define DVSEC_CTRL      0x8
 #define PCI_EXT_CAP_ID  0x10
 #define PASID           0x1B
-#define PCI_E           0x1
+#define PCIE_REG        0x1
 #define PCI             0x0
 #define DVSEC           0x0023
 #define AER             0x0001

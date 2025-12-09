@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,6 +102,8 @@ extern uint32_t g_level_filter_mode;
 extern uint32_t g_sys_last_lvl_cache;
 
 /* Globals from apps/baremetal/acs_globals.c */
+extern RULE_ID_e *g_rule_tests;
+extern uint32_t  g_rule_tests_num;
 extern RULE_ID_e *g_rule_list;
 extern RULE_ID_e *g_skip_rule_list;
 extern uint32_t  *g_execute_modules;
@@ -128,9 +130,12 @@ extern uint32_t  g_bsa_sw_view_mask;
 /* Function declarations */
 uint32_t createPeInfoTable(void);
 uint32_t createGicInfoTable(void);
+
+void     createMemoryInfoTable(void);
+void     createPcieInfoTable(void);
+void     createIoVirtInfoTable(void);
 void     createTimerInfoTable(void);
 void     createWatchdogInfoTable(void);
-void     createPcieVirtInfoTable(void);
 void     createPeripheralInfoTable(void);
 void     createDmaInfoTable(void);
 void     createSmbiosInfoTable(void);
@@ -145,4 +150,44 @@ void     createRas2InfoTable(void);
 void     createTpm2InfoTable(void);
 
 #endif /* __ASSEMBLER__ */
+/*
+ * MMU configuration
+ *
+ * 1 = do val_setup_mmu/val_enable_mmu
+ * 0 = skip MMU setup/enable
+ *
+ * Can be overridden from the build system, e.g.:
+ *   -DACS_ENABLE_MMU=0
+ */
+#ifndef ACS_ENABLE_MMU
+#define ACS_ENABLE_MMU   1
+#endif
+
+/*
+ * Optional compile-time default enabled module list.
+ *
+ * If the build system defines, for example:
+ *
+ *   -DACS_ENABLED_MODULE_LIST=TIMER,PCIE
+ *
+ * then ACS will treat that as a static uint32_t[] containing the module
+ * base IDs that are **enabled to run by default**.
+ *
+ * Semantics:
+ *   - All modules are still compiled into the binary.
+ *   - This list only controls which modules are enabled for execution.
+ *   - If a runtime override is provided (g_module_array / EL3 params),
+ *     it takes priority over this list.
+ *
+ * If ACS_ENABLED_MODULE_LIST is not defined, ACS falls back to:
+ *   - runtime overrides (if present), otherwise
+ *   - "all modules enabled" behaviour.
+ */
+#ifdef ACS_ENABLED_MODULE_LIST
+#define ACS_HAS_ENABLED_MODULE_LIST  1
+#else
+#define ACS_HAS_ENABLED_MODULE_LIST  0
+#endif
+
 #endif /* __BSA_AVS_LEVEL_H__ */
+
