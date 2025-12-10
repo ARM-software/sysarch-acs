@@ -20,6 +20,7 @@ For more information, please refer the [VBSA specification](https://developer.ar
 
 ## Release Details
  - Code Quality: BETA
+ - Latest release version - v0.7.0
  - The tests are written for version 1.0 of the VBSA specification.
  - For more details on tests implemented in this release, Please refer [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md).
 
@@ -91,7 +92,7 @@ Environment - Any mainstream Linux distro
 5. sudo cp Vbsa.efi /mnt/acs<br>
 6. sudo umount /mnt/acs<br>
 
-Note: If /mnt/acs/ is not already created, you may need to create it using mkdir -p /mnt/acs/. You can obtain Shell.efi from the pre-built images provided with the VBSA ACS release.
+Note: If /mnt/acs/ is not already created, you may need to create it using mkdir -p /mnt/acs/. You can obtain Shell.efi from the [pre-built images](../../prebuilt_images/VBSA/v25.12_VBSA_0.7.0/) provided with the VBSA ACS release.
 
 #### 2.2 Creating a bootable .vhdx
 

@@ -198,7 +198,7 @@ Validates platform compliance with Arm VBSA specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference |
 |---------|--------------|-----------------|---------------------|
-| v0.7.0  | BET          | TBD             | [VBSA 1.0 ](https://developer.arm.com/documentation/den0150/a/?lang=en) |
+| v0.7.0  | BET          | [Vbsa.efi](prebuilt_images/VBSA/v25.12_VBSA_0.7.0/)             | [VBSA 1.0 ](https://developer.arm.com/documentation/den0150/a/?lang=en) |
 
 ####  Reference for Build, Execution, and More
 Refer to the [VBSA ACS README](docs/vbsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
