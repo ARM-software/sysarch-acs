@@ -103,15 +103,39 @@ Choose the verbosity level.
 
 #### -skip
 Overrides the suite to skip the execution of a particular
-test. For example, <i>-skip B_PE_01</i> skips test B_PE_01.
+rule. For example, <i>-skip B_PE_01</i> skips test B_PE_01.
 
 #### -f (Only for UEFI application)
 Save the test output into a file in secondary storage. For example <i>-f pc_bsa.log</i> creates a file pc_bsa.log with test output.
 
 #### -fr
-Use this option to run PC BSA tests intended for future requirement validation.
+Use this option to run PC BSA tests intended for future requirement rules validation.
 
-#### -help
+#### -el1physkip
+Skips EL1 register checks. VE systems run ACS at EL1 and in some systems a crash is observed during access of EL1 registers; this flag was introduced for debugging purposes only.
+
+#### -l \<n>
+Run compliance tests up till inputted level \<n>.
+
+#### -m
+Run only the specified modules (comma-separated names). Accepted module names are: PE, GIC, PERIPHERAL, MEM_MAP, PMU, RAS, SMMU, TIMER, WATCHDOG, NIST, PCIE, MPAM, ETE, TPM, POWER_WAKEUP. For example, <i>-m PE,GIC,PCIE</i>.
+
+#### -mmio
+Enable <code>pal_mmio_read</code>/<code>pal_mmio_write</code> prints (use with <i>-v 1</i>).
+
+#### -r
+Run tests for the passed comma-separated Rule IDs or a rules file. For example, <i>-r B_PE_01,B_PE_02,B_GIC_01</i> or <i>-r rules.txt</i> (the file may mix commas and newlines; lines starting with <code>#</code> are treated as comments).
+
+#### -only \<n>
+Only run tests for rules at level \<n>.
+
+#### -skipmodule
+Skip the specified modules (comma-separated names). For example, <i>-skipmodule PE,GIC,PCIE</i>.
+
+#### -timeout \<n>
+Set timeout multiple for wakeup tests. Valid values are 1 (minimum) through 5 (maximum). The default is 1.
+
+#### -h, -help
 Displays all available command-line arguments and their usage.
 
 ### UEFI example
