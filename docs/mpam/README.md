@@ -9,7 +9,7 @@ For more information, download the [MPAM System Component Specification](https:/
 ## Release details
  - Code Quality: Alpha
  - The tests are written for version A.a of the MPAM Memory System Component Specification.
- - For more details on tests implemented in this release, Please refer [MPAM Test Scenario Document](docs/mpam/arm_mpam_architecture_compliance_test_scenario.pdf).
+- For more details on tests implemented in this release, Please refer [MPAM Test Scenario Document](arm_mpam_architecture_compliance_test_scenario.pdf).
 
 ## Downloading MPAM ACS
 
@@ -22,7 +22,7 @@ MPAM ACS code is present in the sysarch-acs repository.
 ### UEFI application
 #### Prerequisites
 
-ACS build requires that the following requirements are met, Please skip this if you are using [MPAM Application Build Script](../tools/scripts/build_mpam_uefi.sh).
+ACS build requires that the following requirements are met, Please skip this if you are using [MPAM Application Build Script](../../tools/scripts/build_mpam_uefi.sh).
 
 - Any mainstream Linux based OS distribution.
 - git clone EDK2 tree.

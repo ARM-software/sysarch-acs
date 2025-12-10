@@ -74,7 +74,7 @@ Prebuilt images for each release are available in the [`prebuilt_images`](../../
 
 ## Documentation and Guides
 - [Arm SBSA Test Scenario Document](arm_sbsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.  
-- [Arm SBSA Test Checklist](arm_sbsa_testcase_checklist.rst) — test categories (UEFI, Linux, Bare-metal) and applicable systems (IR, ES, SR, Pre-Silicon).  
+- [Arm SBSA Test Checklist](arm_sbsa_testcase_checklist.md) — test categories (UEFI, Linux, Bare-metal) and applicable systems (IR, ES, SR, Pre-Silicon).  
 - [Arm SBSA Validation Methodology](arm_sbsa_architecture_compliance_validation_methodology.pdf).  
 - [Arm SBSA ACS User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).  
 - Bare-metal porting guides  

@@ -67,9 +67,9 @@ Tests can also run in a bare-metal environment. Initialization of the bare-metal
 Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.  
 
 ## Documentation and Guides
-- [Arm BSA Test Scenario Document](arm_bsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.  
-- [Arm BSA Test Checklist](arm_bsa_testcase_checklist.rst) — test categories (UEFI, Linux, Bare-metal) and applicable systems (IR, ES, SR, Pre-Silicon).  
-- [Arm BSA Validation Methodology](arm_bsa_architecture_compliance_validation_methodology.pdf).  
+- [Arm BSA Test Scenario Document](arm_bsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.
+- [Arm BSA Test Checklist](arm_bsa_testcase_checklist.md) — test categories (UEFI, Linux, Bare-metal) and applicable systems.
+- [Arm BSA Validation Methodology](arm_bsa_architecture_compliance_validation_methodology.pdf).
 - [Arm BSA ACS User Guide](arm_bsa_architecture_compliance_user_guide.pdf).  
 - Bare-metal porting guides  
   - [Arm BSA ACS Bare-metal User Guide](arm_bsa_architecture_compliance_bare-metal_user_guide.pdf)  

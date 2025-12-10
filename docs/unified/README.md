@@ -1,6 +1,6 @@
 ## Table of Contents
 
-- [Unified Architecture Compliance Suite](#unified-architecture-compliance-suite)
+- [Unified UEFI Application](#unified-uefi-application)
 - [Release Details](#release-details)
 - [Unified build steps](#unified-build-steps)
   - [UEFI Shell application](#uefi-shell-application)
@@ -16,9 +16,9 @@
 - [Related Documentation](#related-documentation)
 - [Support](#support)
 
-## Unified Architecture Compliance Suite
+## Unified UEFI Application
 
-The **Unified Architecture Compliance Suite (ACS)** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.  
+The **Unified UEFI Application** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.  
 It is intended for platform teams that want to validate a design once and cover the combined requirements of the Base System Architecture (BSA), Server Base System Architecture (SBSA) and PCBase System Architecture (PC-BSA) specifications.
 
 Most tests run from the **UEFI Shell** by invoking the Unified ACS UEFI application.  
@@ -27,7 +27,7 @@ The test suite can also be executed in bare-metal environments; initialization o
 
 ## Release Details
 
-- **Coverage:** Aggregates validation for [BSA 1.1](https://developer.arm.com/documentation/den0094/d/?lang=en) and [SBSA 7.2](https://developer.arm.com/documentation/den0029/i/?lang=en).  
+- **Coverage:** Aggregates validation for [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) and [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en).  
 - **Execution levels:** Suitable for both Pre-Silicon and Silicon validation.  
 - **Complementary requirements:** Running with the Exerciser VIP is recommended for complete PCIe compliance coverage.  
 - **Linux dependencies:** The Unified ACS relies on the BSA and SBSA Linux applications for tests that require an OS environment. Refer to the dedicated BSA and SBSA documentation for details.
@@ -73,14 +73,14 @@ source edksetup.sh
 make -C BaseTools/Source/C
 ```
 
-#### Start the Unified ACS build
+#### Start the Unified Application build
 ```
 rm -rf Build/
 source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh unified
 ```
 
 #### Build output
-The Unified ACS EFI binary is generated at:
+The Unified EFI binary is generated at:
 `workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/UnifiedAcs.efi`
 
 > **Note:** Unified ACS currently supports ACPI-based builds. Platform-specific device tree enablement is not available for the unified target. Ensure Exerciser PAL APIs are implemented when the Exerciser VIP is present.
@@ -116,7 +116,7 @@ On platforms with USB access:
 4. Run `UnifiedAcs.efi` with the required parameters.
 5. Capture the UART console output for log retention.
 
-- For application parameters, see the [Unified ACS User Guide](user_guide.rst).
+- For application parameters, see the [Unified User Guide](user_guide.rst).
 
 #### Emulation environment with secondary storage
 1. Create an image containing `UnifiedAcs.efi` and `Shell.efi` (for U-Boot systems):
@@ -134,7 +134,7 @@ On platforms with USB access:
 6. Execute `UnifiedAcs.efi` with the appropriate parameters.
 7. Preserve the UART console output for debug or certification review.
 
-- For application parameters, see the [Unified ACS User Guide](user_guide.rst).
+- For application parameters, see the [Unified User Guide](user_guide.rst).
 
 ### For Linux application
 
@@ -157,7 +157,7 @@ Unified ACS reuses the BSA and SBSA Linux applications to exercise OS-reliant te
    sudo rmmod bsa_acs
    ```
 
-- For application parameters, see the [Unified ACS User Guide](user_guide.rst).
+- For application parameters, see the [Unified User Guide](user_guide.rst).
 
 ## Related Documentation
 
@@ -169,5 +169,5 @@ Unified ACS reuses the BSA and SBSA Linux applications to exercise OS-reliant te
 ## Support
 
 - Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)  
-- GitHub Issues: [sysarch-acs issue tracker](../../issues)  
-- Contributions: [GitHub Pull Requests](../../pulls)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)  
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)

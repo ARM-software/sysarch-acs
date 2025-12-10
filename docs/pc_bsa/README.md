@@ -216,7 +216,7 @@ PC_bsa.efi      # Launch the PC BSA test
 
 ### Notes
 
-- Ensure the `.efi` binary is copied correctly into the image using the steps in the [secondary-storage setup section]((#21-emulation-environment-with-secondary-storage).
+- Ensure the `.efi` binary is copied correctly into the image using the steps in the [secondary-storage setup section](#21-emulation-environment-with-secondary-storage).
 - Capture UART output logs for test verification and reporting.
 
 ## Guidance on running SCT testcase

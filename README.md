@@ -14,9 +14,8 @@
   * [MemTest ACS](#memtest-architecture-compliance-suite)
   * [PFDI ACS](#pfdi-architecture-compliance-suite)
   * [VBSA ACS](#vbsa-architecture-compliance-suite)
-* [Unified ACS](#unified-architecture-compliance-suite)
+* [Unified UEFI Application](#unified-uefi-application)
 * [Security Implications](#-security-implications)
-* [Limitations](#-limitations)
 * [Feedback and Support](#-feedback-and-support)
 * [License](#-license)
 
@@ -100,7 +99,7 @@ Validates platform compliance with Arm BSA specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference | Complementary Tests / Dependencies    |
 |---------|--------------|-----------------|---------------------|-------------------|
-| v1.1.1  | REL          | [Bsa.efi](prebuilt_images/BSA/v25.07_BSA_1.1.1) | [BSA 1.1](https://developer.arm.com/documentation/den0094/d/?lang=en) | * Exerciser VIP needed for complete coverage of PCIe rules |
+| v1.2.0  | BET          | [Bsa.efi](prebuilt_images/BSA/v25.12_BSA_1.2.0) | [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) | * Exerciser VIP needed for complete coverage of PCIe rules |
 
 ####  Reference for Build, Execution, and More
 Refer to the [BSA ACS README](docs/bsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
@@ -114,7 +113,7 @@ Validates platform compliance with Arm SBSA specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference | Complementary Tests / Dependencies    |
 |---------|--------------|-----------------|---------------------|-------------------|
-| v7.2.3  | REL          | [Sbsa.efi](prebuilt_images/SBSA/v25.07_SBSA_7.2.3) | [SBSA 7.2](https://developer.arm.com/documentation/den0029/i/?lang=en) | * BSA ACS needs to run for complete SBSA coverage <br> * Exerciser VIP needed for complete coverage of PCIe rules |
+| v8.0.0  | BET          | [Sbsa.efi](prebuilt_images/SBSA/v25.12_SBSA_8.0.0) | [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en) | * BSA ACS needs to run for complete SBSA coverage <br> * Exerciser VIP needed for complete coverage of PCIe rules |
 
 ####  Reference for Build, Execution, and More
 Refer to the [SBSA ACS README](docs/sbsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
@@ -205,7 +204,7 @@ Refer to the [VBSA ACS README](docs/vbsa/README.md) for detailed build steps, ex
 
 ---
 
-## Unified Architecture Compliance Suite
+## Unified UEFI Application
 Provides a unified entry point for running BSA, SBSA, PC-BSA validation from a single UEFI application.
 
 ####  Reference for Build, Execution, and More
