@@ -8,6 +8,8 @@ This brings ACS execution and reporting **closer to the specification**.
 * **Moved to new design:** BSA, SBSA, PC-BSA
 * **WIP:** Sys MPAM, DRTM, PFDI
 
+**Note:** Legacy test IDs are still retained in logs and checklists to aid a smooth transition into the rule ID based infrastructure. Rule IDs are now the primary identifier and smallest unit of execution that can be referenced with the `-r` or `-skip` options. The infrastructure no longer supports skipping or running tests using test IDs, and test IDs will be deprecated in future releases. Please refer to tests using the Rule ID in all queries, debug, and waiver-related communications.
+
 ---
 
 ## How to Run (rule-based)
@@ -96,6 +98,18 @@ START - B_SMMU_12 - :
 END B_SMMU_12 NOT TESTED (TEST NOT IMPLEMENTED)
 ```
 `NOTE: With rule-based design, ACS also capture list of rules which are not implemented and needs to verified by alternative approach`
+
+---
+
+## Rule status in logs
+
+- `PASSED`: The Device Under Test (DUT) complies with the rule.
+- `PASSED(*PARTIAL)`: The DUT complies with the rule for all tests that can run in the current PAL environment (UEFI, Baremetal, or Linux). Additional tests must be run in other environments to achieve full coverage.
+- `WARNING`: The framework cannot confidently infer compliance. This can happen when software does not have full visibility of a feature, or when a test reports a failure but ACS cannot safely classify the rule as `FAILED`. Manual validation is required.
+- `SKIPPED`: The rule was skipped, typically because conditional requirements in the rule statement are not applicable to the DUT.
+- `FAILED`: The DUT does not comply with the rule.
+- `NOT TESTED (TEST NOT IMPLEMENTED)`: No test has been implemented in ACS for this rule.
+- `NOT TESTED (PAL NOT SUPPORTED)`: No test is implemented for this rule in the current PAL environment (Baremetal, UEFI, or Linux), but tests may exist in other environments to demonstrate compliance.
 
 ---
 
