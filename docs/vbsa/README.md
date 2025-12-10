@@ -21,7 +21,7 @@ For more information, please refer the [VBSA specification](https://developer.ar
 ## Release Details
  - Code Quality: BETA
  - The tests are written for version 1.0 of the VBSA specification.
- - For more details on tests implemented in this release, Please refer [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.pdf).
+ - For more details on tests implemented in this release, Please refer [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md).
 
 ## VBSA Coverage Overview
 The VBSA tests are primarily UEFI-based and run on the virtual platform’s UEFI firmware, with a subset of tests executed in a Linux guest environment.
@@ -191,11 +191,13 @@ shell> sudo rmmod bsa_acs
 
 ## Limitations
 
-- The VBSA tests are distributed across various ACS components - UEFI-based tests, and Linux-based tests. To achieve complete validation, all test suites must be executed. Additionally, some rules require manual verification by the DUT owner, for these rules compliance must be manually declared to confirm VBSA compliance for the DUT. see the [VBSA testcase checklist](../../docs/vbsa/arm_vbsa_testcase_checklist.rst) for rules not testable by ACS.
+- The VBSA tests are distributed across various ACS components - UEFI-based tests, and Linux-based tests. To achieve complete validation, all test suites must be executed. Additionally, some rules require manual verification by the VE owner, for these rules compliance must be manually declared to confirm VBSA compliance for the VE. see the [VBSA testcase checklist](arm_vbsa_testcase_checklist.md) for rules not testable by ACS.
+
+- Several PCIe rules require the Exerciser VIP to achieve complete coverage. Exerciser-based tests cannot be executed in virtual environments. These rules are reported as PASSED*(PARTIAL) or SKIPPED depending on other tests that cover the rule.
 
 ## Troubleshoot guide
 
-- When running VBSA ACS in virtual environments, some hypervisors may trap EL1 physical timer accesses, which can cause certain VBSA ACS tests to raise exceptions. In such cases, use the -el1physkip command line parameter to skip EL1 physical timer accesses. Note that using this parameter reduces test coverage, and the DUT owner must manually verify the skipped rules to achieve compliance.
+- When running VBSA ACS in virtual environments, some hypervisors may trap EL1 physical timer accesses, which can cause certain VBSA ACS tests to raise exceptions. In such cases, use the -el1physkip command line parameter to skip EL1 physical timer accesses. Note that using this parameter reduces test coverage, and the VE owner must manually verify the skipped rules to achieve compliance.
 
 ## License
 VBSA ACS is distributed under Apache v2.0 License.
