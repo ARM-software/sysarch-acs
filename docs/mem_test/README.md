@@ -44,7 +44,7 @@ Note :  Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/a
 >          wget https://releases.linaro.org/components/kernel/uefi-linaro/16.02/release/qemu64/QEMU_EFI.fd
 
 2. Run QEMU model <br>
-**Note** : <br> 1. Follow steps provided in [Emulation environment with secondary-storage](../README.md#22-emulation-environment-with-secondary-storage) to create .img file containing Bsa.efi executable. <br> 2. Follow instructions from https://www.qemu.org/download/#source to obtain QEMU model.
+**Note** : <br> 1. Follow steps provided in [Emulation environment with secondary-storage](../bsa/README.md#emulation-environment-with-secondary-storage) to create .img file containing Bsa.efi executable. <br> 2. Follow instructions from https://www.qemu.org/download/#source to obtain QEMU model.
 
 >          IMG_PATH=<path to .img containing Bsa.efi>
 >          QEMU_PATH=<path to QEMU model>
