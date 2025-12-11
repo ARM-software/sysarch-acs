@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +78,8 @@ pcbsa_acs_entry:
     adr x0, vector_table
     msr  vbar_el2, x0
 
-    adr x18, g_primary_mpidr
+    adrp x18, g_primary_mpidr
+    add  x18, x18, :lo12:g_primary_mpidr
     ldr x0, [x18]
     mov   x2, #INVALID_MPIDR
     cmp   x2, x0
@@ -108,7 +109,8 @@ primary_cpu_entry:
     msr  sctlr_el2, x0
     isb
 
-    adr x18, g_primary_mpidr
+    adrp x18, g_primary_mpidr
+    add  x18, x18, :lo12:g_primary_mpidr
     mrs x0, mpidr_el1
     str x0, [x18]
 
