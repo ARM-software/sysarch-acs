@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,14 +55,24 @@ payload(void)
       if (val_dma_get_info(DMA_HOST_IOMMU_ATTACHED, target_dev_index)) {
           iommu_flag++;
           /* Allocate DMA-able memory region in DDR */
-          dma_addr = val_dma_mem_alloc(&buffer, 512, target_dev_index, DMA_COHERENT);
+          status = val_dma_mem_alloc(&buffer, 512, target_dev_index, DMA_COHERENT, &dma_addr);
+          if (status == NOT_IMPLEMENTED) {
+            val_print(ACS_PRINT_ERR,
+                    "\n       pal_dma_mem_alloc is unimplemented, Skipping test.", 0);
+            goto test_skip_unimplemented;
+          }
           status = val_smmu_ops(SMMU_CHECK_DEVICE_IOVA, &target_dev_index, &dma_addr);
           if (status) {
-              val_print(ACS_PRINT_ERR, "\n       The DMA addr allocated to device %d ",
-                        target_dev_index);
-              val_print(ACS_PRINT_ERR, "\n       is not present in the SMMU IOVA table\n", 0);
-              val_set_status(index, RESULT_FAIL(TEST_NUM, target_dev_index));
-              return;
+            if (status == NOT_IMPLEMENTED) {
+                val_print(ACS_PRINT_ERR,
+                        "\n       pal_smmu_check_device_iova is unimplemented, Skipping test.", 0);
+                goto test_skip_unimplemented;
+            }
+            val_print(ACS_PRINT_ERR, "\n       The DMA addr allocated to device %d ",
+                    target_dev_index);
+            val_print(ACS_PRINT_ERR, "\n       is not present in the SMMU IOVA table\n", 0);
+            val_set_status(index, RESULT_FAIL(TEST_NUM, target_dev_index));
+            return;
           }
           /* Free the allocated memory here */
           val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, DMA_COHERENT);
@@ -73,6 +83,10 @@ payload(void)
       val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   else
       val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
+  return;
+
+test_skip_unimplemented:
+    val_set_status(index, RESULT_SKIP(TEST_NUM, 3));
 
 }
 
