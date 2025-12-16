@@ -94,9 +94,8 @@ val_gic_free_info_table(void)
         g_gic_info_table = NULL;
     }
     else {
-      val_print(ACS_PRINT_ERR,
-                  "\n WARNING: g_gic_info_table pointer is already NULL",
-        0);
+      val_print(ACS_PRINT_DEBUG,
+                  "\n g_gic_info_table pointer is already NULL", 0);
     }
 }
 

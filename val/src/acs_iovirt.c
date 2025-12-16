@@ -322,9 +322,8 @@ val_iovirt_free_info_table(void)
         g_iovirt_info_table = NULL;
     }
     else {
-      val_print(ACS_PRINT_ERR,
-                  "\n WARNING: g_iovirt_info_table pointer is already NULL",
-        0);
+      val_print(ACS_PRINT_DEBUG,
+                  "\n g_iovirt_info_table pointer is already NULL", 0);
     }
 }
 

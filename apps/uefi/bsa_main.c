@@ -211,9 +211,10 @@ print_test_status:
     val_print_acs_test_status_summary();
     val_print(ACS_PRINT_ERR, "\n      *** BSA tests complete. Reset the system. ***\n\n", 0);
 
-    freeAcsMem();
 
 exit_acs:
+
+    freeAcsMem();
 
     if (g_dtb_log_file_handle) {
         ShellCloseFile(&g_dtb_log_file_handle);
@@ -223,6 +224,9 @@ exit_acs:
         ShellCloseFile(&g_acs_log_file_handle);
     }
 
-    val_pe_context_restore(AA64WriteSp(g_stack_pointer));
+    if (g_stack_pointer) {
+        val_pe_context_restore(AA64WriteSp(g_stack_pointer));
+    }
+
     return ACS_STATUS_PASS;
 }
