@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,13 @@
 #define EXTENDED_PPI_START_INTID   1056
 
 #define EXTENDED_PPI_REG_OFFSET    1024
+
+#define GICR_WAKER_CHILDREN_ASLEEP_SHIFT     2U
+/* Single-bit mask */
+#define GICR_WAKER_BIT_MASK                 0x1U
+#define GICR_WAKER_SPIN_DELAY_MASK          0x3FFU
+#define GIC_ALL_INTERRUPTS_MASK             0xFFFFFFFFU
+#define GIC_SIM_MAX_SPI_ROUTE_COUNT         256U
 
 void v3_Init(void);
 void v3_EnableInterruptSource(uint32_t);

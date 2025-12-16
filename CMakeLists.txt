@@ -126,6 +126,17 @@ if(DEFINED ACS_ENABLED_MODULE_LIST)
     list(APPEND DEFAULT_ENABLED_MODULES -DACS_ENABLED_MODULE_LIST=${ACS_ENABLED_MODULE_LIST})
 endif()
 
+# Enable fast-path optimizations for simulation/emulation builds.
+# Use:
+#   cmake -DTARGET_SIMULATION=ON ...
+option(TARGET_SIMULATION "Enable simulation/emulation optimizations (defines TARGET_SIMULATION)" OFF)
+if(TARGET_SIMULATION)
+    message(STATUS "[ACS] : TARGET_SIMULATION is enabled (defining TARGET_SIMULATION)")
+    add_compile_definitions(TARGET_SIMULATION)
+ else()
+    message(STATUS "[ACS] : TARGET_SIMULATION is disabled")
+ endif()
+
 # Include the files for make clean
 foreach(clean_item ${CLEAN_LIST})
         set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${clean_item})
@@ -144,7 +155,7 @@ endif()
 # Generate per-ACS custom targets and an aggregate target
 foreach(_acs IN LISTS ACS_LIST)
     add_custom_target(${_acs}
-        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} ${DEFAULT_ENABLED_MODULES}
+        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DTARGET_SIMULATION=${TARGET_SIMULATION} ${DEFAULT_ENABLED_MODULES}
         -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
     )
