@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -163,8 +163,14 @@ payload(void *arg)
       if (smmu_index == ACS_INVALID_INDEX)
           dram_buf_iova = dram_buf_phys;
       else
-          dram_buf_iova = (void *) val_smmu_pa2iova(smmu_index, (uint64_t)dram_buf_phys);
+          status = val_smmu_pa2iova(smmu_index, (uint64_t)dram_buf_phys,
+                                    (uint64_t *)&dram_buf_iova);
 
+      if (status == NOT_IMPLEMENTED) {
+        val_print(ACS_PRINT_ERR,
+                "\n       pal_smmu_pa2iova is unimplemented, Skipping test.", 0);
+        goto test_skip_unimplemented;
+      }
       /*
        * Issue a Memory Read request from exerciser to cause unsupported
        * request detected bit set in exercise's Device Status Register.
@@ -211,9 +217,14 @@ exception_return:
       val_set_status(pe_index, RESULT_FAIL(test_data->test_num, fail_cnt));
   else
       val_set_status(pe_index, RESULT_PASS(test_data->test_num, 01));
-
   return;
 
+test_skip_unimplemented:
+    /* Restore Rootport Bus Master Enable */
+      val_pcie_enable_bme(erp_bdf);
+    /* Return the buffer to the heap manager */
+    val_memory_free_pages(dram_buf_virt, TEST_DATA_NUM_PAGES);
+    val_set_status(pe_index, RESULT_SKIP(test_data->test_num, 02));
 }
 
 uint32_t

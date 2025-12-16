@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,10 +63,15 @@ payload(void)
           }
           status = val_smmu_ops(SMMU_CHECK_DEVICE_IOVA, &target_dev_index, &dma_addr);
           if (status) {
-              val_print(ACS_PRINT_ERR, "\n       The DMA address %lx used by device ", dma_addr);
-              val_print(ACS_PRINT_ERR, "\n       is not present in the SMMU IOVA table\n", 0);
-              val_set_status(index, RESULT_FAIL(TEST_NUM, target_dev_index));
-              return;
+            if (status == NOT_IMPLEMENTED) {
+                val_print(ACS_PRINT_ERR,
+                        "\n       pal_smmu_check_device_iova is unimplemented, Skipping test.", 0);
+                goto test_skip_unimplemented;
+            }
+            val_print(ACS_PRINT_ERR, "\n       The DMA address %lx used by device ", dma_addr);
+            val_print(ACS_PRINT_ERR, "\n       is not present in the SMMU IOVA table\n", 0);
+            val_set_status(index, RESULT_FAIL(TEST_NUM, target_dev_index));
+            return;
           }
       }
   }
@@ -75,6 +80,10 @@ payload(void)
       val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   else
       val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
+  return;
+
+test_skip_unimplemented:
+    val_set_status(index, RESULT_SKIP(TEST_NUM, 3));
 }
 
 

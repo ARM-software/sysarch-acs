@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -386,16 +386,18 @@ pal_pcie_dev_p2p_support (
 
 
 /**
-    @brief   Create a list of MSI(X) vectors for a device
+  @brief   Create a list of MSI(X) vectors for a device
 
-    @param   Seg        PCI segment number
-    @param   Bus        PCI bus address
-    @param   Dev        PCI device address
-    @param   Fn         PCI function number
-    @param   MVector    pointer to a MSI(X) list address
+  @param   Seg        PCI segment number
+  @param   Bus        PCI bus address
+  @param   Dev        PCI device address
+  @param   Fn         PCI function number
+  @param   MVector    pointer to a MSI(X) list address
 
-    @return  mvector    list of MSI(X) vectors
-    @return  number of MSI(X) vectors
+  @return
+  - 0               : Success
+  - NOT_IMPLEMENTED : Feature not implemented
+  - non-zero        : Failure (implementation-specific error code)
 **/
 UINT32
 pal_get_msi_vectors (
@@ -406,7 +408,7 @@ pal_get_msi_vectors (
   PERIPHERAL_VECTOR_LIST **MVector
   )
 {
-  return 0;
+  return NOT_IMPLEMENTED;
 }
 
 /**

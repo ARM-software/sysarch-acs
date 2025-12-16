@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,7 +104,11 @@ payload (void)
       if (dev_bdf) {
         val_print (ACS_PRINT_INFO, "       Checking PCI device with BDF %4X\n", dev_bdf);
         /* Read MSI(X) vectors */
-        if (val_get_msi_vectors (dev_bdf, &dev_mvec)) {
+        if (val_get_msi_vectors(dev_bdf, &dev_mvec) == NOT_IMPLEMENTED) {
+          val_print(ACS_PRINT_ERR,
+            "\n       pal_get_msi_vectors is unimplemented, Skipping test.", 0);
+          goto test_skip_unimplemented;
+        } else {
           test_skip = 0;
           mvec = dev_mvec;
           while(mvec) {
@@ -134,6 +138,10 @@ payload (void)
   } else if (!status) {
     val_set_status (index, RESULT_PASS(TEST_NUM, 0));
   }
+  return;
+
+test_skip_unimplemented:
+  val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
 }
 
 uint32_t
