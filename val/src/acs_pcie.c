@@ -1226,6 +1226,63 @@ val_pcie_disable_eru(uint32_t bdf)
 }
 
 /**
+  @brief  Disable DPC trigger enable bits
+  @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @return DPC trigger enable bits value
+**/
+uint32_t
+val_pcie_disable_dpc(uint32_t bdf)
+{
+  uint32_t dpc_cap_base;
+  uint32_t reg_value;
+  uint32_t status;
+  uint8_t dpc_trig_val;
+
+  /* Check DPC capability */
+  status = val_pcie_find_capability(bdf, PCIE_ECAP, ECID_DPC, &dpc_cap_base);
+  if (status == PCIE_CAP_NOT_FOUND)
+  {
+      val_print(ACS_PRINT_DEBUG, "ECID_DPC not found\n", 0);
+      return 0;
+  }
+
+  /* Disable DPC trigger enable bits */
+  val_pcie_read_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
+  dpc_trig_val = (reg_value >> DPC_CTRL_TRG_EN_SHIFT) & DPC_CTRL_TRG_EN_MASK;
+  reg_value &= ~(DPC_CTRL_TRG_EN_MASK << DPC_CTRL_TRG_EN_SHIFT);
+  val_pcie_write_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
+  return dpc_trig_val;
+}
+
+/**
+  @brief  Enable DPC trigger enable bits
+  @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @param  dpc_trig_val - DPC trigger enable bits value
+  @return None
+**/
+void
+val_pcie_enable_dpc(uint32_t bdf, uint32_t dpc_trig_val)
+{
+  uint32_t dpc_cap_base;
+  uint32_t reg_value;
+  uint32_t status;
+
+  /* Check DPC capability */
+  status = val_pcie_find_capability(bdf, PCIE_ECAP, ECID_DPC, &dpc_cap_base);
+  if (status == PCIE_CAP_NOT_FOUND)
+  {
+      val_print(ACS_PRINT_DEBUG, "ECID_DPC not found\n", 0);
+      return;
+  }
+
+  /* Enable DPC trigger enable bits */
+  val_pcie_read_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
+  reg_value &= ~(DPC_CTRL_TRG_EN_MASK << DPC_CTRL_TRG_EN_SHIFT);
+  reg_value |= ((dpc_trig_val & DPC_CTRL_TRG_EN_MASK) << DPC_CTRL_TRG_EN_SHIFT);
+  val_pcie_write_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
+}
+
+/**
   @brief  Returns whether a device's bit-field passed the compliance check or not.
           The device under test is indicated by input bdf.
 
