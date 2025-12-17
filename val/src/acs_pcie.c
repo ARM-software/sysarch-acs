@@ -2263,7 +2263,8 @@ val_pcie_parent_is_rootport(uint32_t dsf_bdf, uint32_t *rp_bdf)
          /* Check if device is a direct child of this root port */
           val_pcie_read_cfg(bdf, TYPE1_PBN, &reg_value);
           if ((dsf_bus == ((reg_value >> SECBN_SHIFT) & SECBN_MASK)) &&
-              (dsf_bus <= ((reg_value >> SUBBN_SHIFT) & SUBBN_MASK)))
+              (dsf_bus <= ((reg_value >> SUBBN_SHIFT) & SUBBN_MASK)) &&
+              (PCIE_EXTRACT_BDF_SEG(bdf) == PCIE_EXTRACT_BDF_SEG(dsf_bdf)))
           {
               *rp_bdf = bdf;
               return 0;
