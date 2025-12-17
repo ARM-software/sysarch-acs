@@ -215,6 +215,12 @@ next_bdf:
                   "\n       pal_memory_ioremap not implemented, skipping test.", 0);
             goto test_skip_unimplemented;
           }
+          else if (status) {
+            val_print(ACS_PRINT_ERR, "\n       Failed in  ioremap with status %x", status);
+            test_fail++;
+            val_set_status(index, RESULT_FAIL(test_num, test_fail));
+            goto next_bar;
+          }
 
           test_skip = 0;
 

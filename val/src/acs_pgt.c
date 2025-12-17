@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2019, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2019, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,11 +18,15 @@
 #include "include/acs_val.h"
 #include "include/acs_common.h"
 #include "include/acs_pgt.h"
+#include "include/acs_pe.h"
 #include "include/acs_memory.h"
+#include "include/acs_mmu.h"
 
 #define get_min(a, b) ((a) < (b))?(a):(b)
 
 #define PGT_DEBUG_LEVEL ACS_PRINT_INFO
+IOREMMAP_LIST *ioremmap_list;
+
 
 static uint32_t page_size;
 static uint32_t bits_per_level;
@@ -157,6 +161,258 @@ uint64_t get_block_size(uint32_t level)
         default:
             return 0;
     }
+}
+
+static inline uint64_t tlbi_by_va_arg(uint64_t va, uint32_t tg_log2)
+{
+    // TLBI-by-VA operand uses VA[55:12] in bits[43:0] -> start with >> 12
+    uint64_t arg = va >> PAGE_SIZE_4K_BITS;
+
+    // For larger granules, the low bits of (VA>>12) must be zero/ignored:
+    // 16K: VA[13:12] don't matter -> clear bits[1:0] of arg
+    // 64K: VA[15:12] don't matter -> clear bits[3:0] of arg
+    if (tg_log2 == PAGE_SIZE_16K_BITS) {
+        arg &= ~0x3ULL;   // clear bits[1:0]
+    } else if (tg_log2 == PAGE_SIZE_64K_BITS) {
+        arg &= ~0xFULL;   // clear bits[3:0]
+    }
+
+    return arg;
+}
+
+void val_pgt_set_pte_attr(uint64_t *pte, uint8_t attr_index)
+{
+    *pte &= ~(MEM_ATTR_INDX_MASK << MEM_ATTR_INDX_SHIFT);
+    *pte |= (((uint64_t)attr_index << MEM_ATTR_INDX_SHIFT) | (1ull << MEM_ATTR_AF_SHIFT));
+}
+
+uint32_t val_get_attr_index(uint64_t attr, uint8_t *mair_val)
+{
+    uint64_t mair_attr;
+    uint64_t current_mair = val_pe_reg_read(MAIR_ELx);
+
+    switch (attr)
+    {
+        case DEVICE_nGnRnE:
+            mair_attr =  MAIR_DEVICE_nGnRnE;
+            break;
+        case DEVICE_nGnRE:
+            mair_attr =  MAIR_DEVICE_nGnRE;
+            break;
+        case DEVICE_nGRE:
+            mair_attr =  MAIR_DEVICE_nGRE;
+            break;
+        case DEVICE_GRE:
+            mair_attr =  MAIR_DEVICE_GRE;
+            break;
+        case NORMAL_NC:
+            mair_attr =  MAIR_NORMAL_NC;
+            break;
+        case NORMAL_WT:
+            mair_attr =  MAIR_NORMAL_WT;
+            break;
+        default:
+            return MAIR_NOT_FOUND;
+    }
+
+    for (int idx = 0; idx < 8 ; idx++)
+    {
+        uint64_t entry = (current_mair >> (idx * 8)) & 0xFF;
+
+        if (entry == mair_attr) {
+            *mair_val = idx;
+            return 0;
+        }
+    }
+    return MAIR_ATTR_UNSUPPORT;
+}
+
+uint32_t val_get_index_attr(uint8_t indx, uint64_t *attr)
+{
+    uint64_t current_mair = val_pe_reg_read(MAIR_ELx);
+    uint64_t entry = (current_mair >> (indx * 8)) & 0xFF;
+
+    switch (entry)
+    {
+        case MAIR_DEVICE_nGnRnE:
+            *attr = DEVICE_nGnRnE;
+            break;
+        case MAIR_DEVICE_nGnRE:
+            *attr =  DEVICE_nGnRE;
+            break;
+        case MAIR_DEVICE_nGRE:
+            *attr =  DEVICE_nGRE;
+            break;
+        case MAIR_DEVICE_GRE:
+            *attr =  DEVICE_GRE;
+            break;
+        case MAIR_NORMAL_NC:
+            *attr =  NORMAL_NC;
+            break;
+        case MAIR_NORMAL_WT:
+            *attr = NORMAL_WT;
+            break;
+        default:
+            return MAIR_ATTR_UNSUPPORT;
+    }
+    return 0;
+}
+/*
+ * val_find_pte:
+ *    Description    Traverses the page table hierarchy using the given PTD and VA to
+ *                   locate and return a pointer to PTE The function walks through each
+ *                   translation level,computing indices based on address bits,until it finds
+ *                   a valid block or page descriptor.Returns NULL if the page table base
+ *                   is invalid or if a valid entry is not found.
+ *
+ */
+/**
+  @brief  This API to find the page table entry
+
+  @param  pgt_desc   page table base and translation attributes.
+  @param  virtual_address  memory region base whose attribute is to modified
+
+  @return base of page table entry
+**/
+uint64_t *val_find_pte(pgt_descriptor_t pgt_desc, uint64_t virtual_address)
+{
+    uint32_t ias, index, num_pgt_levels, this_level;
+    uint32_t bits_at_this_level, bits_remaining;
+    uint64_t val64, tt_base_phys, *tt_base_virt;
+    uint32_t page_size_log2 = pgt_desc.tcr.tg_size_log2;
+
+    /* Return NULL if page table base is not valid */
+    if (!pgt_desc.pgt_base)
+        return 0;
+
+    /* Calculate input address size (IAS) from TCR */
+    ias = (uint32_t)ADDR_WIDTH_64BIT - pgt_desc.tcr.tsz;
+
+    /* Number of index bits per translation level */
+    bits_per_level = page_size_log2 - 3;
+    /* Calculate number of translation levels */
+    num_pgt_levels = (ias - page_size_log2 + bits_per_level - 1)/bits_per_level;
+    /* Starting translation level */
+    this_level = 4 - num_pgt_levels;
+    /* Starting translation level */
+    bits_remaining = (num_pgt_levels - 1) * bits_per_level + page_size_log2;
+    /* Starting translation level */
+    bits_at_this_level = ias - bits_remaining;
+    /* Starting translation level */
+    tt_base_phys = pgt_desc.pgt_base;
+
+    while (1) {
+        /* Extract index for the current level from the virtual address */
+        index = (virtual_address >> bits_remaining) & ((0x1u << bits_at_this_level) - 1);
+        tt_base_virt = (uint64_t *)val_memory_phys_to_virt(tt_base_phys);
+        /* Read the descriptor at the computed index */
+        val64 = tt_base_virt[index];
+
+        val_print(PGT_DEBUG_LEVEL,
+                  "\n       val_pgt_get_attributes: this_level = %d     ",
+                  this_level);
+        val_print(PGT_DEBUG_LEVEL,
+                  "\n       val_pgt_get_attributes: index = %d     ",
+                  index);
+        val_print(PGT_DEBUG_LEVEL,
+                  "\n       val_pgt_get_attributes: bits_remaining = %d     ",
+                  bits_remaining);
+        val_print(PGT_DEBUG_LEVEL,
+                  "\n       val_pgt_get_attributes: tt_base_virt = %x     ",
+                  (uint64_t)tt_base_virt);
+        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_get_attributes: val64 = %x     ", val64);
+        if (this_level == 3)
+        {
+            if (!IS_PGT_ENTRY_PAGE(val64))
+                return 0;
+            return &tt_base_virt[index];   // Page descriptor
+        }
+        if (IS_PGT_ENTRY_BLOCK(val64))
+            return &tt_base_virt[index];   // Page descriptor
+
+        /* Move to the next level translation table */
+        tt_base_phys = val64 & (((0x1ull << (ias - page_size_log2)) - 1) << page_size_log2);
+        ++this_level;
+        bits_remaining -= bits_at_this_level;
+        bits_at_this_level = bits_per_level;
+    }
+}
+/**
+  @brief  This API to remap the physical address with attributes
+
+  @param  pgt_desc   page table base and translation attributes.
+  @param  addr  memory region base whose attribute is to modified
+  @param  size  size of the region
+  @param  attr  attribute to be modified
+
+  @return va on success 0 on failure
+**/
+uint64_t val_pgt_ioremap_attr(pgt_descriptor_t pgt_desc,
+                              uint64_t addr,
+                              uint64_t size,
+                              uint64_t attr,
+                              void **baseptr)
+{
+    uint32_t Status = 0;
+    bool flag = 0;
+    uint8_t mair_val;
+    uint8_t old_mair_val;
+    uint64_t old_attr;
+    uint64_t va = addr;
+    uint32_t page_size_log2 = pgt_desc.tcr.tg_size_log2 ? pgt_desc.tcr.tg_size_log2 : 12;
+    uint64_t page_size = 1ULL << page_size_log2;
+    *baseptr = 0;
+    Status = val_get_attr_index(attr, &mair_val);
+    if (Status)
+        return Status;
+
+    for (uint64_t a = va; a < va + size; a += page_size) {
+
+        uint64_t *pte = val_find_pte(pgt_desc, a);
+
+        if (!pte) {
+            val_print(ACS_PRINT_INFO, "Cannot find PTE for 0x%lx\n", a);
+            continue;
+        }
+        flag = 1;
+        old_mair_val = (*pte >> MEM_ATTR_INDX_SHIFT) & MEM_ATTR_INDX_MASK;
+        val_get_index_attr(old_mair_val, &old_attr);
+        val_pgt_set_pte_attr(pte, mair_val);
+        /* Ensure updated PTE reaches PoC before TLBI */
+        val_pe_cache_clean_range((uint64_t)pte, PGT_DESC_SIZE);
+    }
+
+    /* Ensure page table writes are visible before TLBI */
+    asm volatile("dsb ishst" ::: "memory");
+
+    /* Invalidate only the modified VA range */
+    for (uint64_t a = va; a < va + size; a += page_size) {
+        uint64_t a_aligned = a & ~(page_size - 1);
+        uint64_t arg = tlbi_by_va_arg(a_aligned, page_size_log2);     /* VA bits according to TG */
+
+        if (pgt_desc.stage == PGT_STAGE2)
+            asm volatile("tlbi ipas2e1is, %0" :: "r"(arg) : "memory");
+        else
+            asm volatile("tlbi vae2is, %0" :: "r"(arg) : "memory");
+    }
+
+    /* Synchronize completion of TLBI */
+    asm volatile("dsb ish" ::: "memory");
+    asm volatile("isb");
+    if (flag) {
+       /*Adding to list to revert back the attribute during unmap*/
+       IOREMMAP_LIST *lst = val_memory_alloc(sizeof(IOREMMAP_LIST));
+       lst->next = ioremmap_list;
+       lst->phy_addr = addr;
+       lst->vir_addr = va;
+       lst->size = size;
+       lst->attr = old_attr;
+       ioremmap_list = lst;
+       *baseptr = (void *)va;
+       return 0;
+    }
+    else
+        return PTE_NOT_FOUND;
 }
 
 /**

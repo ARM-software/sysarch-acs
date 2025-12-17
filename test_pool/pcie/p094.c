@@ -131,7 +131,7 @@ next_bdf:
           }
 
           /* Skip for IO address space */
-          if (bar_value & 0x1) {
+          if (bar_value & BAR_VALUE_IO_MASK) {
               val_print(ACS_PRINT_DEBUG, "\n       BAR is used for IO address space request", 0);
               val_print(ACS_PRINT_DEBUG, " for BDF 0x%x", bdf);
               tbl_index++;
@@ -213,6 +213,14 @@ next_bdf:
             val_print(ACS_PRINT_ERR,
                   "\n       pal_memory_ioremap not implemented, skipping test.", 0);
             goto test_skip_unimplemented;
+          }
+          else if (status)
+          {
+            test_fail++;
+            val_print(ACS_PRINT_ERR,
+                  "\n       pal_memory_ioremap failed, status: 0x%x", status);
+            val_set_status(index, RESULT_FAIL(test_num, test_fail));
+            goto next_bar;
           }
 
           test_skip = 0;

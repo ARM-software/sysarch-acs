@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2020, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2020, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,8 +62,22 @@
 #define PAGE_SIZE_16K       (4 * 0x1000)
 #define PAGE_SIZE_64K       (16 * 0x1000)
 
+#define PAGE_SIZE_4K_BITS        12
+#define PAGE_SIZE_16K_BITS       14
+#define PAGE_SIZE_64K_BITS       16
+
+#define ADDR_WIDTH_64BIT       64
+
+#define PTE_NOT_FOUND       0x10FF
+
 uint32_t val_pgt_create(memory_region_descriptor_t *mem_desc, pgt_descriptor_t *pgt_desc);
 void val_pgt_destroy(pgt_descriptor_t pgt_desc);
 uint64_t val_pgt_get_attributes(pgt_descriptor_t pgt_desc, uint64_t virtual_address, uint64_t *attributes);
-
+uint64_t val_pgt_ioremap_attr(pgt_descriptor_t pgt_desc,
+                              uint64_t addr,
+                              uint64_t size,
+                              uint64_t attr,
+                              void **baseptr);
+void val_pgt_set_pte_attr(uint64_t *pte, uint8_t attr_index);
+uint32_t val_get_attr_index(uint64_t attr, uint8_t *mair_val);
 #endif

@@ -743,6 +743,14 @@ typedef struct {
   MEM_INFO_BLOCK  info[];
 } MEMORY_INFO_TABLE;
 
+typedef struct IOREMMAP_LIST{
+    uint64_t phy_addr;
+    uint64_t vir_addr;
+    uint64_t size;
+    uint64_t attr;
+    struct IOREMMAP_LIST *next;
+} IOREMMAP_LIST;
+
 void  pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable);
 uint32_t pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr);
 void pal_memory_unmap(void *addr);

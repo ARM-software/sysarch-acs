@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@ payload()
              * Platform TPM Profile Specification for TPM 2.0, Section 6.2.1.
              */
             tpm_base_addr = TPM_FIFO_BASE_ADDRESS;
-            val_mmu_update_entry(tpm_base_addr, TPM_MMIO_MAP_SIZE);
+            val_mmu_update_entry(tpm_base_addr, TPM_MMIO_MAP_SIZE, DEVICE_nGnRnE);
             val_print(ACS_PRINT_WARN, "\n       ACPI base address is 0, "
                                       "Using default FIFO base: 0x%llx", tpm_base_addr);
         }
@@ -103,7 +103,8 @@ payload()
              tpm_start_method == TPM_IF_START_METHOD_CRB_ACPI) {
 
         /* Base address in ACPI points to TPM_CRB_CTRL_REQ_0 so adjust to get CRB register base */
-        val_mmu_update_entry((tpm_base_addr - TPM_CRB_CONTROL_AREA_OFFSET), TPM_MMIO_MAP_SIZE);
+        val_mmu_update_entry((tpm_base_addr - TPM_CRB_CONTROL_AREA_OFFSET),
+                                                TPM_MMIO_MAP_SIZE, DEVICE_nGnRnE);
         interface_id_addr = (tpm_base_addr - TPM_CRB_CONTROL_AREA_OFFSET) +
                                              TPM_CRB_INTERFACE_ID_OFFSET;
          val_print(ACS_PRINT_INFO, "\n       Tpm_fifo_interface_id_0 address: 0x%llx",

@@ -829,24 +829,6 @@ pal_pcie_mem_get_offset(uint32_t bdf, PCIE_MEM_TYPE_INFO_e mem_type)
 }
 
 /* Peripheral PAL API's */
-
-uint32_t
-pal_memory_ioremap(void *ptr, uint32_t size, uint32_t attr, void **baseptr)
-{
-  (void) size;
-  (void) attr;
-  *baseptr = ptr;
-  return NOT_IMPLEMENTED;
-}
-
-void
-pal_memory_unmap(void *ptr)
-{
-  (void) ptr;
-
-  return;
-}
-
 /**
   @brief  Platform specific code for UART initialisation
 

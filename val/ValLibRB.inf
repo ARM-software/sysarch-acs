@@ -34,6 +34,7 @@
   src/AArch64/RasSupport.S
   src/AArch64/PmuRegSupport.S
   src/AArch64/Drtm.S
+  src/AArch64/SystemReg.S
   src/AArch64/generic_sysreg_support.S
   src/acs_status.c
   src/acs_pe.c

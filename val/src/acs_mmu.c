@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,20 +144,24 @@ val_mmu_check_for_entry(uint64_t addr)
 
   @param   base_addr - base address of the memory.
   @param   size      - size of the memory region.
+  @param   attr      - attribute
 
   @return  0 - if SUCCESS, 1 otherwise.
 **/
 uint32_t
-val_mmu_add_entry(uint64_t base_addr, uint64_t size)
+val_mmu_add_entry(uint64_t base_addr, uint64_t size, uint64_t attr)
 {
   pgt_descriptor_t pgt_desc;
   memory_region_descriptor_t mem_desc;
   uint64_t ttbr;
+  uint8_t mair_val;
+  uint32_t status = 0;
   const uint32_t oas_bit_arr[7] = {32, 36, 40, 42, 44, 48, 52}; /* Physical address sizes */
 
   /* init descriptors */
   val_memory_set(&mem_desc, sizeof(mem_desc), 0);
   val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
+  pgt_desc.stage = PGT_STAGE1;
 
   /* Get translation attributes from TCR and translation table base from TTBR */
   if (val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr)) {
@@ -184,7 +188,12 @@ val_mmu_add_entry(uint64_t base_addr, uint64_t size)
   mem_desc.virtual_address = base_addr;
   mem_desc.physical_address = base_addr;
   mem_desc.length = size;
-  mem_desc.attributes = ATTR_DEVICE_nGnRnE | (1ull << MEM_ATTR_AF_SHIFT);
+  status = val_get_attr_index(attr, &mair_val);
+  if (status)
+    return status;
+
+  mem_desc.attributes = (mair_val << MEM_ATTR_INDX_SHIFT)
+                        | (1ull << MEM_ATTR_AF_SHIFT);
 
   /* update translation table entry(s) for addr region defined by memory descriptor structure  */
   if (val_pgt_create(&mem_desc, &pgt_desc)) {
@@ -203,7 +212,7 @@ val_mmu_add_entry(uint64_t base_addr, uint64_t size)
 
   @return 0 if Success, 1 otherwise.
 **/
-uint32_t val_mmu_update_entry(uint64_t address, uint32_t size)
+uint32_t val_mmu_update_entry(uint64_t address, uint32_t size, uint64_t attr)
 {
 
   /* If entry is already present return success */
@@ -213,7 +222,7 @@ uint32_t val_mmu_update_entry(uint64_t address, uint32_t size)
   }
 
   /* Add the entry and return status */
-  return val_mmu_add_entry(address, size);
+  return val_mmu_add_entry(address, size, attr);
 }
 
 /**
@@ -235,6 +244,42 @@ static uint32_t log2_func(uint64_t value)
         ++bit;
     }
     return 0;
+}
+
+/**
+ * @brief Setup MAIR Register
+ * @param void
+ * @return status
+**/
+void val_setup_mair_register(void)
+{
+    uint32_t currentEL;
+    uint8_t mair_attr[] = {
+        MAIR_DEVICE_nGnRnE, MAIR_NORMAL_NC, MAIR_NORMAL_WT_AGR,
+        MAIR_NORMAL_WB, MAIR_DEVICE_nGnRE, MAIR_DEVICE_nGRE, MAIR_DEVICE_GRE,
+        MAIR_NORMAL_WT};
+    uint64_t mair_val = 0;
+
+    currentEL = (val_read_current_el() & 0xc) >> 2;
+     /*
+     * Setup Memory Attribute Indirection Register
+     * Attr0 = MAIR_DEVICE_nGnRnE
+     * Attr1 = MAIR_NORMAL_NC
+     * Attr2 = MAIR_NORMAL_WT_AGR
+     * Attr3 = MAIR_NORMAL_WB
+     * Attr4 = MAIR_DEVICE_nGnRE
+     * Attr5 = MAIR_DEVICE_nGRE
+     * Attr6 = MAIR_DEVICE_GRE
+     * Attr7 = MAIR_NORMAL_WT
+     */
+    for (uint64_t attr = 0; attr < (sizeof(mair_attr) / sizeof(mair_attr[0])); attr++)
+    {
+        mair_val = mair_val | ((uint64_t)(mair_attr[attr]) << (attr * 8));
+    }
+
+    val_mair_write(mair_val, currentEL);
+
+    return;
 }
 
 #ifdef TARGET_BAREMETAL
@@ -302,14 +347,7 @@ uint32_t val_enable_mmu(void)
     uint32_t currentEL;
     currentEL = (val_read_current_el() & 0xc) >> 2;
 
-    /*
-     * Setup Memory Attribute Indirection Register
-     * Attr0 = b01000100 = Normal, Inner/Outer Non-Cacheable
-     * Attr1 = b11111111 = Normal, Inner/Outer WB/WA/RA
-     * Attr2 = b00000000 = Device-nGnRnE
-     */
-    val_mair_write(0x00FF44, currentEL);
-
+    val_setup_mair_register();
     /* Setup ttbr0 */
     val_ttbr0_write((uint64_t)tt_l0_base, currentEL);
 

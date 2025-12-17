@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2019-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2019-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -135,6 +135,8 @@
 #define BAR_P_TYPE                0x1
 #define BAR_64_BIT                0x1
 #define BAR_32_BIT                0x0
+#define BAR_VALUE_PREFETCH_MASK   0x8
+#define BAR_VALUE_IO_MASK         0x1
 #define BAR_REG(bar_reg_value)    ((bar_reg_value >> 2) & 0x1)
 
 #define TYPE0_MAX_BARS  6

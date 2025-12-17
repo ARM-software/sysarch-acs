@@ -340,38 +340,6 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
 }
 
 /**
-  @brief Maps the physical memory region into the virtual address space
-
-  @param ptr Pointer to physical memory region
-  @param size Size
-  @param attr Attributes
-  @param baseptr   OUT: Returned mapped address pointer
-
-  @return  Status of mapping operation
-**/
-UINT32
-pal_memory_ioremap(VOID *ptr, UINT32 size, UINT32 attr, VOID **baseptr)
-{
-  *baseptr = ptr;
-
-  return NOT_IMPLEMENTED;
-}
-
-/**
-  @brief Removes the physical memory to virtual address space mapping
-
-  @param ptr Pointer to mapped space
-
-  @return None
-**/
-VOID
-pal_memory_unmap(VOID *ptr)
-{
-
-  return;
-}
-
-/**
   @brief  Return the address of unpopulated memory of requested
           instance from the GCD memory map.
 

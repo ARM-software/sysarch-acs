@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -290,7 +290,7 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 
 #ifndef TARGET_LINUX
     val_print(ACS_PRINT_DEBUG, "\n   Check for SMMU index %x entry in memmap", i);
-    if (val_mmu_update_entry(smmu_base, SMMU_MAP_SIZE))
+    if (val_mmu_update_entry(smmu_base, SMMU_MAP_SIZE, DEVICE_nGnRnE))
       val_print(ACS_PRINT_WARN, "\n   Adding SMMU index %x entry failed", i);
 #endif
 

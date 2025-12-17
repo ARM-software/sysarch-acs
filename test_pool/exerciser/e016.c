@@ -108,8 +108,9 @@ payload(void)
           goto test_skip_unimplemented;
         }
 
-        if (!baseptr) {
+        if (status) {
             val_print(ACS_PRINT_ERR, "\n       Failed in BAR ioremap for instance %x", instance);
+            val_print(ACS_PRINT_DEBUG, "   Status :0x%x", status);
             goto test_fail;
         }
 

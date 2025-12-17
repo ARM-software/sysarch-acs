@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -846,7 +846,7 @@ memory_map_msc(void)
 
   for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
     msc_base  = val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
-    val_mmu_update_entry(msc_base, MPAM_MSC_REGISTER_SPACE);
+    val_mmu_update_entry(msc_base, MPAM_MSC_REGISTER_SPACE, DEVICE_nGnRnE);
   }
 
   return;

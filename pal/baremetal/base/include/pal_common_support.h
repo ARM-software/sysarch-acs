@@ -182,10 +182,10 @@ void *mem_alloc(size_t alignment, size_t size);
 
 #define MEM_SIZE_64K              0x10000
 
-#define ATTR_NORMAL_NONCACHEABLE  (0x0ull << 2)
-#define ATTR_NORMAL_WB_WA_RA      (0x1ull << 2)
-#define ATTR_DEVICE               (0x2ull << 2)
-#define ATTR_NORMAL_WB            (0x1ull << 3)
+#define ATTR_NORMAL_NONCACHEABLE  (0x1ull << 2)
+#define ATTR_NORMAL_WB_WA_RA      (0x3ull << 2)
+#define ATTR_DEVICE               (0x0ull << 2)
+#define ATTR_NORMAL_WB            (0x3ull << 3)
 
 /* Stage 1 Inner and Outer Cacheability attribute encoding without TEX remap */
 #define ATTR_S1_NONCACHEABLE   (0x0ull << 2)

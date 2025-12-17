@@ -277,11 +277,11 @@ val_timer_create_info_table(uint64_t *timer_info_table)
       timer_entry = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
 
       val_print(ACS_PRINT_DEBUG, "   Add entry %lx entry in memmap", gt_entry);
-      if (val_mmu_update_entry(gt_entry, 0x10000))
+      if (val_mmu_update_entry(gt_entry, 0x10000, DEVICE_nGnRnE))
           val_print(ACS_PRINT_WARN, "\n   Adding %lx entry failed", gt_entry);
 
       val_print(ACS_PRINT_DEBUG, "\n   Add entry %lx entry in memmap", timer_entry);
-      if (val_mmu_update_entry(timer_entry, 0x10000))
+      if (val_mmu_update_entry(timer_entry, 0x10000, DEVICE_nGnRnE))
           val_print(ACS_PRINT_WARN, "\n   Adding %lx entry failed", timer_entry);
   }
 }

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ check_smmu_pmcg(uint32_t check_counter)
                 pmcg_base = val_iovirt_get_pmcg_info(PMCG_CTRL_BASE, i);
 
                 /* Check if PMCG node memory is mapped. If not, map it */
-                status = val_mmu_update_entry(pmcg_base, SIZE_4KB);
+                status = val_mmu_update_entry(pmcg_base, SIZE_4KB, DEVICE_nGnRnE);
                 if (status) {
                     val_print(ACS_PRINT_ERR, "\n       Could not map PMCG node memory", 0);
                     return ACS_STATUS_FAIL;

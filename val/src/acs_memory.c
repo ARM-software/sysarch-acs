@@ -20,10 +20,12 @@
 #include "include/acs_memory.h"
 #include "include/acs_common.h"
 #include "include/acs_mmu.h"
-#include "include/val_interface.h"
+#include "include/acs_pe.h"
+#include "include/acs_pgt.h"
 #include "include/val_interface.h"
 
 MEMORY_INFO_TABLE  *g_memory_info_table;
+extern IOREMMAP_LIST *ioremmap_list;
 
 #define SIZE_4KB   0x00001000
 
@@ -180,7 +182,40 @@ val_memory_get_info(addr_t addr, uint64_t *attr)
 uint32_t
 val_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr)
 {
-  return pal_memory_ioremap(addr, size, attr, baseptr);
+#ifndef TARGET_LINUX
+  uint64_t ttbr;
+  pgt_descriptor_t pgt_desc;
+  uint32_t status = 0;
+
+  val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
+  pgt_desc.stage = PGT_STAGE1;
+
+  status = val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr);
+  if (status) {
+    val_print(ACS_PRINT_ERR, "\n       Unable to get translation attributes via TCR", 0);
+    return status;
+  }
+
+  status = val_pe_reg_read_ttbr(0 /*TTBR0*/, &ttbr);
+  if (status) {
+    val_print(ACS_PRINT_ERR, "\n       Unable to get translation table via TBBR", 0);
+    return status;
+  }
+
+  pgt_desc.pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
+  pgt_desc.mair = val_pe_reg_read(MAIR_ELx);
+  if (!val_mmu_check_for_entry((uint64_t)addr)) {
+    status = val_pgt_ioremap_attr(pgt_desc, (uint64_t)addr, size, attr, baseptr);
+  }
+  else {
+    status = val_mmu_add_entry((uint64_t)addr, size, attr);
+    *baseptr = addr;
+  }
+
+  return status;
+#else
+   return pal_memory_ioremap(addr, size, attr, baseptr);
+#endif
 }
 
 /**
@@ -195,7 +230,41 @@ val_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr)
 void
 val_memory_unmap(void *ptr)
 {
+#ifndef TARGET_LINUX
+    IOREMMAP_LIST *cur = ioremmap_list;
+    IOREMMAP_LIST *prev = NULL;
+  /*Reverting back the old attributes for the mapped regions*/
+    while (cur) {
+        if (cur->phy_addr == (uint64_t)ptr) {
+            if (prev)
+                prev->next = cur->next;
+            else
+                ioremmap_list = cur->next;
+            uint64_t ttbr;
+            pgt_descriptor_t pgt_desc;
+
+            val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
+            pgt_desc.stage = PGT_STAGE1;
+
+            val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr);
+
+            val_pe_reg_read_ttbr(0 /*TTBR0*/, &ttbr);
+
+            pgt_desc.pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
+            pgt_desc.mair = val_pe_reg_read(MAIR_ELx);
+            val_pgt_ioremap_attr(pgt_desc, (uint64_t)cur->phy_addr,
+                                          cur->size,
+                                          cur->attr,
+                                          &ptr);
+            val_memory_free(cur);
+            return;   // success
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+#else
   pal_memory_unmap(ptr);
+#endif
 }
 
 /**

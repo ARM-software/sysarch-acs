@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,6 +168,9 @@ execute_tests()
 
     val_print(ACS_PRINT_TEST, "(Print level is %2d)\n\n", g_print_level);
     val_print(ACS_PRINT_TEST, "\n Creating Platform Information Tables\n", 0);
+
+    /* Modifying default memory attributes of UEFI*/
+    val_setup_mair_register();
 
     Status = createPeInfoTable();
     if (Status) {
