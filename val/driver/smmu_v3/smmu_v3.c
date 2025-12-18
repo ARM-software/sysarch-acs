@@ -1023,7 +1023,9 @@ static int smmu_cdtab_write_ctx_desc(smmu_master_t *master,
         CDTAB_CD_0_V;
 
     cdptr[0] = val;
-    dump_cdtab(cdptr);
+
+    if (g_print_level <= ACS_PRINT_DEBUG)
+        dump_cdtab(cdptr);
 
     return 1;
 }
@@ -1209,7 +1211,9 @@ uint64_t val_smmu_map(smmu_master_attributes_t master_attr, pgt_descriptor_t pgt
 
     ste = smmu_strtab_get_ste_for_sid(smmu, master->sid);
     smmu_strtab_write_ste(master, ste);
-    dump_strtab(ste);
+
+    if (g_print_level <= ACS_PRINT_DEBUG)
+        dump_strtab(ste);
 
     smmu_tlbi_cfgi(smmu);
 
@@ -1236,8 +1240,11 @@ uint32_t val_smmu_config_ste_dcp(smmu_master_attributes_t master_attr, uint32_t 
     else
         ste[1] = ste[1] & BITFIELD_SET(STRTAB_STE_1_DCP, value);
 
-    val_print(ACS_PRINT_INFO, "\n       Dump STE values", 0);
-    dump_strtab(ste);
+    if (g_print_level <= ACS_PRINT_DEBUG)
+    {
+        val_print(ACS_PRINT_INFO, "\n       Dump STE values", 0);
+        dump_strtab(ste);
+    }
 
     dcp_value = (ste[1] >> STRTAB_STE_1_DCP_SHIFT) & 0x1;
 

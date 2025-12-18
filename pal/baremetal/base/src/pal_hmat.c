@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,5 +96,6 @@ void pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
       }
   }
 
-  pal_hmat_dump_info_table(HmatTable);
+  if (g_print_level <= ACS_PRINT_DEBUG)
+      pal_hmat_dump_info_table(HmatTable);
 }

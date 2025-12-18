@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +93,8 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
       }
 
       /* Dump PMU info table */
-      pal_pmu_dump_info_table(PmuTable);
+      if (g_print_level <= ACS_PRINT_DEBUG)
+          pal_pmu_dump_info_table(PmuTable);
   }
 }
 
