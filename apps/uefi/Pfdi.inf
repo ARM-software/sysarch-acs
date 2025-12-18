@@ -51,6 +51,7 @@
   ../../test_pool/pfdi/pfdi017.c
   ../../test_pool/pfdi/pfdi021.c
   ../../test_pool/pfdi/pfdi022.c
+  ../../test_pool/pfdi/pfdi023.c
 
 [Packages]
   StdLib/StdLib.dec
