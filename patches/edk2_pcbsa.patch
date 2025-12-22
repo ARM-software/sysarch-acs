@@ -1,22 +1,19 @@
-diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
-index 7e985f8280..ac7bf6c9a1 100644
 --- a/ShellPkg/ShellPkg.dsc
 +++ b/ShellPkg/ShellPkg.dsc
 @@ -27,6 +27,8 @@
    UefiDriverEntryPoint|MdePkg/Library/UefiDriverEntryPoint/UefiDriverEntryPoint.inf
    UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
    DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLibOptionalDevicePathProtocol.inf
-+  UnifiedValLib|ShellPkg/Application/sysarch-acs/val/UnifiedValLibRB.inf
-+  UnifiedPalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/UnifiedPalLib.inf
++  ValLib|ShellPkg/Application/sysarch-acs/val/ValLibRB.inf
++  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/PalLib.inf
  !if $(TARGET) == RELEASE
    DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
  !else
-@@ -93,7 +95,7 @@
+@@ -93,6 +95,7 @@
    ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork2CommandsLib/UefiShellNetwork2CommandsLib.inf
--
 +  ShellPkg/Application/sysarch-acs/apps/uefi/pc_bsa.inf
+ 
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
-       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE

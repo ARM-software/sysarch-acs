@@ -316,8 +316,8 @@
   ShellPkg/ShellPkg.dec
 
 [LibraryClasses]
-  UnifiedValLib
-  UnifiedPalLib
+  ValLib
+  PalLib
   UefiLib
   ShellLib
   DebugLib
