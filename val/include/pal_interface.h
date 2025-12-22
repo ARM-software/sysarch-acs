@@ -184,7 +184,21 @@ typedef struct {
   uint32_t tg_size_log2:5;
 }PE_TCR_BF;
 
+/**
+  @brief  MMU configuration structure for secondary PE initialization
+          This structure holds the primary PE's MMU configuration which
+          is used to enable MMU/caches on secondary PEs.
+**/
+typedef struct {
+  uint64_t ttbr0;      ///< Translation Table Base Register 0
+  uint64_t tcr;        ///< Translation Control Register
+  uint64_t mair;       ///< Memory Attribute Indirection Register
+  uint64_t sctlr;      ///< System Control Register
+  uint32_t current_el; ///< Current Exception Level (1 or 2)
+} PE_MMU_CONFIG;
+
 void pal_pe_create_info_table(PE_INFO_TABLE *pe_info_table);
+uint64_t PalGetMmuConfigAddr(void);
 
 /**
   @brief  Structure to Pass SMC arguments. Return data is also filled into
