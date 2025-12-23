@@ -93,6 +93,7 @@ val_pfdi_execute_pfdi_tests(uint32_t num_pe)
   status  |= pfdi025_entry(num_pe);
   status  |= pfdi026_entry(num_pe);
   status  |= pfdi027_entry(num_pe);
+  status  |= pfdi028_entry(num_pe);
   status  |= pfdi029_entry(num_pe);
   status  |= pfdi030_entry(num_pe);
 
