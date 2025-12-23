@@ -1,7 +1,7 @@
 /** @file
  * Pfdi API
  *
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,6 +87,7 @@ val_pfdi_execute_pfdi_tests(uint32_t num_pe)
   status  |= pfdi021_entry(num_pe);
   status  |= pfdi022_entry(num_pe);
   status  |= pfdi023_entry(num_pe);
+  status  |= pfdi024_entry(num_pe);
 
   val_print_test_end(status, "PFDI");
 
