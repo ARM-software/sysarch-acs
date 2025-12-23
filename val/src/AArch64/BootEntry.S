@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +24,13 @@
     .extern val_inv_icache_range
     .extern g_primary_mpidr
 
-    /* NEW: EL3 -> ACS param globals (defined in sbsa_main.c) */
+    /* NEW: EL3 -> ACS param globals (defined in bsa_main.c) */
     .extern g_el3_param_magic
     .extern g_el3_param_addr
 
     .cfi_sections .debug_frame
-    .globl    sbsa_acs_entry
-    .section .text.sbsa_acs_entry, "ax"
+    .globl    acs_entry
+    .section .text.acs_entry, "ax"
 
 .macro    dcache_line_size  reg, tmp
     mrs    \tmp, ctr_el0
@@ -83,7 +83,7 @@ exit_loop_\op:
     ret
 .endm
 
-sbsa_acs_entry:
+acs_entry:
    /* ------------------------------------------------------------------
     * Save EL3 parameter magic and pointer *before* we clobber x19/x20.
     *
@@ -131,6 +131,7 @@ primary_cpu_entry:
     sub x1, x1, x0
     bl  val_inv_icache_range
 
+#if !defined(TARGET_SIMULATION)
     /*
      * Invalidate the data cache for the data regions.
      * This prevents re-use of stale data cache entries from
@@ -142,7 +143,7 @@ primary_cpu_entry:
     add	x1, x1, :lo12:__RODATA_END__
     sub x1, x1, x0
     bl  val_inv_dcache_range
-
+#endif
 
     /* Enable I-Cache */
     mrs  x0, sctlr_el2
@@ -156,6 +157,7 @@ primary_cpu_entry:
     mrs x0, mpidr_el1
     str x0, [x18]
 
+#if !defined(TARGET_SIMULATION)
    /* Clear BSS */
   adrp x0, __BSS_START__
   add  x0,x0,:lo12:__BSS_START__
@@ -163,7 +165,7 @@ primary_cpu_entry:
   add  x1,x1,:lo12:__BSS_END__
   sub x1, x1, x0
   //bl  val_inv_dcache_range
-
+#endif
 1:
    stp xzr, xzr, [x0]
    add x0, x0, #16
@@ -202,7 +204,13 @@ secondary_cpu_entry:
 
     /* And jump to the C entrypoint. */
     mov  x0, x19
+#ifdef BSA
+    b    ShellAppMainbsa
+#elif defined SBSA
     b    ShellAppMainsbsa
+#elif defined PC_BSA
+    b    ShellAppMainpcbsa
+#endif
 
 val_inv_icache_range:
     do_icache_maintenance_by_mva ivau
@@ -216,7 +224,7 @@ val_inv_dcache_range:
   .global stacks_end
     .balign CACHE_WRITEBACK_GRANULE
 stacks_start:
-    .fill    STACK_SIZE * 16
+    .fill    STACK_SIZE * PLATFORM_CPU_COUNT
 stacks_end:
     .fill    STACK_SIZE
 dummy_stack_end:

@@ -23,7 +23,7 @@ The mechanism is:
 Register Convention
 -------------------
 
-When jumping from EL3 to the ACS entry point (``bsa_acs_entry``):
+When jumping from EL3 to the ACS entry point (``acs_entry``):
 
 * **X19** must contain the magic value ``ACS_EL3_PARAM_MAGIC``.
 * **X20** must contain the address of a ``bsa_el3_params`` structure.
@@ -152,7 +152,7 @@ PCIe and Exerciser modules.
         * The exact code depends on your firmware (TF-A, custom EL3, etc.).
         *
         * After the switch, execution will start at acs_entry_pa
-        * (bsa_acs_entry) with:
+        * (acs_entry) with:
         *   x19 = ACS_EL3_PARAM_MAGIC
         *   x20 = &acs_params
         */
