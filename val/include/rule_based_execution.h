@@ -98,7 +98,7 @@ extern const sbsa_rule_entry_t sbsa_rule_list[];
 extern const pcbsa_rule_entry_t pcbsa_rule_list[];
 extern const vbsa_rule_entry_t vbsa_rule_list[];
 
-/* Global selections configured by the app (unified_main.c) */
+/* Global selections configured by the app */
 extern uint32_t g_level_filter_mode;  /* LEVEL_FILTER_MODE_e */
 extern uint32_t g_level_value;        /* numeric value interpreted per-arch */
 /* BSA-only software view selector bitmask; 0 means no filtering */

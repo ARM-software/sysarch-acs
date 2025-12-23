@@ -29,7 +29,7 @@
 #include "val/include/rule_based_execution.h"
 #include "acs.h"
 
-/* CLI parameter table for Unified ACS, for description refer HelpMsg */
+/* CLI parameter table for xBSA UEFI application, for description refer HelpMsg */
 CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-a", TypeValue},
     {L"-cache", TypeFlag},
@@ -63,7 +63,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
 VOID
 HelpMsg (VOID)
 {
-    Print (L"\nUsage: Unified.efi [options]\n"
+    Print (L"\nUsage: xbsa_acpi.efi [options]\n"
         "Options:\n"
         "-a      Architecture selection: 'bsa', 'sbsa', or 'pcbsa'\n"
         "        -a bsa    Use full BSA rule checklist \n"
@@ -194,10 +194,10 @@ execute_tests()
     }
 
     /* Print ACS header */
-    val_print(ACS_PRINT_TEST, "\n\nUnified Architecture Compliance Suite", 0);
-    val_print(ACS_PRINT_TEST, "\n          Version %d.", UNI_ACS_MAJOR_VER);
-    val_print(ACS_PRINT_TEST, "%d.", UNI_ACS_MINOR_VER);
-    val_print(ACS_PRINT_TEST, "%d\n", UNI_ACS_SUBMINOR_VER);
+    val_print(ACS_PRINT_TEST, "\n\nxBSA Architecture Compliance Suite", 0);
+    val_print(ACS_PRINT_TEST, "\n          Version %d.", XBSA_ACS_MAJOR_VER);
+    val_print(ACS_PRINT_TEST, "%d.", XBSA_ACS_MINOR_VER);
+    val_print(ACS_PRINT_TEST, "%d\n", XBSA_ACS_SUBMINOR_VER);
     val_print(ACS_PRINT_TEST, "(Print level is %2d)\n\n", g_print_level);
     val_print(ACS_PRINT_TEST, "\n       Creating Platform Information Tables\n", 0);
 

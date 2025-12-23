@@ -40,7 +40,7 @@ export ACS_PATH=$(realpath "$acs_path")
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh <acs_type>"
-    echo "where acs_type is unified, bsa, bsa_dt, sbsa, nist, mpam, drtm, mem_test, pfdi"
+    echo "where acs_type is xbsa_acpi, bsa, bsa_dt, sbsa, nist, mpam, drtm, mem_test, pfdi"
     return 1;
 fi
 
@@ -169,9 +169,9 @@ if [ "$1" == "mpam" ]; then
     return 0;
 fi
 
-if [ "$1" == "unified" ]; then
+if [ "$1" == "xbsa_acpi" ]; then
     git checkout ShellPkg/ShellPkg.dsc
-    git apply ShellPkg/Application/sysarch-acs/patches/edk2_unified_acpi.patch
-    build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Unified.inf
+    git apply ShellPkg/Application/sysarch-acs/patches/edk2_xbsa_acpi.patch
+    build -a AARCH64 -t GCC -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/xbsa_acpi.inf
     return 0;
 fi

@@ -18,7 +18,7 @@
 
 [Defines]
   INF_VERSION                    = 0x00010006
-  BASE_NAME                      = UnifiedAcs
+  BASE_NAME                      = xbsa_acpi
   FILE_GUID                      = a912f198-7f0e-4803-b908-b757b806ec83
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 0.1
@@ -34,7 +34,7 @@
   app.c
   acs_globals.c
   acs_helpers.c
-  unified_main.c
+  xbsa_main.c
   ../../test_pool/pe/pe001.c
   ../../test_pool/pe/pe002.c
   ../../test_pool/pe/pe003.c

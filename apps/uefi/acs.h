@@ -42,10 +42,10 @@
 #define VBSA_ACS_MINOR_VER       7
 #define VBSA_ACS_SUBMINOR_VER    0
 
-/* Unified ACS Release versions */
-#define UNI_ACS_MAJOR_VER     1
-#define UNI_ACS_MINOR_VER     0
-#define UNI_ACS_SUBMINOR_VER  0
+/* xBSA ACS Release versions */
+#define XBSA_ACS_MAJOR_VER     1
+#define XBSA_ACS_MINOR_VER     0
+#define XBSA_ACS_SUBMINOR_VER  0
 
 /* DRTM Release versions */
 #define DRTM_ACS_MAJOR_VER      0

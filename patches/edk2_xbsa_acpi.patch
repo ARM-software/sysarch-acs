@@ -13,7 +13,7 @@
    ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork2CommandsLib/UefiShellNetwork2CommandsLib.inf
-+  ShellPkg/Application/sysarch-acs/apps/uefi/Unified.inf
++  ShellPkg/Application/sysarch-acs/apps/uefi/xbsa_acpi.inf
  
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
