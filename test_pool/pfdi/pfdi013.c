@@ -19,46 +19,37 @@
 #include "val/include/val_interface.h"
 #include "val/include/acs_memory.h"
 
-#define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 14)
-#define TEST_RULE  "R0165"
-#define TEST_DESC  "Check PE Run with Start exceeds max       "
+#define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 13)
+#define TEST_RULE  "R0164"
+#define TEST_DESC  "Check PE Run with Start exceeds End       "
 
 static PFDI_RET_PARAMS *g_pfdi_status;
 
-/* Execute invalid parameter case where start index exceeds max supported index */
+/* Execute the invalid parameter scenario: start index > end index */
 static void
-check_pe_test_run_start_beyond_max(void)
+check_pe_test_run_start_exceeds_end(void)
 {
     uint32_t index;
-    int64_t test_parts;
     PFDI_RET_PARAMS *pfdi_buffer;
 
     index = val_pe_get_index_mpid(val_pe_get_mpid());
     pfdi_buffer = g_pfdi_status + index;
 
-    /* Get number of test parts supported on current PE */
-    test_parts = val_pfdi_pe_test_part_count(NULL, NULL, NULL, NULL);
-    if (test_parts < PFDI_ACS_SUCCESS) {
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-        return;
-    }
-
-    if (test_parts == 0)
-        test_parts = 1;
-
-    /* Invalid case: start > test_cnt - 1 */
-    pfdi_buffer->x0 = val_pfdi_pe_test_run(test_parts, test_parts - 1,
-                             &pfdi_buffer->x1, &pfdi_buffer->x2,
-                             &pfdi_buffer->x3, &pfdi_buffer->x4);
+    /* Execute invalid start > end case */
+    pfdi_buffer->x0 = val_pfdi_pe_test_run(1, 0,
+                             &pfdi_buffer->x1,
+                             &pfdi_buffer->x2,
+                             &pfdi_buffer->x3,
+                             &pfdi_buffer->x4);
 
     val_pfdi_invalidate_ret_params(pfdi_buffer);
 
     val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 }
 
-/* Validate test case where start index is beyond max supported index */
+/* Validate that PFDI_PE_TEST_RUN returns INVALID_PARAMETERS for start > end */
 static void
-payload_check_pe_test_run_start_beyond_max(void *arg)
+payload_check_pe_test_run_start_exceeds_end(void *arg)
 {
     uint32_t  num_pe = *((uint32_t *)arg);
     uint32_t  index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -73,12 +64,12 @@ payload_check_pe_test_run_start_beyond_max(void *arg)
         return;
     }
 
-    check_pe_test_run_start_beyond_max();
+    check_pe_test_run_start_exceeds_end();
 
     for (i = 0; i < num_pe; i++) {
         if (i != index) {
             timeout = TIMEOUT_LARGE;
-            val_execute_on_pe(i, check_pe_test_run_start_beyond_max, 0);
+            val_execute_on_pe(i, check_pe_test_run_start_exceeds_end, 0);
 
             while ((--timeout) && (IS_RESULT_PENDING(val_get_status(i))));
 
@@ -100,15 +91,8 @@ payload_check_pe_test_run_start_beyond_max(void *arg)
 
         test_fail = 0;
 
-        if (IS_TEST_FAIL(val_get_status(i))) {
-            val_print(ACS_PRINT_ERR, "\n       Failed to get Test Part count on PE %d", i);
-            val_set_status(i, RESULT_SKIP(TEST_NUM, 1));
-            continue;
-        }
-
-        /* Expected result: x0 = -3, x1-x4 = 0 */
         if (pfdi_buffer->x0 != PFDI_ACS_INVALID_PARAMETERS) {
-            val_print(ACS_PRINT_ERR, "\n       Invalid parameter response on PE %d", i);
+            val_print(ACS_PRINT_ERR, "\n       Invalid parameter test failed on PE %d", i);
             val_print(ACS_PRINT_ERR, " (expected -3, got %ld)", pfdi_buffer->x0);
             test_fail++;
         }
@@ -125,7 +109,7 @@ payload_check_pe_test_run_start_beyond_max(void *arg)
         }
 
         if (test_fail)
-            val_set_status(i, RESULT_FAIL(TEST_NUM, 4));
+            val_set_status(i, RESULT_FAIL(TEST_NUM, 3));
         else
             val_set_status(i, RESULT_PASS(TEST_NUM, 1));
     }
@@ -134,14 +118,14 @@ free_pfdi_details:
     val_memory_free((void *)g_pfdi_status);
 }
 
-/* Entry point for test PFDI014 */
-uint32_t pfdi014_entry(uint32_t num_pe)
+/* Entry point for test PFDI013 */
+uint32_t pfdi013_entry(uint32_t num_pe)
 {
     uint32_t status;
 
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     if (status != ACS_STATUS_SKIP)
-        val_run_test_configurable_payload(&num_pe, payload_check_pe_test_run_start_beyond_max);
+        val_run_test_configurable_payload(&num_pe, payload_check_pe_test_run_start_exceeds_end);
 
     status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
     val_report_status(0, ACS_END(TEST_NUM), NULL);
