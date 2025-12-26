@@ -916,13 +916,13 @@ pal_pcie_mem_get_offset(uint32_t bdf, PCIE_MEM_TYPE_INFO_e mem_type)
 
 /* Peripheral PAL API's */
 
-uint64_t
-pal_memory_ioremap(void *ptr, uint32_t size, uint32_t attr)
+uint32_t
+pal_memory_ioremap(void *ptr, uint32_t size, uint32_t attr, void **baseptr)
 {
   (void) size;
   (void) attr;
-
-  return (uint64_t)ptr;
+  *baseptr = ptr;
+  return NOT_IMPLEMENTED;
 }
 
 void

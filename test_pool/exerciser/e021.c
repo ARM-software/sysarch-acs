@@ -277,6 +277,7 @@ cfgspace_transactions_order_check(void)
   char *baseptr;
   uint32_t cid_offset, dp_type;
   uint64_t bdf_addr;
+  uint32_t status;
 
   /* Read the number of excerciser cards */
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
@@ -304,7 +305,14 @@ cfgspace_transactions_order_check(void)
     bdf_addr = val_pcie_get_bdf_config_addr(bdf);
 
     /* Map config space to ARM device(nGnRnE) memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRnE);
+    status = val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRnE, (void **)&baseptr);
+
+    /* Handle unimplemented PAL -> SKIP gracefully */
+    if (status == NOT_IMPLEMENTED) {
+        val_print(ACS_PRINT_ERR,
+                "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+        goto test_skip_unimplemented;
+    }
 
     if (!baseptr) {
         val_print(ACS_PRINT_ERR, "\n       Failed in config ioremap for instance %x", instance);
@@ -317,7 +325,7 @@ cfgspace_transactions_order_check(void)
     cfgspace_test_sequence((uint32_t *)baseptr, instance);
 
     /* Map config space to ARM device(nGnRE) memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRE);
+    status = val_memory_ioremap((void *)bdf_addr, 512, DEVICE_nGnRE, (void **)&baseptr);
 
     if (!baseptr) {
         val_print(ACS_PRINT_ERR, "\n       Failed in config ioremap for instance %x", instance);
@@ -328,6 +336,9 @@ cfgspace_transactions_order_check(void)
     /* Perform Transactions on incremental aligned address and on same address */
     cfgspace_test_sequence((uint32_t *)baseptr, instance);
   }
+
+test_skip_unimplemented:
+    return;
 }
 
 /* Read and Write on BAR space mapped to Device memory */
@@ -374,7 +385,16 @@ barspace_transactions_order_check(void)
         continue;
 
     /* Map mmio space to ARM device(nGnRnE) memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRnE);
+    status = val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRnE,
+                                  (void **)&baseptr);
+
+    /* Handle unimplemented PAL -> SKIP gracefully */
+    if (status == NOT_IMPLEMENTED) {
+        val_print(ACS_PRINT_ERR,
+                "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+        goto test_skip_unimplemented;
+    }
+
     if (!baseptr) {
         val_print(ACS_PRINT_ERR, "\n       Failed in BAR ioremap for instance %x", instance);
         continue;
@@ -384,7 +404,8 @@ barspace_transactions_order_check(void)
     barspace_test_sequence((uint64_t *)baseptr, instance);
 
     /* Map mmio space to ARM device(nGnRE) memory in MMU page tables */
-    baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRE);
+    status = val_memory_ioremap((void *)e_data.bar_space.base_addr, 512, DEVICE_nGnRE,
+                                (void **)&baseptr);
     if (!baseptr) {
         val_print(ACS_PRINT_ERR, "\n       Failed in BAR ioremap for instance %x", instance);
         continue;
@@ -394,6 +415,9 @@ barspace_transactions_order_check(void)
     barspace_test_sequence((uint64_t *)baseptr, instance);
 
   }
+
+test_skip_unimplemented:
+    return;
 }
 
 static

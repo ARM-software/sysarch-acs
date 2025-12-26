@@ -177,10 +177,10 @@ val_memory_get_info(addr_t addr, uint64_t *attr)
 
   @return  Mapped Address Starting Pointer
 **/
-addr_t
-val_memory_ioremap(void *addr, uint32_t size, uint32_t attr)
+uint32_t
+val_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr)
 {
-  return (pal_memory_ioremap(addr, size, attr));
+  return pal_memory_ioremap(addr, size, attr, baseptr);
 }
 
 /**
