@@ -48,6 +48,7 @@ payload(void)
   uint32_t bdf;
   uint32_t dp_type;
   uint32_t dsf_bdf;
+  uint32_t parent_bdf;
   uint32_t pe_index;
   uint32_t tbl_index;
   uint32_t bar_data;
@@ -56,6 +57,7 @@ payload(void)
   uint64_t bar_base;
   uint32_t status;
   uint32_t timeout;
+  uint32_t dpc_trig_val = 0;
 
   pcie_device_bdf_table *bdf_tbl_ptr;
 
@@ -104,12 +106,23 @@ payload(void)
           val_pcie_get_mmio_bar(bdf, &bar_base);
 
       /* Skip this function if it doesn't have mmio BAR */
-      val_print(ACS_PRINT_DEBUG, "      Bar Base %x", bar_base);
+      val_print(ACS_PRINT_DEBUG, "      Bar Base %x\n", bar_base);
       if (!bar_base)
          continue;
 
       /* Disable error reporting of this function to the Upstream */
       val_pcie_disable_eru(bdf);
+
+      if ((dp_type == RP) || (dp_type == DP))
+      {
+        /* Disable DPC for the rootport / Dowstream port */
+        dpc_trig_val = val_pcie_disable_dpc(bdf);
+      } else if (!val_pcie_parent_is_rootport(bdf, &parent_bdf))
+      {
+        /* Disable DPC for the parent rootport */
+        val_print(ACS_PRINT_DEBUG, "RP BDF = 0x%08x\n", parent_bdf);
+        dpc_trig_val = val_pcie_disable_dpc(parent_bdf);
+      }
 
       /*
        * Clear unsupported request detected bit in Device
@@ -157,6 +170,15 @@ exception_return:
 
       /* Enable memory space access to decode BAR addresses */
       val_pcie_enable_msa(bdf);
+
+      /* Enable DPC trigger if it was disabled */
+      if (dpc_trig_val)
+      {
+        if ((dp_type == RP) || (dp_type == DP))
+          val_pcie_enable_dpc(bdf, dpc_trig_val);
+        else
+          val_pcie_enable_dpc(parent_bdf, dpc_trig_val);
+      }
 
       /* Reset the loop variables */
       bar_data = 0;
