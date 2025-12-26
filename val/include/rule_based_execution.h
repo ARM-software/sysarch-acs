@@ -24,7 +24,7 @@
 #include "rule_based_execution_enum.h"
 
 #define RULE_STRING_SIZE 10
-#define RULE_DESC_SIZE   40
+#define RULE_DESC_SIZE   44
 #define INVALID_IDX 0xFFFFFFFF
 
 /* ----------------------------  Struct  Definations --------------------------------------------*/
