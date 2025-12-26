@@ -35,7 +35,7 @@ list(APPEND TEST_INCLUDE
     ${ROOT_DIR}/pal/baremetal/target/${TARGET}/src/
 )
 
-set(TEST_LIB ${EXE_NAME}_test_lib)
+set(TEST_LIB ${ACS}_test_lib)
 
 file(GLOB SUBFOLDERS "${ROOT_DIR}/test_pool/*/")
 
@@ -98,7 +98,7 @@ endforeach()
  target_include_directories(${TEST_LIB} PRIVATE ${TEST_INCLUDE}
  )
 
- create_executable(${EXE_NAME} ${BUILD}/output/ "")
+ create_executable(${ACS} ${BUILD}/output/ "")
  unset(TEST_SRC)
 
  # target_include_directories(${VAL_LIB} PRIVATE

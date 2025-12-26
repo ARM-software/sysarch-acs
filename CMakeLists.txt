@@ -117,13 +117,7 @@ add_custom_target(pc_bsa
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/pc_bsa_build
 )
 
-if(ACS MATCHES "sbsa")
-    message(STATUS "[ACS] : ACS is set to ${ACS}")
-    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
-elseif(ACS MATCHES "bsa")
-    message(STATUS "[ACS] : ACS is set to ${ACS}")
-    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
-elseif(ACS MATCHES "pc_bsa")
+if(ACS IN_LIST ACS_LIST)
     message(STATUS "[ACS] : ACS is set to ${ACS}")
     add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 endif()
