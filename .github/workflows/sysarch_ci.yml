@@ -99,10 +99,10 @@ jobs:
             arg: vbsa
             outfile: Vbsa.efi
             artifact: Vbsa_acpi_target.efi
-          - name: Unified ACPI
-            arg: unified
-            outfile: UnifiedAcs.efi
-            artifact: unified.efi
+          - name: xBSA ACPI
+            arg: xbsa_acpi
+            outfile: xbsa_acpi.efi
+            artifact: xbsa_acpi.efi
           - name: PFDI DT
             arg: pfdi
             outfile: pfdi.efi

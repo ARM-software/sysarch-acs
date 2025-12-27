@@ -14,7 +14,7 @@
   * [MemTest ACS](#memtest-architecture-compliance-suite)
   * [PFDI ACS](#pfdi-architecture-compliance-suite)
   * [VBSA ACS](#vbsa-architecture-compliance-suite)
-* [Unified UEFI Application](#unified-uefi-application)
+* [xBSA UEFI application](#xbsa-uefi-application)
 * [Security Implications](#-security-implications)
 * [Feedback and Support](#-feedback-and-support)
 * [License](#-license)
@@ -52,7 +52,7 @@ sysarch-acs/
 │   ├── uefi/
 │   |   └── <acs_name>_main.c
 ├── docs/
-│   ├── unified/
+│   ├── xbsa/
 │   ├── bsa/
 │   ├── sbsa/
 │   ├── drtm/
@@ -205,11 +205,11 @@ Refer to the [VBSA ACS README](docs/vbsa/README.md) for detailed build steps, ex
 
 ---
 
-## Unified UEFI Application
-Provides a unified entry point for running BSA, SBSA, PC-BSA validation from a single UEFI application.
+## xBSA UEFI application
+Provides a unified entry point for running BSA, SBSA, and PC-BSA validation from a single UEFI application.
 
 ####  Reference for Build, Execution, and More
-Refer to the [Unified ACS README](docs/unified/README.md) for build steps, execution procedures, additional information, and known limitations.
+Refer to the [xBSA README](docs/xbsa/README.md) for build steps, execution procedures, additional information, and known limitations.
 
 ---
 

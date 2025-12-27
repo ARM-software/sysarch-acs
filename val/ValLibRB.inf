@@ -19,11 +19,11 @@
 
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = UnifiedValLibRB
+  BASE_NAME                      = ValLibRB
   FILE_GUID                      = f2a45bb6-61c8-4f94-b3b9-397f935d17fa
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 1.0
-  LIBRARY_CLASS                  = UnifiedValLibRB|UEFI_APPLICATION UEFI_DRIVER
+  LIBRARY_CLASS                  = ValLibRB|UEFI_APPLICATION UEFI_DRIVER
 
 [Sources.common]
   src/AArch64/PeRegSysSupport.S

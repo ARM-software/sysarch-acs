@@ -1,27 +1,27 @@
 ## Table of Contents
 
-- [Unified UEFI Application](#unified-uefi-application)
+- [xBSA UEFI application](#xbsa-uefi-application)
 - [Release Details](#release-details)
-- [Unified build steps](#unified-build-steps)
+- [xBSA build steps](#xbsa-build-steps)
   - [UEFI Shell application](#uefi-shell-application)
     - [Prerequisites](#prerequisites)
     - [Setup the workspace and clone required repositories](#setup-the-workspace-and-clone-required-repositories)
     - [Build edk2 prerequisites](#build-edk2-prerequisites)
-    - [Start the Unified ACS build](#start-the-unified-acs-build)
+    - [Start the xBSA application build](#start-the-xbsa-application-build)
     - [Build output](#build-output)
   - [Linux application](#linux-application)
-- [Unified run steps](#unified-run-steps)
+- [xBSA run steps](#xbsa-run-steps)
   - [For UEFI application](#for-uefi-application)
   - [For Linux application](#for-linux-application)
 - [Related Documentation](#related-documentation)
 - [Support](#support)
 
-## Unified UEFI Application
+## xBSA UEFI application
 
-The **Unified UEFI Application** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.  
+The **xBSA UEFI application** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.  
 It is intended for platform teams that want to validate a design once and cover the combined requirements of the Base System Architecture (BSA), Server Base System Architecture (SBSA) and PCBase System Architecture (PC-BSA) specifications.
 
-Most tests run from the **UEFI Shell** by invoking the Unified ACS UEFI application.  
+Most tests run from the **UEFI Shell** by invoking the xBSA UEFI application.  
 Selected PCIe and peripheral tests require the Exerciser VIP to achieve complete coverage.  
 The test suite can also be executed in bare-metal environments; initialization of those environments remains platform-specific.
 
@@ -30,11 +30,11 @@ The test suite can also be executed in bare-metal environments; initialization o
 - **Coverage:** Aggregates validation for [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) and [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en).  
 - **Execution levels:** Suitable for both Pre-Silicon and Silicon validation.  
 - **Complementary requirements:** Running with the Exerciser VIP is recommended for complete PCIe compliance coverage.  
-- **Linux dependencies:** The Unified ACS relies on the BSA and SBSA Linux applications for tests that require an OS environment. Refer to the dedicated BSA and SBSA documentation for details.
+- **Linux dependencies:** The xBSA UEFI application relies on the BSA and SBSA Linux applications for tests that require an OS environment. Refer to the dedicated BSA and SBSA documentation for details.
 
-## Unified build steps
+## xBSA build steps
 
-Follow the steps below to build the combined UEFI shell application (`UnifiedAcs.efi`) inside an edk2 workspace.
+Follow the steps below to build the combined UEFI shell application (`xbsa_acpi.efi`) inside an edk2 workspace.
 
 ### UEFI Shell application
 
@@ -73,28 +73,28 @@ source edksetup.sh
 make -C BaseTools/Source/C
 ```
 
-#### Start the Unified Application build
+#### Start the xBSA application build
 ```
 rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh unified
+source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh xbsa_acpi
 ```
 
 #### Build output
-The Unified EFI binary is generated at:
-`workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/UnifiedAcs.efi`
+The xBSA EFI binary is generated at:
+`workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/xbsa_acpi.efi`
 
-> **Note:** Unified ACS currently supports ACPI-based builds. Platform-specific device tree enablement is not available for the unified target. Ensure Exerciser PAL APIs are implemented when the Exerciser VIP is present.
+> **Note:** The xBSA UEFI application currently supports ACPI-based builds. Platform-specific device tree enablement is not available for the xBSA target. Ensure Exerciser PAL APIs are implemented when the Exerciser VIP is present.
 
 ### Linux application
-Unified ACS relies on the existing BSA and SBSA Linux applications when OS-based tests are required. Build these components using the instructions in `docs/bsa/README.md` and `docs/sbsa/README.md`, then deploy them alongside the Unified ACS UEFI binary.
+The xBSA UEFI application relies on the existing BSA and SBSA Linux applications when OS-based tests are required. Build these components using the instructions in `docs/bsa/README.md` and `docs/sbsa/README.md`, then deploy them alongside the xBSA UEFI binary.
 
-## Unified run steps
+## xBSA run steps
 
 ### For UEFI application
 
 #### Silicon system
 On platforms with USB access:
-1. Copy `UnifiedAcs.efi` to a FAT-formatted USB device.
+1. Copy `xbsa_acpi.efi` to a FAT-formatted USB device.
 
 - **For U-Boot firmware systems, additional steps**
   1. Copy `Shell.efi` to the USB device (available under `prebuilt_images/IR`).
@@ -113,32 +113,32 @@ On platforms with USB access:
    map -r
    ```
 3. Switch to the USB filesystem (for example, `fs0:`).
-4. Run `UnifiedAcs.efi` with the required parameters.
+4. Run `xbsa_acpi.efi` with the required parameters.
 5. Capture the UART console output for log retention.
 
-- For application parameters, see the [Unified User Guide](user_guide.rst).
+- For application parameters, see the [xBSA User Guide](user_guide.rst).
 
 #### Emulation environment with secondary storage
-1. Create an image containing `UnifiedAcs.efi` and `Shell.efi` (for U-Boot systems):
+1. Create an image containing `xbsa_acpi.efi` and `Shell.efi` (for U-Boot systems):
    ```
    mkfs.vfat -C -n HD0 hda.img 2097152
-   sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/unified
-   sudo cp "<path to application>/UnifiedAcs.efi" /mnt/unified/
-   sudo umount /mnt/unified
+   sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/acs
+   sudo cp "<path to application>/xbsa_acpi.efi" /mnt/acs/
+   sudo umount /mnt/acs
    ```
    *(Select an available loop device if `/dev/loop0` is busy.)*
 2. Load the image into the emulated secondary storage using the platform-specific mechanism.
 3. Boot to the UEFI shell.
 4. Identify the filesystem with `map -r`.
 5. Switch to the filesystem (`fs<x>:`).
-6. Execute `UnifiedAcs.efi` with the appropriate parameters.
+6. Execute `xbsa_acpi.efi` with the appropriate parameters.
 7. Preserve the UART console output for debug or certification review.
 
-- For application parameters, see the [Unified User Guide](user_guide.rst).
+- For application parameters, see the [xBSA User Guide](user_guide.rst).
 
 ### For Linux application
 
-Unified ACS reuses the BSA and SBSA Linux applications to exercise OS-reliant tests:
+The xBSA UEFI application reuses the BSA and SBSA Linux applications to exercise OS-reliant tests:
 1. Transfer the built binaries (`bsa_acs.ko`, `bsa_app`, `sbsa_acs.ko`, `sbsa_app`) to the target system (for example, on a USB drive).
 2. Boot into Linux and locate the removable storage device.
 3. Load each kernel module before running the corresponding user-space application:
@@ -157,7 +157,7 @@ Unified ACS reuses the BSA and SBSA Linux applications to exercise OS-reliant te
    sudo rmmod bsa_acs
    ```
 
-- For application parameters, see the [Unified User Guide](user_guide.rst).
+- For application parameters, see the [xBSA User Guide](user_guide.rst).
 
 ## Related Documentation
 

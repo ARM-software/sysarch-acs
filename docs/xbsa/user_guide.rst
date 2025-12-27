@@ -1,9 +1,9 @@
-Unified Command Line Options
-============================
+xBSA Command Line Options
+=========================
 
 Usage::
 
-  Unified.efi [options]
+  xbsa_acpi.efi [options]
 
 Options
 -------

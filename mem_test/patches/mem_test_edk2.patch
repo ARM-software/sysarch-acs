@@ -42,8 +42,8 @@ index 557b0ec0f3..bccbed89b5 100644
    UefiDriverEntryPoint|MdePkg/Library/UefiDriverEntryPoint/UefiDriverEntryPoint.inf
    UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
    DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLibOptionalDevicePathProtocol.inf
-+  UnifiedValLib|ShellPkg/Application/sysarch-acs/val/UnifiedValLib.inf
-+  UnifiedPalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/UnifiedPalLib.inf
++  ValLib|ShellPkg/Application/sysarch-acs/val/ValLib.inf
++  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/PalLib.inf
 +  LibCFlat|ShellPkg/Application/sysarch-acs/mem_test/LibCFlat.inf
  !if $(TARGET) == RELEASE
    DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
