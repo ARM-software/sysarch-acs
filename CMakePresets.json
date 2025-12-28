@@ -1,0 +1,25 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": { "major": 3, "minor": 19, "patch": 0 },
+    "configurePresets": [
+    {
+        "name": "baremetal",
+        "displayName": "Configure: aarch64-none-elf (baremetal)",
+        "generator": "Unix Makefiles",
+        "binaryDir": "${sourceDir}/build",
+        "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake",
+        "CMAKE_OSX_ARCHITECTURES": "",
+        "ACS": "bsa",
+        "TARGET": "RDN2"
+        }
+    }
+    ],
+    "buildPresets": [
+    {
+        "name": "baremetal",
+        "configurePreset": "baremetal",
+        "jobs": 8
+    }
+    ]
+}

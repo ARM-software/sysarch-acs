@@ -46,11 +46,22 @@ list(APPEND ARM_ARCH_MAJOR_LIST 8 9)
 list(APPEND ACS_LIST "bsa" "sbsa" "pc_bsa")
 
 ###
-set(CROSS_COMPILE $ENV{CROSS_COMPILE})
-# Set default only if not defined externally
-if(NOT DEFINED CROSS_COMPILE)
-    message(FATAL_ERROR "CROSS_COMPILE not defined. Exiting.")
+# Prefer the toolchain file to validate and set `CROSS_COMPILE`.
+# If no toolchain file is provided, require `CROSS_COMPILE` from the
+# environment to support local cross-configures.
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(NOT DEFINED CROSS_COMPILE)
+        set(CROSS_COMPILE $ENV{CROSS_COMPILE})
+    endif()
+
+    if(NOT DEFINED CROSS_COMPILE OR "${CROSS_COMPILE}" STREQUAL "")
+        message(FATAL_ERROR "CROSS_COMPILE not defined. Please set CROSS_COMPILE or use -DCMAKE_TOOLCHAIN_FILE=<path>.")
+    endif()
 endif()
+
+# NOTE: cross-toolchain selection is handled by an explicit toolchain file
+# (`tools/cmake/toolchain/arm-none-elf-toolchain.cmake`). Users should
+# configure with `-DCMAKE_TOOLCHAIN_FILE=...` to avoid host-specific flags.
 
 # Check for valid targets
 _get_sub_dir_list(TARGET_LIST ${ROOT_DIR}/pal/baremetal/target/)
@@ -62,8 +73,6 @@ endif()
 
 if(NOT ${TARGET} IN_LIST TARGET_LIST)
     message(FATAL_ERROR "[ACS] : Error: Unspported value for -DTARGET=, supported targets are : ${TARGET_LIST}")
-else()
-    message(STATUS "[ACS] : TARGET is set to ${TARGET}")
 endif()
 
 # Check for ARM_ARCH_MAJOR
@@ -101,24 +110,25 @@ foreach(clean_item ${CLEAN_LIST})
 endforeach()
 ###
 
-# Custom targets to trigger bsa and sbsa builds
-add_custom_target(bsa
-    COMMAND ${CMAKE_COMMAND} -DACS=bsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/bsa_build
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/bsa_build
-)
+# Generate per-ACS custom targets and an aggregate target
+foreach(_acs IN LISTS ACS_LIST)
+    add_custom_target(${_acs}
+        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DCMAKE_OSX_ARCHITECTURES= -DCMAKE_TOOLCHAIN_FILE=${ROOT_DIR}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
+    )
+endforeach()
 
-add_custom_target(sbsa
-    COMMAND ${CMAKE_COMMAND} -DACS=sbsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/sbsa_build
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/sbsa_build
-)
-
-add_custom_target(pc_bsa
-    COMMAND ${CMAKE_COMMAND} -DACS=pc_bsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/pc_bsa_build
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/pc_bsa_build
+add_custom_target(acs_all
+    DEPENDS ${ACS_LIST}
 )
 
 if(ACS IN_LIST ACS_LIST)
-    message(STATUS "[ACS] : ACS is set to ${ACS}")
+    message(STATUS "[ACS] : ACS is set to ${ACS}, and TAREGT to ${TARGET} based on configuration")
+    message(STATUS "[ACS] : You can change overide configuration using -DACS=<value> or -DTARGET=<value>")
+    message(STATUS "[ACS] : Supported values are ACS: ${ACS_LIST}, TARGET: ${TARGET_LIST}")
+    message(STATUS "[ACS] : Example - cmake --preset baremetal -DACS=sbsa -DTARGET=RDV3")
+    message(STATUS "[ACS] : To build using cmake - 'cmake --build --preset baremetal")
+    message(STATUS "[ACS] : To build using make - 'cd build; make bsa' - here TARGET reconfigure not required, all targets supported")
     add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 endif()
 

@@ -52,7 +52,15 @@ endif()
 set(LINKER_FILE "${ROOT_DIR}/tools/cmake/toolchain/linker.cmake")
 
 set(CROSS_COMPILE ${CROSS_COMPILE} CACHE INTERNAL "CROSS_COMPILE is set to ${CROSS_COMPILE}" FORCE)
-set(CMAKE_C_COMPILER ${CMAKE_C_COMPILER} CACHE INTERNAL "CMAKE_C_COMPILER is set to ${CMAKE_C_COMPILER}" FORCE)
+# Only populate the cache entry for `CMAKE_C_COMPILER` if it isn't
+# already set by a toolchain file or the cache. Avoid FORCE to prevent
+# overwriting a value the user or toolchain provided.
+set(CMAKE_C_COMPILER ${CMAKE_C_COMPILER} CACHE INTERNAL "CMAKE_C_COMPILER is set to ${CMAKE_C_COMPILER}" FORCE) 
 
-include(${COMPILER_FILE})
-include(${LINKER_FILE})
+if(DEFINED COMPILER_FILE)
+    include(${COMPILER_FILE})
+endif()
+
+if(DEFINED LINKER_FILE)
+    include(${LINKER_FILE})
+endif()
