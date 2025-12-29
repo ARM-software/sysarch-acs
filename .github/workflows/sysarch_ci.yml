@@ -239,6 +239,10 @@ jobs:
             make_target: sbsa
             out_relpath: sbsa_build/output/sbsa.bin
             artifact: Sbsa_baremetal_RDN2.bin
+          - name: PC-BSA (RDN2)
+            make_target: pc_bsa
+            out_relpath: pc_bsa_build/output/pc_bsa.bin
+            artifact: PcBsa_baremetal_RDN2.bin
     steps:
       - uses: actions/checkout@v4
 
@@ -255,10 +259,8 @@ jobs:
       - name: Compile ${{ matrix.name }}
         run: |
           export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
-          mkdir build
-          cd build
-          cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
-          make ${{ matrix.make_target }}
+          cmake --preset ${{ matrix.make_target }}
+          cmake --build --preset ${{ matrix.make_target }}
 
       - name: Upload ${{ matrix.artifact }}
         uses: actions/upload-artifact@v4

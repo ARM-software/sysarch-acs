@@ -4,22 +4,67 @@
     "configurePresets": [
     {
         "name": "baremetal",
-        "displayName": "Configure: aarch64-none-elf (baremetal)",
+        "hidden": true,
         "generator": "Unix Makefiles",
-        "binaryDir": "${sourceDir}/build",
         "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake",
         "CMAKE_OSX_ARCHITECTURES": "",
-        "ACS": "bsa",
         "TARGET": "RDN2"
         }
-    }
+    },
+    {
+        "name": "bsa",
+        "displayName": "Configure: aarch64-none-elf (bsa)",
+        "binaryDir": "${sourceDir}/build/${presetName}_build",
+        "inherits": ["baremetal"], 
+        "cacheVariables": {     
+        "ACS" : "bsa"
+        }
+    },
+    {
+        "name": "sbsa",
+        "displayName": "Configure: aarch64-none-elf (sbsa)",
+        "binaryDir": "${sourceDir}/build/${presetName}_build",
+        "inherits": ["baremetal"], 
+        "cacheVariables": {     
+        "ACS" : "sbsa"
+        }
+    },
+    {
+        "name": "pc_bsa",
+        "displayName": "Configure: aarch64-none-elf (pc_bsa)",
+        "binaryDir": "${sourceDir}/build/${presetName}_build",
+        "inherits": ["baremetal"], 
+        "cacheVariables": {     
+        "ACS" : "pc_bsa"
+        }
+    },
+    {
+        "name": "acs_all",
+        "displayName": "Configure: aarch64-none-elf (for make acs_all)",
+        "binaryDir": "${sourceDir}/build",
+        "inherits": ["baremetal"],
+        "cacheVariables": {     
+        }        
+    }    
+
     ],
     "buildPresets": [
     {
-        "name": "baremetal",
-        "configurePreset": "baremetal",
+        "name": "bsa",
+        "configurePreset": "bsa",
+        "jobs": 8
+    },
+    {
+        "name": "sbsa",
+        "configurePreset": "sbsa",
+        "jobs": 8
+    },
+    {
+        "name": "pc_bsa",
+        "configurePreset": "pc_bsa",
         "jobs": 8
     }
     ]
 }
+

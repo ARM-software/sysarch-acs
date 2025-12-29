@@ -75,6 +75,16 @@ if(NOT ${TARGET} IN_LIST TARGET_LIST)
     message(FATAL_ERROR "[ACS] : Error: Unspported value for -DTARGET=, supported targets are : ${TARGET_LIST}")
 endif()
 
+if(NOT DEFINED ACS)
+    set(ACS "${ACS_DFLT}" CACHE INTERNAL "Defaulting ACS to ${ACS}" FORCE)
+else()
+    set(ACS "${ACS}" CACHE INTERNAL "ACS is set to ${ACS}" FORCE)
+endif()
+
+if(NOT ${ACS} IN_LIST ACS_LIST)
+    message(FATAL_ERROR "[ACS] : Error: Unspported value for -DACS=, supported acs are : ${ACS_LIST}")
+endif()
+
 # Check for ARM_ARCH_MAJOR
 if(NOT DEFINED ARM_ARCH_MAJOR)
     set(ARM_ARCH_MAJOR "${ARM_ARCH_MAJOR_DFLT}" CACHE INTERNAL "Default ARM_ARCH_MAJOR value" FORCE)
@@ -122,15 +132,14 @@ add_custom_target(acs_all
     DEPENDS ${ACS_LIST}
 )
 
-if(ACS IN_LIST ACS_LIST)
-    message(STATUS "[ACS] : ACS is set to ${ACS}, and TAREGT to ${TARGET} based on configuration")
-    message(STATUS "[ACS] : You can change overide configuration using -DACS=<value> or -DTARGET=<value>")
-    message(STATUS "[ACS] : Supported values are ACS: ${ACS_LIST}, TARGET: ${TARGET_LIST}")
-    message(STATUS "[ACS] : Example - cmake --preset baremetal -DACS=sbsa -DTARGET=RDV3")
-    message(STATUS "[ACS] : To build using cmake - 'cmake --build --preset baremetal")
-    message(STATUS "[ACS] : To build using make - 'cd build; make bsa' - here TARGET reconfigure not required, all targets supported")
-    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
-endif()
+message(STATUS "[ACS] : ACS is set to ${ACS}, and TAREGT to ${TARGET} based on configuration")
+message(STATUS "[ACS] : You can change overide target using -DTARGET=<value>")
+message(STATUS "[ACS] : Supported values for TARGET: ${TARGET_LIST}")
+message(STATUS "[ACS] : Example - cmake --preset bsa -DTARGET=RDV3")
+message(STATUS "[ACS] : Check available presets by - `cmake --list-presets`")
+message(STATUS "[ACS] : To build using cmake - `cmake --build --preset bsa`")
+message(STATUS "[ACS] : To build using make - `cmake --preset acs_all; cd build; make bsa` (to build all baremetal acs - `make acs_all`)")
+add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 
 
 ### Throw waring for the files which is not compiled ###

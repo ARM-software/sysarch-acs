@@ -27,22 +27,28 @@ Run the command
 This command will create a folder RDN2 under the pal/target folder path and the files pal_bsa.c and pal_sbsa.c files within the RDN2/src folder.
 
 1. To compile BSA, perform the following steps \
-&emsp; 1.1 cd sysarch-acs \
-&emsp; 1.2 export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf- \
-&emsp; 1.3 mkdir build \
-&emsp; 1.4 cd build \
-&emsp; 1.5 cmake ../ -G"Unix Makefiles" -DTARGET="Target platform" \
-&emsp; 1.6 make bsa
-
-Note: Reference Cmake file for BSA is present at [CMakeLists.txt](../../CMakeLists.txt).
+&emsp; 1.1 `cd sysarch-acs` \
+&emsp; 1.2 `export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf-` \
+&emsp; 1.3 `cmake --preset bsa -DTARGET="Target platform"` \
+&emsp; 1.4 `cmake --build --preset bsa`
 
 2. To compile SBSA , perform the following steps \
-&emsp; 1.1 cd sysarch-acs \
-&emsp; 2.2 export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf- \
-&emsp; 2.3 mkdir build \
-&emsp; 2.4 cd build \
-&emsp; 2.5 cmake ../ -G"Unix Makefiles" -DTARGET="Target platform" \
-&emsp; 2.6 make sbsa
+&emsp; 1.1 `cd sysarch-acs` \
+&emsp; 2.2 `export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf-` \
+&emsp; 1.3 `cmake --preset sbsa -DTARGET="Target platform"` \
+&emsp; 1.4 `cmake --build --preset sbsa`
+
+3. To compile PC_BSA , perform the following steps \
+&emsp; 1.1 `cd sysarch-acs` \
+&emsp; 2.2 `export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf-` \
+&emsp; 1.3 `cmake --preset pc_bsa -DTARGET="Target platform"` \
+&emsp; 1.4 `cmake --build --preset pc_bsa`
+</br>
+</br>
+> **Note:**
+> You can check available presets using `cmake --list-presets` 
+> If you do not provide `-DTARGET`, defaults to `RDN2`.  
+> If you like to use make command do `cmake --preset acs_all; cd build; make bsa` (for all baremetal acs `make acs_all`)   
 
 *Recommended*: CMake v3.17, GCC v12.2
 ```
