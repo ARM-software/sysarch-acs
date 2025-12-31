@@ -16,7 +16,7 @@
  ##
 
 # Set the minimum required version of CMake for the project
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 project(bsa-acs LANGUAGES)
 
