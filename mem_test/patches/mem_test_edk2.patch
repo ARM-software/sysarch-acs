@@ -35,7 +35,7 @@ index 17e48443ac..a2b3adefdf 100644
                                          ImageHandle,
                                          &gEfiShellParametersProtocolGuid,
 diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
-index 557b0ec0f3..bccbed89b5 100644
+index 5303a68959..7ccbce272b 100644
 --- a/ShellPkg/ShellPkg.dsc
 +++ b/ShellPkg/ShellPkg.dsc
 @@ -27,6 +27,9 @@
@@ -48,7 +48,7 @@ index 557b0ec0f3..bccbed89b5 100644
  !if $(TARGET) == RELEASE
    DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
  !else
-@@ -102,6 +105,7 @@
+@@ -97,6 +100,7 @@
    ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
    ShellPkg/Library/UefiShellNetwork2CommandsLib/UefiShellNetwork2CommandsLib.inf
