@@ -30,7 +30,11 @@ if(NOT DEFINED CROSS_COMPILE)
 endif()
 
 if(NOT DEFINED CROSS_COMPILE OR "${CROSS_COMPILE}" STREQUAL "")
-    message(FATAL_ERROR "CROSS_COMPILE not defined in environment. Please set CROSS_COMPILE to your toolchain prefix.")
+    message(FATAL_ERROR
+        "[ACS] : CROSS_COMPILE not defined in environment.\n"
+        "        Please set/export CROSS_COMPILE=<toolchain-prefix->\n"
+        "        Example: export CROSS_COMPILE=/opt/arm/arm-gnu-toolchain-xx.x.rel1-xxx-aarch64-none-elf/bin/aarch64-none-elf-\n"
+        )
 endif()
 
 set(CMAKE_C_COMPILER "${CROSS_COMPILE}gcc" CACHE FILEPATH "C compiler" FORCE)

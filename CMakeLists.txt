@@ -120,10 +120,19 @@ foreach(clean_item ${CLEAN_LIST})
 endforeach()
 ###
 
+# Reuse the caller-provided toolchain for nested configure steps, so
+# convenience targets do not override user choices.
+set(_acs_toolchain_arg "")
+if(DEFINED CMAKE_TOOLCHAIN_FILE AND NOT "${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+    set(_acs_toolchain_arg "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+else()
+    set(_acs_toolchain_arg "-DCMAKE_TOOLCHAIN_FILE=${ROOT_DIR}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake")
+endif()
+
 # Generate per-ACS custom targets and an aggregate target
 foreach(_acs IN LISTS ACS_LIST)
     add_custom_target(${_acs}
-        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DCMAKE_OSX_ARCHITECTURES= -DCMAKE_TOOLCHAIN_FILE=${ROOT_DIR}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
+        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
     )
 endforeach()
