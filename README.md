@@ -11,9 +11,9 @@
   * [SYS-MPAM ACS](#sys-mpam-architecture-compliance-suite)
   * [PC-BSA ACS](#pc-bsa-architecture-compliance-suite)
   * [DRTM ACS](#drtm-architecture-compliance-suite)
-  * [MemTest ACS](#memtest-architecture-compliance-suite)
   * [PFDI ACS](#pfdi-architecture-compliance-suite)
   * [VBSA ACS](#vbsa-architecture-compliance-suite)
+  * [MemTest ACS](#memory-model-consistency-tests)
 * [xBSA UEFI application](#xbsa-uefi-application)
 * [Security Implications](#-security-implications)
 * [Feedback and Support](#-feedback-and-support)
@@ -34,7 +34,7 @@ The **Arm sysarch-acs** repository is a collection of **Architecture Compliance 
 * **[VBSA – Virtual Base System Architecture](https://developer.arm.com/documentation/den0150/latest/)**
 
 Additionally, it also includes ACS for ...
-* **MemTest – Memory Model Consistency tests**
+* **[MemTest](#memory-model-consistency-tests) – Memory Model Consistency tests**
 
 These suites enable silicon vendors, system integrators, and firmware developers to ensure platform compliance with Arm architectural standards across pre-silicon and silicon phases.
 
@@ -163,7 +163,7 @@ Refer to the [DRTM ACS README](docs/drtm/README.md) for detailed build steps, ex
 
 ---
 
-###  MemTest (Memory Model Consistency Tests)
+###  Memory Model Consistency Tests
 Evaluates the correctness and consistency of system memory model.
 
 ####  Latest Release
