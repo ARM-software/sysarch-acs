@@ -696,26 +696,34 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE Type, exerciser_data_t *Data
               Data->bar_space.type = MMIO_NON_PREFETCHABLE;
           return 0;
   case EXERCISER_DATA_MMIO_SPACE:
+          uint32_t BarRegLowerValue = 0;
+          uint32_t Seg, Bus, Dev, Func;
+          uint32_t Offset;
           Index = 0;
           Data->bar_space.base_addr = 0;
           while (Index < TYPE0_MAX_BARS)
           {
               EcamBAR = pal_exerciser_get_ecsr_base(Bdf, Index);
 
+              Seg  = PCIE_EXTRACT_BDF_SEG(Bdf);
+              Bus  = PCIE_EXTRACT_BDF_BUS(Bdf);
+              Dev  = PCIE_EXTRACT_BDF_DEV(Bdf);
+              Func = PCIE_EXTRACT_BDF_FUNC(Bdf);
+              Offset = BAR0_OFFSET + (4 * Index);
+              pal_cfg_read(Seg, Bus, Dev, Func, Offset, &BarRegLowerValue);
+
               /* Check if the BAR is Memory Mapped IO type */
-              if (((EcamBAR >> BAR_MIT_SHIFT) & BAR_MIT_MASK) == MMIO)
+              if (((BarRegLowerValue >> BAR_MIT_SHIFT) & BAR_MIT_MASK) == MMIO)
               {
                   Data->bar_space.base_addr = (void *)(EcamBAR);
-                  if (((EcamBAR >> PREFETCHABLE_BIT_SHIFT) & MASK_BIT) == 0x1)
+                  if (((BarRegLowerValue >> PREFETCHABLE_BIT_SHIFT) & MASK_BIT) == 0x1)
                       Data->bar_space.type = MMIO_PREFETCHABLE;
                   else
                       Data->bar_space.type = MMIO_NON_PREFETCHABLE;
-
-                  Data->bar_space.base_addr = (void *)EcamBAR;
                   return 0;
               }
 
-              if (((EcamBAR >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
+              if (((BarRegLowerValue >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
               {
                   /* Adjust the index to skip next sequential BAR */
                   Index++;

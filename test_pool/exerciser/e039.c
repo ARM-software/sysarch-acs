@@ -101,9 +101,16 @@ payload(void)
 
         /* Map the mmio space to ARM normal memory in MMU page tables */
         for (idx = 0; idx < sizeof(ARM_NORMAL_MEM_ARRAY)/sizeof(ARM_NORMAL_MEM_ARRAY[0]); idx++) {
-            baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr,
+            status = val_memory_ioremap((void *)e_data.bar_space.base_addr,
                                                     512,
-                                                    ARM_NORMAL_MEM_ARRAY[idx]);
+                                                    ARM_NORMAL_MEM_ARRAY[idx], (void **)&baseptr);
+            /* Handle unimplemented PAL -> SKIP gracefully */
+            if (status == NOT_IMPLEMENTED) {
+                val_print(ACS_PRINT_ERR,
+                        "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+                goto test_skip_unimplemented;
+            }
+
             if (!baseptr) {
                 val_print(ACS_PRINT_ERR,
                             "\n       Failed in BAR ioremap for instance %x", instance);
@@ -117,7 +124,7 @@ payload(void)
             val_mmio_write((addr_t)(baseptr+3), TEST_DATA);
             if (TEST_DATA != val_mmio_read((addr_t)(baseptr+3))) {
                 val_print(ACS_PRINT_ERR,
-                        "\n       Exerciser %d BAR space access error %x", instance);
+                        "\n       Exerciser BAR space access error %x", instance);
                 goto test_fail;
             }
 
@@ -135,6 +142,11 @@ payload(void)
   }
 
   val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+  return;
+
+ test_skip_unimplemented:
+  val_memory_unmap(baseptr);
+  val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 02));
   return;
 
 test_fail:

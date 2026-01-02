@@ -197,8 +197,6 @@ next_bdf:
               goto next_bar;
           }
 
-          test_skip = 0;
-
           /* Enable Memory Space Access to the BDF if not enabled */
           msa_en = val_pcie_is_msa_enabled(bdf);
           if (msa_en)
@@ -209,7 +207,16 @@ next_bdf:
           /* Map the BARs to a DEVICE memory (non-cachable) attribute
            * and check transaction.
            */
-          baseptr = (char *)val_memory_ioremap((void *)base, 1024, DEVICE_nGnRnE);
+          status = val_memory_ioremap((void *)base, 1024, DEVICE_nGnRnE, (void **)&baseptr);
+
+          /* Handle unimplemented PAL -> SKIP gracefully */
+          if (status == NOT_IMPLEMENTED) {
+            val_print(ACS_PRINT_ERR,
+                  "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+            goto test_skip_unimplemented;
+          }
+
+          test_skip = 0;
 
           /* Access check. Not performing data comparison check. */
           old_data = *(uint32_t *)(baseptr);
@@ -240,9 +247,11 @@ next_bar:
       }
   }
 
-  if (test_skip)
-      val_set_status(index, RESULT_SKIP(test_num, 0));
-  else if (test_fail)
+  if (test_skip) {
+test_skip_unimplemented:
+    val_set_status(index, RESULT_SKIP(test_num, 0));
+    return;
+  } else if (test_fail)
       val_set_status(index, RESULT_FAIL(test_num, test_fail));
   else
       val_set_status(index, RESULT_PASS(test_num, 0));

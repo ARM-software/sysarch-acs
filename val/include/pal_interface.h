@@ -734,7 +734,7 @@ typedef struct {
 } MEMORY_INFO_TABLE;
 
 void  pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable);
-uint64_t pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr);
+uint32_t pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr);
 void pal_memory_unmap(void *addr);
 uint64_t pal_memory_get_unpopulated_addr(uint64_t *addr, uint32_t instance);
 uint32_t pal_mem_set_wb_executable(void *addr, uint32_t size);

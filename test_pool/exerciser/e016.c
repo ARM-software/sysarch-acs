@@ -97,9 +97,17 @@ payload(void)
     /* Map mmio space to ARM device memory in MMU page tables */
     for (idx = 0; idx < sizeof(ARM_DEVICE_MEM_ARRAY)/sizeof(ARM_DEVICE_MEM_ARRAY[0]); idx++) {
 
-        baseptr = (char *)val_memory_ioremap((void *)e_data.bar_space.base_addr,
+        status = val_memory_ioremap((void *)e_data.bar_space.base_addr,
                                               512,
-                                              ARM_DEVICE_MEM_ARRAY[idx]);
+                                              ARM_DEVICE_MEM_ARRAY[idx], (void **)&baseptr);
+
+        /* Handle unimplemented PAL -> SKIP gracefully */
+        if (status == NOT_IMPLEMENTED) {
+          val_print(ACS_PRINT_ERR,
+                "\n       pal_memory_ioremap not implemented, skipping test.", 0);
+          goto test_skip_unimplemented;
+        }
+
         if (!baseptr) {
             val_print(ACS_PRINT_ERR, "\n       Failed in BAR ioremap for instance %x", instance);
             goto test_fail;
@@ -128,7 +136,12 @@ exception_return:
     }
   }
 
-  val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+return;
+
+test_skip_unimplemented:
+  val_memory_unmap(baseptr);
+  val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
   return;
 
 test_fail:
