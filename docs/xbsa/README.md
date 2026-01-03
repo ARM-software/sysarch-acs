@@ -2,6 +2,7 @@
 
 - [xBSA UEFI application](#xbsa-uefi-application)
 - [Release Details](#release-details)
+- [Documentation & Guides](#documentation--guides)
 - [xBSA build steps](#xbsa-build-steps)
   - [UEFI Shell application](#uefi-shell-application)
     - [Prerequisites](#prerequisites)
@@ -13,24 +14,31 @@
 - [xBSA run steps](#xbsa-run-steps)
   - [For UEFI application](#for-uefi-application)
   - [For Linux application](#for-linux-application)
-- [Related Documentation](#related-documentation)
-- [Support](#support)
+- [Feedback, contributions and support](#feedback-contributions-and-support)
+- [License](#license)
 
 ## xBSA UEFI application
 
-The **xBSA UEFI application** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.  
+The **xBSA UEFI application** packages the BSA, SBSA and PC-BSA test suites into a single, self-checking UEFI binary.
 It is intended for platform teams that want to validate a design once and cover the combined requirements of the Base System Architecture (BSA), Server Base System Architecture (SBSA) and PCBase System Architecture (PC-BSA) specifications.
 
-Most tests run from the **UEFI Shell** by invoking the xBSA UEFI application.  
-Selected PCIe and peripheral tests require the Exerciser VIP to achieve complete coverage.  
+Most tests run from the **UEFI Shell** by invoking the xBSA UEFI application.
+Selected PCIe and peripheral tests require the Exerciser VIP to achieve complete coverage.
 The test suite can also be executed in bare-metal environments; initialization of those environments remains platform-specific.
 
 ## Release Details
 
-- **Coverage:** Aggregates validation for [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) and [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en).  
-- **Execution levels:** Suitable for both Pre-Silicon and Silicon validation.  
-- **Complementary requirements:** Running with the Exerciser VIP is recommended for complete PCIe compliance coverage.  
+- **Coverage:** Aggregates validation for [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) and [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en).
+- **Execution levels:** Suitable for both Pre-Silicon and Silicon validation.
+- **Complementary requirements:** Running with the Exerciser VIP is recommended for complete PCIe compliance coverage.
 - **Linux dependencies:** The xBSA UEFI application relies on the BSA and SBSA Linux applications for tests that require an OS environment. Refer to the dedicated BSA and SBSA documentation for details.
+
+## Documentation & Guides
+- [Rule-Based Guide](../common/RuleBasedGuide.md) — rule filters and reporting flow shared across ACS variants.
+- [Common UEFI build guide](../common/uefi_build.md)
+- [Common Linux application guide](../common/linux_build.md)
+- [Common CLI arguments](../common/cli_args.md)
+- [BSA ACS README](../bsa/README.md), [SBSA ACS README](../sbsa/README.md), and [PC BSA ACS README](../pc_bsa/README.md) for component-specific notes referenced by xBSA.
 
 ## xBSA build steps
 
@@ -41,43 +49,16 @@ Follow the steps below to build the combined UEFI shell application (`xbsa_acpi.
 #### Prerequisites
 - A mainstream Linux distribution on x86 or AArch64.
 - Bash shell for building.
-- edk2 build dependencies (compiler toolchains, required packages).  
+- edk2 build dependencies (compiler toolchains, required packages).
   *Note: Package specifics vary by distribution and are out of scope for this guide.*
 
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-git clone -b edk2-stable202508 https://github.com/tianocore/edk2
-cd edk2
-git submodule update --init --recursive
-git clone https://github.com/tianocore/edk2-libc
-git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
-cd -
-```
-- On x86 hosts download and extract the Arm GNU AArch64 toolchain:
-```
-wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-export GCC_AARCH64_PREFIX=$PWD/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
-```
-- On native AArch64 hosts export the system toolchain prefix:
-```
-export GCC_AARCH64_PREFIX=/usr/bin/
-```
+#### Build steps
+Use the [Common UEFI build guide](../common/uefi_build.md) to set up the edk2
+workspace, clone `edk2-libc`, and install the Arm GNU AArch64 toolchain. After
+the environment is configured, build the xBSA binary:
 
-#### Build edk2 prerequisites
-```
-cd edk2
-export PACKAGES_PATH=$PWD/edk2-libc
-source edksetup.sh
-make -C BaseTools/Source/C
-```
-
-#### Start the xBSA application build
-```
-rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh xbsa_acpi
-```
+1. `rm -rf Build/` *(optional clean build)*
+2. `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh xbsa_acpi`
 
 #### Build output
 The xBSA EFI binary is generated at:
@@ -86,7 +67,10 @@ The xBSA EFI binary is generated at:
 > **Note:** The xBSA UEFI application currently supports ACPI-based builds. Platform-specific device tree enablement is not available for the xBSA target. Ensure Exerciser PAL APIs are implemented when the Exerciser VIP is present.
 
 ### Linux application
-The xBSA UEFI application relies on the existing BSA and SBSA Linux applications when OS-based tests are required. Build these components using the instructions in `docs/bsa/README.md` and `docs/sbsa/README.md`, then deploy them alongside the xBSA UEFI binary.
+Follow the [Common Linux application guide](../common/linux_build.md) to build the
+shared ACS kernel modules and user applications. xBSA reuses `bsa_acs.ko`,
+`bsa_app`, `sbsa_acs.ko`, and `sbsa_app`; deploy the binaries that match the
+spec revisions you plan to validate alongside the xBSA UEFI binary.
 
 ## xBSA run steps
 
@@ -94,47 +78,40 @@ The xBSA UEFI application relies on the existing BSA and SBSA Linux applications
 
 #### Silicon system
 On platforms with USB access:
-1. Copy `xbsa_acpi.efi` to a FAT-formatted USB device.
-
-- **For U-Boot firmware systems, additional steps**
-  1. Copy `Shell.efi` to the USB device (available under `prebuilt_images/IR`).
-  2. Boot to the **U-Boot** shell.
-  3. Discover the USB device:
-     ```
-     usb start
-     ```
-  4. Load `Shell.efi` into memory and start the UEFI shell:
-     ```
-     fatload usb <dev_num> ${kernel_addr_r} Shell.efi
-     fatload usb 0 ${kernel_addr_r} Shell.efi
-     ```
-2. In the UEFI shell refresh the filesystem mappings:
-   ```sh
-   map -r
-   ```
+1. Copy `xbsa_acpi.efi` to a FAT-formatted USB device.\
+  **For U-Boot firmware systems, additional steps**
+   - Copy `Shell.efi` to the USB device (available under `prebuilt_images/IR`).
+   - Boot to the **U-Boot** shell.
+   - Discover the USB device: `usb start`
+   - Load `Shell.efi` into memory: `fatload usb <dev_num> ${kernel_addr_r} Shell.efi`
+   - Start the UEFI shell: `fatload usb 0 ${kernel_addr_r} Shell.efi`
+2. In the UEFI shell refresh the filesystem mappings: `map -r`
 3. Switch to the USB filesystem (for example, `fs0:`).
-4. Run `xbsa_acpi.efi` with the required parameters.
+4. Run `xbsa_acpi.efi` with the required parameters (see [Common CLI arguments](../common/cli_args.md)).
 5. Capture the UART console output for log retention.
 
-- For application parameters, see the [xBSA User Guide](user_guide.rst).
+**Example**
+
+`Shell> xbsa_acpi.efi -v 1 -m PE,GIC -skip B_PE_01 -f xbsa.log`
+
+Runs the combined PE and GIC modules, skips `B_PE_01`, and writes logs to
+`xbsa.log`.
+
+> xBSA aggregates BSA (`B_*`), SBSA (`S_*`), and PC BSA (`P_*`) rule IDs.
 
 #### Emulation environment with secondary storage
 1. Create an image containing `xbsa_acpi.efi` and `Shell.efi` (for U-Boot systems):
-   ```
-   mkfs.vfat -C -n HD0 hda.img 2097152
-   sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/acs
-   sudo cp "<path to application>/xbsa_acpi.efi" /mnt/acs/
-   sudo umount /mnt/acs
-   ```
-   *(Select an available loop device if `/dev/loop0` is busy.)*
+   1. `mkfs.vfat -C -n HD0 hda.img 2097152`
+   2. `sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/acs`
+   3. `sudo cp "<path to application>/xbsa_acpi.efi" /mnt/acs/`
+   4. `sudo umount /mnt/acs`
+  *(Select an available loop device if `/dev/loop0` is busy.)*
 2. Load the image into the emulated secondary storage using the platform-specific mechanism.
 3. Boot to the UEFI shell.
 4. Identify the filesystem with `map -r`.
 5. Switch to the filesystem (`fs<x>:`).
-6. Execute `xbsa_acpi.efi` with the appropriate parameters.
+6. Execute `xbsa_acpi.efi` with the appropriate parameters (see [Common CLI arguments](../common/cli_args.md)).
 7. Preserve the UART console output for debug or certification review.
-
-- For application parameters, see the [xBSA User Guide](user_guide.rst).
 
 ### For Linux application
 
@@ -142,32 +119,31 @@ The xBSA UEFI application reuses the BSA and SBSA Linux applications to exercise
 1. Transfer the built binaries (`bsa_acs.ko`, `bsa_app`, `sbsa_acs.ko`, `sbsa_app`) to the target system (for example, on a USB drive).
 2. Boot into Linux and locate the removable storage device.
 3. Load each kernel module before running the corresponding user-space application:
-   ```sh
-   sudo insmod bsa_acs.ko
-   sudo insmod sbsa_acs.ko
-   ```
-4. Execute the user-space applications to run the Linux portions of the suite:
-   ```sh
-   ./bsa_app
-   ./sbsa_app
-   ```
+   `sudo insmod bsa_acs.ko`
+   `sudo insmod sbsa_acs.ko`
+4. Execute the user-space applications to run the Linux portions of the suite (see [Common CLI arguments](../common/cli_args.md)).\
+   `./bsa_app`
+   `./sbsa_app`
 5. Remove the kernel modules once testing is complete:
-   ```sh
-   sudo rmmod sbsa_acs
-   sudo rmmod bsa_acs
-   ```
+   `sudo rmmod sbsa_acs`
+   `sudo rmmod bsa_acs`
 
-- For application parameters, see the [xBSA User Guide](user_guide.rst).
+### Application arguments
+Refer to [Common CLI arguments](../common/cli_args.md) for the
+  canonical flag list, module selectors, xBSA-specific options such as options such as `-a`, `-cache`,
+  `-skip-dp-nic-ms` and log-file options shared across ACS binaries.
+- Use the appropriate namespace with `-skip`, `-r`, or any rule-based filters
+  when narrowing coverage, and capture sample command lines in test evidence.
 
-## Related Documentation
+## Feedback, contributions and support
 
-- [BSA ACS README](../bsa/README.md) — UEFI, Linux, and bare-metal build/run guidance.  
-- [SBSA ACS README](../sbsa/README.md) — UEFI, Linux, and bare-metal build/run guidance.  
-- [PC-BSA ACS README](../pc_bsa/README.md) — UEFI, Linux, and bare-metal build/run guidance.  
-- [PCIe Exerciser documentation](../pcie/Exerciser.md) — Reference implementation and PAL requirements.  
-
-## Support
-
-- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)  
-- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)  
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
 - Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
+
+## License
+xBSA ACS is distributed under the [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+
+--------------
+
+*Copyright (c) 2025-2026, Arm Limited and Contributors. All rights reserved.*

@@ -1,6 +1,6 @@
 > **Important change — SBSA ACS rule-based execution**
 >
-> SBSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.  
+> SBSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.
 > For details on using SBSA Specification rule IDs to run the latest SBSA binaries and to collate results per rule, see the [Rule-Based Guide](../common/RuleBasedGuide.md)
 
 ## Table of Contents
@@ -17,6 +17,7 @@
   - [For UEFI application](#for-uefi-application)
   - [For Linux application](#for-linux-application)
 - [Limitations](#limitations)
+* [Feedback, contributions and support](#feedback-contributions-and-support)
 - [License](#license)
 
 ## Server Base System Architecture
@@ -36,12 +37,20 @@ A few tests are executed by running the SBSA ACS Linux application which in turn
 The tests can also be executed in a Bare-metal environment. The initialization of the Bare-metal environment is specific to the environment and is out of scope of this document.
 
 ## Release details
+- **Code quality:** BETA
 - **Latest release version:** v8.0.0
+- **Release tag:** `v25.12_SBSA_8.0.0`
+- **Specification coverage:** SBSA v8.0
 - **Execution levels:** Pre-Silicon and Silicon.
 - **Scope:** The compliance suite is **not** a substitute for design verification.
+- **Prebuilt binaries:** [`prebuilt_images/SBSA/v25.12_SBSA_8.0.0`](../../prebuilt_images/SBSA/v25.12_SBSA_8.0.0)
 - **Access to logs:** Arm licensees can contact Arm through their partner managers.
-- For complete coverage of the SBSA rules, availability of an Exerciser is required for Exerciser tests to be run during verficiation at Pre-Silicon level.
-- For complete coverage, both SBSA and BSA ACS should be run.
+
+</br>
+
+> **For complete coverage of the SBSA rules**
+> - Availability of an Exerciser is required for Exerciser tests to be run during verficiation at Pre-Silicon level.
+> - Both SBSA and BSA ACS should be run.
 
 #### SBSA ACS version mapping
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,160 +79,109 @@ The tests can also be executed in a Bare-metal environment. The initialization o
   - To get the latest version of the code with bug fixes and new features, use the **main** branch.
 
 ##### Prebuilt release binaries
-Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/SBSA) folder of the main branch
+Prebuilt images for each release, including [`v25.12_SBSA_8.0.0`](../../prebuilt_images/SBSA/v25.12_SBSA_8.0.0), are available in the [`prebuilt_images`](../../prebuilt_images/SBSA) folder of the main branch.
 
 ## Documentation and Guides
-- [Arm SBSA Test Scenario Document](arm_sbsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.  
-- [Arm SBSA Test Checklist](arm_sbsa_testcase_checklist.md) — test categories (UEFI, Linux, Bare-metal) and applicable systems (IR, ES, SR, Pre-Silicon).  
-- [Arm SBSA Validation Methodology](arm_sbsa_architecture_compliance_validation_methodology.pdf).  
-- [Arm SBSA ACS User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).  
-- Bare-metal porting guides  
-  - [Arm SBSA ACS Bare-metal User Guide](arm_sbsa_architecture_compliance_bare-metal_user_guide.pdf)  
-  - [Bare-metal Code](../../pal/baremetal/)  
-
- **Note:** The Bare-metal PCIe enumeration code provided with BSA ACS must be used and **must not be replaced**. It is essential for accurate analysis of test results.
-
-- Exerciser VIP guides - The **Exerciser** is a client device wrapped by a PCIe Endpoint, created to satisfy BSA requirements for PCIe capability validation. Running Exerciser tests increases platform coverage.
+- [Arm SBSA Test Scenario Document](arm_sbsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.
+- [Arm SBSA Test Checklist](arm_sbsa_testcase_checklist.md) — test categories (UEFI, Linux, Bare-metal) and applicable systems (IR, ES, SR, Pre-Silicon).
+- [Arm SBSA Validation Methodology](arm_sbsa_architecture_compliance_validation_methodology.pdf).
+- [Arm SBSA ACS User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).
+- **Bare-metal porting guides**
+  - [Arm SBSA ACS Bare-metal User Guide](arm_sbsa_architecture_compliance_bare-metal_user_guide.pdf)
+  - [Bare-metal Code](../../pal/baremetal/)
+- **Exerciser VIP guides**\
+  **Exerciser** is a client device wrapped by a PCIe Endpoint, created to satisfy BSA requirements for PCIe capability validation. Running Exerciser tests increases platform coverage.
   - [Exerciser.md](../pcie/Exerciser.md)
   - [Exerciser_API_porting_guide.md](../pcie/Exerciser_API_porting_guide.md).
+- Common references
+  - [Common UEFI build guide](../common/uefi_build.md)
+  - [Common Linux application guide](../common/linux_build.md)
+  - [Common CLI arguments](../common/cli_args.md)
 
+> **Note:** The Bare-metal PCIe enumeration code provided with BSA ACS must be used and **must not be replaced**. It is essential for accurate analysis of test results.
 
 ## SBSA build steps
 
 ### UEFI Shell application
 
-#### Prerequisites
-- A mainstream Linux distribution on x86 or AArch64.
-- Bash Shell for build
-- Install prerequisite packages to build EDK2.  
-  *Note: Package details are beyond the scope of this document.*
-
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-git clone -b edk2-stable202508 https://github.com/tianocore/edk2
-cd edk2
-git submodule update --init --recursive
-git clone https://github.com/tianocore/edk2-libc
-git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
-cd -
-```
-- On x86 machine download and setup toolchain
-```
-wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-export GCC_AARCH64_PREFIX=$PWD/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
-```
-- On Aarch64 machine, export toolchain variable to native tools
-```
-export GCC_AARCH64_PREFIX=/usr/bin
-```
-
-#### Build edk2 by following below steps:
-```
-export PACKAGES_PATH=$PWD/edk2-libc
-source edksetup.sh
-make -C BaseTools/Source/C
-```
-
-#### To start the ACS build for platform using ACPI table, perform the following steps:
-```
-rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh sbsa
-```
-
-#### Build output
-The EFI executable is generated at: `workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/Sbsa.efi`
+1. Set up edk2 and the Arm toolchain by following the
+   [Common UEFI build guide](../common/uefi_build.md).
+2. Trigger the SBSA binary generation with:\
+   `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh sbsa`
+3. The build emits `Sbsa.efi` under `Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/`.
 
 ### Linux application
-Certain Peripheral, PCIe, and Memory Map tests require a Linux OS. This section covers building and executing these tests from the Linux application.
-
-#### Prerequisites
-- A mainstream Linux distribution on x86 or AArch64.
-- Bash Shell for build
-
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
-chmod +x build.sh
-```
-
-#### To start the build, perform below steps:
-Build Script arguments :The following arguments can be used with `build.sh`:
- - `-v` or `--version` — Linux kernel version for cross-compilation. Default: **6.10**.  
- - `--GCC_TOOLS` — GCC toolchain version for cross-compilation. Default: **13.2.rel1**.  
- - `--help` — Displays environment info, defaults, usage, and notes.  
- - `--clean` — Removes the `build/` output folder (modules and apps).  
- - `--clean_all` — Removes all downloaded repositories and build artifacts, including the output directory.
-
-```
-source build.sh $args (as needed)
-```
-
-#### Build Output
-The ACS kernel module and app will be generated at `workspace/build/`
- - `sbsa_acs.ko` : Kernel module which needs to be insmod before running sbsa_app
- - `sbsa_app` : bsa linux app
+1. Peripheral, PCIe, and Memory Map tests that need an OS run through the ACS
+   Linux application.
+2. Reuse the [Common Linux application guide](../common/linux_build.md)
+   for build script usage and arguments.
+3. The SBSA artifacts are `sbsa_acs.ko` and `sbsa_app` under `workspace/build/`.
 
 ### Baremetal application
-The bare-metal build environment is platform-specific.
+The bare-metal build environment is platform-specific.\
 For details on generating binaries for bare-metal environments, refer to [README.md](../../pal/baremetal/README.md).
 
 
 ## SBSA run steps
 
-### For UEFI application 
+### For UEFI application
 
 #### Silicon System
 On a system with a functional USB port:
-1. Copy `Sbsa.efi` to a USB device which is fat formatted.  
-2. In UEFI Shell, refresh mappings:
-   ```sh
-   map -r
-   ```
-3. Change to the USB filesystem (e.g., `fs0:`).  
-4. Run `Sbsa.efi` with appropriate parameters.  
-5. Capture UART console output to a log file.
+1. Copy `Sbsa.efi` to a FAT-formatted USB device.
+2. In the UEFI shell, refresh mappings with:\
+    `map -r`
+3. Change to the USB filesystem (for example, `fs0:`).
+4. Run `Sbsa.efi` with the required parameters (see [Common CLI arguments](../common/cli_args.md)).
+5. Capture the UART console output to a log file for analysis.
 
-- For application parameters, see the [User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).
+
+**Example**
+
+`Shell> Sbsa.efi -v 2 -m PE,GIC -r S_L3GI_01 -f sbsa_results.log`
+
+Executes only the PE and GIC modules, runs rule `S_L3GI_01`, and writes the
+captured output to `sbsa_results.log`.
+
+> SBSA rule IDs follow the `S_L<level><module>_<nn>` pattern documented in
+  [SBSA checklist](arm_sbsa_testcase_checklist.md)
+  (for example, `S_L3GI_01`, `S_L3PE_02`).\
+> Confirm the rule name and ACS level (1–7) in that checklist before applying
+  `-r` or `-skip`.\
+> Ensure EL3 firmware exposes the registers required by any modules you select
+  with `-m` (for example, `RAS`, `MPAM`, or `ETE`).
+
 
 #### Emulation environment with secondary storage
-1. Create an image containing `Sbsa.efi`:
-   ```
-   mkfs.vfat -C -n HD0 hda.img 2097152
-   sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/sbsa
-   sudo cp "<path to application>/Sbsa.efi" /mnt/sbsa/
-   sudo umount /mnt/sbsa
-   ```
-   *(If `/dev/loop0` is busy, select a free loop device.)*
-2. Load the image to secondary storage via a backdoor (environment-specific).
-3. Boot to UEFI Shell.  
-4. Identify the filesystem with `map -r`.  
-5. Switch to the filesystem (`fs<x>:`).  
-6. Run `Sbsa.efi` with parameters.  
-7. Save UART console output for analysis/certification.
-
-- For application parameters, see the [User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).
+1. Create a FAT image containing `Sbsa.efi`:\
+    `mkfs.vfat -C -n HD0 hda.img 2097152`\
+    `sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/sbsa`\
+    `sudo cp "<path to application>/Sbsa.efi" /mnt/sbsa/`\
+    `sudo umount /mnt/sbsa`\
+    *(If `/dev/loop0` is busy, select a free loop device.)*
+2. Load the image into the virtual platform or emulator using its documented backdoor method.
+3. Boot to the UEFI shell.
+4. Refresh filesystem mappings with:\
+    `map -r`
+5. Switch to the assigned filesystem (`fs<x>:`).
+6. Run `Sbsa.efi` with the desired parameters (see [Common CLI arguments](../common/cli_args.md)).
+7. Capture the UART console output for certification and debug reports.
 
 ### For Linux application
 
-1. Copy the sbsa_acs.ko and sbsa_app into USB drive
-2. Boot to Linux and identify the USB drive
-3. Load the SBSA kernel module
-  ```sh
-  sudo insmod sbsa_acs.ko
-  ```
-4. Run the SBSA application
-  ```sh
-  ./sbsa_app
-  ```
-5. Remove the SBSA kernel module after run
-  ```sh
-  sudo rmmod sbsa_acs
-  ```
-- For application parameters, see the [User Guide](arm_sbsa_architecture_compliance_user_guide.pdf).
+1. Copy `sbsa_acs.ko` and `sbsa_app` to removable media or the DUT.
+2. Boot into Linux and mount the media if required.
+3. Load the SBSA kernel module:\
+    `sudo insmod sbsa_acs.ko`
+4. Run the SBSA user-space application (see [Common CLI arguments](../common/cli_args.md)).\
+    `./sbsa_app`
+5. Remove the SBSA kernel module after the run:\
+    `sudo rmmod sbsa_acs`
 
+### Application arguments
+Refer to [Common CLI arguments](../common/cli_args.md) for the full flag
+list, and use the [User Guide](arm_sbsa_architecture_compliance_user_guide.pdf)
+for additional context when constructing command lines.
 
 ## Limitations
 - Validating the compliance of certain PCIe rules defined in the SBSA specification requires the PCIe end-point to generate specific stimulus during the runtime of the test. Examples of such stimulus are  P2P, PASID, ATC, etc. The tests that requires these stimuli are grouped together in the exerciser module. The exerciser layer is an abstraction layer that enables the integration of hardware capable of generating such stimuli to the test framework.
@@ -254,18 +212,23 @@ The details of the hardware or Verification IP which enable these exerciser test
 |pal_pcie_is_cache_present    |Return 1 if the test system supports PCIe address translation cache, else 0   |852                     |
 |pal_pcie_get_legacy_irq_map  |Return 0 if system legacy irq map is filled, else 1                           |850                     |
 
-   Below exerciser capabilities are required by exerciser test.
-   - MSI-X interrupt generation.
-   - Incoming Transaction Monitoring (order, type).
-   - Initiating transactions from and to the exerciser.
-   - Ability to check on BDF and register address seen for each configuration address along with access type.
+**Below exerciser capabilities are required by exerciser test.**
+- MSI-X interrupt generation.
+- Incoming Transaction Monitoring (order, type).
+- Initiating transactions from and to the exerciser.
+- Ability to check on BDF and register address seen for each configuration address along with access type.
 
- - SBSA Test 803 (Check ECAM Memory accessibility) execution time depends on the system PCIe hierarchy. For systems with multiple ECAMs the time taken to complete can be long which is normal. Please wait until the test completes.
+> SBSA Test 803 (Check ECAM Memory accessibility) execution time depends on the system PCIe hierarchy. For systems with multiple ECAMs the time taken to complete can be long which is normal. Please wait until the test completes.
 
+## Feedback, contributions and support
+
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
 
 ## License
-SBSA ACS is distributed under Apache v2.0 License.
+SBSA ACS is distributed under the [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 --------------
 
-*Copyright (c) 2018-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2018-2026, Arm Limited and Contributors. All rights reserved.*

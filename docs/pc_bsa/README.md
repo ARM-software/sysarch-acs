@@ -1,265 +1,201 @@
 # Personal Computing Base System Architecture - Architecture Compliance Suite
 
+## Table of Contents
+
+- [Personal Computing Base System Architecture](#personal-computing-base-system-architecture)
+- [PC BSA - Architecture Compliance Suite](#pc-bsa---architecture-compliance-suite)
+- [Release details](#release-details)
+- [Documentation & Guides](#documentation--guides)
+- [PC BSA coverage overview](#pc-bsa-coverage-overview)
+- [PC BSA build steps](#pc-bsa-build-steps)
+  - [UEFI Shell application](#uefi-shell-application)
+  - [Linux application](#linux-application)
+- [PC BSA run steps](#pc-bsa-run-steps)
+  - [For UEFI application](#for-uefi-application)
+  - [For Linux application](#for-linux-application)
+- [TC3 reference flow](#tc3-reference-flow)
+- [Application arguments](#application-arguments)
+- [Coverage guidance](#coverage-guidance)
+- [Limitations](#limitations)
+- [Feedback, contributions, and support](#feedback-contributions-and-support)
+- [License](#license)
+
 ## Personal Computing Base System Architecture
-**PC Base System Architecture** (PC-BSA) specifies a standard hardware system architecture for Personal Computers (PCs) that are based on the Arm 64-bit Architecture. PC system software, for example operating systems, hypervisors, and firmware can rely on this standard system architecture. PC-BSA extends the requirements specified in the [Arm BSA specification](https://developer.arm.com/documentation/den0094/latest/).
-
-For more information, please refer the [PC-BSA specification](https://developer.arm.com/documentation/den0151/latest).
-
-## Release Details
- - Code Quality: EAC
- - The tests are written for version 1.0 of the PC BSA specification.
- - For more details on tests implemented in this release, Please refer [PC-BSA Test Scenario Document](arm_pc-bsa_architecture_compliance_test_scenario.pdf).
-
-## PC BSA Coverage Overview
-The PC BSA tests are distributed across various ACS components, including SCT tests, UEFI-based tests, and a Linux-based test. Full compliance also requires running the Bsa.efi application and includes some manual verification.
-
-### Below are the sections that collectively cover PC BSA rules:
-- [UEFI-based Tests](#pc-bsa-uefi-shell-application-build-instructions)
-- [Linux-based Tests](#pc-bsa-linux-application)
-- [SCT-based Tests](#guidance-on-running-sct-testcase)
-- [BSA Uefi Coverage](#guidance-on-running-bsa-uefi-coverage)
-
-
-## PC BSA UEFI Shell Application Build Instructions
-
-### Prerequisites
-Before starting the build, ensure that the following requirements are met.
-- Any mainstream Linux based OS distribution running on a x86 or AArch64 machine.
-- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
-- Install the build prerequisite packages to build EDK2.<br>
-Note: The details of the packages are beyond the scope of this document.
-
-### 1. Build Steps
-
-##### 1. Setup edk2 build directory
-
->	1. git clone --branch edk2-stable202505 --depth 1 https://github.com/tianocore/edk2<br>
->	2. git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc<br>
->	3. cd edk2<br>
->	4. git submodule update --init --recursive<br>
-
-##### 2. Download source files
->	 git clone https://github.com/ARM-software/sysarch-acs ShellPkg/Application/sysarch-acs <br>
-
-##### 3. Build PC-BSA UEFI Application <br>
-Note :  Install GCC-ARM 14.3 from [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) <br>
-For a x86 host build,
->  export GCC_AARCH64_PREFIX=<path to arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-><br>
-
-For an AArch64 build,
->  export GCC_AARCH64_PREFIX=/usr/bin/aarch64-linux-gnu-
-
-Build the binary,
-> 1. export PACKAGES_PATH=$PWD/edk2-libc<br>
-> 2. source edksetup.sh<br>
-> 3. make -C BaseTools/Source/C<br>
-> 4. source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pc_bsa<br>
-
-##### 4. PC BSA EFI application path
-- The EFI executable file is generated at \<edk2-path\>/Build/Shell/DEBUG_GCC/AARCH64/PC_Bsa.efi
-
-### 2. Execution Steps
-The execution of the compliance suite varies depending on the test environment. These steps assume that the test suite is invoked through the ACS UEFI shell application
-
-#### 2.1 Emulation environment with secondary storage
-On an emulation environment with secondary storage, perform the following steps:
-
-1. Create an image file which contains the '.efi' file. For example:
-> 1. mkfs.vfat -C -n HD0 hda.img 2097152<br>
-> 2. sudo mount hda.img /mnt/acs/<br>
-> 3. sudo cp PC_Bsa.efi /mnt/acs<br>
-> 4. sudo umount /mnt/acs<br>
-
-Note: If /mnt/acs/ is not already created, you may need to create it using mkdir -p /mnt/acs/.
-
-2. Load the image file to the secondary storage using a backdoor. The steps to load the image file are emulation environment-specific and beyond the scope of this document.
-3. Boot the system to UEFI shell.
-4. To determine the file system number of the secondary storage, execute 'map -r' command.
-5. Type 'fs<x>' where '<x>' is replaced by the number determined in step 4.
-6. To start the compliance tests, run the executable PC_Bsa.efi with the appropriate parameters.
-7. Copy the UART console output to a log file for analysis.
-
-#### 2.2 Emulation environment without secondary storage
-
-On an emulation platform where secondary storage is not available, perform the following steps:
-
-1. Add the path to PC_bsa.efi file in the UEFI FD file.
-2. Build UEFI image including the UEFI Shell.
-3. Boot the system to UEFI shell.
-4. Copy the UART console output to a log file for analysis.
-
-## Application arguments
-Command line arguments are similar for uefi application, with some exceptions.
-Some of the mostly used uefi arguments are listed below,
-
-#### -v
-Choose the verbosity level.
-
-- 5 - ERROR
-- 4 - WARN and ERROR
-- 3 - TEST and above
-- 2 - DEBUG and above
-- 1 - INFO and above
-
-#### -skip
-Overrides the suite to skip the execution of a particular
-rule. For example, <i>-skip B_PE_01</i> skips test B_PE_01.
-
-#### -f (Only for UEFI application)
-Save the test output into a file in secondary storage. For example <i>-f pc_bsa.log</i> creates a file pc_bsa.log with test output.
-
-#### -fr
-Use this option to run PC BSA tests intended for future requirement rules validation.
-
-#### -el1physkip
-Skips EL1 register checks. VE systems run ACS at EL1 and in some systems a crash is observed during access of EL1 registers; this flag was introduced for debugging purposes only.
-
-#### -l \<n>
-Run compliance tests up till inputted level \<n>.
-
-#### -m
-Run only the specified modules (comma-separated names). Accepted module names are: PE, GIC, PERIPHERAL, MEM_MAP, PMU, RAS, SMMU, TIMER, WATCHDOG, NIST, PCIE, MPAM, ETE, TPM, POWER_WAKEUP. For example, <i>-m PE,GIC,PCIE</i>.
-
-#### -mmio
-Enable <code>pal_mmio_read</code>/<code>pal_mmio_write</code> prints (use with <i>-v 1</i>).
-
-#### -r
-Run tests for the passed comma-separated Rule IDs or a rules file. For example, <i>-r B_PE_01,B_PE_02,B_GIC_01</i> or <i>-r rules.txt</i> (the file may mix commas and newlines; lines starting with <code>#</code> are treated as comments).
-
-#### -only \<n>
-Only run tests for rules at level \<n>.
-
-#### -skipmodule
-Skip the specified modules (comma-separated names). For example, <i>-skipmodule PE,GIC,PCIE</i>.
-
-#### -timeout \<n>
-Set timeout multiple for wakeup tests. Valid values are 1 (minimum) through 5 (maximum). The default is 1.
-
-#### -h, -help
-Displays all available command-line arguments and their usage.
-
-### UEFI example
-
-Shell> PC_Bsa.efi -v 1 -skip B_PE_01,B_GIC_02 -f pcbsa_uefi.log
-
-Runs PCBSA ACS with verbosity INFO, skips test B_PE_01 and B_GIC_02 and saves the test results in <i>pcbsa_uefi.log</i>.
-
-## PC BSA Linux Application
-
-### 1.Build Steps
-1. wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
-2. chmod +x build.sh
-3. source build.sh
-
-### 2. Build Output
-
-The following output folder is created in __build__ folder:
-(As part of build bsa and sbsa module and app also got created)
- - pcbsa_acs.ko
- - pcbsa_app
-
-### 3. Loading the kernel module
-Before the PC BSA ACS Linux application can be run, load the PC BSA ACS kernel module respectively using the insmod command.
-
-```sh
-shell> insmod pcbsa_acs.ko
-```
-
-### 3. Running PC BSA ACS
-
-```sh
-shell> ./pcbsa_app
-```
-### 4. PC BSA Linux Test Log View
-
-```sh
-shell> sudo dmesg | tail -500 # print last 500 kernel logs
-```
-After the run is complete, you can remove the PC BSA module from the system if it is no longer needed.
-
-```sh
-shell> sudo rmmod bsa_acs
-shell> sudo rmmod sbsa_acs
-```
-- For information on the PC BSA Linux build parameters and limitation, see the [**Build Parameters and Limitations**](../../README.md#build-script-arguments)
-
-## Running PC-BSA UEFI Application on TC3 Platform
-**Note:** This section outlines instructions to run the PC-BSA UEFI application out of box using TC3 Arm FVP.
-
-### 1. Downloading and Building TC3 software stack
-
-Please follow instructions provided in [**LSC23 TC3 Setup Guide**](https://totalcompute.docs.arm.com/en/lsc23.1/totalcompute/lsc23/user-guide.html) to download and build TC3 software stack.
-
-### 2. Download the TC3 FVP Model
-
-Refer to the official Arm Total Compute FVP download page: [**TC3 FVP - Arm Developer**](https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/Total%20Compute%20FVPs)
-
-
-### 3. Set Up Environment Variable
-
-```bash
-export MODEL=<path of FVP_TC3>
-```
-
-### 4. Prepare ACS Disk Image
-
-Follow the steps in [**Emulation environment with secondary-storage**](#21-emulation-environment-with-secondary-storage) to create a FAT-formatted `.img` file containing the `PC_bsa.efi` binary.
-
-
-### 5. Update ACS Image Path in Model Run Script
-
-- **Note:** Replace <TC_WORKSPACE> with actual working directory created during [**Downloading and Building TC3 software stack**](#1-downloading-and-building-tc3-software-stack)
-
-```bash
-sed -i 's|ACS_DISK_IMAGE="\$DEPLOY_DIR/systemready_acs_live_image.img"|ACS_DISK_IMAGE="\$DEPLOY_DIR/hda.img"|' <TC_WORKSPACE>/run-scripts/common/run_model.sh
-```
-
-- Copy `hda.img` created in step [**Emulation environment with secondary-storage**](#21-emulation-environment-with-secondary-storage) to `<TC_WORKSPACE>/output/tc3/debian-official/fvp/deploy/` directory.
-
-
-### 6. Run the TC3 Model
-
-Navigate to the TC3 run-script directory and launch the model:
-
-```bash
-cd <TC_WORKSPACE>/run-scripts/tc3
-./run_model.sh -m $MODEL -d acs-test-suite
-```
-
-### 7. Run the PC BSA Test from UEFI Shell
-
-- When the model boots, press **Esc** to enter the UEFI Boot Manager.
-- Select **Built-in EFI Shell**
-- Execute the following commands:
-
-```shell
-map -r          # Refresh and list file systems
-fsX:            # Replace X with the correct disk number
-PC_bsa.efi      # Launch the PC BSA test
-```
-
-### Notes
-
-- Ensure the `.efi` binary is copied correctly into the image using the steps in the [secondary-storage setup section](#21-emulation-environment-with-secondary-storage).
-- Capture UART output logs for test verification and reporting.
-
-## Guidance on running SCT testcase
-- PC-BSA rules `P_L1NV_01` and `P_L1SE_01` requires [VariableServicesTest](https://github.com/tianocore/edk2-test/tree/master/uefi-sct/SctPkg/TestCase/UEFI/EFI/RuntimeServices/VariableServices/BlackBoxTest) SCT test to be run for compliance check. Please refer to [BBR ACS User Guide](https://github.com/ARM-software/bbr-acs/blob/main/README.md) for instructions to build and run SCT test suite. see the [SCT User Guide](http://www.uefi.org/testtools)for instructions on choosing and running individual testcase from UEFI Shell.
+**Personal Computing Base System Architecture** (PC BSA) defines hardware and
+debug requirements for Arm-based personal computing platforms. It builds on the
+Arm **BSA** ruleset and adds PC-specific constraints so that operating systems
+and firmware interoperate consistently across implementations. Refer to the
+[PC BSA specification](https://developer.arm.com/documentation/den0996/latest)
+for the authoritative rule set.
+
+## PC BSA - Architecture Compliance Suite
+The **PC BSA Architecture Compliance Suite** provides self-checking tests that
+exercise the PC BSA rules across UEFI and Linux execution environments. Most
+rules run inside the UEFI shell via `PC_bsa.efi`; OS-visible behavior is
+validated by the Linux application and its kernel module companion.
+
+## Release details
+- **Code quality:** EAC
+- **Latest release version:** v1.0.0
+- **Release tag:** `v25.12_PCBSA_1.0.0`
+- **Specification coverage:** PC BSA v1.0
+- **Execution levels:** Pre-Silicon and Silicon
+- **Scope:** ACS is **not** a substitute for full design verification.
+- **Prebuilt binaries:** [`prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0`](../../prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0)
+
+## Documentation & Guides
+- [PC BSA specification](https://developer.arm.com/documentation/den0996/latest)
+- [Arm PC BSA Testcase Checklist](arm_pc-bsa_testcase_checklist.md)
+- [Arm PC BSA Test Scenario Document](TPM_PAL_Porting_Guide.md)
+- [Common UEFI build guide](../common/uefi_build.md)
+- [Common Linux application guide](../common/linux_build.md)
+- [Common CLI arguments](../common/cli_args.md)
+
+## PC BSA coverage overview
+PC BSA rules are implemented across multiple ACS components. Run every path
+below to claim complete coverage.
+
+### Sections covering PC BSA rules
+- [UEFI-based tests](#for-uefi-application) — execute `PC_bsa.efi` (or the TC3
+  reference flow) with the required modules, filters, and logging flags.
+- [Linux-based tests](#for-linux-application) — load `pcbsa_acs.ko` and run
+  `pcbsa_app` to exercise OS-visible functionality.
+- [SCT-based tests](#coverage-guidance) — run the Variable Services suite and
+  any other SCT content referenced by the checklist.
+- [BSA ACS dependencies](#coverage-guidance) — execute `Bsa.efi` plus the BSA
+  Linux artifacts mandated by the PC BSA ruleset for shared requirements.
+- [Manual evidence](#coverage-guidance) — document DUT-owner verification items
+  called out in the [PC BSA testcase checklist](arm_pc-bsa_testcase_checklist.md).
+
+## PC BSA build steps
+
+### UEFI Shell application
+1. Configure edk2, the toolchain, and the workspace using the
+  [Common UEFI build guide](../common/uefi_build.md).
+2. Build the PC BSA binary:\
+    `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pcbsa`
+3. Retrieve `PC_bsa.efi` from `Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/`.
+
+### Linux application
+1. Download the shared Linux ACS build script:\
+    `wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh`\
+    `chmod +x build.sh`
+2. Build the drivers and applications:\
+    `source build.sh`
+3. The build artifacts appear under `build/`:\
+    `pcbsa_acs.ko`\
+    `pcbsa_app`\
+    `bsa_acs.ko`, `bsa_app`, `sbsa_acs.ko`, `sbsa_app` (also produced)
+4. For build-script arguments and limitations, see the
+  [Common Linux application guide](../common/linux_build.md).
+
+## PC BSA run steps
+
+### For UEFI application
+#### Silicon system
+1. Copy `PC_bsa.efi` to a FAT-formatted USB drive.
+2. Boot the DUT to the UEFI shell, refresh mappings, and locate the filesystem:\
+    `Shell> map -r`\
+    `Shell> fs0:`
+3. Run `PC_bsa.efi` with the required parameters (see [Common CLI arguments](../common/cli_args.md)).
+4. Capture UART console output for reporting.
+
+**Example**
+
+`Shell> PC_bsa.efi -v 1 -skip P_L1PE_01,P_L1GI_01 -f pcbsa_uefi.log`
+
+Runs PCBSA ACS with verbosity INFO, skips rules `P_L1PE_01`/`P_L1GI_01`and stores the UART output in `pcbsa_uefi.log`.
+
+> Use PC BSA rule IDs that follow the `P_L<level><module>_<nn>` pattern defined in
+  [PC BSA checklist](arm_pc-bsa_testcase_checklist.md)
+  (for example, `P_L1PE_01`, `P_L1GI_01`) when filtering, and record any resulting
+  coverage gap.
+
+#### Emulation environment with secondary storage
+1. Create a FAT image containing `PC_bsa.efi`:\
+    `mkfs.vfat -C -n HD0 hda.img 2097152`\
+    `sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/pcbsa`\
+    `sudo cp "<path to>/PC_bsa.efi" /mnt/pcbsa/`\
+    `sudo umount /mnt/pcbsa`\
+    *(Pick a free loop device if `/dev/loop0` is busy.)*
+2. Attach the image to the virtual platform per the model documentation.
+3. Boot to the UEFI shell.
+4. Refresh mappings and locate the filesystem:\
+    `map -r`
+5. Switch to the ACS filesystem, launch `PC_bsa.efi` with the required parameters, and capture UART logs for evidence.
+
+#### Emulation environment without secondary storage
+Some emulation platforms embed binaries directly into the firmware image instead of exposing a virtual disk. In that case:
+1. Add the path of `PC_bsa.efi` to the UEFI FD image used by the model.
+2. Rebuild the UEFI image so the binary is packaged alongside the UEFI shell.
+3. Boot the platform to the UEFI shell.
+4. Launch `PC_bsa.efi` with the desired arguments (see [Common CLI arguments](../common/cli_args.md))
+5. Capture the UART console output for analysis.
+
+### For Linux application
+1. Copy `pcbsa_acs.ko` and `pcbsa_app` to the system.
+2. Load the kernel module:\
+    `sudo insmod pcbsa_acs.ko`
+3. Run the user-space application (see [Common CLI arguments](../common/cli_args.md)).\
+    `./pcbsa_app`
+4. Inspect kernel logs as needed:\
+    `sudo dmesg | tail -500`
+5. Remove the module when testing completes:\
+    `sudo rmmod pcbsa_acs`
+    *(Unload `bsa_acs` and `sbsa_acs` if they are no longer required.)*
+
+## TC3 reference flow
+Use this sequence to run the PC BSA UEFI application on the TC3 Arm FVP.
+
+1. Build the TC3 software stack per the
+  [LSC23 TC3 Setup Guide](https://totalcompute.docs.arm.com/en/lsc23.1/totalcompute/lsc23/user-guide.html).
+2. Download the TC3 FVP model from the
+  [Arm Total Compute FVP portal](https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/Total%20Compute%20FVPs).
+3. Export the model path:\
+    `export MODEL=<path of FVP_TC3>`
+4. Prepare the ACS disk image as described above (FAT image with `PC_bsa.efi`)
+  and copy `hda.img` into `<TC_WORKSPACE>/output/tc3/debian-official/fvp/deploy/`.
+5. Patch the TC3 run script to reference the ACS image:\
+    `sed -i 's|ACS_DISK_IMAGE="\$DEPLOY_DIR/systemready_acs_live_image.img"|ACS_DISK_IMAGE="\$DEPLOY_DIR/hda.img"|' <TC_WORKSPACE>/run-scripts/common/run_model.sh`
+6. Launch the model:\
+    `cd <TC_WORKSPACE>/run-scripts/tc3`\
+    `./run_model.sh -m $MODEL -d acs-test-suite`
+7. In UEFI Shell, press **Esc**, choose **Built-in EFI Shell**, refresh
+  mappings, switch to the ACS filesystem, and run `PC_bsa.efi`.
+
+### Application arguments
+Refer to [Common CLI arguments](../common/cli_args.md) for detailed flag
+descriptions, logging options, and sample invocations.\
+
+## Coverage guidance
+- Execute **UEFI**, **Linux**, and required **SCT** content to claim full PC BSA
+  coverage.
+- Run the **BSA ACS** content (`Bsa.efi` plus any required Linux modules) in
+  addition to PC BSA to satisfy the cross-specification dependencies documented
+  in the PC BSA checklist.
+- Rules `P_L1NV_01` and `P_L1SE_01` require the
+  [VariableServicesTest](https://github.com/tianocore/edk2-test/tree/master/uefi-sct/SctPkg/TestCase/UEFI/EFI/RuntimeServices/VariableServices/BlackBoxTest)
+  from the SCT suite.
+- Refer to the [BBR ACS User Guide](https://github.com/ARM-software/bbr-acs/blob/main/README.md)
+  and the [SCT User Guide](http://www.uefi.org/testtools) for guidance on
+  building and selecting SCT test cases.
 
 ## Limitations
+- Coverage spans UEFI tests, Linux tests, SCT content, and manual verification.
+  Some rules require DUT-owner evidence; document those explicitly in reports.
+- Exerciser-dependent PCIe features (P2P, PASID, ATC, and similar) require
+  appropriate hardware stimulus; without it the respective rules must be marked
+  partial or skipped.
 
-- The PC BSA tests are distributed across various ACS components, including SCT tests, UEFI-based tests, and a Linux-based test. To achieve complete validation, all test suites must be executed. Additionally, some rules require manual verification by the DUT owner, for these rules compliance must be manually declared to confirm PC BSA compliance for the DUT. see the [PC BSA testcase checklist](../../docs/pc_bsa/arm_pc-bsa_testcase_checklist.rst) for rules not testable by ACS.
+## Feedback, contributions and support
+
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
 
 ## License
-PC BSA ACS is distributed under Apache v2.0 License.
-
-## Feedback, contributions, and support
-
- - For feedback, use the GitHub Issue Tracker that is associated with this repository.
- - For support, send an email to "support-systemready-acs@arm.com" with details.
- - Arm licensees may contact Arm directly through their partner managers.
- - Arm welcomes code contributions through GitHub pull requests. See the GitHub documentation on how to raise pull requests.
+PC BSA ACS is distributed under the [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
 
 --------------
 
-*Copyright (c) 2025, Arm Limited and Contributors. All rights reserved.*
+Copyright (c) 2025-2026, Arm Limited and Contributors. All rights reserved.

@@ -1,215 +1,167 @@
 # Virtual Base System Architecture - Architecture Compliance Suite
 
-## Virtual Base System Architecture
-**Virtual Base System Architecture** (VBSA) specifies the requirements and run-time features that a base Virtual
-Environment (VE) needs to install, boot, and run an operating system. VBSA specification is a supplement to the  [Arm BSA specification](https://developer.arm.com/documentation/den0094/latest/).
-
-For more information, please refer the [VBSA specification](https://developer.arm.com/documentation/den0150/latest/).
-
 ## Table of Contents
-* [Release Details](#release-details)
-* [VBSA Coverage Overview](#vbsa-coverage-overview)
-* [UEFI Shell Build Instructions](#vbsa-uefi-shell-application-build-instructions)
-* [Application arguments](#application-arguments)
-* [VBSA Linux Application](#vbsa-linux-application)
-* [Limitations](#limitations)
-* [Troubleshoot guide](#troubleshoot-guide)
-* [License](#license)
-* [Feedback and support](#feedback-contributions-and-support)
 
+- [Virtual Base System Architecture](#virtual-base-system-architecture)
+- [VBSA - Architecture Compliance Suite](#vbsa---architecture-compliance-suite)
+- [Release details](#release-details)
+- [Documentation & Guides](#documentation--guides)
+- [VBSA build steps](#vbsa-build-steps)
+	- [UEFI Shell application](#uefi-shell-application)
+	- [Linux application](#linux-application)
+- [VBSA run steps](#vbsa-run-steps)
+	- [For UEFI application](#for-uefi-application)
+	- [For Linux application](#for-linux-application)
+- [Application arguments](#application-arguments)
+- [VBSA coverage overview](#vbsa-coverage-overview)
+- [Limitations](#limitations)
+- [Troubleshoot guide](#troubleshoot-guide)
+- [Feedback, contributions, and support](#feedback-contributions-and-support)
+- [License](#license)
 
-## Release Details
- - Code Quality: BETA
- - Latest release version - v0.7.0
- - The tests are written for version 1.0 of the VBSA specification.
- - For more details on tests implemented in this release, Please refer [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md).
+## Virtual Base System Architecture
+**Virtual Base System Architecture** (VBSA) defines the requirements and
+runtime features needed by a virtual environment to install, boot, and run an
+operating system. VBSA supplements the
+[Arm BSA specification](https://developer.arm.com/documentation/den0094/latest/)
+to target virtual platforms.
 
-## VBSA Coverage Overview
-The VBSA tests are primarily UEFI-based and run on the virtual platform’s UEFI firmware, with a subset of tests executed in a Linux guest environment.
+See the [VBSA specification](https://developer.arm.com/documentation/den0150/latest/) for the authoritative rules.
 
-### Below are the sections that collectively cover VBSA rules:
-- [UEFI-based Tests](#vbsa-uefi-shell-application-build-instructions)
-- [Linux-based Tests](#vbsa-linux-application)
+## VBSA - Architecture Compliance Suite
+VBSA ACS provides self-checking tests for virtual platforms. The majority of the
+tests run through the UEFI application, with a subset executed in a Linux guest
+environment to exercise OS-visible behavior.
 
+## Release details
+- **Code quality:** BETA
+- **Latest release version:** v0.7.0
+- **Release tag:** `v25.12_VBSA_0.7.0`
+- **Specification coverage:** VBSA v1.0
+- **Execution levels:** Virtual platforms / pre-silicon validation
+- **Scope:** ACS is **not** a substitute for design verification.
+- **Test collateral:** [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md)
+- **Prebuilt binaries:** [`prebuilt_images/VBSA/v25.12_VBSA_0.7.0`](../../prebuilt_images/VBSA/v25.12_VBSA_0.7.0)
 
-## VBSA UEFI Shell Application Build Instructions
+### GitHub branch
+- Use the appropriate **tag** on the **main** branch for a released build.
+- Track the **main** branch for the most recent fixes and features.
 
-### Prerequisites
-Before starting the build, ensure that the following requirements are met.
-- Any mainstream Linux based OS distribution running on a x86 or AArch64 machine.
-- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
-- Install the build prerequisite packages to build EDK2.<br>
-Note: The details of the packages are beyond the scope of this document.
+## Documentation & Guides
+- [VBSA specification](https://developer.arm.com/documentation/den0150/latest/)
+- [Arm VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md)
+- [Arm VBSA Testcase Checklist](arm_vbsa_testcase_checklist.md)
+- [Common UEFI build guide](../common/uefi_build.md)
+- [Common Linux application guide](../common/linux_build.md)
+- [Common CLI arguments](../common/cli_args.md)
 
-### 1. Build Steps
+## VBSA coverage overview
+VBSA ACS combines firmware-level checks with guest-OS validation. Run each path
+below (and retain console logs) to claim full coverage for a virtual platform.
 
-#### 1. Setup edk2 build directory
+### Sections covering VBSA rules
+- [UEFI-based tests](#for-uefi-application) — execute `Vbsa.efi` from the UEFI
+	shell image (raw disk, VHDX, or integrated firmware) with the required rule
+	filters.
+- [Linux-based tests](#for-linux-application) — reuse the BSA Linux application
+	(`bsa_app`) with the VBSA skip list to exercise guest-visible behavior.
+- [Manual verification](arm_vbsa_testcase_checklist.md) — cross-check residual
+	rules in the checklist and capture VE-owner evidence where ACS cannot
+	auto-verify.
 
->	1. git clone --branch edk2-stable202505 --depth 1 https://github.com/tianocore/edk2<br>
->	2. git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc<br>
->	3. cd edk2<br>
->	4. git submodule update --init --recursive<br>
+## VBSA build steps
 
-#### 2. Download source files
->	 git clone https://github.com/ARM-software/sysarch-acs ShellPkg/Application/sysarch-acs <br>
+### UEFI Shell application
+Set up the workspace and toolchain using the
+[Common UEFI build guide](../common/uefi_build.md), then build the VBSA binary:
+   1. `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh vbsa`
+   2. `Vbsa.efi` is written to `Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/` under the edk2 tree.
 
-#### 3. Build VBSA UEFI Application <br>
-Note :  Install GCC-ARM 14.3 from [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) <br>
-For a x86 host build,
->  export GCC_AARCH64_PREFIX=<path to arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-><br>
+### Linux application
+Use the [Common Linux application guide](../common/linux_build.md) to build the
+shared Linux artifacts. VBSA reuses `bsa_acs.ko` and `bsa_app`; run-time skip
+lists tailor the coverage to VBSA rules (see the Linux run steps below).
 
-For an AArch64 build,
->  export GCC_AARCH64_PREFIX=/usr/bin/aarch64-linux-gnu-
+## VBSA run steps
 
-Build the binary,
-> 1. export PACKAGES_PATH=$PWD/edk2-libc<br>
-> 2. source edksetup.sh<br>
-> 3. make -C BaseTools/Source/C<br>
-> 4. source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh vbsa<br>
+### For UEFI application
+1. Place `Vbsa.efi` and `Shell.efi` (renamed to `\EFI\BOOT\bootaa64.efi`) on a
+   bootable image.
+2. Boot the virtual environment to the UEFI shell.
+3. Refresh filesystem mappings with:
+   `map -r`
+4. Switch to the filesystem containing `Vbsa.efi` (for example, `fs0:`)
+5. Run the binary with the desired arguments (see [Common CLI arguments](../common/cli_args.md)).
+6. Capture the UART console output for reporting.
 
-#### 4. VBSA EFI application path
-- The EFI executable file is generated at \<edk2-path\>/Build/Shell/DEBUG_GCC/AARCH64/Vbsa.efi
+**Example**
 
-### 2. Execution Steps
-VBSA ACS is provided as a UEFI application (Vbsa.efi) and is intended to run on top of the virtual platform’s UEFI Shell.
-Because different virtual environments have different boot media requirements (e.g. .img, .vhdx, etc.), the exact steps can vary.
+`Shell> Vbsa.efi -v 1 -skip V_L2PE_01 -el1physkip -f vbsa.log`
 
-Below are examples for 2 common cases:
- - Raw disk image (.img)
- - Virtual Hard Disk (VHDX)
+Runs at INFO level, skips rule `V_L2PE_01`, enables `-el1physkip` for
+hypervisors trapping EL1 timers, and captures logs in `vbsa.log`.
 
-In both the cases, you must create a bootable image that contains:
- - \Vbsa.efi
- - \EFI\BOOT\bootaa64.efi (this is the UEFI shell binary, typically Shell.efi)
+> Use VBSA rule IDs that follow the `V_L<level><module>_<nn>` pattern from the
+	[VBSA checklist](arm_vbsa_testcase_checklist.md)
+	(for example, `V_L2PE_01`) with `-skip`/`-r`, and enable `-el1physkip` only when
+	the hypervisor traps EL1 physical timer accesses; document any coverage gaps.
 
-#### 2.1 Creating a bootable .img
+**Creating a bootable `.img` (Linux host)**
+1. `mkfs.vfat -C -n HD0 vbsa.img 1048576`
+2. `sudo mount vbsa.img /mnt/acs`
+3. `sudo mkdir -p /mnt/acs/EFI/BOOT`
+4. `sudo cp Shell.efi /mnt/acs/EFI/BOOT/bootaa64.efi`
+5. `sudo cp Vbsa.efi /mnt/acs/`
+6. `sudo umount /mnt/acs`
 
-Environment - Any mainstream Linux distro
-1. mkfs.vfat -C -n HD0 vbsa.img 1048576<br>
-2. sudo mount vbsa.img /mnt/acs/<br>
-3. sudo mkdir -p /mnt/acs/EFI/BOOT<br>
-4. sudo cp Shell.efi /mnt/acs/EFI/BOOT/bootaa64.efi<br>
-5. sudo cp Vbsa.efi /mnt/acs<br>
-6. sudo umount /mnt/acs<br>
+**Creating a bootable `.vhdx` (Windows host)**
+1. Create and attach a VHDX using Hyper-V Manager or Disk Management.
+2. Inside the mounted VHDX, create `\EFI\BOOT`.
+3. Copy `Shell.efi` to `\EFI\BOOT\bootaa64.efi`.
+4. Copy `Vbsa.efi` to the root of the volume.
+5. Detach the VHDX safely.
 
-Note: If /mnt/acs/ is not already created, you may need to create it using mkdir -p /mnt/acs/. You can obtain Shell.efi from the [pre-built images](../../prebuilt_images/VBSA/v25.12_VBSA_0.7.0/) provided with the VBSA ACS release.
+### For Linux application
+VBSA uses the BSA Linux application with the VBSA skip list:
 
-#### 2.2 Creating a bootable .vhdx
+1. Load the shared kernel module:\
+   `sudo insmod bsa_acs.ko`
+2. Run the Linux application with the VBSA skip list (see [Common CLI arguments](../common/cli_args.md)).\
+   `./bsa_app --skip B_REP_1,B_IEP_1,B_PCIe_11,B_MEM_06`
+3. Remove the module after the run:\
+   `sudo rmmod bsa_acs`
 
-Environment - Windows 10/11 OS
-1. Create a VHDX image using Hyper-V Manager or Disk Management.
-2. Attach/mount the VHDX in Windows.
-3. Inside the mounted VHDX - create the \EFI\BOOT boot directory
-4. Copy Shell.efi to \EFI\BOOT\bootaa64.efi
-5. Copy Vbsa.efi to the root \Vbsa.efi
-6. Safely eject the VHDX
+Inspect logs with `sudo dmesg | tail -500` as needed. Adjust the skip list as
+the specification evolves.
 
-#### 2.3 Running the Vbsa.efi binary
-
-1. Boot the Virtual environment using vbsa.img/vbsa.vhdx file. The steps to load the image file are environment-specific and beyond the scope of this document.
-2. Boot the VE to UEFI shell.
-3. To determine the file system number, execute 'map -r' command.
-4. Type 'fsx:' where 'x' is replaced by the number determined in step 4.
-5. To start the compliance tests, run the executable Vbsa.efi with the appropriate parameters.
-6. Copy the UART console output to a log file for analysis.
-
-## Application arguments
-Command line arguments are similar for uefi application, with some exceptions.
-Some of the mostly used uefi arguments are listed below,
-
-#### -v
-Choose the verbosity level.
-
-- 5 - ERROR
-- 4 - WARN and ERROR
-- 3 - TEST and above
-- 2 - DEBUG and above
-- 1 - INFO and above
-
-#### -skip
-Overrides the suite to skip the execution of a particular rule.
-For example, <i>-skip V_L1PE_01</i> skips the rule V_L1PE_01.
-
-#### -r
-Overrides the suite to run a particular rule.
-For example, <i>-r V_L1PE_02</i> runs only V_L1PE_02
-
-#### -f
-Save the test output into a file. For example <i>-f vbsa.log</i> creates a file vbsa.log with test output.
-
-#### -fr
-Use this option to run VBSA tests intended for future requirement validation.
-
-#### -help
-Displays all available command-line arguments and their usage.
-
-#### -el1physkip
-Skips tests that access the EL1 physical timer.
-
-#### Sample command line
-
-Shell> Vbsa.efi -v 1 -fr -skip V_L2PE_01 -f vbsa.log
-
-Runs VBSA ACS including FR rules with verbosity INFO, skips V_L2PE_01 and saves the test results in <i>vbsa.log</i>.
-
-## VBSA Linux Application
-The VBSA ACS Linux application is run in the same way as the BSA ACS Linux application, skipping rules that are not required for VBSA ACS.
-### 1.Build Steps
-1. wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
-2. chmod +x build.sh
-3. source build.sh
-
-### 2. Build Output
-
-The following output folder is created in __build__ folder:
-(As part of build pc-bsa and sbsa module and app also gets created)
- - bsa_acs.ko
- - bsa_app
-
-### 3. Loading the kernel module
-Before the BSA ACS Linux application can be run, load the BSA ACS kernel module respectively using the insmod command.
-
-```sh
-shell> insmod bsa_acs.ko
-```
-
-### 3. Running BSA ACS while skipping rules that are not required for VBSA ACS
-
-```sh
-shell> ./bsa_app --skip B_REP_1,B_IEP_1,B_PCIe_11,B_MEM_06
-```
-### 4. BSA Linux Test Log View
-
-```sh
-shell> sudo dmesg | tail -500 # print last 500 kernel logs
-```
-After the run is complete, you can remove the BSA module from the system if it is no longer needed.
-
-```sh
-shell> sudo rmmod bsa_acs
-```
-
+### Application arguments
+Refer to [Common CLI arguments](../common/cli_args.md) for the complete
+flag list, including VBSA-specific guidance on skip lists and logging options.\
+That guide also documents VBSA-specific behavior such as the extended module list and the `-el1physkip`
+option for hypervisor scenarios.
 
 ## Limitations
-
-- The VBSA tests are distributed across various ACS components - UEFI-based tests, and Linux-based tests. To achieve complete validation, all test suites must be executed. Additionally, some rules require manual verification by the VE owner, for these rules compliance must be manually declared to confirm VBSA compliance for the VE. see the [VBSA testcase checklist](arm_vbsa_testcase_checklist.md) for rules not testable by ACS.
-
-- Several PCIe rules require the Exerciser VIP to achieve complete coverage. Exerciser-based tests cannot be executed in virtual environments. These rules are reported as PASSED*(PARTIAL) or SKIPPED depending on other tests that cover the rule.
+- VBSA tests span UEFI and Linux components; both must be executed for complete
+	coverage.
+- Exerciser-dependent PCIe rules cannot be validated in virtual environments;
+	affected rules are marked as PASSED*(PARTIAL) or SKIPPED.
+- Manual verification is required for rules that cannot be exercised on the
+	available virtual platform.
 
 ## Troubleshoot guide
+- Some hypervisors trap EL1 physical timer access, causing exceptions during
+	VBSA ACS runs. Use `-el1physkip` when necessary, but document the resulting
+	coverage gap.
 
-- When running VBSA ACS in virtual environments, some hypervisors may trap EL1 physical timer accesses, which can cause certain VBSA ACS tests to raise exceptions. In such cases, use the -el1physkip command line parameter to skip EL1 physical timer accesses. Note that using this parameter reduces test coverage, and the VE owner must manually verify the skipped rules to achieve compliance.
+## Feedback, contributions and support
+
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
 
 ## License
-VBSA ACS is distributed under Apache v2.0 License.
-
-## Feedback, contributions, and support
-
- - For feedback, use the GitHub Issue Tracker that is associated with this repository.
- - For support, send an email to "support-systemready-acs@arm.com" with details.
- - Arm licensees may contact Arm directly through their partner managers.
- - Arm welcomes code contributions through GitHub pull requests. See the GitHub documentation on how to raise pull requests.
+VBSA ACS is distributed under the [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 --------------
 
-*Copyright (c) 2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2025-2026, Arm Limited and Contributors. All rights reserved.*
