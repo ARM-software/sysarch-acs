@@ -36,10 +36,6 @@ payload()
   uint32_t intid;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  if (g_sbsa_level < 5) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-      return;
-  }
 
   if (!g_el1physkip) {
    /* Check non-secure physical timer interrupt */
@@ -108,6 +104,7 @@ g013_entry(uint32_t num_pe)
 
   num_pe = 1;  //This GIC test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)

@@ -53,6 +53,7 @@
   ../../test_pool/pe/pe020.c
   ../../test_pool/pe/pe021.c
   ../../test_pool/pe/pe022.c
+  ../../test_pool/pe/pe066.c
   ../../test_pool/gic/g001.c
   ../../test_pool/gic/g002.c
   ../../test_pool/gic/g003.c
@@ -123,6 +124,7 @@
   ../../test_pool/pcie/p038.c
   ../../test_pool/pcie/p039.c
   ../../test_pool/pcie/p042.c
+  ../../test_pool/pcie/p100.c
   ../../test_pool/exerciser/e001.c
   ../../test_pool/exerciser/e002.c
   ../../test_pool/exerciser/e003.c
@@ -137,6 +139,7 @@
   ../../test_pool/exerciser/e015.c
   ../../test_pool/exerciser/e016.c
   ../../test_pool/exerciser/e017.c
+  ../../test_pool/exerciser/e030.c
   ../../test_pool/exerciser/e033.c
   ../../test_pool/exerciser/e035.c
   ../../test_pool/exerciser/e039.c
@@ -182,8 +185,8 @@
   ShellPkg/ShellPkg.dec
 
 [LibraryClasses]
-  UnifiedValLib
-  UnifiedPalLib
+  ValLib
+  PalLib
   LibCFlat
   UefiLib
   ShellLib
@@ -207,4 +210,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   = -g -gdwarf-4 -mstrict-align -march=armv8.2-a -O0 -DNOSWP -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib/arm64 -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib -DBSA_ACS -DENABLE_MEMTEST -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   = -g -gdwarf-4 -I${ACS_PATH}/val -mstrict-align -march=armv8.2-a -O0 -DNOSWP -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib/arm64 -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib -DBSA_ACS -DENABLE_MEMTEST -DTARGET_UEFI

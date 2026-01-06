@@ -35,10 +35,6 @@ payload(void)
   uint64_t gicrd_base, gicrd_rvpeid;
   uint32_t gicrd_length, i;
 
-  if (g_sbsa_level < 8) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-      return;
-  }
 
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
   val_print(ACS_PRINT_INFO, "\n       Received GIC Major version = %4d      ", gic_version);
@@ -87,6 +83,7 @@ g015_entry(uint32_t num_pe)
 
   num_pe = 1;  //This GIC test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)

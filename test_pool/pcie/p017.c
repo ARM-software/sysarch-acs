@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020=-2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020-2021, 2024-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,6 +141,7 @@ p017_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

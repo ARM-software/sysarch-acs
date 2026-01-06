@@ -47,10 +47,6 @@ static void payload(void)
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    if (g_sbsa_level < 7) {
-        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
    /* Check if PE implements FEAT_MPAM */
     if (!((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
@@ -198,6 +194,7 @@ uint32_t mpam003_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
 
     num_pe = 1;
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

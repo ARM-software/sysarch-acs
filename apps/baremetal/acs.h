@@ -24,13 +24,17 @@
 #define SIZE_4K 0x1000
 
 #define BSA_ACS_MAJOR_VER      1
-#define BSA_ACS_MINOR_VER      1
-#define BSA_ACS_SUBMINOR_VER   2
+#define BSA_ACS_MINOR_VER      2
+#define BSA_ACS_SUBMINOR_VER   0
 
-#define SBSA_ACS_MAJOR_VER       7
-#define SBSA_ACS_MINOR_VER       2
-#define SBSA_ACS_SUBMINOR_VER    4
+#define SBSA_ACS_MAJOR_VER       8
+#define SBSA_ACS_MINOR_VER       0
+#define SBSA_ACS_SUBMINOR_VER    0
 #define SBSA_FR_LEVEL            0x8
+
+#define PC_BSA_ACS_MAJOR_VER     1
+#define PC_BSA_ACS_MINOR_VER     0
+#define PC_BSA_ACS_SUBMINOR_VER  0
 
 #define INVALID_MPIDR     0xffffffff
 
@@ -55,7 +59,7 @@
 
 #define G_SBSA_LEVEL             4
 #define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 7
+#define SBSA_MAX_LEVEL_SUPPORTED 8
 
 /*******************************************************************************
  * Used to align variables on the biggest cache line size in the platform.
@@ -74,4 +78,71 @@
 #define SCTLR_M_BIT         (1 << 0)
 #define DISABLE_MMU_BIT     (0xFFFFFFFFFFFFFFFE)
 
+/* This .h file is included by .S assembly files, and assembler will choke on the C code, hence
+   gating C code when included by .S files */
+#ifndef __ASSEMBLER__
+#include "val/include/rule_based_execution.h"
+
+#define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
+    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
+    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
+    ((filter_mode == LVL_FILTER_ONLY) ? \
+    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
+
+/* Extern declarations for globals from platform_cfg_fvp.c */
+extern RULE_ID_e g_rule_list_arr[];
+extern uint32_t  g_rule_count;
+extern RULE_ID_e g_skip_rule_list_arr[];
+extern uint32_t  g_skip_rule_count;
+extern uint32_t g_execute_modules_arr[];
+extern uint32_t g_num_modules;
+extern uint32_t g_skip_modules_arr[];
+extern uint32_t g_num_skip_modules;
+extern uint32_t g_level_filter_mode;
+extern uint32_t g_sys_last_lvl_cache;
+
+/* Globals from apps/baremetal/acs_globals.c */
+extern RULE_ID_e *g_rule_list;
+extern RULE_ID_e *g_skip_rule_list;
+extern uint32_t  *g_execute_modules;
+extern uint32_t  *g_skip_modules;
+extern uint32_t  g_print_level;
+extern uint32_t  g_print_mmio;
+extern uint32_t  g_curr_module;
+extern uint32_t  g_enable_module;
+extern uint32_t  g_acs_tests_total;
+extern uint32_t  g_acs_tests_pass;
+extern uint32_t  g_acs_tests_fail;
+extern uint64_t  g_stack_pointer;
+extern uint64_t  g_exception_ret_addr;
+extern uint64_t  g_ret_addr;
+extern uint32_t  g_wakeup_timeout;
+extern bool      g_pcie_skip_dp_nic_ms;
+extern uint32_t  g_build_sbsa;
+extern uint32_t  g_build_pcbsa;
+extern uint32_t  g_its_init;
+extern uint32_t  g_arch_selection;
+extern uint32_t  g_level_value;
+extern uint32_t  g_bsa_sw_view_mask;
+
+/* Function declarations */
+uint32_t createPeInfoTable(void);
+uint32_t createGicInfoTable(void);
+void     createTimerInfoTable(void);
+void     createWatchdogInfoTable(void);
+void     createPcieVirtInfoTable(void);
+void     createPeripheralInfoTable(void);
+void     createDmaInfoTable(void);
+void     createSmbiosInfoTable(void);
+void     createPmuInfoTable(void);
+void     createRasInfoTable(void);
+void     createCacheInfoTable(void);
+void     createMpamInfoTable(void);
+void     createHmatInfoTable(void);
+void     createSratInfoTable(void);
+void     createPccInfoTable(void);
+void     createRas2InfoTable(void);
+void     createTpm2InfoTable(void);
+
+#endif /* __ASSEMBLER__ */
 #endif /* __BSA_AVS_LEVEL_H__ */

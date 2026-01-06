@@ -17,39 +17,46 @@
 
 #include "pal_common_support.h"
 #include "platform_override_struct.h"
+#include "rule_based_execution_enum.h"
 
+/* Following global variables can be edited by user before compilation to pass hints to framework
+   as well as run compliance against subset of rules.
 
-/*
-    To run a specific modules:
-      - Give the module base numbers in the g_module_array.
-      - All module base numbers can be found in val/include/acs_common.h
-      - Example - if g_module_array = {0}, only PE tests will be run while skipping other modules
+   Partner fill-in guide :
+   - g_rule_list_arr: Explicit list of rule IDs (RULE_ID_e) to execute. Leave empty for default
+     rule checklist.
+       Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
+       Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-    To run a specific tests:
-      - Give the test numbers in the g_test_array.
-      - Test numbers can be found in test_pool/<module>/test.c.
-      - For example, if g_test_array = {801}, only first test in PCIe will be run.
-        All other tests in all other modules will be skipped.
-      - If g_single_module is also given, then single test + tests under single module will be run.
+   - g_skip_rule_list_arr: Rules (RULE_ID_e) to skip.
+       These take precedence over selections via g_rule_list_arr or module filters.
+       Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
+       Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-    To skip tests/modules:
-      - Give test numbers or module test bases as the entries of g_skip_array.
-      - This will only skip the tests or modules given in the array and runs all other tests.
+   - g_execute_modules_arr: Modules to include (values from MODULE_NAME_e: PE, GIC, SMMU,
+       TIMER, PERIPHERAL, RAS, WATCHDOG, PCIE, MPAM, ETE, TPM, etc.). If non-empty, only
+       rules belonging to these modules will run.
+       Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-    Tests run = g_test_array + g_module_array - Tests under skip array
+   - g_skip_modules_arr: Modules (MODULE_NAME_e) to exclude from execution.
+
+   Notes:
+   - Counts are auto-derived via sizeof; no sentinel terminators are required.
+   - If both include and skip specify the same module/rule, skip wins.
 */
-#ifdef BSA
-uint32_t  g_skip_array[]   = {830};  /* Tests to skip for BSA ACS on BM RDV3CFG1 */
-#else
-uint32_t  g_skip_array[]   = {858}; /* Tests to skip for SBSA ACS on BM RDV3CFG1 */
-#endif
+RULE_ID_e g_rule_list_arr[] = {} ;
+uint32_t  g_rule_count = sizeof(g_rule_list_arr)/sizeof(g_rule_list_arr[0]);
 
-uint32_t  g_test_array[]   = {};
-uint32_t  g_module_array[] = {};
+/* TODO: PCI_IN_19, RE_REG_1 tests found to cause issues while running on RDV3CGF1, hence skipping
+   them by default until it is triaged and fixed */
+RULE_ID_e g_skip_rule_list_arr[] = {PCI_IN_19, RE_REG_1};
+uint32_t g_skip_rule_count = sizeof(g_skip_rule_list_arr)/sizeof(g_skip_rule_list_arr[0]);
 
-uint32_t  g_num_skip         = sizeof(g_skip_array)/sizeof(g_skip_array[0]);
-uint32_t  g_num_tests        = sizeof(g_test_array)/sizeof(g_test_array[0]);
-uint32_t  g_num_modules      = sizeof(g_module_array)/sizeof(g_module_array[0]);
+uint32_t  g_execute_modules_arr[] = {};
+uint32_t  g_num_modules = sizeof(g_execute_modules_arr)/sizeof(g_execute_modules_arr[0]);
+
+uint32_t  g_skip_modules_arr[] = {};
+uint32_t  g_num_skip_modules = sizeof(g_skip_modules_arr)/sizeof(g_skip_modules_arr[0]);
 
 /* VE systems run acs at EL1 and in some systems crash is observed during access
    of EL1 phy and virt timer, Below command line option is added only for debug
@@ -63,17 +70,20 @@ uint32_t  g_el1physkip       = FALSE;
 */
 uint32_t g_crypto_support    = TRUE;
 
-/*  To only run tests for a Specific level of compliance  */
-uint32_t g_bsa_run_only      = FALSE;
+/* The Baremetal app supports three filtering modes
+    LVL_FILTER_MAX,    run rules with level <= g_level_value
+    LVL_FILTER_ONLY,   run rules with level == g_level_value
+    LVL_FILTER_FR      run rules with level <= *_LEVEL_FR
+*/
+uint32_t g_level_filter_mode = LVL_FILTER_MAX; /* Default set to LVL_FILTER_MAX */
 
-/*  If set, ACS also includes BSA Future Requirement tests. */
-uint32_t g_bsa_run_fr        = FALSE;
-
-/* To only run tests for a Specific level of compliance */
-uint32_t g_sbsa_only_level = 0;
-
-/* If set, ACS also includes SBSA Future Requirement tests.  */
-uint32_t  g_sbsa_run_fr    = FALSE;
+/* Specify SLC cache type
+    System Last-Level cache valid values
+    0 - Unknown
+    1 - PPTT PE-side LLC
+    2 - HMAT mem-side LLC
+*/
+uint32_t g_sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC;
 
 PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg = {
     .slot_count = PLATFORM_OVERRIDE_SMBIOS_SLOT_COUNT,
@@ -1222,4 +1232,11 @@ PLATFORM_OVERRIDE_PCC_INFO_TABLE platform_pcc_cfg = {
                                                 = PLATFORM_PCC_SUBSPACE0_CMD_UPDATE_PRESERVE,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.cmd_complete_update_set
                                                 = PLATFORM_PCC_SUBSPACE0_CMD_COMPLETE_UPDATE_SET */
+};
+
+PLATFORM_OVERRIDE_TPM2_INFO_TABLE platform_tpm2_cfg = {
+    .tpm_present        = PLATFORM_TPM_PRESENT,
+    .tpm_version        = PLATFORM_TPM_VERSION,
+    .tpm_base           = PLATFORM_TPM_BASE_ADDR,
+    .tpm_interface_type = PLATFORM_TPM_INTERFACE_TYPE,
 };

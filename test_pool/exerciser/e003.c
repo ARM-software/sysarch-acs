@@ -338,11 +338,20 @@ payload(void)
 
   pe_index = val_pe_get_index_mpid (val_pe_get_mpid());
 
+  /* PCI_IC_15 is conditional as part of BSA
+     but are mandatory for SBSA as part of Rule S_PCIe_09
+     returning SKIP if called for BSA */
+  /* TODO revisit could be warning for BSA, since we can't deduce if condition of BSA rule */
+  if (g_build_sbsa == 0) {
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      return;
+  }
+
   cfgspace_transactions_order_check();
   barspace_transactions_order_check();
 
   if (!run_flag) {
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 2));
       return;
   }
 
@@ -353,14 +362,19 @@ payload(void)
 }
 
 uint32_t
-e003_entry(void)
+e003_entry(uint32_t num_pe)
 {
-  uint32_t num_pe = 1;
+  /* Run test on single PE */
+  num_pe = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
-  if (status != ACS_STATUS_SKIP)
+  if (status != ACS_STATUS_SKIP) {
+      if (val_exerciser_test_init() != ACS_STATUS_PASS)
+          return TEST_SKIP_VAL;
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+  }
 
   /* Get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);

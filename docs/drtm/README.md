@@ -9,7 +9,7 @@ For more information, download the [DRTM Architecture for Arm](https://developer
 ## Release details
  - Code Quality: Alpha
  - The tests are written for version 1.1 of the DRTM Architecture for Arm.
- - For more details on tests implemented in this release, Please refer [DRTM Test Scenario Document](docs/arm_drtm_architecture_compliance_test_scenario.pdf).
+ - For more details on tests implemented in this release, Please refer [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.pdf).
 
 ## Downloading DRTM ACS
 
@@ -22,7 +22,7 @@ $ cd sysarch-acs <br/>
 ### UEFI application
 #### Prerequisites
 
-ACS build requires that the following requirements are met, Please skip this if you are using [DRTM Application Build Script](../tools/scripts/build_drtm_uefi.sh).
+ACS build requires that the following requirements are met, Please skip this if you are using [DRTM Application Build Script](../../tools/scripts/build_drtm_uefi.sh).
 
 - Any mainstream Linux based OS distribution.
 - git clone EDK2 tree.

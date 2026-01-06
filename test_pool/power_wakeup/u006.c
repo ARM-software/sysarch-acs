@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,10 +121,13 @@ static
 void
 payload()
 {
-  uint64_t timeout = TIMEOUT_SMALL;
+  uint32_t timeout = TIMEOUT_SMALL;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t target_pe, status;
-  uint64_t timer_expire_ticks = TIMEOUT_SMALL;
+  uint64_t timer_expire_ticks;
+
+  /* Scale watchdog expiry to ensure it fires before system-timer failsafe */
+  timer_expire_ticks = TIMEOUT_SMALL * 1024;
 
   // Step1: Choose the index of the target PE
   if ((index + 1) >= val_pe_get_num())
@@ -280,6 +283,7 @@ u006_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor, which will start and trigger interrupt to
                // target PE.
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status_test = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status_test != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

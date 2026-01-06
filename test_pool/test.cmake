@@ -1,53 +1,70 @@
 ## @file
- # Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
- # SPDX-License-Identifier : Apache-2.0
- #
- # Licensed under the Apache License, Version 2.0 (the "License");
- # you may not use this file except in compliance with the License.
- # You may obtain a copy of the License at
- #
- #  http://www.apache.org/licenses/LICENSE-2.0
- #
- # Unless required by applicable law or agreed to in writing, software
- # distributed under the License is distributed on an "AS IS" BASIS,
- # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- # See the License for the specific language governing permissions and
- # limitations under the License.
- ##
+# Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+# SPDX-License-Identifier : Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##
 
- # get testsuite directory list
- set(TEST_DIR_PATH ${ROOT_DIR}/test)
- if(SUITE STREQUAL "all")
-     # Get all the test pool components
-     _get_sub_dir_list(TEST_SUITE_LIST ${TEST_DIR_PATH})
- else()
-     set(TEST_SUITE_LIST ${SUITE})
- endif()
+# get testsuite directory list
+set(TEST_DIR_PATH ${ROOT_DIR}/test)
+if(SUITE STREQUAL "all")
+    # Get all the test pool components
+    _get_sub_dir_list(TEST_SUITE_LIST ${TEST_DIR_PATH})
+else()
+    set(TEST_SUITE_LIST ${SUITE})
+endif()
 
- set(TEST_INCLUDE ${CMAKE_CURRENT_BINARY_DIR})
- list(APPEND TEST_INCLUDE
-     ${ROOT_DIR}/
-     ${ROOT_DIR}/val/include/
-     ${ROOT_DIR}/val/src/
-     ${ROOT_DIR}/pal/baremetal/base/include/
-     ${ROOT_DIR}/pal/baremetal/base/src/
-     ${ROOT_DIR}/pal/baremetal/target/${TARGET}/include/
-     ${ROOT_DIR}/pal/baremetal/target/${TARGET}/src/
- )
+set(TEST_INCLUDE ${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND TEST_INCLUDE
+    ${ROOT_DIR}/
+    ${ROOT_DIR}/val/include/
+    ${ROOT_DIR}/val/src/
+    ${ROOT_DIR}/pal/baremetal/base/include/
+    ${ROOT_DIR}/pal/baremetal/base/src/
+    ${ROOT_DIR}/pal/baremetal/target/${TARGET}/include/
+    ${ROOT_DIR}/pal/baremetal/target/${TARGET}/src/
+)
 
- set(TEST_LIB ${EXE_NAME}_test_lib)
+set(TEST_LIB ${ACS}_test_lib)
 
- file(GLOB SUBFOLDERS "${ROOT_DIR}/test_pool/*/")
+file(GLOB SUBFOLDERS "${ROOT_DIR}/test_pool/*/")
 
- if(ACS STREQUAL "bsa")
-	 set(LIST_FILE "${ROOT_DIR}/tools/cmake/infra/bsa_test.txt")
- elseif(ACS STREQUAL "sbsa")
-	 set(LIST_FILE "${ROOT_DIR}/tools/cmake/infra/sbsa_test.txt")
- endif()
+if(ACS STREQUAL "bsa")
+    set(LIST_FILES "${ROOT_DIR}/tools/cmake/infra/bsa_test.txt")
+elseif(ACS STREQUAL "sbsa")
+    # For SBSA, include both SBSA and BSA tests
+    set(LIST_FILES
+        "${ROOT_DIR}/tools/cmake/infra/sbsa_test.txt"
+        "${ROOT_DIR}/tools/cmake/infra/bsa_test.txt"
+    )
+elseif(ACS STREQUAL "pc_bsa")
+    set(LIST_FILES "${ROOT_DIR}/tools/cmake/infra/pc_bsa_test.txt")
+endif()
 
- file(READ "${LIST_FILE}" LIST_FILE_CONTENT)
+# Aggregate file names from one or more list files
+set(FILE_NAMES "")
+foreach(LF IN LISTS LIST_FILES)
+    if(EXISTS ${LF})
+        file(STRINGS ${LF} TMP_FILE_NAMES)
+        list(APPEND FILE_NAMES ${TMP_FILE_NAMES})
+    else()
+        message(STATUS "List file not found: ${LF}")
+    endif()
+endforeach()
 
-file(STRINGS ${LIST_FILE} FILE_NAMES)
+# Remove duplicates if any
+list(REMOVE_DUPLICATES FILE_NAMES)
+
 foreach(FILE_NAME ${FILE_NAMES})
     string(STRIP "${FILE_NAME}" FILE_NAME) # Remove extra spaces or newlines
     set(FILE_FOUND FALSE)
@@ -81,7 +98,7 @@ endforeach()
  target_include_directories(${TEST_LIB} PRIVATE ${TEST_INCLUDE}
  )
 
- create_executable(${EXE_NAME} ${BUILD}/output/ "")
+ create_executable(${ACS} ${BUILD}/output/ "")
  unset(TEST_SRC)
 
  # target_include_directories(${VAL_LIB} PRIVATE

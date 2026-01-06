@@ -40,10 +40,6 @@ static void payload(void)
   uint32_t test_skip = 1;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  if (g_sbsa_level < 8) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-      return;
-  }
 
   /* get number of PE nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_PE, 0, &num_pc_node);
@@ -116,6 +112,7 @@ uint32_t ras013_entry(uint32_t num_pe)
 
   num_pe = 1;  /* This test is run on single processor */
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)

@@ -28,10 +28,6 @@ static void payload(void)
     uint64_t el, e2h, data = 0;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    if (g_sbsa_level < 8) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
     /* ID_AA64MMFR1_EL1.HPDS[12:15] == 2 indicates FEAT_HPDS2 support
      * FEAT_HPDS2 support indicates VMSAv8-64 block and page descriptors
@@ -146,6 +142,7 @@ uint32_t pe062_entry(uint32_t num_pe)
 {
     uint32_t status = ACS_STATUS_FAIL;
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

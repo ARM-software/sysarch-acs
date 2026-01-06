@@ -123,6 +123,7 @@ val_sbsa_pe_execute_tests(uint32_t level, uint32_t num_pe)
       status |= pe061_entry(num_pe);
       status |= pe062_entry(num_pe);
       status |= pe064_entry(num_pe);
+      status |= pe065_entry(num_pe);
    }
 
   val_print_test_end(status, "PE");
@@ -334,7 +335,7 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p046_entry(num_pe);  /* This covers GIC rule */
 #endif
 
-  ecam_status = p043_entry(num_pe);
+  ecam_status = p001_entry(num_pe);
   if (ecam_status == ACS_STATUS_FAIL) {
     val_print(ACS_PRINT_WARN, "\n     *** Skipping remaining PCIE tests ***\n", 0);
     return status;
@@ -351,7 +352,7 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
     }
 
     if (((level > 5) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 6)) {
-      status |= p044_entry(num_pe);
+      status |= p002_entry(num_pe);
     }
 
     if (((level > 6) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 7)) {
@@ -369,11 +370,6 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
 
 #endif
 
-#if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
-  if (((level > 7) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 8))
-    status |= p091_entry(num_pe);
-#endif
-
   if (((level > 5) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 6)) {
 #if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
       status |= p103_entry(num_pe);
@@ -387,17 +383,16 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
     }
 
 #ifndef TARGET_LINUX
+      status |= p011_entry(num_pe);
       status |= p012_entry(num_pe);
       status |= p013_entry(num_pe);
       status |= p014_entry(num_pe);
       status |= p015_entry(num_pe);
       status |= p016_entry(num_pe); /* Depends on p015; run it prior to this test */
       status |= p027_entry(num_pe);
-      status |= p028_entry(num_pe);
-      status |= p029_entry(num_pe);
       status |= p034_entry(num_pe);
-      status |= p040_entry(num_pe);
-      status |= p041_entry(num_pe);
+      status |= p037_entry(num_pe);
+      status |= p038_entry(num_pe);
       status |= p047_entry(num_pe);
       status |= p048_entry(num_pe);
       status |= p049_entry(num_pe);
@@ -406,7 +401,6 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p052_entry(num_pe);
       status |= p053_entry(num_pe);
       status |= p054_entry(num_pe);
-      status |= p055_entry(num_pe);
       status |= p056_entry(num_pe);
       status |= p057_entry(num_pe);
       status |= p058_entry(num_pe);
@@ -423,13 +417,10 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p070_entry(num_pe);
       status |= p071_entry(num_pe); /* iEP/RP only */
       status |= p072_entry(num_pe); /* iEP/RP only */
-      status |= p073_entry(num_pe); /* iEP/RP only */
-      status |= p074_entry(num_pe);
-      status |= p075_entry(num_pe); /* iEP/RP only */
 #endif
 #if defined(TARGET_BAREMETAL) && !defined(TARGET_LINUX)
-      status |= p076_entry(num_pe); /* iEP/RP only */
-      status |= p077_entry(num_pe);
+      status |= p004_entry(num_pe); /* iEP/RP only */
+      status |= p005_entry(num_pe);
 #endif
 #ifndef TARGET_LINUX
       status |= p078_entry(num_pe); /* Depends on p027; run it prior to this test */
@@ -511,7 +502,6 @@ val_sbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe)
 
   if (((level > 5) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 6)) {
       status |= i013_entry(num_pe);
-      status |= i014_entry(num_pe);
       status |= i015_entry(num_pe);
       status |= i016_entry(num_pe);
       status |= i017_entry(num_pe);
@@ -590,10 +580,11 @@ val_sbsa_memory_execute_tests(uint32_t level, uint32_t num_pe)
   @brief   This API executes all the Exerciser tests sequentially
            1. Caller       -  Application layer.
   @param   level  - level of compliance being tested for.
+  @param   num_pe - Number of PEs in the system.
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_sbsa_exerciser_execute_tests(uint32_t level)
+val_sbsa_exerciser_execute_tests(uint32_t level, uint32_t num_pe)
 {
   uint32_t status, i;
   uint32_t num_instances;
@@ -659,36 +650,33 @@ val_sbsa_exerciser_execute_tests(uint32_t level)
   g_curr_module = 1 << EXERCISER_MODULE;
 
   if (((level > 2) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 3)) {
-      status |= e003_entry();
-      status |= e007_entry();
+      status |= e003_entry(num_pe);
+      status |= e007_entry(num_pe);
   }
 
   if (((level > 5) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 6)) {
-      status |= e008_entry();
-      status |= e019_entry();
-      status |= e020_entry();
-      status |= e021_entry();
-      status |= e031_entry();
-      status |= e034_entry();
-      status |= e036_entry();
-      status |= e037_entry();
-      status |= e038_entry();
+      status |= e008_entry(num_pe);
+      status |= e019_entry(num_pe);
+      status |= e020_entry(num_pe);
+      status |= e021_entry(num_pe);
+      status |= e034_entry(num_pe);
+      status |= e036_entry(num_pe);
+      status |= e038_entry(num_pe);
   }
 
   if (((level > 6) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 7)) {
-      status |= e022_entry();
-      status |= e023_entry();
-      status |= e024_entry();
-      status |= e025_entry();
+      status |= e022_entry(num_pe);
+      status |= e023_entry(num_pe);
+      status |= e024_entry(num_pe);
+      status |= e025_entry(num_pe);
   }
 
   if (((level > 7) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 8)) {
-      status |= e026_entry();
-      status |= e027_entry();
-      status |= e028_entry();
-      status |= e029_entry();
-      status |= e030_entry();
-      status |= e032_entry();
+      status |= e026_entry(num_pe);
+      status |= e027_entry(num_pe);
+      status |= e028_entry(num_pe);
+      status |= e029_entry(num_pe);
+      status |= e032_entry(num_pe);
   }
 
   val_print_test_end(status, "Exerciser");
@@ -1001,41 +989,43 @@ val_sbsa_execute_tests(uint32_t g_sbsa_level)
 {
 
   uint32_t Status;
+  uint32_t num_pe = val_pe_get_num();
+
   /***         Starting PE tests                     ***/
-  Status = val_sbsa_pe_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status = val_sbsa_pe_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting Memory tests                 ***/
-  Status |= val_sbsa_memory_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_memory_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting GIC tests                    ***/
-  Status |= val_sbsa_gic_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_gic_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting SMMU tests                   ***/
-  Status |= val_sbsa_smmu_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_smmu_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting Timer tests               ***/
-  Status |= val_sbsa_timer_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_timer_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting Watchdog tests               ***/
-  Status |= val_sbsa_wd_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_wd_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting PCIe tests                   ***/
-  Status |= val_sbsa_pcie_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_pcie_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting Exerciser tests              ***/
-  Status |= val_sbsa_exerciser_execute_tests(g_sbsa_level);
+  Status |= val_sbsa_exerciser_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting MPAM tests                   ***/
-  Status |= val_sbsa_mpam_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_mpam_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting PMU tests                    ***/
-  Status |= val_sbsa_pmu_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_pmu_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting RAS tests                    ***/
-  Status |= val_sbsa_ras_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_ras_execute_tests(g_sbsa_level, num_pe);
 
   /***         Starting ETE tests                    ***/
-  Status |= val_sbsa_ete_execute_tests(g_sbsa_level, val_pe_get_num());
+  Status |= val_sbsa_ete_execute_tests(g_sbsa_level, num_pe);
 
   return Status;
 

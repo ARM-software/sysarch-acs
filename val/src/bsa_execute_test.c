@@ -139,6 +139,7 @@ val_bsa_pe_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
       if (g_bsa_level > 1 || g_bsa_only_level == 2) {
           view_print_info(OPERATING_SYSTEM);
           status |= pe015_entry(num_pe);
+          status |= pe066_entry(num_pe);
       }
   }
 
@@ -537,6 +538,18 @@ val_bsa_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 #endif
       }
 
+#if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
+    if (g_bsa_level > 1 || g_bsa_only_level == 2) {
+        status |= p091_entry(num_pe);
+    }
+#endif
+
+#ifndef TARGET_LINUX
+    if (g_bsa_level > 1 || g_bsa_only_level == 2) {
+        status |= p100_entry(num_pe);
+    }
+
+#endif
   }
 
   view_print_info(MODULE_END);
@@ -657,7 +670,6 @@ val_bsa_memory_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 #endif
 #if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
           status |= m004_entry(num_pe);
-          status |= m006_entry(num_pe);
           status |= m007_entry(num_pe);
 #endif
       }
@@ -807,11 +819,12 @@ val_bsa_smmu_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 /**
   @brief   This API executes all the Exerciser tests sequentially
            1. Caller       -  Application layer.
+  @param   num_pe - Number of PEs in the system.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_bsa_exerciser_execute_tests(uint32_t *g_sw_view)
+val_bsa_exerciser_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 {
   uint32_t status, i;
   uint32_t num_instances;
@@ -872,26 +885,30 @@ val_bsa_exerciser_execute_tests(uint32_t *g_sw_view)
 
      if (g_bsa_level >= 1 || g_bsa_only_level == 1) {
          view_print_info(OPERATING_SYSTEM);
-         status |= e001_entry();
-         status |= e002_entry();
-         status |= e004_entry();
-         status |= e006_entry();
-         status |= e010_entry();
+         status |= e001_entry(num_pe);
+         status |= e002_entry(num_pe);
+         status |= e004_entry(num_pe);
+         status |= e006_entry(num_pe);
+         status |= e010_entry(num_pe);
 
          if (!pal_target_is_dt()) {
-             status |= e011_entry();
-             status |= e012_entry();
-             status |= e013_entry();
-             status |= e035_entry();
+             status |= e011_entry(num_pe);
+             status |= e012_entry(num_pe);
+             status |= e013_entry(num_pe);
+             status |= e035_entry(num_pe);
          }
 
-         status |= e014_entry();
-         status |= e015_entry();
-         status |= e016_entry();
-         status |= e017_entry();
-         status |= e033_entry();
-         status |= e039_entry();
+         status |= e014_entry(num_pe);
+         status |= e015_entry(num_pe);
+         status |= e016_entry(num_pe);
+         status |= e017_entry(num_pe);
+         status |= e033_entry(num_pe);
+         status |= e039_entry(num_pe);
      }
+
+      if (g_bsa_level > 1 || g_bsa_only_level == 2) {
+          status |= e030_entry(num_pe);
+      }
   }
 
   val_smmu_stop();
@@ -907,36 +924,37 @@ val_bsa_execute_tests(uint32_t *g_sw_view)
 {
 
   uint32_t Status;
+  uint32_t num_pe = val_pe_get_num();
 
   /***  Starting PE tests             ***/
-  Status = val_bsa_pe_execute_tests(val_pe_get_num(), g_sw_view);
+  Status = val_bsa_pe_execute_tests(num_pe, g_sw_view);
 
   /***  Starting Memory Map tests     ***/
-  Status |= val_bsa_memory_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_memory_execute_tests(num_pe, g_sw_view);
 
   /***  Starting GIC tests            ***/
-  Status |= val_bsa_gic_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_gic_execute_tests(num_pe, g_sw_view);
 
   /***  Starting System MMU tests     ***/
-  Status |= val_bsa_smmu_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_smmu_execute_tests(num_pe, g_sw_view);
 
   /***  Starting Timer tests          ***/
-  Status |= val_bsa_timer_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_timer_execute_tests(num_pe, g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/
-  Status |= val_bsa_wakeup_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_wakeup_execute_tests(num_pe, g_sw_view);
 
   /***  Starting Peripheral tests     ***/
-  Status |= val_bsa_peripheral_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_peripheral_execute_tests(num_pe, g_sw_view);
 
   /***  Starting Watchdog tests       ***/
-  Status |= val_bsa_wd_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_wd_execute_tests(num_pe, g_sw_view);
 
   /***  Starting PCIe tests           ***/
-  Status |= val_bsa_pcie_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_bsa_pcie_execute_tests(num_pe, g_sw_view);
 
   /***  Starting PCIe Exerciser tests ***/
-  Status |= val_bsa_exerciser_execute_tests(g_sw_view);
+  Status |= val_bsa_exerciser_execute_tests(num_pe, g_sw_view);
 
   return Status;
 

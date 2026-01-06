@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021, 2024-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+
 #include "val/include/acs_val.h"
 #include "val/include/acs_pe.h"
 
@@ -46,6 +47,7 @@ pe003_entry(uint32_t num_pe)
 
   uint32_t status = ACS_STATUS_FAIL;  //default value
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   /* This check is when user is forcing us to skip this test */

@@ -112,10 +112,6 @@ static void payload(void)
     uint64_t value1[NUM_PMU_MON];
     uint64_t value2[NUM_PMU_MON];
 
-    if (g_sbsa_level < 7) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
     node_count = val_pmu_get_info(PMU_NODE_COUNT, 0);
     val_print(ACS_PRINT_DEBUG, "\n       PMU NODES = %d", node_count);

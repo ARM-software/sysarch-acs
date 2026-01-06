@@ -12,7 +12,7 @@ on:
         description: "edk2 ref/branch/tag to checkout"
         required: false
         type: string
-        default: "edk2-stable202505"
+        default: "edk2-stable202508"
       run-uefi:
         description: "Run UEFI builds"
         required: false
@@ -95,10 +95,14 @@ jobs:
             arg: pc_bsa
             outfile: PC_Bsa.efi
             artifact: PC_Bsa_acpi_target.efi
-          - name: Unified ACPI
-            arg: unified
-            outfile: UnifiedAcs.efi
-            artifact: unified.efi
+          - name: VBSA ACPI
+            arg: vbsa
+            outfile: Vbsa.efi
+            artifact: Vbsa_acpi_target.efi
+          - name: xBSA ACPI
+            arg: xbsa_acpi
+            outfile: xbsa_acpi.efi
+            artifact: xbsa_acpi.efi
           - name: PFDI DT
             arg: pfdi
             outfile: pfdi.efi
@@ -114,9 +118,10 @@ jobs:
 
       - name: Download edk2 and its submodules
         run: |
-          git clone --recursive https://github.com/tianocore/edk2
+          git clone https://github.com/tianocore/edk2
           cd edk2
           git checkout "${{ inputs.edk2-ref }}"
+          git submodule update --init --recursive
           cd ..
           git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc
 
@@ -234,6 +239,10 @@ jobs:
             make_target: sbsa
             out_relpath: sbsa_build/output/sbsa.bin
             artifact: Sbsa_baremetal_RDN2.bin
+          - name: PC-BSA (RDN2)
+            make_target: pc_bsa
+            out_relpath: pc_bsa_build/output/pc_bsa.bin
+            artifact: PcBsa_baremetal_RDN2.bin
     steps:
       - uses: actions/checkout@v4
 
@@ -250,10 +259,8 @@ jobs:
       - name: Compile ${{ matrix.name }}
         run: |
           export CROSS_COMPILE=/opt/cross/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
-          mkdir build
-          cd build
-          cmake ../ -G "Unix Makefiles" -DTARGET=RDN2
-          make ${{ matrix.make_target }}
+          cmake --preset ${{ matrix.make_target }}
+          cmake --build --preset ${{ matrix.make_target }}
 
       - name: Upload ${{ matrix.artifact }}
         uses: actions/upload-artifact@v4
@@ -308,4 +315,3 @@ jobs:
           name: ${{ matrix.name }} Kernel Module and App
           path: ${{ github.workspace }}/linux-${{ matrix.short }}/*
           if-no-files-found: error
-

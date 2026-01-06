@@ -1,8 +1,6 @@
-diff --git a/MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c b/MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c
-index f0a8b9f..e41e0de 100644
 --- a/MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c
 +++ b/MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.c
-@@ -90,8 +90,8 @@ UefiHiiServicesLibConstructor (
+@@ -90,8 +90,8 @@
    //
    // Retrieve the pointer to the UEFI HII Config Routing Protocol
    //
@@ -13,17 +11,15 @@ index f0a8b9f..e41e0de 100644
  
    //
    // Retrieve the pointer to the optional UEFI HII Font Protocol
-diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
-index 7e985f8..6ea22f8 100644
 --- a/ShellPkg/ShellPkg.dsc
 +++ b/ShellPkg/ShellPkg.dsc
 @@ -66,6 +66,9 @@
    ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
  
    SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
-+  FdtLib|EmbeddedPkg/Library/FdtLib/FdtLib.inf
-+  UnifiedValLib|ShellPkg/Application/sysarch-acs/val/UnifiedValLib.inf
-+  UnifiedPalLib|ShellPkg/Application/sysarch-acs/pal/uefi_dt/UnifiedPalLib.inf
++  BaseFdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
++  ValLib|ShellPkg/Application/sysarch-acs/val/ValLibRB.inf
++  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_dt/PalLib.inf
  
  [PcdsFixedAtBuild]
    gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0xFF
@@ -35,3 +31,9 @@ index 7e985f8..6ea22f8 100644
  
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
+@@ -157,4 +161,4 @@
+   ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
+ 
+ [BuildOptions]
+-  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
++  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES -D BSA_DT_BUILD

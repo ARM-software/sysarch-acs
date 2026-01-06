@@ -39,10 +39,6 @@ static void payload(void)
     uint64_t peri_count;
     uint64_t peripheral_base;
 
-   if (g_sbsa_level < 7) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
     msc_node_cnt = val_mpam_get_msc_count();
     val_print(ACS_PRINT_DEBUG, "\n       MSC count = %d", msc_node_cnt);
@@ -119,6 +115,7 @@ uint32_t mpam005_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
 
     num_pe = 1;
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

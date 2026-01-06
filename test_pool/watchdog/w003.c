@@ -33,10 +33,6 @@ payload(void)
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t data, ns_wdg = 0;
 
-  if (g_sbsa_level < 5) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-      return;
-  }
 
   val_print(ACS_PRINT_DEBUG, "\n       Found %d watchdogs in ACPI table ", wd_num);
 
@@ -59,20 +55,11 @@ payload(void)
       /* W_IIDR.Architecture Revision [19:16] = 0x1 for Watchdog Rev 1 */
       data = VAL_EXTRACT_BITS(val_mmio_read(ctrl_base + WD_IIDR_OFFSET), 16, 19);
 
-      if (g_sbsa_level == 5) {
-          if (data != 1) {
-              val_print(ACS_PRINT_WARN, "\n       Watchdog Architecture version is %x", data);
-              val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
-              return;
-          }
-      }
 
-      if (g_sbsa_level > 5) {
-          if (data != 1) {
-              val_print(ACS_PRINT_ERR, "\n       Watchdog Architecture version is %x", data);
-              val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
-              return;
-          }
+      if (data != 1) {
+          val_print(ACS_PRINT_ERR, "\n       Watchdog Architecture version is %x", data);
+          val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
+          return;
       }
 
   } while(wd_num);
@@ -94,6 +81,7 @@ w003_entry(uint32_t num_pe)
 
     num_pe = 1;  //This test is run on single processor
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

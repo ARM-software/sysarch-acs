@@ -43,10 +43,6 @@ static void payload(void)
     uint32_t num_traffic_support;
     uint32_t cs_com = 0, node_index;
 
-    if (g_sbsa_level < 7) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
-        return;
-    }
 
     pmu_node_count = val_pmu_get_info(PMU_NODE_COUNT, 0);
     val_print(ACS_PRINT_DEBUG, "\n       PMU NODES = %d", pmu_node_count);
@@ -149,6 +145,7 @@ pmu009_entry(uint32_t num_pe)
 
     num_pe = 1; /* This test is run on a single PE */
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

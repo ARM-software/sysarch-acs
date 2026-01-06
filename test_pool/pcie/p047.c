@@ -41,11 +41,6 @@ static void payload(void)
     tbl_index = 0;
 
     index = val_pe_get_index_mpid(val_pe_get_mpid());
-    if (g_sbsa_level < 4) {
-        val_print (ACS_PRINT_DEBUG, "\n       Skipping test as SBSA level < 4  ", 0);
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return ;
-    }
 
 
     while (tbl_index < bdf_tbl_ptr->num_entries)
@@ -113,6 +108,7 @@ uint32_t p047_entry(uint32_t num_pe)
 
     /* This test is run on single processor */
     num_pe = 1;
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     if (status != ACS_STATUS_SKIP)
         val_run_test_payload(TEST_NUM, num_pe, payload, 0);

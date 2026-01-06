@@ -37,11 +37,14 @@ ShellAppMain (
   IN CHAR16 **Argv
   )
 {
-  UINT32 CommandInitReturn = command_init();
+  UINT32 init_status;
 
-  if (CommandInitReturn != 0) {
-    return 0;        // do NOT run tests, prints HelpMsg()
+  init_status = command_init();
+  if (init_status != 0) {
+    /* Invalid CLI/HelpMsg/Errors, do not run tests */
+    return SHELL_INVALID_PARAMETER;
   }
 
-  return (INTN)execute_tests();
+  execute_tests();
+  return 0;
 }

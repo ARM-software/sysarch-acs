@@ -22,7 +22,7 @@
 
 #include <Protocol/AcpiTable.h>
 #include <Protocol/HardwareInterrupt.h>
-#include <Include/libfdt.h>
+#include <libfdt.h>
 #include "Include/IndustryStandard/Acpi61.h"
 
 #include "../include/platform_override.h"
@@ -577,7 +577,7 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
   NODE_DATA_MAP *data_map;
   UINT32 i, iommu_node;
   UINT32 *Preg_val;
-  CHAR8 *Pstatus; 
+  CHAR8 *Pstatus;
   int offset, parent_offset;
   int prop_len, addr_cell, size_cell;
   const struct fdt_property *P_dma;

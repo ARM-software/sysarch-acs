@@ -88,6 +88,7 @@ pe016_entry(uint32_t num_pe)
   uint32_t i, smbios_slots, index = val_pe_get_index_mpid(val_pe_get_mpid());
   sve_reg_details *reg_buffer;
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   smbios_slots = val_get_num_smbios_slots();
@@ -101,7 +102,7 @@ pe016_entry(uint32_t num_pe)
   }
 
   /* This check is when user is forcing us to skip this test */
-  if (status != ACS_STATUS_SKIP) {
+  if (status != TEST_SKIP_VAL) {
     g_sve_reg_info = (sve_reg_details *) val_memory_calloc(num_pe, sizeof(sve_reg_details));
     if (g_sve_reg_info == NULL) {
       val_print(ACS_PRINT_ERR, "\n       Memory Allocation for SVE Register data Failed", 0);

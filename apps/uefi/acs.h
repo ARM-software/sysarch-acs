@@ -18,20 +18,34 @@
 #ifndef __ACS_LEVEL_H__
 #define __ACS_LEVEL_H__
 
+#include <stdbool.h>
+#include <Library/ShellLib.h>
+#include "val/include/rule_based_execution.h"
+
 /* BSA Release versions */
 #define BSA_ACS_MAJOR_VER       1
-#define BSA_ACS_MINOR_VER       1
-#define BSA_ACS_SUBMINOR_VER    2
+#define BSA_ACS_MINOR_VER       2
+#define BSA_ACS_SUBMINOR_VER    0
 
 /* SBSA Release versions */
-#define SBSA_ACS_MAJOR_VER       7
-#define SBSA_ACS_MINOR_VER       2
-#define SBSA_ACS_SUBMINOR_VER    4
+#define SBSA_ACS_MAJOR_VER       8
+#define SBSA_ACS_MINOR_VER       0
+#define SBSA_ACS_SUBMINOR_VER    0
 
 /* PC BSA Release versions */
-#define PC_BSA_ACS_MAJOR_VER     0
-#define PC_BSA_ACS_MINOR_VER     8
+#define PC_BSA_ACS_MAJOR_VER     1
+#define PC_BSA_ACS_MINOR_VER     0
 #define PC_BSA_ACS_SUBMINOR_VER  0
+
+/* VBSA Release versions */
+#define VBSA_ACS_MAJOR_VER       0
+#define VBSA_ACS_MINOR_VER       7
+#define VBSA_ACS_SUBMINOR_VER    0
+
+/* xBSA ACS Release versions */
+#define XBSA_ACS_MAJOR_VER     1
+#define XBSA_ACS_MINOR_VER     0
+#define XBSA_ACS_SUBMINOR_VER  0
 
 /* DRTM Release versions */
 #define DRTM_ACS_MAJOR_VER      0
@@ -59,7 +73,7 @@
 
 #define G_SBSA_LEVEL             4
 #define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 7
+#define SBSA_MAX_LEVEL_SUPPORTED 8
 
 #define G_PCBSA_LEVEL             1
 #define PCBSA_MIN_LEVEL_SUPPORTED 1
@@ -110,23 +124,84 @@
 #define TPM2_INFO_TBL_SZ        256   /* Supports maximum of 10 TPM2 info entries */
                                       /* [24 B each: 3 x uint64_t] + 16 B Header */
 
-#define BSA_LEVEL_PRINT_FORMAT(level, only) ((level > BSA_MAX_LEVEL_SUPPORTED) ? \
-    ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
-
-#define SBSA_LEVEL_PRINT_FORMAT(level, only) ((level > SBSA_MAX_LEVEL_SUPPORTED) ? \
-    ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
+#define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
+    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
+    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
+    ((filter_mode == LVL_FILTER_ONLY) ? \
+    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
 
 #ifdef _AARCH64_BUILD_
 unsigned long __stack_chk_guard = 0xBAAAAAAD;
 unsigned long __stack_chk_fail =  0xBAAFAAAD;
 #endif
 
-uint32_t command_init(void);
-
 #ifndef ACS_PARSE_SKIP_RUN
 #define ACS_PARSE_SKIP_RUN 1
 #endif
+
+uint32_t command_init(void);
+
+/* TODO remove #if once all ACS app using this header moves to rule based infra.*/
+#ifndef EXCLUDE_RBX
+/* Extern declarations */
+extern UINT32  g_pcie_p2p;
+extern UINT32  g_pcie_cache_present;
+extern bool    g_pcie_skip_dp_nic_ms;
+extern UINT32  g_print_level;
+extern UINT32  g_num_skip;
+extern UINT64  g_stack_pointer;
+extern UINT64  g_exception_ret_addr;
+extern UINT64  g_ret_addr;
+extern UINT32  g_wakeup_timeout;
+extern UINT32  g_build_sbsa;
+extern UINT32  g_build_pcbsa;
+extern UINT32  g_print_mmio;
+extern UINT32  g_curr_module;
+extern UINT32  g_enable_module;
+extern UINT32  g_crypto_support;
+extern UINT32 *g_execute_modules;
+extern UINT32  g_num_modules;
+extern UINT32 *g_skip_modules;
+extern UINT32  g_num_skip_modules;
+extern UINT32  g_sys_last_lvl_cache;
+extern UINT32  g_el1physkip;
+extern SHELL_FILE_HANDLE g_acs_log_file_handle;
+extern SHELL_FILE_HANDLE g_dtb_log_file_handle;
+extern RULE_ID_e *g_rule_list;
+extern UINT32     g_rule_count;
+extern RULE_ID_e *g_skip_rule_list;
+extern UINT32     g_skip_rule_count;
+extern uint32_t   g_arch_selection;
+extern uint32_t   g_level_filter_mode;
+extern uint32_t   g_level_value;
+extern uint32_t   g_bsa_sw_view_mask;
+extern BOOLEAN    g_invalid_arg_seen;
+extern CONST SHELL_PARAM_ITEM ParamList[];
+/* Use rule string map from VAL to translate -r inputs */
+extern char8_t *rule_id_string[RULE_ID_SENTINEL];
+/* Use module string map from VAL to translate -m inputs */
+extern char8_t *module_name_string[MODULE_ID_SENTINEL];
+
+/* Function declarations */
+void HelpMsg(VOID);
+uint32_t createPeInfoTable(void);
+uint32_t createGicInfoTable(void);
+uint32_t createRasInfoTable(void);
+void     createTimerInfoTable(void);
+void     createWatchdogInfoTable(void);
+void     createPcieVirtInfoTable(void);
+void     createPeripheralInfoTable(void);
+void     createSmbiosInfoTable(void);
+void     createPmuInfoTable(void);
+void     createCacheInfoTable(void);
+void     createMpamInfoTable(void);
+void     createHmatInfoTable(void);
+void     createSratInfoTable(void);
+void     createPccInfoTable(void);
+void     createRas2InfoTable(void);
+void     createTpm2InfoTable(void);
+void     print_selection_summary(void);
+void     FlushImage(void);
+#endif /* EXCLUDE_RBX */
 
 #endif

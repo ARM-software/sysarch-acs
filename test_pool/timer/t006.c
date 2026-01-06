@@ -31,10 +31,6 @@ payload()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t print_mhz = 0;
 
-  if (g_sbsa_level < 8) {
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-      return;
-  }
 
   counter_freq = val_timer_get_info(TIMER_INFO_CNTFREQ, 0);
 
@@ -67,6 +63,7 @@ t006_entry(uint32_t num_pe)
 
   num_pe = 1;  //This Timer test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

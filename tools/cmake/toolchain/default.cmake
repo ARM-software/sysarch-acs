@@ -15,7 +15,7 @@
  # limitations under the License.
  ##
 
-set(ARM_ARCH_MAJOR_DFLT 9)
-set(ARM_ARCH_MINOR_DFLT 0)
+set(ARM_ARCH_MAJOR_DFLT 8)
+set(ARM_ARCH_MINOR_DFLT 6)
 set(TARGET_DFLT RDN2)
 set(ACS_DFLT "bsa")

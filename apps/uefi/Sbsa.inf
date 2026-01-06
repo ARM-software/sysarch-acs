@@ -30,11 +30,125 @@
 #
 
 [Sources.AARCH64]
-
   ../
   ../../
   app.c
+  acs_globals.c
+  acs_helpers.c
   sbsa_main.c
+   ../../test_pool/pe/pe001.c
+  ../../test_pool/pe/pe002.c
+  ../../test_pool/pe/pe003.c
+  ../../test_pool/pe/pe004.c
+  ../../test_pool/pe/pe006.c
+  ../../test_pool/pe/pe007.c
+  ../../test_pool/pe/pe008.c
+  ../../test_pool/pe/pe009.c
+  ../../test_pool/pe/pe010.c
+  ../../test_pool/pe/pe011.c
+  ../../test_pool/pe/pe012.c
+  ../../test_pool/pe/pe013.c
+  ../../test_pool/pe/pe014.c
+  ../../test_pool/pe/pe015.c
+  ../../test_pool/pe/pe016.c
+  ../../test_pool/pe/pe017.c
+  ../../test_pool/pe/pe018.c
+  ../../test_pool/pe/pe019.c
+  ../../test_pool/pe/pe020.c
+  ../../test_pool/pe/pe021.c
+  ../../test_pool/pe/pe022.c
+  ../../test_pool/pe/pe066.c
+  ../../test_pool/gic/g001.c
+  ../../test_pool/gic/g002.c
+  ../../test_pool/gic/g003.c
+  ../../test_pool/gic/g004.c
+  ../../test_pool/gic/g005.c
+  ../../test_pool/gic/g006.c
+  ../../test_pool/gic/g007.c
+  ../../test_pool/gic/g008.c
+  ../../test_pool/gic/g009.c
+  ../../test_pool/gic/g010.c
+  ../../test_pool/gic/g011.c
+  ../../test_pool/gic/v2m001.c
+  ../../test_pool/gic/v2m002.c
+  ../../test_pool/gic/v2m003.c
+  ../../test_pool/gic/v2m004.c
+  ../../test_pool/gic/its001.c
+  ../../test_pool/gic/its002.c
+  ../../test_pool/gic/its003.c
+  ../../test_pool/gic/its004.c
+  ../../test_pool/gic/its005.c
+  ../../test_pool/timer/t001.c
+  ../../test_pool/timer/t002.c
+  ../../test_pool/timer/t003.c
+  ../../test_pool/timer/t004.c
+  ../../test_pool/timer/t005.c
+  ../../test_pool/timer/t006.c
+  ../../test_pool/timer/t008.c
+  ../../test_pool/watchdog/w001.c
+  ../../test_pool/watchdog/w002.c
+  ../../test_pool/peripherals/d001.c
+  ../../test_pool/peripherals/d002.c
+  ../../test_pool/peripherals/d003.c
+  ../../test_pool/memory_map/m002.c
+  ../../test_pool/memory_map/m003.c
+  ../../test_pool/power_wakeup/u001.c
+  ../../test_pool/power_wakeup/u002.c
+  ../../test_pool/power_wakeup/u003.c
+  ../../test_pool/power_wakeup/u004.c
+  ../../test_pool/power_wakeup/u005.c
+  ../../test_pool/smmu/i001.c
+  ../../test_pool/smmu/i002.c
+  ../../test_pool/smmu/i003.c
+  ../../test_pool/smmu/i004.c
+  ../../test_pool/smmu/i005.c
+  ../../test_pool/smmu/i006.c
+  ../../test_pool/smmu/i007.c
+  ../../test_pool/pcie/p001.c
+  ../../test_pool/pcie/p002.c
+  ../../test_pool/pcie/p003.c
+  ../../test_pool/pcie/p006.c
+  ../../test_pool/pcie/p008.c
+  ../../test_pool/pcie/p009.c
+  ../../test_pool/pcie/p011.c
+  ../../test_pool/pcie/p017.c
+  ../../test_pool/pcie/p018.c
+  ../../test_pool/pcie/p019.c
+  ../../test_pool/pcie/p020.c
+  ../../test_pool/pcie/p021.c
+  ../../test_pool/pcie/p022.c
+  ../../test_pool/pcie/p023.c
+  ../../test_pool/pcie/p024.c
+  ../../test_pool/pcie/p025.c
+  ../../test_pool/pcie/p026.c
+  ../../test_pool/pcie/p030.c
+  ../../test_pool/pcie/p031.c
+  ../../test_pool/pcie/p032.c
+  ../../test_pool/pcie/p033.c
+  ../../test_pool/pcie/p035.c
+  ../../test_pool/pcie/p036.c
+  ../../test_pool/pcie/p037.c
+  ../../test_pool/pcie/p038.c
+  ../../test_pool/pcie/p039.c
+  ../../test_pool/pcie/p042.c
+  ../../test_pool/pcie/p100.c
+  ../../test_pool/exerciser/e001.c
+  ../../test_pool/exerciser/e002.c
+  ../../test_pool/exerciser/e003.c
+  ../../test_pool/exerciser/e004.c
+  ../../test_pool/exerciser/e006.c
+  ../../test_pool/exerciser/e007.c
+  ../../test_pool/exerciser/e010.c
+  ../../test_pool/exerciser/e011.c
+  ../../test_pool/exerciser/e012.c
+  ../../test_pool/exerciser/e013.c
+  ../../test_pool/exerciser/e014.c
+  ../../test_pool/exerciser/e015.c
+  ../../test_pool/exerciser/e016.c
+  ../../test_pool/exerciser/e017.c
+  ../../test_pool/exerciser/e033.c
+  ../../test_pool/exerciser/e035.c
+  ../../test_pool/exerciser/e039.c
   ../../test_pool/pe/pe023.c
   ../../test_pool/pe/pe024.c
   ../../test_pool/pe/pe025.c
@@ -72,12 +186,13 @@
   ../../test_pool/pe/pe060.c
   ../../test_pool/pe/pe061.c
   ../../test_pool/pe/pe062.c
+  ../../test_pool/pe/pe068.c
+  ../../test_pool/pe/pe065.c
   ../../test_pool/gic/g012.c
   ../../test_pool/gic/g013.c
   ../../test_pool/gic/g014.c
   ../../test_pool/gic/g015.c
   ../../test_pool/gic/g016.c
-  ../../test_pool/timer/t006.c
   ../../test_pool/watchdog/w003.c
   ../../test_pool/smmu/i008.c
   ../../test_pool/smmu/i009.c
@@ -85,7 +200,6 @@
   ../../test_pool/smmu/i011.c
   ../../test_pool/smmu/i012.c
   ../../test_pool/smmu/i013.c
-  ../../test_pool/smmu/i014.c
   ../../test_pool/smmu/i015.c
   ../../test_pool/smmu/i016.c
   ../../test_pool/smmu/i017.c
@@ -97,11 +211,10 @@
   ../../test_pool/smmu/i024.c
   ../../test_pool/smmu/i025.c
   ../../test_pool/memory_map/m005.c
+  ../../test_pool/pcie/p004.c
+  ../../test_pool/pcie/p005.c
   ../../test_pool/pcie/p007.c
   ../../test_pool/pcie/p010.c
-  ../../test_pool/pcie/p043.c
-  ../../test_pool/pcie/p044.c
-  ../../test_pool/pcie/p045.c
   ../../test_pool/pcie/p046.c
   ../../test_pool/pcie/p047.c
   ../../test_pool/pcie/p048.c
@@ -126,11 +239,6 @@
   ../../test_pool/pcie/p070.c
   ../../test_pool/pcie/p071.c
   ../../test_pool/pcie/p072.c
-  ../../test_pool/pcie/p073.c
-  ../../test_pool/pcie/p074.c
-  ../../test_pool/pcie/p075.c
-  ../../test_pool/pcie/p076.c
-  ../../test_pool/pcie/p077.c
   ../../test_pool/pcie/p078.c
   ../../test_pool/pcie/p079.c
   ../../test_pool/pcie/p080.c
@@ -150,7 +258,6 @@
   ../../test_pool/exerciser/e003.c
   ../../test_pool/exerciser/e007.c
   ../../test_pool/exerciser/e008.c
-  ../../test_pool/exerciser/e017.c
   ../../test_pool/exerciser/e019.c
   ../../test_pool/exerciser/e020.c
   ../../test_pool/exerciser/e021.c
@@ -199,6 +306,10 @@
   ../../test_pool/ete/ete006.c
   ../../test_pool/ete/ete007.c
   ../../test_pool/ete/ete008.c
+  ../../test_pool/drtm/interface010.c
+  ../../test_pool/drtm/interface011.c
+  ../../test_pool/tpm/tpm001.c
+  ../../test_pool/tpm/tpm002.c
 
 
 [Packages]
@@ -209,8 +320,8 @@
   ShellPkg/ShellPkg.dec
 
 [LibraryClasses]
-  UnifiedValLib
-  UnifiedPalLib
+  ValLib
+  PalLib
   UefiLib
   ShellLib
   DebugLib

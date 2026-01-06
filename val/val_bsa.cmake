@@ -44,10 +44,10 @@
 list(REMOVE_ITEM VAL_SRC
  "${ROOT_DIR}/val/src/AArch64/Drtm.S"
  "${ROOT_DIR}/apps/baremetal/sbsa_main.c"
+ "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
  "${ROOT_DIR}/val/src/AArch64/SbsaBootEntry.S"
  "${ROOT_DIR}/val/src/sbsa_execute_test.c"
  "${ROOT_DIR}/val/src/mpam_execute_test.c"
- "${ROOT_DIR}/val/src/acs_tpm.c"
 )
 
 
@@ -57,6 +57,12 @@ set(COMPILE_LIST ${COMPILE_LIST} PARENT_SCOPE)
 
 # Create VAL library
 add_library(${VAL_LIB} STATIC ${VAL_SRC})
+
+# Define COMPILE_RB_EXE for gating few compilations in val for rule based
+# execution infra.
+target_compile_definitions(${VAL_LIB} PRIVATE COMPILE_RB_EXE)
+# Define BAREMETAL_BSA_BUILD
+target_compile_definitions(${VAL_LIB} PRIVATE BAREMETAL_BSA_BUILD)
 
 target_include_directories(${VAL_LIB} PRIVATE
  ${CMAKE_CURRENT_BINARY_DIR}

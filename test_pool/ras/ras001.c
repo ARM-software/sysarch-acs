@@ -83,8 +83,8 @@ payload()
         continue;
     }
 
-    /* Check ERR_FR.CEC[14:12] != 0 for CEC to be implemented */
-    if (!(value & ERR_FR_CEC_MASK)) {
+    /* Check only if ERR_FR.CE != 0 - Check ERR_FR.CEC[14:12] != 0 for CEC to be implemented */
+    if ((value & ERR_FR_CE_MASK) && !(value & ERR_FR_CEC_MASK)) {
       val_print(ACS_PRINT_ERR, "\n       CEC not implemented for node_index %d", node_index);
       fail_cnt++;
       continue;
@@ -107,6 +107,7 @@ ras001_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
   if (status != ACS_STATUS_SKIP)

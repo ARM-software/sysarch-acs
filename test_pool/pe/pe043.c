@@ -29,10 +29,6 @@ static void payload(void)
     uint64_t data_csv3 = 0;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    if (g_sbsa_level < 6) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
     /* ID_AA64PFR0_EL1.CSV2[59:56] = 0b0010 or 0b0011 indicates Speculative use of Out of
        Ctxt Branch Targets and use of SCXTNUM_ELx registers */
@@ -53,6 +49,7 @@ uint32_t pe043_entry(uint32_t num_pe)
 {
     uint32_t status = ACS_STATUS_FAIL;
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

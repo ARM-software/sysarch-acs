@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include <stdlib.h>
+#include "include/pal_uefi.h"
 
 /**
   @brief   This API generates a 32 bit random number.
@@ -26,7 +26,6 @@
 UINT32
 pal_nist_generate_rng(UINT32 *rng_buffer)
 {
-  *rng_buffer = rand();
-  return 0;
+  return NOT_IMPLEMENTED;
 
 }

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,17 +30,38 @@
 #define ACS_PRINT_DEBUG 2      /* For Debug statements. contains register dumps etc */
 #define ACS_PRINT_INFO  1      /* Print all statements. Do not use unless really needed */
 
-
 #define ACS_STATUS_FAIL      0x90000000
 #define ACS_STATUS_ERR       0xEDCB1234  //some impropable value?
 #define ACS_STATUS_SKIP      0x10000000
 #define ACS_STATUS_PASS      0x0
 #define ACS_STATUS_NIST_PASS 0x1
 #define ACS_INVALID_INDEX    0xFFFFFFFF
+#define ACS_STATUS_UNKNOWN   0xFFFFFFFF
 
 #define NOT_IMPLEMENTED         0x4B1D  /* Feature or API not implemented */
 
 #define VAL_EXTRACT_BITS(data, start, end) ((data >> start) & ((1ul << (end-start+1))-1))
+
+/* Test status counters visible across ACS */
+typedef struct {
+    uint32_t total_rules_run;     /* Total rules/tests that reported a status */
+    uint32_t passed;              /* Count of TEST_PASS */
+    uint32_t partial_coverage;    /* Count of TEST_PART_COV */
+    uint32_t warnings;            /* Count of TEST_WARN */
+    uint32_t skipped;             /* Count of TEST_SKIP */
+    uint32_t failed;              /* Count of TEST_FAIL */
+    uint32_t not_implemented;     /* Count of TEST_NO_IMP */
+    uint32_t pal_not_supported;   /* Count of TEST_PAL_NS */
+} acs_test_status_counters_t;
+
+extern acs_test_status_counters_t g_rule_test_stats;
+
+/* Module init operation type enum */
+typedef enum {
+    INIT_OP_INIT,
+    INIT_OP_TEARDOWN,
+    INIT_OP_SENTINEL /* Keep last */
+} INIT_OP_e;
 
 /* the following macros are defined by edk2 headers in case of UEFI env. Required only for BM */
 #ifdef TARGET_BAREMETAL
@@ -71,6 +92,10 @@ void val_get_test_data(uint32_t index, uint64_t *data0, uint64_t *data1);
 void *val_memcpy(void *dest_buffer, void *src_buffer, uint32_t len);
 void val_dump_dtb(void);
 void view_print_info(uint32_t view);
+void val_log_context(char8_t *file, char8_t *func, uint32_t line);
+
+/* Print consolidated ACS test status summary from global counters */
+void val_print_acs_test_status_summary(void);
 
 uint32_t execute_tests(void);
 uint32_t val_strncmp(char8_t *str1, char8_t *str2, uint32_t len);
@@ -195,18 +220,19 @@ typedef enum {
 #define BSA_TIMER_FLAG_ALWAYS_ON 0x4
 void     val_timer_create_info_table(uint64_t *timer_info_table);
 void     val_timer_free_info_table(void);
-void     val_timer_set_phy_el1(uint64_t timeout);
-void     val_timer_set_vir_el1(uint64_t timeout);
+void     val_timer_set_phy_el1(uint32_t timeout);
+void     val_timer_set_vir_el1(uint32_t timeout);
 void     val_platform_timer_get_entry_index(uint64_t instance, uint32_t *block, uint32_t *index);
 uint64_t val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance);
 uint64_t val_get_phy_el2_timer_count(void);
 uint32_t val_bsa_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
-void     val_timer_set_phy_el2(uint64_t timeout);
-void     val_timer_set_vir_el2(uint64_t timeout);
+void     val_timer_set_phy_el2(uint32_t timeout);
+void     val_timer_set_vir_el2(uint32_t timeout);
 void     val_timer_set_system_timer(addr_t cnt_base_n, uint32_t timeout);
 void     val_timer_disable_system_timer(addr_t cnt_base_n);
 uint32_t val_timer_skip_if_cntbase_access_not_allowed(uint64_t index);
 uint64_t val_get_phy_el1_timer_count(void);
+uint32_t val_get_safe_timeout_ticks(void);
 
 /* Watchdog VAL APIs */
 typedef enum {
@@ -453,7 +479,7 @@ uint64_t val_memory_get_unpopulated_addr(addr_t *addr, uint32_t instance);
 uint64_t val_get_max_memory(void);
 
 /* PCIe Exerciser tests */
-uint32_t val_bsa_exerciser_execute_tests(uint32_t *g_sw_view);
+uint32_t val_bsa_exerciser_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 
 /* NIST VAL APIs */
 uint32_t val_nist_generate_rng(uint32_t *rng_buffer);
@@ -577,7 +603,7 @@ uint32_t val_sbsa_wd_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_memory_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe);
-uint32_t val_sbsa_exerciser_execute_tests(uint32_t level);
+uint32_t val_sbsa_exerciser_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_pmu_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_mpam_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_ras_execute_tests(uint32_t level, uint32_t num_pe);

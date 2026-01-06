@@ -25,22 +25,35 @@ ACS_DIR ?= .
 
 VAL_SRC = $(ACS_DIR)/src
 
+ccflags-y=-I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR) -DTARGET_LINUX -Wall -Werror -DCOMPILE_RB_EXE
+
 ifeq ($(ACS), bsa)
 obj-m += bsa_acs_val.o
 bsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_peripherals.o $(VAL_SRC)/acs_dma.o  $(VAL_SRC)/acs_smmu.o \
     $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o  $(VAL_SRC)/acs_pe_infra.o \
     $(VAL_SRC)/acs_iovirt.o $(VAL_SRC)/bsa_execute_test.o\
-    $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o $(VAL_SRC)/../driver/pcie/pcie.o
-
+    $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o $(VAL_SRC)/../driver/pcie/pcie.o \
+    $(VAL_SRC)/rule_based_execution_helpers.o \
+    $(VAL_SRC)/rule_based_orchestrator.o \
+    $(VAL_SRC)/rule_lookup.o \
+    $(VAL_SRC)/rule_metadata.o \
+    $(VAL_SRC)/test_wrappers.o \
+    $(VAL_SRC)/rule_enum_string_map.o
+ccflags-y += -DBSA_LINUX_BUILD
 else ifeq ($(ACS), sbsa)
 obj-m += sbsa_acs_val.o
 sbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_peripherals.o  $(VAL_SRC)/acs_smmu.o $(VAL_SRC)/acs_dma.o \
     $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o $(VAL_SRC)/acs_pe_infra.o \
     $(VAL_SRC)/acs_iovirt.o $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o \
-    $(VAL_SRC)/sbsa_execute_test.o $(VAL_SRC)/../driver/pcie/pcie.o
-
+    $(VAL_SRC)/sbsa_execute_test.o $(VAL_SRC)/../driver/pcie/pcie.o \
+    $(VAL_SRC)/rule_based_execution_helpers.o \
+    $(VAL_SRC)/rule_based_orchestrator.o \
+    $(VAL_SRC)/rule_lookup.o \
+    $(VAL_SRC)/rule_metadata.o \
+    $(VAL_SRC)/test_wrappers.o \
+    $(VAL_SRC)/rule_enum_string_map.o
 else  ifeq ($(ACS), pcbsa)
 obj-m += pcbsa_acs_val.o
 pcbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
@@ -49,8 +62,6 @@ pcbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_iovirt.o    $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o \
     $(VAL_SRC)/pc_bsa_execute_test.o $(VAL_SRC)/../driver/pcie/pcie.o
 endif
-
-ccflags-y=-I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR) -DTARGET_LINUX -Wall -Werror
 
 all:
 ifeq ($(KERNEL_SRC),)

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
 
 #ifndef __ACS_WAKEUP_H__
 #define __ACS_WAKEUP_H__
+
+#define MAX_SPIN_LOOPS 1000000U
 
 uint32_t u001_entry(uint32_t num_pe);
 uint32_t u002_entry(uint32_t num_pe);

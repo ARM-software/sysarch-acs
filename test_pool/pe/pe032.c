@@ -18,59 +18,38 @@
 #include "val/include/acs_pe.h"
 #include "val/include/val_interface.h"
 
-#define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  32)
-#define TEST_RULE  "S_L5PE_02"
-#define TEST_DESC  "Check for addr and generic auth       "
+#define TEST_NUM (ACS_PE_TEST_NUM_BASE + 32)
+#define TEST_RULE "S_L5PE_02"
+#define TEST_DESC "Check for addr authentication support  "
 
-
-static void check_pointer_signing_algorithm(uint32_t index, uint64_t data1, uint64_t data2)
-{
-    /* Read ID_AA64ISAR1_EL1.APA[7:4] and ID_AA64ISAR1_EL1.GPA[27:24]  ! = 0 indicates
-     * address and generic authentication support using QARMA5
-     *
-     * Read ID_AA64ISAR2_EL1.APA3[15:12] and ID_AA64ISAR2_EL1.GPA3[11:8] ! = 0 indicates
-     * address and generic authentication support using QARMA3
-     */
-
-    if (((VAL_EXTRACT_BITS(data1, 4, 7) != 0) && (VAL_EXTRACT_BITS(data1, 24, 27) != 0)) ||
-       ((VAL_EXTRACT_BITS(data2, 8, 11) != 0) && (VAL_EXTRACT_BITS(data2, 12, 15) != 0)))
-       val_set_status(index, RESULT_PASS(TEST_NUM, 01));
-    else
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
-}
 static void payload(void)
 {
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-    uint32_t primary_pe_idx = val_pe_get_primary_index();
 
     /* Read ID_AA64ISAR1_EL1 and ID_AA64ISAR2_EL1 for PAuth support */
     uint64_t data1 = val_pe_reg_read(ID_AA64ISAR1_EL1);
     uint64_t data2 = val_pe_reg_read(ID_AA64ISAR2_EL1);
 
-    if (index == primary_pe_idx) {
-       val_print(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR1_EL1.APA[7:4]    = %llx",
-                 VAL_EXTRACT_BITS(data1, 4, 7));
-       val_print(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR1_EL1.GPA[27:24]  = %llx",
-                 VAL_EXTRACT_BITS(data1, 24, 27));
-       val_print(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR2_EL1.APA3[15:12] = %llx",
-                 VAL_EXTRACT_BITS(data2, 12, 15));
-       val_print(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR2_EL1.GPA3[11:8]  = %llx",
-                 VAL_EXTRACT_BITS(data2, 8, 11));
-    }
+    val_print_primary_pe(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR1_EL1.APA[7:4]    = %llx",
+                         VAL_EXTRACT_BITS(data1, 4, 7), index);
+    val_print_primary_pe(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR2_EL1.APA3[15:12] = %llx",
+                         VAL_EXTRACT_BITS(data2, 12, 15), index);
 
-    if (g_sbsa_level < 5) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    } else {
-        /* Pointer signing is mandatory, Check for pointer signing using standard arm algorithm */
-        check_pointer_signing_algorithm(index, data1, data2);
-    }
+    /* Pointer signing is mandatory, Check for pointer signing using standard arm algorithm.
+     * Read ID_AA64ISAR1_EL1.APA[7:4] and ID_AA64ISAR2_EL1.APA3[15:12]  ! = 0 indicates
+     * address authentication support using QARMA5 and QARMA3.
+     */
+    if ((VAL_EXTRACT_BITS(data1, 4, 7) != 0) || (VAL_EXTRACT_BITS(data2, 12, 15) != 0))
+        val_set_status(index, RESULT_PASS(TEST_NUM, 01));
+    else
+        val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
 }
 
 uint32_t pe032_entry(uint32_t num_pe)
 {
     uint32_t status = ACS_STATUS_FAIL;
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

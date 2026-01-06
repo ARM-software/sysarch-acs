@@ -379,14 +379,20 @@ payload(void)
 
 }
 
-uint32_t e027_entry(void)
+uint32_t
+e027_entry(uint32_t num_pe)
 {
-  uint32_t num_pe = 1;
+  /* Run test on single PE */
+  num_pe = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
-  if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+  if (status != ACS_STATUS_SKIP) {
+     if (val_exerciser_test_init() != ACS_STATUS_PASS)
+         return TEST_SKIP_VAL;
+     val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+  }
 
   /* Get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);

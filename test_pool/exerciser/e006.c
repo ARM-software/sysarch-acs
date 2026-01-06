@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2018-2021,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2018-2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@
 #include "val/include/acs_memory.h"
 #include "val/include/acs_exerciser.h"
 #include "val/include/acs_pcie.h"
+#include "val/driver/gic/gic.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 6)
 #define TEST_RULE  "PCI_LI_02"
@@ -143,6 +144,10 @@ payload (void)
             while ((--timeout > 0) && e_intr_pending);
 
             if (timeout == 0) {
+                /* Deassert any stuck legacy line and uninstall ISR */
+                val_exerciser_ops(CLEAR_INTR, e_intr_line, instance);
+                val_gic_end_of_interrupt(e_intr_line);
+                val_gic_disableInterruptSource(e_intr_line);
                 val_gic_free_irq(e_intr_line, 0);
                 val_print(ACS_PRINT_ERR, "\n       Interrupt trigger failed for bdf 0x%lx", e_bdf);
                 test_fail++;
@@ -154,9 +159,15 @@ payload (void)
             {
                 val_print(ACS_PRINT_ERR, "\n       Outstanding interrupt for bdf 0x%x", e_bdf);
                 test_fail++;
+                /* Deassert and uninstall ISR before moving to next */
+                val_exerciser_ops(CLEAR_INTR, e_intr_line, instance);
+                val_gic_end_of_interrupt(e_intr_line);
+                val_gic_disableInterruptSource(e_intr_line);
+                val_gic_free_irq(e_intr_line, 0);
                 continue;
             }
 
+            val_gic_disableInterruptSource(e_intr_line);
             val_gic_free_irq(e_intr_line, 0);
         }
    } else {
@@ -188,13 +199,17 @@ payload (void)
 }
 
 uint32_t
-e006_entry (void)
+e006_entry(uint32_t num_pe)
 {
-  uint32_t num_pe = 1;
+  /* Run test on single PE */
+  num_pe = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test (TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
+      if (val_exerciser_test_init() != ACS_STATUS_PASS)
+          return TEST_SKIP_VAL;
       val_run_test_payload (TEST_NUM, num_pe, payload, 0);
   }
 

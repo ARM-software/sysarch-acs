@@ -33,6 +33,10 @@ extern uint32_t g_override_skip;
 void
 val_report_status(uint32_t index, uint32_t status, char8_t *ruleid)
 {
+/* Rule based execution orchestrator reports status, hence muting if COMPILE_RB_EXE defined */
+#ifdef COMPILE_RB_EXE
+  return;
+#endif
 
   /* Test stays quiet if it is overridden by any of the user options */
   if (!g_override_skip)

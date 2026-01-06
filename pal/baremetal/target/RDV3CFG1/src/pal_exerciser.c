@@ -298,7 +298,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
       }
 
   case ERROR_INJECT_TYPE:
-      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE, &CapabilityOffset);
+      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
       Data = pal_mmio_read(Ecam + CapabilityOffset +
                            pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
       Data = ((Value1 << ERR_CODE_SHIFT) | (Value2 << FATAL_SHIFT));
@@ -310,7 +310,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
               return 3;
 
   case ENABLE_POISON_MODE:
-      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE, &CapabilityOffset);
+      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
       Data = pal_mmio_read(Ecam + CapabilityOffset +
                              pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
       Data = Data | (1 << 18);
@@ -326,7 +326,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
       return 0;
 
   case DISABLE_POISON_MODE:
-      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE, &CapabilityOffset);
+      pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
       Data = pal_mmio_read(Ecam + CapabilityOffset +
                            pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
       Data = Data & (0 << 18);
@@ -566,7 +566,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
         data = ((Param & PASID_VAL_MASK));
         pal_mmio_write(Base + PASID_VAL, data);
 
-        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCIE, &CapabilityOffset)) {
+        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCI_E, &CapabilityOffset)) {
             config_offset = pal_exerciser_get_pcie_config_offset(Bdf);
             pal_mmio_write(Ecam + config_offset + CapabilityOffset + PCIE_CAP_CTRL_OFFSET,
                           (pal_mmio_read(Ecam +
@@ -580,7 +580,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
   case PASID_TLP_STOP:
         pal_mmio_write(Base + DMACTL1, (pal_mmio_read(Base + DMACTL1) & PASID_TLP_STOP_MASK));
 
-        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCIE, &CapabilityOffset)) {
+        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCI_E, &CapabilityOffset)) {
             config_offset = pal_exerciser_get_pcie_config_offset(Bdf);
             pal_mmio_write(Ecam + config_offset + CapabilityOffset + PCIE_CAP_CTRL_OFFSET,
                             (pal_mmio_read(Ecam +
@@ -615,7 +615,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
         return 0;
 
   case INJECT_ERROR:
-        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE, &CapabilityOffset);
+        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
         data = pal_mmio_read(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) +
                              CapabilityOffset + DVSEC_CTRL);
         data = data | (1 << ERROR_INJECT_BIT);

@@ -16,7 +16,7 @@
  ##
 
 # Set the minimum required version of CMake for the project
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.21)
 
 project(bsa-acs LANGUAGES)
 
@@ -43,14 +43,25 @@ include(${ROOT_DIR}/tools/cmake/toolchain/default.cmake)
 ### Valid value range for command line argument ###
 
 list(APPEND ARM_ARCH_MAJOR_LIST 8 9)
-list(APPEND ACS_LIST "bsa" "sbsa")
+list(APPEND ACS_LIST "bsa" "sbsa" "pc_bsa")
 
 ###
-set(CROSS_COMPILE $ENV{CROSS_COMPILE})
-# Set default only if not defined externally
-if(NOT DEFINED CROSS_COMPILE)
-    message(FATAL_ERROR "CROSS_COMPILE not defined. Exiting.")
+# Prefer the toolchain file to validate and set `CROSS_COMPILE`.
+# If no toolchain file is provided, require `CROSS_COMPILE` from the
+# environment to support local cross-configures.
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(NOT DEFINED CROSS_COMPILE)
+        set(CROSS_COMPILE $ENV{CROSS_COMPILE})
+    endif()
+
+    if(NOT DEFINED CROSS_COMPILE OR "${CROSS_COMPILE}" STREQUAL "")
+        message(FATAL_ERROR "CROSS_COMPILE not defined. Please set CROSS_COMPILE or use -DCMAKE_TOOLCHAIN_FILE=<path>.")
+    endif()
 endif()
+
+# NOTE: cross-toolchain selection is handled by an explicit toolchain file
+# (`tools/cmake/toolchain/arm-none-elf-toolchain.cmake`). Users should
+# configure with `-DCMAKE_TOOLCHAIN_FILE=...` to avoid host-specific flags.
 
 # Check for valid targets
 _get_sub_dir_list(TARGET_LIST ${ROOT_DIR}/pal/baremetal/target/)
@@ -62,8 +73,16 @@ endif()
 
 if(NOT ${TARGET} IN_LIST TARGET_LIST)
     message(FATAL_ERROR "[ACS] : Error: Unspported value for -DTARGET=, supported targets are : ${TARGET_LIST}")
+endif()
+
+if(NOT DEFINED ACS)
+    set(ACS "${ACS_DFLT}" CACHE INTERNAL "Defaulting ACS to ${ACS}" FORCE)
 else()
-    message(STATUS "[ACS] : TARGET is set to ${TARGET}")
+    set(ACS "${ACS}" CACHE INTERNAL "ACS is set to ${ACS}" FORCE)
+endif()
+
+if(NOT ${ACS} IN_LIST ACS_LIST)
+    message(FATAL_ERROR "[ACS] : Error: Unspported value for -DACS=, supported acs are : ${ACS_LIST}")
 endif()
 
 # Check for ARM_ARCH_MAJOR
@@ -101,24 +120,35 @@ foreach(clean_item ${CLEAN_LIST})
 endforeach()
 ###
 
-# Custom targets to trigger bsa and sbsa builds
-add_custom_target(bsa
-    COMMAND ${CMAKE_COMMAND} -DACS=bsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/bsa_build
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/bsa_build
-)
-
-add_custom_target(sbsa
-    COMMAND ${CMAKE_COMMAND} -DACS=sbsa -DTARGET=${TARGET} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/sbsa_build
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/sbsa_build
-)
-
-if(ACS MATCHES "sbsa")
-    message(STATUS "[ACS] : ACS is set to ${ACS}")
-    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
-elseif(ACS MATCHES "bsa")
-    message(STATUS "[ACS] : ACS is set to ${ACS}")
-    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
+# Reuse the caller-provided toolchain for nested configure steps, so
+# convenience targets do not override user choices.
+set(_acs_toolchain_arg "")
+if(DEFINED CMAKE_TOOLCHAIN_FILE AND NOT "${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+    set(_acs_toolchain_arg "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
+else()
+    set(_acs_toolchain_arg "-DCMAKE_TOOLCHAIN_FILE=${ROOT_DIR}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake")
 endif()
+
+# Generate per-ACS custom targets and an aggregate target
+foreach(_acs IN LISTS ACS_LIST)
+    add_custom_target(${_acs}
+        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
+    )
+endforeach()
+
+add_custom_target(acs_all
+    DEPENDS ${ACS_LIST}
+)
+
+message(STATUS "[ACS] : ACS is set to ${ACS}, and TAREGT to ${TARGET} based on configuration")
+message(STATUS "[ACS] : You can change overide target using -DTARGET=<value>")
+message(STATUS "[ACS] : Supported values for TARGET: ${TARGET_LIST}")
+message(STATUS "[ACS] : Example - cmake --preset bsa -DTARGET=RDV3")
+message(STATUS "[ACS] : Check available presets by - `cmake --list-presets`")
+message(STATUS "[ACS] : To build using cmake - `cmake --build --preset bsa`")
+message(STATUS "[ACS] : To build using make - `cmake --preset acs_all; cd build; make bsa` (to build all baremetal acs - `make acs_all`)")
+add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
 
 
 ### Throw waring for the files which is not compiled ###

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +69,8 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint64_t timer_expire_val = (val_get_counter_frequency() * 3 * g_wakeup_timeout) / 2;
+  uint32_t timer_expire_val =
+            (uint32_t)(((uint64_t)val_get_safe_timeout_ticks() * 3 * g_wakeup_timeout) / 2);
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
@@ -89,7 +90,7 @@ payload()
 {
 
     uint32_t status, ns_wdg = 0;
-    uint64_t timeout;
+    uint32_t timeout;
     uint64_t timer_expire_ticks = 1 * g_wakeup_timeout;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
     wd_num = val_wd_get_info(0, WD_INFO_COUNT);
@@ -146,7 +147,7 @@ payload()
         }
         wakeup_set_failsafe();
 
-        timeout = val_get_counter_frequency() * 2 * g_wakeup_timeout;
+        timeout = (uint32_t)(((uint64_t)val_get_safe_timeout_ticks() * g_wakeup_timeout) / 2);
         while (timeout && (g_wd_int_received == 0) && (g_failsafe_int_received == 0)) {
           val_data_cache_ops_by_va((addr_t)&g_wd_int_received, INVALIDATE);
           val_data_cache_ops_by_va((addr_t)&g_failsafe_int_received, INVALIDATE);
@@ -191,6 +192,7 @@ w002_entry(uint32_t num_pe)
 
     num_pe = 1;  /*This Timer test is run on single processor*/
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

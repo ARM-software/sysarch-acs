@@ -29,10 +29,6 @@ static void payload(void)
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
     uint32_t primary_pe_idx = val_pe_get_primary_index();
 
-    if (g_sbsa_level < 7) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
     /* ID_AA64MMFR1_EL1.TWED [35:32] = 0b0001 indicates support for configurable delayed
        trapping for WFE instruction */

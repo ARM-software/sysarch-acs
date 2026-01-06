@@ -17,19 +17,9 @@
 
 project(bsa LANGUAGES C ASM)
 
-if(ACS STREQUAL "bsa")
-set(EXE_NAME bsa)
-set(VAL_LIB ${EXE_NAME}_val_lib)
-set(PAL_LIB ${EXE_NAME}_pal_lib)
-include(${ROOT_DIR}/val/val_bsa.cmake)
-endif()
-
-if(ACS STREQUAL "sbsa")
-set(EXE_NAME sbsa)
-set(VAL_LIB ${EXE_NAME}_val_lib)
-set(PAL_LIB ${EXE_NAME}_pal_lib)
-include(${ROOT_DIR}/val/val_sbsa.cmake)
-endif()
+set(VAL_LIB ${ACS}_val_lib)
+set(PAL_LIB ${ACS}_pal_lib)
+include(${ROOT_DIR}/val/val_${ACS}.cmake)
 
 include(${ROOT_DIR}/pal/baremetal/pal.cmake)
 include(${ROOT_DIR}/test_pool/test.cmake)

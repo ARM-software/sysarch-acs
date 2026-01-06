@@ -73,7 +73,7 @@ HelpMsg (
   );
 }
 
-STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
+CONST SHELL_PARAM_ITEM ParamList[] = {
   {L"-v", TypeValue},    // -v    # Verbosity of the Prints. 1 shows all prints, 5 shows Errors
   {L"-f", TypeValue},    // -f    # Name of the log file to record the test results in.
   {L"-skip", TypeValue}, // -skip # test(s) to skip execution

@@ -20,9 +20,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "include/sbsa_drv_intf.h"
 
 extern bool g_pcie_skip_dp_nic_ms;
+extern uint32_t g_level_value;
+extern uint32_t g_level_filter_mode;
 
 typedef
 struct __SBSA_DRV_PARMS__
@@ -155,6 +160,13 @@ call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
     test_params.arg1     = print_level;
     test_params.arg2     = 0;
 
+    if (api_num == RUN_TESTS) {
+        /* Pass desired level and filter mode to driver */
+        test_params.level = g_level_value;
+        test_params.arg0  = g_level_filter_mode;
+        test_params.arg1 = print_level;
+    }
+
     fwrite(&test_params,1,sizeof(test_params),fd);
 
     fclose(fd);
@@ -213,4 +225,37 @@ int read_from_proc_sbsa_msg() {
   }
 
   fclose(fd);
+}
+
+int sbsa_send_array_u32(uint32_t hint, const uint32_t *arr, uint32_t count)
+{
+    int fd = -1;
+    sbsa_array_update_u_t up = {0};
+
+    if (!arr)
+        return -1;
+
+    if (count > SBSA_ARRAY_ELEM_MAX_COUNT) {
+        fprintf(stderr, "Error: array count %u exceeds max %u\n", count, SBSA_ARRAY_ELEM_MAX_COUNT);
+        return -1;
+    }
+
+    fd = open("/dev/sbsa_acs", O_RDWR);
+    if (fd < 0) {
+        perror("open /dev/sbsa_acs");
+        return -1;
+    }
+
+    up.hint = hint;
+    up.count = count;
+    up.user_buf = (uint64_t)(uintptr_t)arr;
+
+    if (ioctl(fd, SBSA_IOCTL_UPDATE_ARRAY, &up) < 0) {
+        perror("ioctl SBSA_IOCTL_UPDATE_ARRAY");
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
+    return 0;
 }

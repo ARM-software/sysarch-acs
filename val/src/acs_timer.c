@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2019, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2019, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -184,12 +184,12 @@ val_get_phy_el2_timer_count(void)
   @return  None
 **/
 void
-val_timer_set_phy_el1(uint64_t timeout)
+val_timer_set_phy_el1(uint32_t timeout)
 {
-
+  uint64_t temp = timeout;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CntpCtl);
-    ArmArchTimerWriteReg(CntpTval, &timeout);
+    ArmArchTimerWriteReg(CntpTval, &temp);
     ArmGenericTimerEnableTimer(CntpCtl);
   } else {
     ArmGenericTimerDisableTimer(CntpCtl);
@@ -205,12 +205,12 @@ val_timer_set_phy_el1(uint64_t timeout)
   @return  None
 **/
 void
-val_timer_set_vir_el1(uint64_t timeout)
+val_timer_set_vir_el1(uint32_t timeout)
 {
-
+  uint64_t temp = timeout;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CntvCtl);
-    ArmArchTimerWriteReg(CntvTval, &timeout);
+    ArmArchTimerWriteReg(CntvTval, &temp);
     ArmGenericTimerEnableTimer(CntvCtl);
   } else {
     ArmGenericTimerDisableTimer(CntvCtl);
@@ -301,9 +301,8 @@ val_timer_free_info_table(void)
         g_timer_info_table = NULL;
     }
     else {
-      val_print(ACS_PRINT_ERR,
-                  "\n WARNING: g_timer_info_table pointer is already NULL",
-        0);
+      val_print(ACS_PRINT_DEBUG,
+                  "\n g_timer_info_table pointer is already NULL", 0);
     }
 }
 
@@ -330,12 +329,12 @@ val_get_phy_el1_timer_count(void)
   @return  None
 **/
 void
-val_timer_set_phy_el2(uint64_t timeout)
+val_timer_set_phy_el2(uint32_t timeout)
 {
-
+  uint64_t temp = timeout;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CnthpCtl);
-    ArmArchTimerWriteReg(CnthpTval, &timeout);
+    ArmArchTimerWriteReg(CnthpTval, &temp);
     ArmGenericTimerEnableTimer(CnthpCtl);
   } else {
     ArmGenericTimerDisableTimer(CnthpCtl);
@@ -351,12 +350,12 @@ val_timer_set_phy_el2(uint64_t timeout)
   @return  None
 **/
 void
-val_timer_set_vir_el2(uint64_t timeout)
+val_timer_set_vir_el2(uint32_t timeout)
 {
-
+  uint64_t temp = timeout;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CnthvCtl);
-    ArmArchTimerWriteReg(CnthvTval, &timeout);
+    ArmArchTimerWriteReg(CnthvTval, &temp);
     ArmGenericTimerEnableTimer(CnthvCtl);
   } else {
     ArmGenericTimerDisableTimer(CnthvCtl);
@@ -433,4 +432,29 @@ val_timer_skip_if_cntbase_access_not_allowed(uint64_t index)
   else
       return ACS_STATUS_SKIP;
 
+}
+
+/**
+  @brief  Get a safe timeout value in timer ticks.
+
+  @param  None
+
+  @return uint32_t  Timeout value computed as (counter frequency / MAX_WAKEUP_TIMEOUT),
+                    guaranteed to fit in 32-bit timer registers.
+**/
+uint32_t
+val_get_safe_timeout_ticks(void)
+{
+    /*
+     * Compute a safe timer tick value based on the maximum supported
+     * wakeup timeout. This ensures the returned value always fits in
+     * a 32-bit timer register even on high-frequency systems.
+     */
+    uint64_t freq = val_get_counter_frequency();
+    uint64_t ticks = freq / MAX_WAKEUP_TIMEOUT;
+
+    if (ticks > 0xFFFFFFFF)
+        ticks = 0xFFFFFFFF;
+
+    return (uint32_t)ticks;
 }

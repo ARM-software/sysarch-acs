@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2023,2025 Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +15,9 @@
  * limitations under the License.
  **/
 
-
 #ifndef __SBSA_DRV_INTF_H__
 #define __SBSA_DRV_INTF_H__
-
+#include <stdint.h>
 
 /* API NUMBERS to COMMUNICATE with DRIVER */
 
@@ -28,14 +27,27 @@
 #define SBSA_EXERCISER_EXECUTE_TEST    0x4000
 #define SBSA_SMMU_EXECUTE_TEST    0x5000
 #define SBSA_FREE_INFO_TABLES     0x9000
+#define RUN_TESTS                 0xA000
 
 
 /* STATUS MESSAGES */
 #define DRV_STATUS_AVAILABLE     0x10000000
 #define DRV_STATUS_PENDING       0x40000000
 
+/* New ioctl-based array update interface (user-space side) */
+#define SBSA_IOCTL_MAGIC            'S'
+#define SBSA_IOCTL_UPDATE_ARRAY     _IOW(SBSA_IOCTL_MAGIC, 0x01, int)
 
+#define SKIP_RULE_LIST              0x2
+#define RULE_LIST                   0x3
+#define SBSA_ARRAY_ELEM_MAX_COUNT   100U
 
+typedef struct sbsa_array_update_u {
+    uint32_t hint;
+    uint32_t count;
+    uint32_t reserved;
+    uint64_t user_buf; /* userspace pointer to u32 buffer */
+} sbsa_array_update_u_t;
 
 /* Function Prototypes */
 
@@ -56,5 +68,8 @@ int
 call_drv_wait_for_completion();
 
 int read_from_proc_sbsa_msg();
+
+/* Helper: send a u32 array to the driver via ioctl */
+int sbsa_send_array_u32(uint32_t hint, const uint32_t *arr, uint32_t count);
 
 #endif

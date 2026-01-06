@@ -79,7 +79,7 @@ check_smmu_pmcg(uint32_t check_counter)
                 pmcg_base = val_iovirt_get_pmcg_info(PMCG_CTRL_BASE, i);
 
                 /* Check if PMCG node memory is mapped. If not, map it */
-                status = val_mmu_update_entry(pmcg_base, SIZE_1K);
+                status = val_mmu_update_entry(pmcg_base, SIZE_4KB);
                 if (status) {
                     val_print(ACS_PRINT_ERR, "\n       Could not map PMCG node memory", 0);
                     return ACS_STATUS_FAIL;
@@ -155,6 +155,7 @@ i021_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
     num_pe = 1; /* This test is run on single PE */
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     if (status != ACS_STATUS_SKIP)
         val_run_test_payload(TEST_NUM, num_pe, payload_pmcg_present, 0);
@@ -174,6 +175,7 @@ i027_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
     num_pe = 1; /* This test is run on single PE */
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM1, TEST_DESC1, num_pe);
     if (status != ACS_STATUS_SKIP)
         val_run_test_payload(TEST_NUM1, num_pe, payload_counter_check, 0);

@@ -1011,6 +1011,16 @@ typedef struct {
 
 void pal_ras2_create_info_table(RAS2_INFO_TABLE *ras2_info_table);
 
+/* TPM2 info table */
+typedef struct {
+  uint64_t tpm_presence;    /*  TPM Presence  */
+  uint64_t tpm_interface;   /*  TPM2 Interface */
+  uint64_t base;            /*  TPM2 Register base address */
+} TPM2_INFO_TABLE;
+
+void pal_tpm2_create_info_table(TPM2_INFO_TABLE *Tpm2InfoTable);
+uint64_t pal_tpm2_get_version(void);
+
 /* HMAT info table structures and APIs*/
 
 #define HMAT_MEM_HIERARCHY_MEMORY   0x00

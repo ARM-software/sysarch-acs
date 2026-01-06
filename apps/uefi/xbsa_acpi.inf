@@ -1,0 +1,343 @@
+## @file
+#  Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+#  SPDX-License-Identifier : Apache-2.0
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+##
+
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = xbsa_acpi
+  FILE_GUID                      = a912f198-7f0e-4803-b908-b757b806ec83
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = ShellCEntryLib
+
+#
+#  VALID_ARCHITECTURES           = AARCH64
+#
+
+[Sources.AARCH64]
+  ../
+  ../../
+  app.c
+  acs_globals.c
+  acs_helpers.c
+  xbsa_main.c
+  ../../test_pool/pe/pe001.c
+  ../../test_pool/pe/pe002.c
+  ../../test_pool/pe/pe003.c
+  ../../test_pool/pe/pe004.c
+  ../../test_pool/pe/pe006.c
+  ../../test_pool/pe/pe007.c
+  ../../test_pool/pe/pe008.c
+  ../../test_pool/pe/pe009.c
+  ../../test_pool/pe/pe010.c
+  ../../test_pool/pe/pe011.c
+  ../../test_pool/pe/pe012.c
+  ../../test_pool/pe/pe013.c
+  ../../test_pool/pe/pe014.c
+  ../../test_pool/pe/pe015.c
+  ../../test_pool/pe/pe016.c
+  ../../test_pool/pe/pe017.c
+  ../../test_pool/pe/pe018.c
+  ../../test_pool/pe/pe019.c
+  ../../test_pool/pe/pe020.c
+  ../../test_pool/pe/pe021.c
+  ../../test_pool/pe/pe022.c
+  ../../test_pool/pe/pe066.c
+  ../../test_pool/gic/g001.c
+  ../../test_pool/gic/g002.c
+  ../../test_pool/gic/g003.c
+  ../../test_pool/gic/g004.c
+  ../../test_pool/gic/g005.c
+  ../../test_pool/gic/g006.c
+  ../../test_pool/gic/g007.c
+  ../../test_pool/gic/g008.c
+  ../../test_pool/gic/g009.c
+  ../../test_pool/gic/g010.c
+  ../../test_pool/gic/g011.c
+  ../../test_pool/gic/v2m001.c
+  ../../test_pool/gic/v2m002.c
+  ../../test_pool/gic/v2m003.c
+  ../../test_pool/gic/v2m004.c
+  ../../test_pool/gic/its001.c
+  ../../test_pool/gic/its002.c
+  ../../test_pool/gic/its003.c
+  ../../test_pool/gic/its004.c
+  ../../test_pool/gic/its005.c
+  ../../test_pool/timer/t001.c
+  ../../test_pool/timer/t002.c
+  ../../test_pool/timer/t003.c
+  ../../test_pool/timer/t004.c
+  ../../test_pool/timer/t005.c
+  ../../test_pool/watchdog/w001.c
+  ../../test_pool/watchdog/w002.c
+  ../../test_pool/peripherals/d001.c
+  ../../test_pool/peripherals/d002.c
+  ../../test_pool/peripherals/d003.c
+  ../../test_pool/memory_map/m002.c
+  ../../test_pool/memory_map/m003.c
+  ../../test_pool/power_wakeup/u001.c
+  ../../test_pool/power_wakeup/u002.c
+  ../../test_pool/power_wakeup/u003.c
+  ../../test_pool/power_wakeup/u004.c
+  ../../test_pool/power_wakeup/u005.c
+  ../../test_pool/smmu/i001.c
+  ../../test_pool/smmu/i002.c
+  ../../test_pool/smmu/i003.c
+  ../../test_pool/smmu/i004.c
+  ../../test_pool/smmu/i005.c
+  ../../test_pool/smmu/i006.c
+  ../../test_pool/smmu/i007.c
+  ../../test_pool/pcie/p001.c
+  ../../test_pool/pcie/p002.c
+  ../../test_pool/pcie/p003.c
+  ../../test_pool/pcie/p006.c
+  ../../test_pool/pcie/p008.c
+  ../../test_pool/pcie/p009.c
+  ../../test_pool/pcie/p011.c
+  ../../test_pool/pcie/p017.c
+  ../../test_pool/pcie/p018.c
+  ../../test_pool/pcie/p019.c
+  ../../test_pool/pcie/p020.c
+  ../../test_pool/pcie/p021.c
+  ../../test_pool/pcie/p022.c
+  ../../test_pool/pcie/p023.c
+  ../../test_pool/pcie/p024.c
+  ../../test_pool/pcie/p025.c
+  ../../test_pool/pcie/p026.c
+  ../../test_pool/pcie/p030.c
+  ../../test_pool/pcie/p031.c
+  ../../test_pool/pcie/p032.c
+  ../../test_pool/pcie/p033.c
+  ../../test_pool/pcie/p035.c
+  ../../test_pool/pcie/p036.c
+  ../../test_pool/pcie/p037.c
+  ../../test_pool/pcie/p038.c
+  ../../test_pool/pcie/p039.c
+  ../../test_pool/pcie/p042.c
+  ../../test_pool/pcie/p100.c
+  ../../test_pool/exerciser/e001.c
+  ../../test_pool/exerciser/e002.c
+  ../../test_pool/exerciser/e004.c
+  ../../test_pool/exerciser/e006.c
+  ../../test_pool/exerciser/e010.c
+  ../../test_pool/exerciser/e011.c
+  ../../test_pool/exerciser/e012.c
+  ../../test_pool/exerciser/e013.c
+  ../../test_pool/exerciser/e014.c
+  ../../test_pool/exerciser/e015.c
+  ../../test_pool/exerciser/e016.c
+  ../../test_pool/exerciser/e017.c
+  ../../test_pool/exerciser/e033.c
+  ../../test_pool/exerciser/e035.c
+  ../../test_pool/exerciser/e039.c
+  ../../test_pool/pe/pe023.c
+  ../../test_pool/pe/pe024.c
+  ../../test_pool/pe/pe025.c
+  ../../test_pool/pe/pe026.c
+  ../../test_pool/pe/pe027.c
+  ../../test_pool/pe/pe028.c
+  ../../test_pool/pe/pe029.c
+  ../../test_pool/pe/pe030.c
+  ../../test_pool/pe/pe031.c
+  ../../test_pool/pe/pe032.c
+  ../../test_pool/pe/pe033.c
+  ../../test_pool/pe/pe034.c
+  ../../test_pool/pe/pe035.c
+  ../../test_pool/pe/pe036.c
+  ../../test_pool/pe/pe037.c
+  ../../test_pool/pe/pe038.c
+  ../../test_pool/pe/pe039.c
+  ../../test_pool/pe/pe040.c
+  ../../test_pool/pe/pe041.c
+  ../../test_pool/pe/pe042.c
+  ../../test_pool/pe/pe043.c
+  ../../test_pool/pe/pe044.c
+  ../../test_pool/pe/pe045.c
+  ../../test_pool/pe/pe046.c
+  ../../test_pool/pe/pe047.c
+  ../../test_pool/pe/pe048.c
+  ../../test_pool/pe/pe049.c
+  ../../test_pool/pe/pe051.c
+  ../../test_pool/pe/pe052.c
+  ../../test_pool/pe/pe053.c
+  ../../test_pool/pe/pe054.c
+  ../../test_pool/pe/pe057.c
+  ../../test_pool/pe/pe058.c
+  ../../test_pool/pe/pe059.c
+  ../../test_pool/pe/pe060.c
+  ../../test_pool/pe/pe061.c
+  ../../test_pool/pe/pe062.c
+  ../../test_pool/pe/pe068.c
+  ../../test_pool/pe/pe065.c
+  ../../test_pool/gic/g012.c
+  ../../test_pool/gic/g013.c
+  ../../test_pool/gic/g014.c
+  ../../test_pool/gic/g015.c
+  ../../test_pool/gic/g016.c
+  ../../test_pool/timer/t006.c
+  ../../test_pool/timer/t008.c
+  ../../test_pool/watchdog/w003.c
+  ../../test_pool/smmu/i008.c
+  ../../test_pool/smmu/i009.c
+  ../../test_pool/smmu/i010.c
+  ../../test_pool/smmu/i011.c
+  ../../test_pool/smmu/i012.c
+  ../../test_pool/smmu/i013.c
+  ../../test_pool/smmu/i015.c
+  ../../test_pool/smmu/i016.c
+  ../../test_pool/smmu/i017.c
+  ../../test_pool/smmu/i018.c
+  ../../test_pool/smmu/i019.c
+  ../../test_pool/smmu/i020.c
+  ../../test_pool/smmu/i021.c
+  ../../test_pool/smmu/i022.c
+  ../../test_pool/smmu/i024.c
+  ../../test_pool/smmu/i025.c
+  ../../test_pool/memory_map/m005.c
+  ../../test_pool/pcie/p004.c
+  ../../test_pool/pcie/p005.c
+  ../../test_pool/pcie/p007.c
+  ../../test_pool/pcie/p010.c
+  ../../test_pool/pcie/p046.c
+  ../../test_pool/pcie/p047.c
+  ../../test_pool/pcie/p048.c
+  ../../test_pool/pcie/p049.c
+  ../../test_pool/pcie/p050.c
+  ../../test_pool/pcie/p051.c
+  ../../test_pool/pcie/p052.c
+  ../../test_pool/pcie/p053.c
+  ../../test_pool/pcie/p054.c
+  ../../test_pool/pcie/p056.c
+  ../../test_pool/pcie/p057.c
+  ../../test_pool/pcie/p058.c
+  ../../test_pool/pcie/p061.c
+  ../../test_pool/pcie/p062.c
+  ../../test_pool/pcie/p063.c
+  ../../test_pool/pcie/p064.c
+  ../../test_pool/pcie/p065.c
+  ../../test_pool/pcie/p066.c
+  ../../test_pool/pcie/p067.c
+  ../../test_pool/pcie/p068.c
+  ../../test_pool/pcie/p069.c
+  ../../test_pool/pcie/p070.c
+  ../../test_pool/pcie/p071.c
+  ../../test_pool/pcie/p072.c
+  ../../test_pool/pcie/p078.c
+  ../../test_pool/pcie/p079.c
+  ../../test_pool/pcie/p080.c
+  ../../test_pool/pcie/p081.c
+  ../../test_pool/pcie/p082.c
+  ../../test_pool/pcie/p083.c
+  ../../test_pool/pcie/p084.c
+  ../../test_pool/pcie/p085.c
+  ../../test_pool/pcie/p086.c
+  ../../test_pool/pcie/p087.c
+  ../../test_pool/pcie/p088.c
+  ../../test_pool/pcie/p089.c
+  ../../test_pool/pcie/p090.c
+  ../../test_pool/pcie/p091.c
+  ../../test_pool/pcie/p092.c
+  ../../test_pool/pcie/p093.c
+  ../../test_pool/exerciser/e003.c
+  ../../test_pool/exerciser/e007.c
+  ../../test_pool/exerciser/e008.c
+  ../../test_pool/exerciser/e019.c
+  ../../test_pool/exerciser/e020.c
+  ../../test_pool/exerciser/e021.c
+  ../../test_pool/exerciser/e022.c
+  ../../test_pool/exerciser/e023.c
+  ../../test_pool/exerciser/e024.c
+  ../../test_pool/exerciser/e025.c
+  ../../test_pool/exerciser/e026.c
+  ../../test_pool/exerciser/e027.c
+  ../../test_pool/exerciser/e028.c
+  ../../test_pool/exerciser/e029.c
+  ../../test_pool/exerciser/e030.c
+  ../../test_pool/exerciser/e036.c
+  ../../test_pool/pmu/pmu001.c
+  ../../test_pool/pmu/pmu002.c
+  ../../test_pool/pmu/pmu003.c
+  ../../test_pool/pmu/pmu004.c
+  ../../test_pool/pmu/pmu005.c
+  ../../test_pool/pmu/pmu006.c
+  ../../test_pool/pmu/pmu009.c
+  ../../test_pool/mpam/mpam001.c
+  ../../test_pool/mpam/mpam002.c
+  ../../test_pool/mpam/mpam003.c
+  ../../test_pool/mpam/mpam007.c
+  ../../test_pool/mpam/mpam005.c
+  ../../test_pool/mpam/mpam006.c
+  ../../test_pool/ras/ras001.c
+  ../../test_pool/ras/ras002.c
+  ../../test_pool/ras/ras003.c
+  ../../test_pool/ras/ras004.c
+  ../../test_pool/ras/ras005.c
+  ../../test_pool/ras/ras006.c
+  ../../test_pool/ras/ras007.c
+  ../../test_pool/ras/ras008.c
+  ../../test_pool/ras/ras009.c
+  ../../test_pool/ras/ras010.c
+  ../../test_pool/ras/ras011.c
+  ../../test_pool/ras/ras012.c
+  ../../test_pool/ras/ras013.c
+  ../../test_pool/ras/ras014.c
+  ../../test_pool/ete/ete001.c
+  ../../test_pool/ete/ete002.c
+  ../../test_pool/ete/ete003.c
+  ../../test_pool/ete/ete004.c
+  ../../test_pool/ete/ete005.c
+  ../../test_pool/ete/ete006.c
+  ../../test_pool/ete/ete007.c
+  ../../test_pool/ete/ete008.c
+  ../../test_pool/drtm/interface010.c
+  ../../test_pool/drtm/interface011.c
+  ../../test_pool/tpm/tpm001.c
+  ../../test_pool/tpm/tpm002.c
+
+[Packages]
+  StdLib/StdLib.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ShellPkg/ShellPkg.dec
+
+[LibraryClasses]
+  ValLib
+  PalLib
+  UefiLib
+  ShellLib
+  DebugLib
+  BaseMemoryLib
+  ShellCEntryLib
+  UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
+
+[Protocols]
+  gEfiAcpiTableProtocolGuid                     ## CONSUMES
+  gHardwareInterruptProtocolGuid                ## CONSUMES
+  gEfiCpuArchProtocolGuid                       ## CONSUMES
+  gEfiPciIoProtocolGuid                         ## CONSUMES
+  gEfiLoadedImageProtocolGuid                   ## CONSUMES
+  gEfiSmbiosProtocolGuid                        ## CONSUMES
+
+[Guids]
+  gEfiAcpi20TableGuid
+  gEfiAcpiTableGuid
+
+[BuildOptions]
+  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
+  GCC:*_*_*_CC_FLAGS   = -O0 -DPC_BSA -I${ACS_PATH}/ -I${ACS_PATH}/val/ -DTARGET_UEFI

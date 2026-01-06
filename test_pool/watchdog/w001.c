@@ -107,6 +107,7 @@ w001_entry(uint32_t num_pe)
 
     num_pe = 1; /*This Timer test is run on single processor*/
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

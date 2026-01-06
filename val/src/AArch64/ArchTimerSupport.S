@@ -41,6 +41,7 @@ GCC_ASM_EXPORT(ArmReadAA64MMFR1EL1)
 GCC_ASM_EXPORT(ArmReadAA64MMFR4EL1)
 GCC_ASM_EXPORT(ArmReadCntFrq)
 GCC_ASM_EXPORT(ArmReadCntPct)
+GCC_ASM_EXPORT(ArmReadCntPctSS)
 GCC_ASM_EXPORT(ArmReadCntkCtl)
 GCC_ASM_EXPORT(ArmWriteCntkCtl)
 GCC_ASM_EXPORT(ArmReadCntkCtl12)
@@ -60,6 +61,7 @@ GCC_ASM_EXPORT(ArmWriteCntvCtl)
 GCC_ASM_EXPORT(ArmReadCntvCtl02)
 GCC_ASM_EXPORT(ArmWriteCntvCtl02)
 GCC_ASM_EXPORT(ArmReadCntvCt)
+GCC_ASM_EXPORT(ArmReadCntVctSS)
 GCC_ASM_EXPORT(ArmReadCntpCval)
 GCC_ASM_EXPORT(ArmWriteCntpCval)
 GCC_ASM_EXPORT(ArmReadCntpCval02)
@@ -103,6 +105,9 @@ ASM_PFX(ArmReadCntPct):
   mrs   x0, cntpct_el0           // Read CNTPCT (Physical counter register)
   ret
 
+ASM_PFX(ArmReadCntPctSS):
+  mrs   x0, cntpctss_el0         // Read CNTPCTSS_EL0 (Physical Count register, self-synchronized)
+  ret
 
 ASM_PFX(ArmReadCntkCtl):
   mrs   x0, cntkctl_el1          // Read CNTK_CTL (Timer PL1 Control Register)
@@ -199,6 +204,10 @@ ASM_PFX(ArmReadCntvCt):
   mrs  x0, cntvct_el0            // Read CNTVCT  (Virtual Count Register)
   ret
 
+
+ASM_PFX(ArmReadCntVctSS):
+  mrs   x0, cntvctss_el0         // Read CNTVCTSS_EL0 (Virtual Count register, self-synchronized)
+  ret
 
 ASM_PFX(ArmReadCntpCval):
   mrs   x0, cntp_cval_el0        // Read CNTP_CTVAL (Physical Timer Compare Value Register)

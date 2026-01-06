@@ -171,9 +171,18 @@ static
 uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descriptor_t *mem_desc)
 {
     uint64_t block_size = 0x1ull << tt_desc.size_log2;
-    uint64_t input_address, output_address, filled_tables, table_index, max_allowed_mem;
+    uint64_t input_address, output_address, filled_tables, table_index;
+    uint64_t parent_block_start, parent_block_end;
+    uint64_t step_to_next_parent;
     uint64_t *tt_base_next_level, *table_desc;
     tt_descriptor_t tt_desc_next_level;
+
+    /* Prefill support when splitting BLOCK->TABLE */
+    uint64_t old_desc, old_attrs, parent_phys_base;
+    uint64_t child_block_size, entries_to_fill, child_phys;
+    uint32_t child_level;
+    uint64_t prefill_val;
+    uint32_t i, max_entries;
 
     val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.level: %d     ", tt_desc.level);
     val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.input_base: 0x%llx     ", tt_desc.input_base);
@@ -195,6 +204,10 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         table_desc = &tt_desc.tt_base[table_index];
 
         val_print(PGT_DEBUG_LEVEL, "\n       table_index = %d     ", table_index);
+        /* Compute parent block bounds for this level, thereby prevent any overflows */
+        parent_block_start = (input_address & ~(block_size - 1));
+        parent_block_end   = parent_block_start + block_size - 1;
+        step_to_next_parent = (parent_block_end + 1) - input_address;
 
         if (tt_desc.level == 3)
         {
@@ -239,6 +252,41 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
                 return ACS_STATUS_ERR;
             }
             val_memory_set(tt_base_next_level, page_size, 0);
+
+            /* If we are splitting an existing BLOCK descriptor into a TABLE,
+               prefill the entire child table to mirror the original mapping,
+               so that non-overlapping subranges remain mapped. */
+            if (*table_desc != 0 && IS_PGT_ENTRY_BLOCK(*table_desc))
+            {
+                old_desc = *table_desc;
+                old_attrs = PGT_DESC_ATTRIBUTES(old_desc);
+                parent_phys_base = old_desc & ~(block_size - 1);
+                child_level = tt_desc.level + 1;
+                child_block_size = get_block_size(child_level);
+                max_entries = get_entries_per_level(page_size);
+                /* Number of child entries covering this parent block */
+                entries_to_fill = block_size / child_block_size;
+                if (entries_to_fill > max_entries)
+                    entries_to_fill = max_entries;
+
+                for (i = 0; i < (uint32_t)entries_to_fill; ++i)
+                {
+                    child_phys = parent_phys_base + ((uint64_t)i * child_block_size);
+                    if (child_level == PGT_LEVEL_3)
+                    {
+                        prefill_val = PGT_ENTRY_PAGE_MASK | PGT_ENTRY_VALID_MASK;
+                        prefill_val |= (child_phys & ~(uint64_t)(page_size - 1));
+                        prefill_val |= old_attrs;
+                    }
+                    else
+                    {
+                        prefill_val = PGT_ENTRY_BLOCK_MASK | PGT_ENTRY_VALID_MASK;
+                        prefill_val |= (child_phys & ~(child_block_size - 1));
+                        prefill_val |= old_attrs;
+                    }
+                    tt_base_next_level[i] = prefill_val;
+                }
+            }
         }
         else
             tt_base_next_level = val_memory_phys_to_virt(*table_desc & pgt_addr_mask);
@@ -251,10 +299,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         val_print(PGT_DEBUG_LEVEL, "       filled_tables in next level = 0x%llx", filled_tables);
         val_print(PGT_DEBUG_LEVEL, "       offset = 0x%llx", offset);
 
-        // Calculate the maximum allowed mem addr that can be mapped for the L0/L1/L2 table.
-        // This prevents overwriting page tables.
-        max_allowed_mem                = input_address + block_size - offset - 1;
-        tt_desc_next_level.input_top   = get_min(tt_desc.input_top, max_allowed_mem);
+        tt_desc_next_level.input_top   = get_min(tt_desc.input_top, parent_block_end);
         tt_desc_next_level.output_base = output_address;
         tt_desc_next_level.level       = tt_desc.level + 1;
         tt_desc_next_level.size_log2   = tt_desc.size_log2 - bits_per_level;
@@ -271,6 +316,12 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         *table_desc |= (uint64_t)val_memory_virt_to_phys(tt_base_next_level) &
                        ~(uint64_t)(page_size - 1);
         val_print(PGT_DEBUG_LEVEL, "\n      table_descriptor = 0x%llx     ", *table_desc);
+
+        /* Ensure outer loop advances to next parent block boundary */
+        if (step_to_next_parent <= block_size)
+            offset = block_size - step_to_next_parent;
+        else
+            offset = 0;
     }
     return 0;
 }

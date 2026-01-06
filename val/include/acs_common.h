@@ -74,11 +74,22 @@ typedef enum {
 /*These are the states a test can be in */
 #define TEST_START_VAL   0x1
 #define TEST_END_VAL     0x2
-#define TEST_PASS_VAL    0x4
-#define TEST_FAIL_VAL    0x8
-#define TEST_SKIP_VAL    0x9
-#define TEST_PENDING_VAL 0xA
-#define TEST_WARN_VAL    0xB
+#define TEST_PENDING_VAL 0x3
+/******************************************************************************
+ * The numeric values below are ordered by severity.
+ * DO NOT reassign or change them, as code relies on the fact that
+ * higher values represent worse outcomes (used in consolidated status).
+ ******************************************************************************/
+#define TEST_PASS_VAL      0x4
+#define TEST_PARTIAL_COV   0x5
+#define TEST_WARN_VAL      0x6
+#define TEST_SKIP_VAL      0x7
+#define TEST_FAIL_VAL      0x8
+
+/* Test support defines */
+#define TEST_NOT_IMPLEMENTED    0xA
+#define TEST_PAL_NOT_SUPPORTED  0xB
+#define TEST_SUPPORTED          0x0
 
 #define CPU_NUM_BIT  32
 #define CPU_NUM_MASK 0xFFFFFFFF
@@ -98,6 +109,8 @@ typedef enum {
 #define ACS_END(test_num) (((TEST_END_VAL) << STATE_BIT) | ((test_num) << TEST_NUM_BIT))
 
 /* TEST Result defines */
+
+#define ENCODE_STATUS(test_status)  ((test_status) << STATE_BIT)
 
 #define RESULT_PASS(test_num, status) (((TEST_PASS_VAL) << STATE_BIT) | ((test_num) << TEST_NUM_BIT) | (status))
 
@@ -130,11 +143,14 @@ typedef struct {
 } test_config_t;
 /* Test status enum defs */
 typedef enum {
-    TEST_PASS = TEST_PASS_VAL,
-    TEST_FAIL = TEST_FAIL_VAL,
-    TEST_SKIP = TEST_SKIP_VAL,
-    TEST_WARN = TEST_WARN_VAL,
-    TEST_STATUS_UNKNOWN
+    TEST_PASS     = TEST_PASS_VAL,
+    TEST_PART_COV = TEST_PARTIAL_COV,
+    TEST_WARN     = TEST_WARN_VAL,
+    TEST_SKIP     = TEST_SKIP_VAL,
+    TEST_FAIL     = TEST_FAIL_VAL,
+    TEST_NO_IMP   = TEST_NOT_IMPLEMENTED,
+    TEST_PAL_NS   = TEST_PAL_NOT_SUPPORTED,
+    TEST_STATUS_UNKNOWN = 0xFFFFFFFF
 } test_status_t;
 
 uint8_t

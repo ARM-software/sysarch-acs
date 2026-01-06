@@ -32,6 +32,8 @@ else()
     set(TARGET_SWITCH "-march=armv${ARM_ARCH_MAJOR}.${ARM_ARCH_MINOR}-a+sve+profile")
 endif()
 
+message(STATUS "[ACS] : TARGET_SWITCH is set to ${TARGET_SWITCH}")
+
 if(${ENABLE_PIE})
     set(COMPILE_PIE_SWITCH "-fpie")
     add_definitions(-DENABLE_PIE)

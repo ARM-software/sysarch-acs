@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,9 +98,8 @@ val_wd_free_info_table(void)
         g_wd_info_table = NULL;
     }
     else {
-      val_print(ACS_PRINT_ERR,
-                  "\n WARNING: g_wd_info_table pointer is already NULL",
-        0);
+      val_print(ACS_PRINT_DEBUG,
+                  "\n g_wd_info_table pointer is already NULL", 0);
     }
 }
 
@@ -140,6 +139,7 @@ uint32_t
 val_wd_set_ws0(uint32_t index, uint32_t timeout)
 {
   uint64_t counter_freq;
+  uint64_t freq;
   uint32_t wor_l;
   uint32_t wor_h = 0;
   uint64_t ctrl_base;
@@ -155,7 +155,22 @@ val_wd_set_ws0(uint32_t index, uint32_t timeout)
   /* W_IIDR.Architecture Revision [19:16] = 0x1 for Watchdog Rev 1 */
   data = VAL_EXTRACT_BITS(val_mmio_read(ctrl_base + WD_IIDR_OFFSET), 16, 19);
 
-  counter_freq = val_get_counter_frequency();
+  /*
+   * The common system_counter_to_watchdog_counter frequency ratio can be
+   * anywhere from 1x to 256x, meaning the watchdog counter typically runs
+   * slower than the system counter. If we used the system counter frequency
+   * directly, the system-counter-based failsafe interrupt could fire before
+   * the watchdog interrupt, which would break the watchdog tests.
+   *
+   * To avoid this, we divide the watchdog counter frequency by 1024 so that
+   * the watchdog interrupt always occurs before the system-counter-based
+   * failsafe interrupt.Ensure the resulting frequency is never zero.
+   */
+  freq = val_get_counter_frequency();
+  counter_freq = freq / 1024;
+
+  if (counter_freq == 0)
+    counter_freq = 1;
 
   /* Check if the timeout value exceeds */
   if (data == 0)

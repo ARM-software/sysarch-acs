@@ -28,18 +28,12 @@ static void payload(void)
     uint64_t data = 0;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    if (g_sbsa_level < 8) {
-        val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
-        return;
-    }
 
-    /* ID_AA64ISAR1_EL1.LS64[63:60] = 0b0010 or 0b0011 indicates FEAT_LS64_V support  */
-    /* FEAT_LS64_V can be implemented only if FEAT_LS64 is implemented */
-    /* FEAT_LS64_V must be implemented if FEAT_LS64_ACCDATA is supported */
+    /* ID_AA64ISAR1_EL1.LS64[63:60] >= 0b0001 indicates FEAT_LS64 support */
     data = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR1_EL1), 60, 63);
     val_print_primary_pe(ACS_PRINT_DEBUG, "\n       ID_AA64ISAR1_EL1.LS64 = %llx", data, index);
 
-    if (data == 2 || data == 3)
+    if (data >= 1)
         val_set_status(index, RESULT_PASS(TEST_NUM, 01));
     else
         val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
@@ -49,6 +43,7 @@ uint32_t pe060_entry(uint32_t num_pe)
 {
     uint32_t status = ACS_STATUS_FAIL;
 
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

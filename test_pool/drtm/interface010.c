@@ -40,6 +40,7 @@ payload(uint32_t num_pe)
   uint32_t its_id, num_its;
 
   /* Get RDBase Address for current PE */
+  (void)num_pe;
   pe_rdbase = val_gic_get_pe_rdbase(index);
   val_print(ACS_PRINT_DEBUG, "\n       PE RD base address %llx", pe_rdbase);
   if (pe_rdbase == 0)
@@ -96,11 +97,15 @@ interface010_entry(uint32_t num_pe)
 
   uint32_t status = ACS_STATUS_FAIL;
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
-  if (status != ACS_STATUS_SKIP)
-  /* execute payload, which will execute relevant functions on current and other PEs */
+  if (status != ACS_STATUS_SKIP) {
+      if (val_gic_its_configure() != ACS_STATUS_PASS)
+          return TEST_SKIP_VAL;
+      /* execute payload, which will execute relevant functions on current and other PEs */
       payload(num_pe);
+  }
 
   /* get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);

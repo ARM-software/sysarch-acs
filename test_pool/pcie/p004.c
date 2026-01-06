@@ -139,7 +139,8 @@ payload(void)
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
 
-      if (dp_type == RP)
+      /* BSA -> PCI_IN_13 SBSA(iEP_RP) -> RHVZJY */
+      if (dp_type == RP || dp_type == iEP_RP)
       {
         /* Part 1:
          * Check When Address is within the Range of Non-Prefetchable
@@ -262,7 +263,8 @@ exception_return:
 
   if (test_skip == 1) {
       val_print(ACS_PRINT_DEBUG,
-        "\n       No RP type device found with valid Memory Base/Limit Reg.", 0);
+        "\n       No RP/iEP_RP type device found with valid Memory Base/Limit Reg."
+        " Skipping the test.", 0);
       val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
   }
   else
@@ -277,6 +279,7 @@ p004_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

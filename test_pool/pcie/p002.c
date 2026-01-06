@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,8 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 2)
+#define TEST_DESC  "Check ECAM Memory accessibility       "
 #define TEST_RULE  "PCI_IN_02"
-#define TEST_DESC  "PE - ECAM Region accessibility check  "
 
 /* Giving max VF as 256*/
 #define MAX_VFS 256
@@ -43,7 +43,7 @@ esr(uint64_t interrupt_type, void *context)
   val_pe_update_elr(context, (uint64_t)branch_to_test);
 
   val_print(ACS_PRINT_INFO, "\n       Received exception of type: %d", interrupt_type);
-  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
+  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
 }
 
 /*
@@ -116,17 +116,18 @@ payload(void)
   status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
   if (status)
   {
-      val_print(ACS_PRINT_ERR, "\n      Failed in installing the exception handler", 0);
-      val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+      val_print(ACS_PRINT_ERR, "\n       Failed in installing the exception handler", 0);
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
       return;
   }
 
   branch_to_test = &&exception_return;
 
   num_ecam = val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
+
   if (num_ecam == 0) {
-      val_print(ACS_PRINT_DEBUG, "\n       No ECAM in MCFG                   ", 0);
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
+      val_print(ACS_PRINT_DEBUG, "\n       No ECAM in MCFG. Skipping test               ", 0);
+      val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
       return;
   }
 
@@ -135,28 +136,26 @@ payload(void)
       ecam_base = val_pcie_get_info(PCIE_INFO_ECAM, num_ecam);
       if (ecam_base == 0) {
           val_print(ACS_PRINT_ERR, "\n       ECAM Base in MCFG is 0            ", 0);
-          val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
+          val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
           return;
       }
-
       segment = val_pcie_get_info(PCIE_INFO_SEGMENT, num_ecam);
       bus = val_pcie_get_info(PCIE_INFO_START_BUS, num_ecam);
       end_bus = val_pcie_get_info(PCIE_INFO_END_BUS, num_ecam);
 
-
       /* Accessing the BDF PCIe config range */
       for (bus_index = bus; bus_index <= end_bus; bus_index++) {
         for (dev_index = 0; dev_index < PCIE_MAX_DEV; dev_index++) {
-           for (func_index = 0; func_index < PCIE_MAX_FUNC; func_index++) {
+          for (func_index = 0; func_index < PCIE_MAX_FUNC; func_index++) {
 
                bdf = PCIE_CREATE_BDF(segment, bus_index, dev_index, func_index);
                ret = val_pcie_read_cfg(bdf, TYPE01_VIDR, &data);
 
                //If this is really PCIe CFG space, Device ID and Vendor ID cannot be 0
                if (ret == PCIE_NO_MAPPING || (data == 0)) {
-                  val_print(ACS_PRINT_ERR,
-                        "\n       Incorrect data at ECAM Base %4x    ", data);
-                  val_set_status(index, RESULT_FAIL(TEST_NUM, (bus_index << 8)|dev_index));
+                  val_print(ACS_PRINT_ERR, "\n       Incorrect data at ECAM Base %4x    ", data);
+                  val_print(ACS_PRINT_ERR, "\n       BDF is  %x    ", bdf);
+                  val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
                   return;
                }
 
@@ -164,7 +163,11 @@ payload(void)
                if (data != PCIE_UNKNOWN_RESPONSE)
                {
                   if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS,  &data) != PCIE_SUCCESS)
-                      continue;
+                  {
+                    val_print(ACS_PRINT_DEBUG,
+                              "\n       Skipping legacy PCI device with BDF 0x%x", bdf);
+                    continue;
+                  }
 
                   val_print(ACS_PRINT_INFO, "\n     Valid BDF is %x", bdf);
                   if (val_pcie_function_header_type(bdf) == TYPE0_HEADER)
@@ -207,7 +210,7 @@ payload(void)
 
                   /* Returned data must be FF's, otherwise the test must fail */
                   if (data != PCIE_UNKNOWN_RESPONSE) {
-                     val_print(ACS_PRINT_ERR, "\n      Incorrect data for Bdf 0x%x    ", bdf);
+                     val_print(ACS_PRINT_ERR, "\n       Incorrect data for Bdf 0x%x    ", bdf);
                      val_set_status(index, RESULT_FAIL(TEST_NUM,
                                      (bus_index << PCIE_BUS_SHIFT)|dev_index));
                      return;
@@ -217,20 +220,20 @@ payload(void)
 
                   /* Returned data must be FF's, otherwise the test must fail */
                   if (data != PCIE_UNKNOWN_RESPONSE) {
-                     val_print(ACS_PRINT_ERR, "\n      Incorrect data for Bdf 0x%x    ", bdf);
+                     val_print(ACS_PRINT_ERR, "\n       Incorrect data for Bdf 0x%x    ", bdf);
                      val_set_status(index, RESULT_FAIL(TEST_NUM,
                                      (bus_index << PCIE_BUS_SHIFT)|dev_index));
                      return;
                   }
 
                }
-            }
+          }
         }
       }
       val_memory_set(skip_rid_list, sizeof(uint32_t) * MAX_VFS, 0);
   }
 
-  val_set_status(index, RESULT_PASS(TEST_NUM, 1));
+  val_set_status(index, RESULT_PASS(TEST_NUM, 01));
 
 exception_return:
   return;
@@ -244,6 +247,7 @@ p002_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

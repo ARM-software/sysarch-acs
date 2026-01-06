@@ -71,6 +71,7 @@
   ../../test_pool/pe/pe060.c
   ../../test_pool/pe/pe061.c
   ../../test_pool/pe/pe062.c
+  ../../test_pool/pe/pe065.c
   ../../test_pool/gic/g012.c
   ../../test_pool/gic/g013.c
   ../../test_pool/gic/g014.c
@@ -84,7 +85,6 @@
   ../../test_pool/smmu/i011.c
   ../../test_pool/smmu/i012.c
   ../../test_pool/smmu/i013.c
-  ../../test_pool/smmu/i014.c
   ../../test_pool/smmu/i015.c
   ../../test_pool/smmu/i016.c
   ../../test_pool/smmu/i017.c
@@ -96,11 +96,15 @@
   ../../test_pool/smmu/i024.c
   ../../test_pool/smmu/i025.c
   ../../test_pool/memory_map/m005.c
+  ../../test_pool/pcie/p001.c
+  ../../test_pool/pcie/p002.c
+  ../../test_pool/pcie/p004.c
+  ../../test_pool/pcie/p005.c
   ../../test_pool/pcie/p007.c
   ../../test_pool/pcie/p010.c
-  ../../test_pool/pcie/p043.c
-  ../../test_pool/pcie/p044.c
-  ../../test_pool/pcie/p045.c
+  ../../test_pool/pcie/p011.c
+  ../../test_pool/pcie/p037.c
+  ../../test_pool/pcie/p038.c
   ../../test_pool/pcie/p046.c
   ../../test_pool/pcie/p047.c
   ../../test_pool/pcie/p048.c
@@ -125,11 +129,6 @@
   ../../test_pool/pcie/p070.c
   ../../test_pool/pcie/p071.c
   ../../test_pool/pcie/p072.c
-  ../../test_pool/pcie/p073.c
-  ../../test_pool/pcie/p074.c
-  ../../test_pool/pcie/p075.c
-  ../../test_pool/pcie/p076.c
-  ../../test_pool/pcie/p077.c
   ../../test_pool/pcie/p078.c
   ../../test_pool/pcie/p079.c
   ../../test_pool/pcie/p080.c

@@ -19,6 +19,8 @@
 #define __ACS_RAS_H
 
 
+#define ERR_FR_CE_MASK   (0x3ull << 53)
+#define ERR_FR_DE_MASK   (0x1ull << 52)
 #define ERR_FR_INJ_MASK  (0x3ull << 20)
 #define ERR_FR_DUI_MASK  (0x3ull << 16)
 #define ERR_FR_CEC_MASK  (0x7ull << 12)

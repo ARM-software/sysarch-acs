@@ -29,6 +29,17 @@
 #define TEST_RULE1  "S_L7MP_02"
 #define TEST_DESC1  "Check for MPAM partition IDs          "
 
+/* Helper: check whether FEAT_MPAM is implemented */
+static uint32_t is_feat_mpam_implemented(void)
+{
+    /* ID_AA64PFR0_EL1.MPAM bits[43:40] > 0 or
+       ID_AA64PFR1_EL1.MPAM_frac bits[19:16] > 0 indicates implementation */
+    if ((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
+        (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))
+        return 1;
+    return 0;
+}
+
 static void payload_check_mpam_ext_support(void)
 {
     uint32_t pe_index;
@@ -36,11 +47,7 @@ static void payload_check_mpam_ext_support(void)
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
     /* PEs must implement FEAT_MPAM */
-    /* ID_AA64PFR0_EL1.MPAM bits[43:40] > 0 or ID_AA64PFR1_EL1.MPAM_frac bits[19:16] > 0
-       indicates implementation of MPAM extension */
-
-    if (!((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
-        (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))) {
+    if (!is_feat_mpam_implemented()) {
             val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
             return;
     }
@@ -56,16 +63,13 @@ static void payload_check_mpam_part_id_count(void)
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    /* PEs must implement FEAT_MPAM else access to MPAMIDR_EL1 is undefined */
-    /* ID_AA64PFR0_EL1.MPAM bits[43:40] > 0 or ID_AA64PFR1_EL1.MPAM_frac bits[19:16] > 0
-    indicates implementation of MPAM extension */
+    /* Initial check: FEAT_MPAM must be implemented before accessing MPAMIDR_EL1 */
+    if (!is_feat_mpam_implemented()) {
+        val_set_status(pe_index, RESULT_FAIL(TEST_NUM1, 01));
+        return;
+    }
 
     mpamidr_val = val_mpam_reg_read(MPAMIDR_EL1);
-    if (!((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
-        (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))) {
-            val_set_status(pe_index, RESULT_FAIL(TEST_NUM1, 01));
-            return;
-    }
 
 
     /* check support for minimum of 16 physical partition IDs, MPAMIDR_EL1.PARTID_MAX
@@ -99,6 +103,7 @@ uint32_t mpam001_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
 
     num_pe = 1;
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)
@@ -116,6 +121,7 @@ uint32_t mpam008_entry(uint32_t num_pe)
     uint32_t status = ACS_STATUS_FAIL;
 
     num_pe = 1;
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM1, TEST_DESC1, num_pe);
     /* This check is when user is forcing us to skip this test */
     if (status != ACS_STATUS_SKIP)

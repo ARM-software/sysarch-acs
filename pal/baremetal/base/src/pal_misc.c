@@ -184,11 +184,6 @@ void
 pal_mmio_write(uint64_t addr, uint32_t data)
 {
 
-  if (addr & 0x3) {
-      print(ACS_PRINT_WARN, "\n  Error-Input address is not aligned. Masking the last 2 bits\n");
-      addr = addr & ~(0x3);  //make sure addr is aligned to 4 bytes
-  }
-
   if (g_print_mmio || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_write Address = %8x  Data = %x\n", addr, data);
 

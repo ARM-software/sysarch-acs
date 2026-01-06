@@ -51,7 +51,6 @@ UINT32  g_num_modules = 0;
 
 SHELL_FILE_HANDLE g_acs_log_file_handle;
 
-STATIC
 VOID
 FlushImage (
     VOID
@@ -183,7 +182,7 @@ HelpMsg (
              );
 }
 
-STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
+CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-v"    , TypeValue},    // -v    # Verbosity of the Prints. 1 shows all prints, 5 shows Errors
     {L"-f"    , TypeValue},    // -f    # Name of the log file to record the test results in.
     {L"-skip" , TypeValue},    // -skip # test(s) to skip execution

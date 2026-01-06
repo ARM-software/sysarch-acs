@@ -59,12 +59,13 @@ SHELL_FILE_HANDLE g_acs_log_file_handle;
    of EL1 phy and virt timer, Below command line option is added only for debug
    purpose to complete SBSA run on these systems */
 UINT32  g_el1physkip = FALSE;
+UINT32  g_build_sbsa = TRUE;
 
 #define SBSA_LEVEL_PRINT_FORMAT(level, only) ((level > SBSA_MAX_LEVEL_SUPPORTED) ? \
     ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
     ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
 
-STATIC VOID FlushImage (VOID)
+VOID FlushImage (VOID)
 {
   EFI_LOADED_IMAGE_PROTOCOL   *ImageInfo;
   EFI_STATUS Status;
@@ -324,7 +325,7 @@ HelpMsg (
   );
 }
 
-STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
+CONST SHELL_PARAM_ITEM ParamList[] = {
   {L"-v"    , TypeValue},    // -v    # Verbosity of the Prints. 1 shows all prints, 5 shows Errors
   {L"-l"    , TypeValue},    // -l    # Level of compliance to be tested for.
   {L"-only" , TypeValue},    // -only # To only run tests for a Specific level of compliance.

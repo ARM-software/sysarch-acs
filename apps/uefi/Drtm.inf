@@ -69,8 +69,8 @@
   ShellPkg/ShellPkg.dec
 
 [LibraryClasses]
-  UnifiedValLib
-  UnifiedPalLib
+  ValLib
+  PalLib
   UefiLib
   ShellLib
   DebugLib
@@ -92,4 +92,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
-  GCC:*_*_*_CC_FLAGS   = -O0 -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   = -O0 -DTARGET_UEFI -I${ACS_PATH}/val

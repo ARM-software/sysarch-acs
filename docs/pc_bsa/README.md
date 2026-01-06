@@ -6,7 +6,7 @@
 For more information, please refer the [PC-BSA specification](https://developer.arm.com/documentation/den0151/latest).
 
 ## Release Details
- - Code Quality: BETA
+ - Code Quality: EAC
  - The tests are written for version 1.0 of the PC BSA specification.
  - For more details on tests implemented in this release, Please refer [PC-BSA Test Scenario Document](arm_pc-bsa_architecture_compliance_test_scenario.pdf).
 
@@ -103,22 +103,46 @@ Choose the verbosity level.
 
 #### -skip
 Overrides the suite to skip the execution of a particular
-test. For example, <i>-skip 10</i> skips test 10.
+rule. For example, <i>-skip B_PE_01</i> skips test B_PE_01.
 
 #### -f (Only for UEFI application)
 Save the test output into a file in secondary storage. For example <i>-f pc_bsa.log</i> creates a file pc_bsa.log with test output.
 
 #### -fr
-Use this option to run PC BSA tests intended for future requirement validation.
+Use this option to run PC BSA tests intended for future requirement rules validation.
 
-#### -help
+#### -el1physkip
+Skips EL1 register checks. VE systems run ACS at EL1 and in some systems a crash is observed during access of EL1 registers; this flag was introduced for debugging purposes only.
+
+#### -l \<n>
+Run compliance tests up till inputted level \<n>.
+
+#### -m
+Run only the specified modules (comma-separated names). Accepted module names are: PE, GIC, PERIPHERAL, MEM_MAP, PMU, RAS, SMMU, TIMER, WATCHDOG, NIST, PCIE, MPAM, ETE, TPM, POWER_WAKEUP. For example, <i>-m PE,GIC,PCIE</i>.
+
+#### -mmio
+Enable <code>pal_mmio_read</code>/<code>pal_mmio_write</code> prints (use with <i>-v 1</i>).
+
+#### -r
+Run tests for the passed comma-separated Rule IDs or a rules file. For example, <i>-r B_PE_01,B_PE_02,B_GIC_01</i> or <i>-r rules.txt</i> (the file may mix commas and newlines; lines starting with <code>#</code> are treated as comments).
+
+#### -only \<n>
+Only run tests for rules at level \<n>.
+
+#### -skipmodule
+Skip the specified modules (comma-separated names). For example, <i>-skipmodule PE,GIC,PCIE</i>.
+
+#### -timeout \<n>
+Set timeout multiple for wakeup tests. Valid values are 1 (minimum) through 5 (maximum). The default is 1.
+
+#### -h, -help
 Displays all available command-line arguments and their usage.
 
 ### UEFI example
 
-Shell> PC_Bsa.efi -v 1 -skip 15,20,30 -f pcbsa_uefi.log
+Shell> PC_Bsa.efi -v 1 -skip B_PE_01,B_GIC_02 -f pcbsa_uefi.log
 
-Runs PCBSA ACS with verbosity INFO, skips test 15, 20 and 30 and saves the test results in <i>pcbsa_uefi.log</i>.
+Runs PCBSA ACS with verbosity INFO, skips test B_PE_01 and B_GIC_02 and saves the test results in <i>pcbsa_uefi.log</i>.
 
 ## PC BSA Linux Application
 
@@ -216,15 +240,11 @@ PC_bsa.efi      # Launch the PC BSA test
 
 ### Notes
 
-- Ensure the `.efi` binary is copied correctly into the image using the steps in the [secondary-storage setup section]((#21-emulation-environment-with-secondary-storage).
+- Ensure the `.efi` binary is copied correctly into the image using the steps in the [secondary-storage setup section](#21-emulation-environment-with-secondary-storage).
 - Capture UART output logs for test verification and reporting.
 
 ## Guidance on running SCT testcase
 - PC-BSA rules `P_L1NV_01` and `P_L1SE_01` requires [VariableServicesTest](https://github.com/tianocore/edk2-test/tree/master/uefi-sct/SctPkg/TestCase/UEFI/EFI/RuntimeServices/VariableServices/BlackBoxTest) SCT test to be run for compliance check. Please refer to [BBR ACS User Guide](https://github.com/ARM-software/bbr-acs/blob/main/README.md) for instructions to build and run SCT test suite. see the [SCT User Guide](http://www.uefi.org/testtools)for instructions on choosing and running individual testcase from UEFI Shell.
-
-## Guidance on running Bsa Uefi Coverage
-- Rule **P_L1_01** is covered by BSA ACS. Compliance requires running Bsa.efi. Refer to the [BSA ACS README](../../README.md#bsa-architecture-compliance-suite) for instructions to build and run Bsa.efi from the UEFI Shell.
-
 
 ## Limitations
 

@@ -21,7 +21,7 @@
 #include "val/include/acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 39)
-#define TEST_RULE  "PCI_MSI_01"
+#define TEST_RULE  "PCI_MSI_1"
 #define TEST_DESC  "Check MSI support for PCIe dev        "
 
 static
@@ -94,6 +94,7 @@ p039_entry(uint32_t num_pe)
 
   num_pe = 1;  //This test is run on single processor
 
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);

@@ -90,4 +90,4 @@
   DevShell
 
 [BuildOptions]
-  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a+sve+profile
+  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.6-a+sve+profile
