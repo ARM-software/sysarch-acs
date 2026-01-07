@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,10 @@
 #define ERR_FR_CEC_MASK  (0x7ull << 12)
 #define ERR_FR_CFI_MASK  (0x3ull << 10)
 #define ERR_FR_UI_MASK   (0x3ull << 4)
+#define ERR_FR_FI_MASK   (0x3ull << 6)
+#define ERR_FR_DFI_MASK  (0x3ull << 26)
+#define ERR_FR_CED_MASK  (0x1ull << 30)
+#define ERR_FR_RV_MASK   (0x1ull << 28)
 
 #define ERR_STATUS_V_MASK   (0x1 << 30)
 #define ERR_STATUS_AV_MASK  (0x1 << 31)
@@ -57,6 +61,8 @@
 
 #define RAS_INTERFACE_SR        0x0
 #define RAS_INTERFACE_MMIO      0x1
+
+#define RAS_VERSION_2           0x3
 
 #define ACS_ALL_1_64BIT         0xFFFFFFFFFFFFFFFF
 
@@ -116,6 +122,8 @@ uint32_t ras012_entry(uint32_t num_pe);
 uint32_t ras013_entry(uint32_t num_pe);
 uint32_t ras014_entry(uint32_t num_pe);
 uint32_t ras015_entry(uint32_t num_pe);
+uint32_t ras016_entry(uint32_t num_pe);
+uint32_t ras017_entry(uint32_t num_pe);
 
 uint64_t AA64ReadErrIdr1(void);
 uint64_t AA64ReadErrAddr1(void);

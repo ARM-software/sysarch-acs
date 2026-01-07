@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1068,6 +1068,29 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_RAS_TEST_NUM_BASE + 13,
+        },
+        [LVQBC] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = RAS,
+            .rule_desc        = "Check RASSA_RV, RASSA_DFI, CED supp",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
+        [ZVDJG] = {
+            .test_entry_id    = RAS016_ENTRY,
+            .module_id        = RAS,
+            .rule_desc        = "Check FEAT_RASSA_RV implementation",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 16,
+        },
+        [RKLPK] = {
+            .test_entry_id    = RAS017_ENTRY,
+            .module_id        = RAS,
+            .rule_desc        = "Check FEAT_RASSA_DFI and CED support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 17,
         },
     /* SMMU */
         [B_SMMU_01] = {
@@ -2923,6 +2946,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [RAS013_ENTRY] = ras013_entry,
     [RAS014_ENTRY] = ras014_entry,
     [RAS015_ENTRY] = ras015_entry,
+    [RAS016_ENTRY] = ras016_entry,
+    [RAS017_ENTRY] = ras017_entry,
     [SYS_RAS_2_ENTRY]  = sys_ras_2_entry,
     [TPM001_ENTRY] = tpm001_entry,
     [TPM002_ENTRY] = tpm002_entry,

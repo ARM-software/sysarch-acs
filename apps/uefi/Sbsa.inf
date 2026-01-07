@@ -1,6 +1,6 @@
 
 ## @file
-#  Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+#  Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
 #  SPDX-License-Identifier : Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -298,6 +298,8 @@
   ../../test_pool/ras/ras012.c
   ../../test_pool/ras/ras013.c
   ../../test_pool/ras/ras014.c
+  ../../test_pool/ras/ras016.c
+  ../../test_pool/ras/ras017.c
   ../../test_pool/ete/ete001.c
   ../../test_pool/ete/ete002.c
   ../../test_pool/ete/ete003.c

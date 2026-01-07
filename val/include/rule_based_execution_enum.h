@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -666,6 +666,8 @@ typedef enum {
     SYS_RAS_2_ENTRY,
     RAS015_ENTRY,
     RAS013_ENTRY,
+    RAS016_ENTRY,
+    RAS017_ENTRY,
     I001_ENTRY,
     I007_ENTRY,
     I002_ENTRY,
