@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020, 2022-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -727,11 +727,52 @@ static int smmu_reset(smmu_dev_t *smmu)
     return 1;
 }
 
+/**
+  @brief   Program SMMU_GBPA using the architected Update procedure
+
+  @param   smmu         - Pointer to the SMMU device structure
+  @param   gbpa_attrs   - Desired SMMU_GBPA attribute value with Update bit clear
+
+  @return
+    - 0       : Success
+    - non-zero: Failure (GBPA update did not complete within timeout)
+**/
+static int smmu_gbpa_write_sync(smmu_dev_t *smmu, uint32_t gbpa_attrs)
+{
+    uint64_t timeout = SMMU_SYNC_TIMEOUT;
+    uint32_t gbpa;
+
+    /* Must only write when Update == 0 */
+    while (timeout--) {
+        gbpa = val_mmio_read(smmu->base + SMMU_GBPA_OFFSET);
+        if ((gbpa & SMMU_GBPA_UPDATE) == 0)
+            break;
+    }
+
+    if (gbpa & SMMU_GBPA_UPDATE)
+        return 1;
+
+    /* setting Update=1 simultaneously */
+    val_mmio_write(smmu->base + SMMU_GBPA_OFFSET,
+                   gbpa_attrs | SMMU_GBPA_UPDATE);
+
+    /* Poll until Update clears (update complete) */
+    timeout = SMMU_SYNC_TIMEOUT;
+    while (timeout--) {
+        gbpa = val_mmio_read(smmu->base + SMMU_GBPA_OFFSET);
+        if ((gbpa & SMMU_GBPA_UPDATE) == 0)
+            return 0;
+    }
+
+    return 1;
+}
+
 static uint32_t smmu_set_state(uint32_t smmu_index, uint32_t en)
 {
     smmu_dev_t *smmu;
     uint32_t cr0_val;
     int ret;
+    uint32_t gbpa;
 
     if (smmu_index >= g_num_smmus)
     {
@@ -760,6 +801,19 @@ static uint32_t smmu_set_state(uint32_t smmu_index, uint32_t en)
         val_print(ACS_PRINT_ERR, "  smmu_set_state: failed to set SMMU state\n",
                                                                            0);
         return ret;
+    }
+
+    /* Clear GBPA.ABORT when disabling SMMU */
+    if (!en) {
+
+        gbpa = val_mmio_read(smmu->base + SMMU_GBPA_OFFSET);
+
+        gbpa &= ~SMMU_GBPA_ABORT;
+
+        if (smmu_gbpa_write_sync(smmu, gbpa)) {
+            val_print(ACS_PRINT_ERR, "\n       GBPA update sync failed", 0);
+            return 1;
+        }
     }
 
     return 0;
