@@ -84,6 +84,7 @@ payload (void)
   PERIPHERAL_VECTOR_LIST *dev_mvec, *mvec;
   uint64_t dev_bdf;
   uint32_t test_skip = 1;
+  uint32_t ret;
 
   if(!count) {
      val_set_status (index, RESULT_SKIP (TEST_NUM, 2));
@@ -104,11 +105,15 @@ payload (void)
       if (dev_bdf) {
         val_print (ACS_PRINT_INFO, "       Checking PCI device with BDF %4X\n", dev_bdf);
         /* Read MSI(X) vectors */
-        if (val_get_msi_vectors(dev_bdf, &dev_mvec) == NOT_IMPLEMENTED) {
+        ret = val_get_msi_vectors (dev_bdf, &dev_mvec);
+
+        if (ret == NOT_IMPLEMENTED) {
           val_print(ACS_PRINT_ERR,
-            "\n       pal_get_msi_vectors is unimplemented, Skipping test.", 0);
+              "\n       pal_get_msi_vectors is unimplemented, Skipping test.", 0);
           goto test_skip_unimplemented;
-        } else {
+        }
+
+        if (ret) {
           test_skip = 0;
           mvec = dev_mvec;
           while(mvec) {

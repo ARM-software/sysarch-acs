@@ -182,7 +182,7 @@ payload_check_io_coherent_dma_mem_attribute(void)
     return;
 
 test_skip_unimplemented:
-    val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
+    val_set_status(index, RESULT_SKIP(TEST_NUM1, 2));
 }
 
 uint32_t
