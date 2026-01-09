@@ -115,6 +115,7 @@ uint64_t val_mpam_memory_get_base(uint32_t msc_index, uint32_t rsrc_index);
 uint32_t val_mpam_supports_cpor(uint32_t msc_index);
 uint32_t val_mpam_supports_ccap(uint32_t msc_index);
 uint32_t val_mpam_supports_cassoc(uint32_t msc_index);
+bool     val_mpam_msc_supports_cmax_softlim(uint32_t msc_index);
 uint32_t val_mpam_get_cmax_wd(uint32_t msc_index);
 uint32_t val_mpam_get_cassoc_wd(uint32_t msc_index);
 uint32_t val_mpam_get_bwa_wd(uint32_t msc_index);

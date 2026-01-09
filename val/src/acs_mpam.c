@@ -331,7 +331,7 @@ val_mpam_supports_cpor(uint32_t msc_index)
 }
 
 /**
-  @brief   This API checks whether MSC has cache portion partitioning.
+  @brief   This API checks whether MSC has cache capacity partitioning.
   @param   msc_index - index of the MSC node in the MPAM info table.
   @return  1 if supported 0 otherwise.
 **/
@@ -351,6 +351,21 @@ val_mpam_supports_cassoc(uint32_t msc_index)
 {
     if (val_mpam_supports_ccap(msc_index))
         return BITFIELD_READ(CCAP_IDR_HAS_CASSOC,
+                   val_mpam_mmr_read(msc_index, REG_MPAMF_CCAP_IDR));
+
+    return 0;
+}
+
+/**
+  @brief   This API checks whether MSC supports CMAX softlimiting.
+  @param   msc_index - index of the MSC node in the MPAM info table.
+  @return  1 if supported 0 otherwise.
+**/
+bool
+val_mpam_msc_supports_cmax_softlim(uint32_t msc_index)
+{
+    if (val_mpam_supports_ccap(msc_index))
+        return BITFIELD_READ(CCAP_IDR_HAS_CMAX_SOFTLIM,
                    val_mpam_mmr_read(msc_index, REG_MPAMF_CCAP_IDR));
 
     return 0;
