@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,10 +258,12 @@ err_check:
           val_print(ACS_PRINT_INFO, "       EP BDF : 0x%x\n", e_bdf);
 
           irq_pending = 1;
+          /* Enable DPC */
+          val_pcie_enable_dpc(erp_bdf, msg_type[i]);
+
+          /* Enable DPC Interrupt bit */
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
-          reg_value &= DPC_DISABLE_MASK;
           reg_value |= DPC_INTR_ENABLE;
-          reg_value = reg_value | (msg_type[i] << DPC_CTRL_TRG_EN_SHIFT);
           val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
 
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
@@ -381,13 +383,13 @@ err_check:
           }
 
 disable_dpc:
-          /*Disable the DPC*/
+          /*Disable the DPC status register*/
 
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, &reg_value);
           val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, reg_value | 0x1);
 
-          val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
-          val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, reg_value & 0xFFFCFFFF);
+          /*Disable the DPC control register*/
+          val_pcie_disable_dpc(erp_bdf);
 
           /* Restore the EP config space after Secondary Bus Reset */
           restore_config_space(erp_bdf);

@@ -270,6 +270,8 @@ void     val_pcie_enable_msa(uint32_t bdf);
 void     val_pcie_clear_urd(uint32_t bdf);
 void     val_pcie_enable_eru(uint32_t bdf);
 void     val_pcie_disable_eru(uint32_t bdf);
+void     val_pcie_enable_dpc(uint32_t bdf, uint32_t err_type);
+void     val_pcie_disable_dpc(uint32_t bdf);
 void     val_pcie_get_mmio_bar(uint32_t bdf, void *base);
 void     val_pcie_read_acsctrl(uint32_t arr[][1]);
 void     val_pcie_write_acsctrl(uint32_t arr[][1]);

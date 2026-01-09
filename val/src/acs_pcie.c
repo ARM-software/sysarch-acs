@@ -630,6 +630,10 @@ val_pcie_create_device_bdf_table()
 
                       dp_type = val_pcie_device_port_type(bdf);
 
+                      /* Disable DPC for RP and DP */
+                      if ((dp_type == RP) || (dp_type == DP))
+                          val_pcie_disable_dpc(bdf);
+
                       /* RCiEP rules are for SBSA L6 */
                       if ((dp_type == RCiEP) || (dp_type == RCEC))
                           g_pcie_integrated_devices++;
@@ -1098,6 +1102,60 @@ val_pcie_is_msa_enabled(uint32_t bdf)
       return 0;
   else
       return 1;
+}
+
+/**
+  @brief  Enable DPC trigger enable bits
+  @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @param  err_type - 1 for fatal error and 2 for fatal and non-fatal error
+  @return None
+**/
+void
+val_pcie_enable_dpc(uint32_t bdf, uint32_t err_type)
+{
+  uint32_t dpc_cap_base;
+  uint32_t reg_value;
+  uint32_t status;
+
+  /* Check DPC capability */
+  status = val_pcie_find_capability(bdf, PCIE_ECAP, ECID_DPC, &dpc_cap_base);
+  if (status == PCIE_CAP_NOT_FOUND)
+  {
+      val_print(ACS_PRINT_DEBUG, "DPC Capability not supported \n", 0);
+      return;
+  }
+
+  /* Enable DPC trigger enable bits */
+  val_pcie_read_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
+  reg_value |= err_type << DPC_CTRL_TRG_EN_SHIFT;
+  val_pcie_write_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
+}
+
+/**
+  @brief  Disable DPC trigger enable bits
+  @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @return DPC trigger enable bits value
+**/
+void
+val_pcie_disable_dpc(uint32_t bdf)
+{
+
+  uint32_t reg_value;
+  uint32_t dpc_cap_base;
+  uint32_t status;
+
+  /* Check DPC capability */
+  status = val_pcie_find_capability(bdf, PCIE_ECAP, ECID_DPC, &dpc_cap_base);
+  if (status == PCIE_CAP_NOT_FOUND)
+  {
+      val_print(ACS_PRINT_DEBUG, "DPC Capability not supported \n", 0);
+      return;
+  }
+
+  /* Disable "DPC Trigger Enable" bits */
+  val_pcie_read_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
+  reg_value &= ~(DPC_CTRL_TRG_EN_MASK << DPC_CTRL_TRG_EN_SHIFT);
+  val_pcie_write_cfg(bdf, dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
 }
 
 /**
