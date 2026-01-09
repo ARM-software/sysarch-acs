@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -628,23 +628,6 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
   }
 
   return 1;
-}
-
-
-
-/**
-  @brief   This API sets the state of the PCIe stimulus generation hardware
-  @param   State        - State that needs to be set for the stimulus hadrware
-  @param   Value        - Additional information associated with the state
-  @param   Instance     - Stimulus hardware instance number
-  @return  Status       - SUCCESS if the input state is successfully written to hardware
-**/
-uint32_t pal_exerciser_set_state (EXERCISER_STATE State, uint64_t *Value, uint32_t Instance)
-{
-  (void) State;
-  (void) Value;
-  (void) Instance;
-  return 0;
 }
 
 /**

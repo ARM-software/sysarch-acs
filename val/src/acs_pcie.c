@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -792,7 +792,10 @@ val_pcie_get_info(PCIE_INFO_e type, uint32_t index)
   @param   bdf      - PCIe BUS/Device/Function
   @param   mvector  - Pointer to MSI vector's list head
 
-  @return  number of MSI(X) vectors
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 uint32_t
 val_get_msi_vectors (uint32_t bdf, PERIPHERAL_VECTOR_LIST **mvector)

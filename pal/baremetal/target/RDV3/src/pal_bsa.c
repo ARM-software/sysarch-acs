@@ -1,6 +1,6 @@
 
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,24 +57,6 @@ extern addr_t __BSS_START__, __BSS_END__;
 
 #define MAX_MMAP_REGION_COUNT 75
 memory_region_descriptor_t mmap_region_list[MAX_MMAP_REGION_COUNT];
-
-
-/** GIC PAL API's **/
-/**
-  @brief  Indicate that processing of interrupt is complete by writing to
-          End of interrupt register in the GIC CPU Interface
-
-  @param  int_id  Interrupt ID which needs to be acknowledged that it is complete
-
-  @return Status of the operation
-**/
-uint32_t
-pal_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_type)
-{
-  (void) int_id;
-  (void) trigger_type;
-  return 0;
-}
 
 // Note that while creating a list of mem map, the size of mappings will vary across platforms.
 // The below mapping size is specific to FVP RDV3.
@@ -673,28 +655,6 @@ pal_gic_end_of_interrupt(uint32_t int_id)
   return 0;
 }
 
-
-/**
- @Registers the interrupt handler for a given IRQ.
-
- @param irq_num: hardware IRQ number
- @param mapped_irq_num: mapped IRQ number
- @param isr: interrupt service routine that returns the status
-
-**/
-uint32_t
-pal_gic_request_irq (
-  uint32_t IrqNum,
-  uint32_t MappedIrqNum,
-  void *Isr
-  )
-{
-  (void) IrqNum;
-  (void) MappedIrqNum;
-  (void) Isr;
-  return 0;
-}
-
 /**
  @Frees the registered interrupt handler for agiven IRQ.
 
@@ -719,61 +679,42 @@ pal_gic_free_irq (
 #define SMMU_V3_IDR1_PASID_MASK  0x1f
 
 /**
-  @brief   This API prepares the smmu page tables to support input PasId
-  @param   SmmuBase - Physical addr of the SMMU for which PasId support is needed
-  @param   PasId    - Process Address Space identifier
-  @return  zero for success, one for failure
-**/
-uint32_t
-pal_smmu_create_pasid_entry (uint64_t SmmuBase, uint32_t PasId)
-{
-  (void) SmmuBase;
-  (void) PasId;
-
-  return 1;
-}
-
-/**
-  @brief   This API globally disables the SMMU based on input base address
-  @param   SmmuBase - Physical addr of the SMMU that needs to be globally disabled
-  @return  zero for success, one for failure
-**/
-uint32_t
-pal_smmu_disable (uint64_t SmmuBase)
-{
-  (void) SmmuBase;
-
-  return 0;
-}
-
-
-/**
   @brief   This API converts physical address to IO virtual address
-  @param   SmmuBase - Physical addr of the SMMU for pa to iova conversion
-  @param   Pa       - Physical address to use in conversion
-  @return  zero for success, one for failure
+  @param   SmmuBase       - Physical addr of the SMMU for pa to iova conversion
+  @param   Pa             - Physical address to use in conversion
+  @param   dram_buf_iova  - IOVA addresses for DMA purposes
+
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 */
 uint64_t
-pal_smmu_pa2iova (uint64_t SmmuBase, uint64_t Pa)
+pal_smmu_pa2iova(uint64_t SmmuBase, uint64_t Pa, uint64_t *dram_buf_iova)
 {
   (void) SmmuBase;
   (void) Pa;
+  (void) dram_buf_iova;
 
-  return 0;
+  return NOT_IMPLEMENTED;
 }
 
 /**
   @brief   Check if input address is within the IOVA translation range for the device
   @param   port - Pointer to the DMA port
   @param   dma_addr   - The input address to be checked
-  @return  Success if the input address is found in the range
+
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 uint32_t pal_smmu_check_device_iova(void *port, uint64_t dma_addr)
 {
   (void) port;
   (void) dma_addr;
 
-  return 0;
+  return NOT_IMPLEMENTED;
 }
 
 /**
@@ -837,15 +778,17 @@ pal_pcie_device_driver_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_
 }
 
 /**
-    @brief   Create a list of MSI(X) vectors for a device
+  @brief   Create a list of MSI(X) vectors for a device
 
-    @param   bus        PCI bus address
-    @param   dev        PCI device address
-    @param   fn         PCI function number
-    @param   mvector    pointer to a MSI(X) list address
+  @param   bus        PCI bus address
+  @param   dev        PCI device address
+  @param   fn         PCI function number
+  @param   mvector    pointer to a MSI(X) list address
 
-    @return  mvector    list of MSI(X) vectors
-    @return  number of MSI(X) vectors
+  @return
+  - 0               : Success
+  - NOT_IMPLEMENTED : Feature not implemented
+  - non-zero        : Failure (implementation-specific error code)
 **/
 uint32_t
 pal_get_msi_vectors(uint32_t Seg, uint32_t Bus, uint32_t Dev, uint32_t Fn,
@@ -857,7 +800,7 @@ pal_get_msi_vectors(uint32_t Seg, uint32_t Bus, uint32_t Dev, uint32_t Fn,
   (void) MVector;
   (void) Fn;
 
-  return 0;
+  return NOT_IMPLEMENTED;
 }
 
 /**
@@ -1260,22 +1203,27 @@ pal_mem_free_cacheable(uint32_t Bdf, uint32_t Size, void *Va, void *Pa)
 /**
   @brief   Allocate DMAable memory: (Aligned to 4K by default)
 
-  @param   buffer - Pointer to return the buffer address
-  @param   length - Number of bytes to allocate
-  @param   dev    - Pointer to the device structure
-  @param   flag   - Allocation flags
+  @param   buffer   - Pointer to return the buffer address
+  @param   length   - Number of bytes to allocate
+  @param   dev      - Pointer to the device structure
+  @param   flag     - Allocation flags
+  @param   dma_addr - DMA address of memory allocated
 
-  @return  DMA address of memory allocated
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 uint64_t
-pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flag)
+pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flag, addr_t *dma_addr)
 {
 
   (void) dev;
   (void) flag;
+  (void) dma_addr;
   *buffer = (void *)pal_aligned_alloc(MEM_ALIGN_4K, length);
 
-  return 0;
+  return NOT_IMPLEMENTED;
 }
 
 /**
@@ -1298,27 +1246,6 @@ void pal_dma_mem_free(void *buffer, uint64_t mem_dma, unsigned int length, void 
 
   pal_mem_free_aligned(buffer);
   return;
-}
-
-/**
-  @brief  Abstracts the functionality of performing a DMA
-          operation from the device to DDR memory
-
-  @param  dma_target_buf is the target physical addressing
-          the memory where the DMA data is to bewritten.
-  @return 0 on success.
-          IMPLEMENTATION DEFINED on error.
-**/
-unsigned int
-pal_dma_start_from_device(void *dma_target_buf, unsigned int length,
-                          void *host, void *dev)
-{
-  (void) dma_target_buf;
-  (void) length;
-  (void) host;
-  (void) dev;
-
-  return 0;
 }
 
 /**
@@ -1350,7 +1277,10 @@ pal_dma_scsi_get_dma_addr(void *port, void *dma_addr, unsigned int *dma_len)
   @param   attr  - Variable to return the attributes
   @param   sh    - Inner sharable domain or not
 
-  @return  0 on SUCCESS or 1 for FAIL
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 int
 pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
@@ -1363,5 +1293,5 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
   (void) attr;
   (void) sh;
 
-  return 1;
+  return NOT_IMPLEMENTED;
 }

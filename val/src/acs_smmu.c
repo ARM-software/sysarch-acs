@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +98,11 @@ val_smmu_stop_monitor_dev(uint32_t ctrl_index)
            2. Prerequisite -  val_smmu_create_info_table()
   @param   ctrl_index - The device whose IO Translation range needs to be checked
   @param   dma_addr   - The input address to be checked
-  @return  Success if the input address is found in the range
+
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 static uint32_t
 val_smmu_check_device_iova(uint32_t ctrl_index, addr_t dma_addr)
@@ -171,35 +175,22 @@ val_smmu_max_pasids(uint32_t smmu_index)
 }
 
 /**
-  @brief  Prepares the SMMU page tables to support input PASID.
-
-  @param  smmu_index  SMMU index for which PASID support is needed.
-  @param  pasid       Process Address Space IDentifier.
-
-  @return Returns 0 for success and 1 for failure.
-**/
-uint32_t
-val_smmu_create_pasid_entry(uint32_t smmu_index, uint32_t pasid)
-{
-  uint64_t smmu_base;
-
-  smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, smmu_index);
-  return pal_smmu_create_pasid_entry(smmu_base, pasid);
-}
-
-/**
   @brief  Converts physical address to I/Ovirtual address
 
-  @param  smmu_index  SMMU index
-  @param  pa          Physical address to use in conversion
+  @param  smmu_index    SMMU index
+  @param  pa            Physical address to use in conversion
+  @param  dram_buf_iova IOVA addresses for DMA purposes
 
-  @return Returns 0 for success and 1 for failure.
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
 uint64_t
-val_smmu_pa2iova(uint32_t smmu_index, uint64_t pa)
+val_smmu_pa2iova(uint32_t smmu_index, uint64_t pa, uint64_t *dram_buf_iova)
 {
   uint64_t smmu_base;
 
   smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, smmu_index);
-  return pal_smmu_pa2iova(smmu_base, pa);
+  return pal_smmu_pa2iova(smmu_base, pa, dram_buf_iova);
 }

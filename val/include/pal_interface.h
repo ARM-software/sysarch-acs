@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -301,9 +301,7 @@ typedef struct {
 void     pal_gic_create_info_table(GIC_INFO_TABLE *gic_info_table);
 uint32_t pal_gic_install_isr(uint32_t int_id, void (*isr)(void));
 void pal_gic_end_of_interrupt(uint32_t int_id);
-uint32_t pal_gic_request_irq(unsigned int irq_num, unsigned int mapped_irq_num, void *isr);
 void pal_gic_free_irq(unsigned int irq_num, unsigned int mapped_irq_num);
-uint32_t pal_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_type);
 uint32_t pal_target_is_bm(void);
 uint32_t pal_get_num_nongic_ctrl(void);
 
@@ -571,9 +569,7 @@ void     pal_smmu_create_info_table(SMMU_INFO_TABLE *smmu_info_table);
 uint32_t pal_smmu_check_device_iova(void *port, uint64_t dma_addr);
 void     pal_smmu_device_start_monitor_iova(void *port);
 void     pal_smmu_device_stop_monitor_iova(void *port);
-uint32_t pal_smmu_create_pasid_entry(uint64_t smmu_base, uint32_t pasid);
-uint32_t pal_smmu_disable(uint64_t smmu_base);
-uint64_t pal_smmu_pa2iova(uint64_t smmu_base, uint64_t pa);
+uint64_t pal_smmu_pa2iova(uint64_t smmu_base, uint64_t pa, uint64_t *dram_buf_iova);
 
 
 /** Peripheral Tests related definitions **/
@@ -697,10 +693,8 @@ typedef struct {
 }DMA_INFO_TABLE;
 
 void pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table);
-uint32_t pal_dma_start_from_device(void *dma_target_buf, uint32_t length,
-                          void *host, void *dev);
 uint64_t
-pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flags);
+pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flags, addr_t *dma_addr);
 
 void
 pal_dma_mem_free(void *buffer, addr_t mem_dma, unsigned int length, void *port, unsigned int flags);
@@ -926,7 +920,6 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE type, uint64_t value1, uin
                                                                              uint32_t bdf);
 uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE type, uint64_t *value1, uint64_t *value2,
                                                                               uint32_t bdf);
-uint32_t pal_exerciser_set_state(EXERCISER_STATE state, uint64_t *value, uint32_t bdf);
 uint32_t pal_exerciser_get_state(EXERCISER_STATE *state, uint32_t bdf);
 uint32_t pal_exerciser_ops(EXERCISER_OPS ops, uint64_t param, uint32_t instance);
 uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data, uint32_t bdf,
