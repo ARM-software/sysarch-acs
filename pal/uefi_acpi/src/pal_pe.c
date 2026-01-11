@@ -33,6 +33,24 @@ UINT64  gMpidrMax;
 static UINT32 g_num_pe;
 extern INT32 gPsciConduit;
 
+/**
+  Global MMU configuration structure for secondary PE initialization.
+  This is populated by the primary PE and used by secondary PEs to
+  enable MMU/caches with the same page table configuration.
+**/
+static PE_MMU_CONFIG gMmuConfig __attribute__((aligned(64)));
+
+/* External assembly functions for reading MMU registers */
+UINT64 AA64ReadCurrentEL(VOID);
+UINT64 AA64ReadTtbr0El1(VOID);
+UINT64 AA64ReadTtbr0El2(VOID);
+UINT64 AA64ReadTcr1(VOID);
+UINT64 AA64ReadTcr2(VOID);
+UINT64 AA64ReadMair1(VOID);
+UINT64 AA64ReadMair2(VOID);
+UINT64 AA64ReadSctlr1(VOID);
+UINT64 AA64ReadSctlr2(VOID);
+
 #define MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED  1024
 #define SIZE_STACK_SECONDARY_PE  0x100      //256 bytes per core
 #define UPDATE_AFF_MAX(src,dest,mask)  ((dest & mask) > (src & mask) ? (dest & mask) : (src & mask))
@@ -205,6 +223,62 @@ PalGetMaxMpidr()
 }
 
 /**
+  @brief   Captures the primary PE's MMU configuration for use by secondary PEs.
+           This function reads TTBR0, TCR, MAIR, and SCTLR from the current EL
+           and stores them in a global structure that secondary PEs can access.
+
+  @param   None
+  @return  None
+**/
+STATIC
+VOID
+PalCaptureMmuConfig(VOID)
+{
+  UINT64 CurrentEl;
+
+  /* Read current exception level */
+  CurrentEl = (AA64ReadCurrentEL() >> 2) & 0x3;
+  gMmuConfig.current_el = (UINT32)CurrentEl;
+
+  /* Read MMU configuration registers based on current EL */
+  if (CurrentEl == 2) {
+    gMmuConfig.ttbr0 = AA64ReadTtbr0El2();
+    gMmuConfig.tcr   = AA64ReadTcr2();
+    gMmuConfig.mair  = AA64ReadMair2();
+    gMmuConfig.sctlr = AA64ReadSctlr2();
+  } else {
+    /* Assume EL1 */
+    gMmuConfig.ttbr0 = AA64ReadTtbr0El1();
+    gMmuConfig.tcr   = AA64ReadTcr1();
+    gMmuConfig.mair  = AA64ReadMair1();
+    gMmuConfig.sctlr = AA64ReadSctlr1();
+  }
+
+  acs_print(ACS_PRINT_INFO, L"  MMU Config captured at EL%d\n", gMmuConfig.current_el);
+  acs_print(ACS_PRINT_DEBUG, L"    TTBR0: 0x%lx\n", gMmuConfig.ttbr0);
+  acs_print(ACS_PRINT_DEBUG, L"    TCR:   0x%lx\n", gMmuConfig.tcr);
+  acs_print(ACS_PRINT_DEBUG, L"    MAIR:  0x%lx\n", gMmuConfig.mair);
+  acs_print(ACS_PRINT_DEBUG, L"    SCTLR: 0x%lx\n", gMmuConfig.sctlr);
+
+  /* Clean cache to ensure secondary PEs see the config */
+  pal_pe_data_cache_ops_by_va((UINT64)&gMmuConfig, CLEAN_AND_INVALIDATE);
+}
+
+/**
+  @brief   Returns the address of the MMU configuration structure.
+           This function is called by secondary PE entry code to get
+           the primary PE's MMU configuration.
+
+  @param   None
+  @return  Address of PE_MMU_CONFIG structure
+**/
+UINT64
+PalGetMmuConfigAddr(VOID)
+{
+  return (UINT64)&gMmuConfig;
+}
+
+/**
   @brief  Allocate memory region for secondary PE stack use. SIZE of stack for each PE
           is a #define
 
@@ -353,6 +427,9 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   pal_pe_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
   pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
   PalAllocateSecondaryStack(gMpidrMax);
+
+  /* Capture primary PE's MMU configuration for secondary PE initialization */
+  PalCaptureMmuConfig();
 
 }
 
