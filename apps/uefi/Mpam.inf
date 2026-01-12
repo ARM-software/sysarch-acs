@@ -55,6 +55,7 @@
   ../../test_pool/mpam/error011.c
   ../../test_pool/mpam/error012.c
   ../../test_pool/mpam/error013.c
+  ../../test_pool/mpam/error014.c
   ../../test_pool/mpam/intr001.c
   ../../test_pool/mpam/intr002.c
   ../../test_pool/mpam/intr003.c

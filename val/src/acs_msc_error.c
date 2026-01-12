@@ -35,12 +35,14 @@ uint32_t val_mpam_msc_reset_errcode(uint32_t msc_index)
     uint64_t esr_value;
     uint32_t esr_errcode;
 
-    esr_value = val_mpam_mmr_read(msc_index, REG_MPAMF_ESR);
+    esr_value = val_mpam_mmr_read64(msc_index, REG_MPAMF_ESR);
 
-    /* Create a mask to clear bits ERRCODE 24-27, RIS 32-35 */
+    /* Create a mask to clear bits ERRCODE 24-27, OVRWR 31, RIS 32-35 */
     uint64_t mask = ~(((uint64_t)ESR_ERRCODE_MASK << ESR_ERRCODE_SHIFT) |
-                      ((uint64_t)ESR_RIS_MASK << ESR_RIS_SHIFT));
+                      ((uint64_t)ESR_RIS_MASK << ESR_RIS_SHIFT)         |
+                      ((uint64_t)ESR_OVRWR_MASK << ESR_OVRWR_SHIFT));
 
+    val_print(ACS_PRINT_DEBUG, "\n       Mask applied is %llx", mask);
     /* Update ESR and write back to the register */
     esr_value &= mask;
     val_mpam_mmr_write64(msc_index, REG_MPAMF_ESR, esr_value);
@@ -68,10 +70,17 @@ uint32_t val_mpam_msc_reset_errcode(uint32_t msc_index)
 uint32_t val_mpam_msc_get_errcode(uint32_t msc_index)
 {
     uint32_t errcode;
-    uint64_t esr_value = val_mpam_mmr_read(msc_index, REG_MPAMF_ESR);
+    uint64_t esr_value = val_mpam_mmr_read64(msc_index, REG_MPAMF_ESR);
 
     errcode = ((esr_value >> ESR_ERRCODE_SHIFT) & ESR_ERRCODE_MASK);
     return errcode;
+}
+
+bool val_mpam_msc_get_esr_ovrwr(uint32_t msc_index)
+{
+    uint64_t esr_value = val_mpam_mmr_read64(msc_index, REG_MPAMF_ESR);
+
+    return ((esr_value >> ESR_OVRWR_SHIFT) & ESR_OVRWR_MASK);
 }
 
 /**
@@ -168,6 +177,13 @@ uint32_t val_mpam_msc_generate_por_error(uint32_t msc_index)
     /* Start mem copy transaction to generate POR error interrupt */
     val_memcpy(src_buf, dest_buf, SIZE_1K);
 
+    /* Wait for some time */
+    val_time_delay_ms(1000 * ONE_MILLISECOND);
+
+    /* Free the buffers */
+    val_memory_free_aligned(src_buf);
+    val_memory_free_aligned(dest_buf);
+
     return ACS_STATUS_PASS;
 }
 
@@ -225,6 +241,14 @@ uint32_t val_mpam_msc_generate_pmgor_error(uint32_t msc_index)
 
     /* Start mem copy transaction to generate PMGOR error interrupt */
     val_memcpy(src_buf, dest_buf, SIZE_1K);
+
+    /* Wait for some time */
+    val_time_delay_ms(1000 * ONE_MILLISECOND);
+
+    /* Free the buffers */
+    val_memory_free_aligned(src_buf);
+    val_memory_free_aligned(dest_buf);
+
     return ACS_STATUS_PASS;
 }
 

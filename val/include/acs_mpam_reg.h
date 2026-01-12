@@ -137,10 +137,12 @@ BITFIELD_DECL(uint32_t, MSMON_IDR_NO_OFLW_INTR, 30, 30)
 #define ECR_ENABLE_INTEN_BIT        (1 << ECR_ENABLE_INTEN_SHIFT)
 
 /* MPAM Error Status Register Bit Shift and Mask */
+#define ESR_ERRCODE_SHIFT           24
+#define ESR_ERRCODE_MASK            0x000F
+#define ESR_OVRWR_SHIFT             31
+#define ESR_OVRWR_MASK              0x1
 #define ESR_RIS_SHIFT               32
 #define ESR_RIS_MASK                0xF
-#define ESR_ERRCODE_SHIFT           0x0018
-#define ESR_ERRCODE_MASK            0x000F
 
 /* MPAMCFG_EN Register Bit Decl */
 BITFIELD_DECL(uint32_t, MPAMCFG_EN_PARTID, 15, 0)

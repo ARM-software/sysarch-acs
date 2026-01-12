@@ -1,0 +1,174 @@
+/** @file
+ * Copyright (c) 2026, Arm Limited or its affiliates. All rights reserved.
+ * SPDX-License-Identifier : Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+**/
+
+#include "val/include/acs_val.h"
+#include "val/include/acs_pe.h"
+#include "val/include/acs_mpam.h"
+#include "val/include/acs_mpam_reg.h"
+#include "val/include/val_interface.h"
+
+#define TEST_NUM   (ACS_MPAM_ERROR_TEST_NUM_BASE + 17)
+#define TEST_DESC  "Check MPAM error overwrite behavior   "
+#define TEST_RULE  ""
+
+static void
+payload(void)
+{
+    uint32_t msc_index;
+    uint32_t mon_count;
+    uint32_t status;
+    uint32_t mpamf_ecr;
+    uint32_t esr_errcode;
+    uint64_t mpam2_el2_temp;
+
+    uint32_t test_fail = 0;
+    uint32_t test_skip = 1;
+    uint32_t pe_index  = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t msc_cnt   = val_mpam_get_msc_count();
+
+    /* Save MPAM2_EL2 to a temp storage */
+    mpam2_el2_temp = val_mpam_reg_read(MPAM2_EL2);
+
+    for (msc_index = 0; msc_index < msc_cnt; msc_index++)
+    {
+
+        /* Check if Error Status Register Supported */
+        if (!val_mpam_msc_supports_esr(msc_index)) {
+            val_print(ACS_PRINT_DEBUG, "\n       MSC index %d does not support ESR", msc_index);
+            continue;
+        }
+
+        /* Read MPAMF_ECR before generating error. This will be used to restore to default later */
+        mpamf_ecr = val_mpam_mmr_read(msc_index, REG_MPAMF_ECR);
+        status    = val_mpam_msc_reset_errcode(msc_index);
+
+        if (!status) {
+            val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
+            return;
+        }
+
+        mon_count = 0;
+        /* Read the number of monitors implemented in this MSC */
+        if (val_mpam_msc_supports_mon(msc_index)) {
+            if (val_mpam_supports_csumon(msc_index)) {
+                mon_count += val_mpam_get_csumon_count(msc_index);
+                val_print(ACS_PRINT_DEBUG,
+                            "\n       MSC implements %d CSU Monitors", mon_count);
+            }
+
+            if (val_mpam_msc_supports_mbwumon(msc_index)) {
+                mon_count += val_mpam_get_mbwumon_count(msc_index);
+                val_print(ACS_PRINT_DEBUG,
+                "\n       MSC implements %d MBWU Monitors", val_mpam_get_mbwumon_count(msc_index));
+            }
+        }
+
+        /* CSU/MBWU monitors are required to generate the second error.
+           Skip MSC if mon not present */
+        if (mon_count == 0) {
+            val_print(ACS_PRINT_WARN, "\n       Cannot generate second error. Skipping MSC\n", 0);
+            continue;
+        }
+
+        /* Test runs on atleast one MSC */
+        test_skip = 0;
+
+        /* Generate PARTID selection range error (program MPAMCFG_PART_SEL with out-of-range PID) */
+        val_mpam_msc_generate_psr_error(msc_index);
+
+        /* Wait for some time for the error to be reflected in MPAMF_ESR */
+        val_time_delay_ms(100 * ONE_MILLISECOND);
+
+        /* Read Error Status Register and check if the error code is recorded */
+        esr_errcode = val_mpam_msc_get_errcode(msc_index);
+        val_print(ACS_PRINT_DEBUG, "\n       Scenario 1 - Error code read is %d", esr_errcode);
+
+        if (esr_errcode != ESR_ERRCODE_PARTID_SEL_RANGE)
+        {
+            val_print(ACS_PRINT_ERR, "\n       Expected errcode: %d", ESR_ERRCODE_PARTID_SEL_RANGE);
+            val_print(ACS_PRINT_ERR, "\n       Actual errcode: %d", esr_errcode);
+            test_fail++;
+        }
+
+        /* Check OVRWR bit - should be 0 for first error */
+        if (val_mpam_msc_get_esr_ovrwr(msc_index))
+        {
+            val_print(ACS_PRINT_ERR, "\n       OVRWR bit is set for first error", 0);
+            test_fail++;
+        }
+
+        /* Generate MSMON config ID out-of-range error */
+        val_mpam_msc_generate_msmon_config_error(msc_index, mon_count);
+
+        /* Wait for some time for the error to be reflected in MPAMF_ESR */
+        val_time_delay_ms(100 * ONE_MILLISECOND);
+
+        /* Read Error Status Register and check if the error code is recorded */
+        esr_errcode = val_mpam_msc_get_errcode(msc_index);
+        val_print(ACS_PRINT_DEBUG, "\n       Scenario 2 - Error code read is %d", esr_errcode);
+
+        if (esr_errcode != ESR_ERRCODE_MSMONCFG_ID_RANGE)
+        {
+            val_print(ACS_PRINT_ERR,
+                                    "\n       Expected errcode: %d", ESR_ERRCODE_MSMONCFG_ID_RANGE);
+            val_print(ACS_PRINT_ERR, "\n       Actual errcode: %d", esr_errcode);
+            test_fail++;
+        }
+
+        /* Check OVRWR bit - should be 1 for second error */
+        if (val_mpam_msc_get_esr_ovrwr(msc_index) == 0)
+        {
+            val_print(ACS_PRINT_ERR, "\n       MPAMF_ESR.OVRWR bit is not set for second error", 0);
+            test_fail++;
+        }
+
+        /* Restore MPAM2_EL2 settings */
+        val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
+
+        /* Clear the error status amd restore the error control register */
+        val_mpam_msc_reset_errcode(msc_index);
+        val_mpam_mmr_write(msc_index, REG_MPAMF_ECR, mpamf_ecr);
+    }
+
+    if (test_skip)
+        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+    else if (test_fail)
+        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+    else
+        val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+
+    return;
+}
+
+uint32_t error014_entry(void)
+{
+
+    uint32_t status = ACS_STATUS_FAIL;
+    uint32_t num_pe = 1;
+
+    status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+
+    if (status != ACS_STATUS_SKIP)
+      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+
+    /* get the result from all PE and check for failure */
+    status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+
+    val_report_status(0, ACS_END(TEST_NUM), NULL);
+
+    return status;
+}
