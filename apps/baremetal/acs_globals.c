@@ -39,11 +39,6 @@ uint64_t  g_ret_addr;
 
 uint32_t  g_sbsa_level;
 uint32_t  g_execute_nist;
-uint32_t  *g_skip_test_num;
-uint32_t  *g_execute_tests;
-RULE_ID_e *g_rule_tests;
-uint32_t  g_rule_tests_num;
-uint32_t  *g_execute_modules;
 uint64_t  g_el3_param_magic = 0;
 uint64_t  g_el3_param_addr  = 0;
 

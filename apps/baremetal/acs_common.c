@@ -23,12 +23,6 @@
 
 extern uint64_t  g_el3_param_magic;
 extern uint64_t  g_el3_param_addr;
-extern uint32_t *g_execute_tests;
-extern RULE_ID_e  *g_rule_tests;
-extern uint32_t  g_num_tests;
-extern uint32_t *g_execute_modules;
-extern uint32_t  g_num_modules;
-extern uint32_t  g_rule_tests_num;
 
 /* === Build-time module list support (ACS_ENABLED_MODULE_LIST) === */
 #if ACS_HAS_ENABLED_MODULE_LIST
@@ -97,15 +91,15 @@ acs_apply_el3_params(void)
     return;
   }
 
-  val_print(ACS_PRINT_DEBUG, "EL3 params: tests=0x%lx", params->test_array_addr);
-  val_print(ACS_PRINT_DEBUG, " (%ld),", params->test_array_count);
+  val_print(ACS_PRINT_DEBUG, "EL3 params: tests=0x%lx", params->rule_array_addr);
+  val_print(ACS_PRINT_DEBUG, " (%ld),", params->rule_array_count);
   val_print(ACS_PRINT_DEBUG, " modules=0x%lx", params->module_array_addr);
   val_print(ACS_PRINT_DEBUG, " (%ld)\n", params->module_array_count);
 
   /* Override tests if provided */
-  if (params->test_array_addr && params->test_array_count) {
-    g_rule_list  = (uint32_t *)(uintptr_t)params->test_array_addr;
-    g_rule_count  = (uint32_t)params->test_array_count;
+  if (params->rule_array_addr && params->rule_array_count) {
+    g_rule_list  = (uint32_t *)(uintptr_t)params->rule_array_addr;
+    g_rule_count  = (uint32_t)params->rule_array_count;
     g_arch_selection = ARCH_NONE;
   }
 
@@ -113,6 +107,12 @@ acs_apply_el3_params(void)
   if (params->module_array_addr && params->module_array_count) {
     g_execute_modules = (uint32_t *)(uintptr_t)params->module_array_addr;
     g_num_modules     = (uint32_t)params->module_array_count;
+  }
+
+  /* Override skip list if provided */
+  if (params->skip_rule_array_addr && params->skip_rule_array_count) {
+    g_skip_rule_list   = (RULE_ID_e *)(uintptr_t)params->skip_rule_array_addr;
+    g_skip_rule_count  = (uint32_t)params->skip_rule_array_count;
   }
 }
 

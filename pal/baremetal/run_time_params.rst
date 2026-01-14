@@ -26,7 +26,7 @@ Register Convention
 When jumping from EL3 to the ACS entry point (``acs_entry``):
 
 * **X19** must contain the magic value ``ACS_EL3_PARAM_MAGIC``.
-* **X20** must contain the address of a ``bsa_el3_params`` structure.
+* **X20** must contain the address of an ``acs_el3_params`` structure.
 
 If X19 does **not** match ``ACS_EL3_PARAM_MAGIC``, ACS will **ignore X20**
 and run with its normal configuration (command-line / default modules).
@@ -41,57 +41,57 @@ The structure layout is defined in ``acs_el3_param.h`` as:
    #define ACS_EL3_PARAM_MAGIC  0x425341454C335031ULL  /* 'BSAEL3P1' */
 
    typedef struct {
-     uint64_t version;              /* 0 or 1 */
+     uint64_t version;               /* 0 or 1 */
 
-     /* Optional: override test list */
-     uint64_t test_array_addr;      /* uint32_t[] of test IDs (can be 0) */
-     uint64_t test_array_count;     /* number of entries in test_array_addr */
+   /* Optional: rule selection override */
+   uint64_t rule_array_addr;      /* RULE_ID_e[] of test IDs (can be 0) */
+   uint64_t rule_array_count;     /* number of entries in rule_array_addr */
 
-     /* Optional: override module list */
-     uint64_t module_array_addr;    /* uint32_t[] of module IDs (can be 0) */
-     uint64_t module_array_count;   /* number of entries in module_array_addr */
+   /* Optional: module selection override */
+   uint64_t module_array_addr;    /* uint32_t[] of module IDs (can be 0) */
+   uint64_t module_array_count;   /* number of entries in module_array_addr */
 
-     /* Reserved for future use */
-     uint64_t reserved0;
-     uint64_t reserved1;
-   } bsa_el3_params;
+   /* Optional: rules to skip */
+   uint64_t skip_rule_array_addr;  /* RULE_ID_e[] of rule IDs to skip (can be 0) */
+   uint64_t skip_rule_array_count; /* number of entries in skip_rule_array_addr */
+   } acs_el3_params;
 
 Notes:
 
-* The structure must be in memory that NS-EL2 / ACS can read.
+* The structure must live in memory that NS-EL2 / ACS can read.
 * Only the **address** of the structure is passed in X20.
 * ``version`` is used by ACS to check compatibility (currently 0 or 1).
-* Either tests, modules, both, or neither may be provided.
+* Any combination of tests, modules, or skip list may be provided.
 
-Module and Test IDs
+Module and Rule IDs
 -------------------
 
-Module IDs are the **existing ACS test number bases**. For example:
+Module IDs are the **existing ENUMs**. For example:
 
 .. code-block:: c
+typedef enum {
+    PE,
+    GIC,
+    PERIPHERAL,
+    MEM_MAP,
+    PMU,
+    RAS,
+    SMMU,
+    TIMER,
+    WATCHDOG,
+    NIST,
+    PCIE,
+    MPAM,
+    ETE,
+    TPM,
+    POWER_WAKEUP,
+} MODULE_NAME_e;
 
-   #define ACS_PE_TEST_NUM_BASE         0
-   #define ACS_MEMORY_MAP_TEST_NUM_BASE 100
-   #define ACS_GIC_TEST_NUM_BASE        200
-   #define ACS_SMMU_TEST_NUM_BASE       300
-   #define ACS_TIMER_TEST_NUM_BASE      400
-   #define ACS_WAKEUP_TEST_NUM_BASE     500
-   #define ACS_PER_TEST_NUM_BASE        600
-   #define ACS_WD_TEST_NUM_BASE         700
-   #define ACS_PCIE_TEST_NUM_BASE       800
-   #define ACS_PCIE_EXT_TEST_NUM_BASE   900
-   #define ACS_MPAM_TEST_NUM_BASE       1000
-   #define ACS_PMU_TEST_NUM_BASE        1100
-   #define ACS_RAS_TEST_NUM_BASE        1200
-   #define ACS_NIST_TEST_NUM_BASE       1300
-   #define ACS_ETE_TEST_NUM_BASE        1400
-   #define ACS_EXERCISER_TEST_NUM_BASE  1500
-   #define ACS_TPM2_TEST_NUM_BASE       1600
 
 You can pass either:
 
-* the **base ID** (for example ``ACS_PCIE_TEST_NUM_BASE``), or
-* any test number inside that module’s range.
+* the **Module Id** (for example ``PE, GIC``), or
+* any Rule ID inside that module’s range.
 
 ACS will map each ID to an internal module bitmask and then derive the
 runtime mask (``g_enabled_modules``) as usual.
@@ -103,13 +103,15 @@ At boot, ACS:
 
 1. Saves X19 and X20 into globals (``g_el3_param_magic``, ``g_el3_param_addr``)
    in ``BsaBootEntry.S``.
-2. In ``ShellAppMainbsa()``, calls a helper (``bsa_apply_el3_params()``) which:
+2. In ``ShellAppMainbsa()``/``ShellAppMainsbsa()``, calls a helper
+   (``acs_apply_el3_params()``) which:
    * Checks that ``g_el3_param_magic == ACS_EL3_PARAM_MAGIC``.
    * Checks that the parameter structure address is non-zero.
    * Checks that ``version`` is acceptable.
    * If valid:
-     - Overrides ``g_execute_tests`` / ``g_num_tests`` if test override is given.
+     - Overrides ``g_rule_list`` / ``g_rule_count`` if test override is given.
      - Overrides ``g_execute_modules`` / ``g_num_modules`` if module override is given.
+     - Overrides ``g_skip_rule_list`` / ``g_skip_rule_count`` if a skip list is given.
 3. Uses the (possibly overridden) ``g_execute_modules`` / ``g_num_modules`` to
    compute ``g_enabled_modules``, and then:
    * Creates only the required information tables.
@@ -122,25 +124,29 @@ Simple EL3 Example
 ------------------
 
 Below is a minimal example showing how EL3 can force ACS to run only
-PCIe and Exerciser modules.
+PCIe and Exerciser modules while skipping a specific Exerciser test.
 
 .. code-block:: c
 
    #include "acs_el3_param.h"
 
    static uint32_t modules_to_run[] = {
-       ACS_PCIE_TEST_NUM_BASE,
-       ACS_EXERCISER_TEST_NUM_BASE,
+       PE,
+       PCIE
    };
 
-   static bsa_el3_params acs_params __attribute__((aligned(64))) = {
-       .version            = 1,
-       .test_array_addr    = 0,     /* no test overrides */
-       .test_array_count   = 0,
-       .module_array_addr  = (uint64_t)modules_to_run,
-       .module_array_count = sizeof(modules_to_run) / sizeof(uint32_t),
-       .reserved0          = 0,
-       .reserved1          = 0,
+   static RULE_ID_e rules_to_skip[] = {
+       PCI_IN_19
+   };
+
+   static acs_el3_params acs_params __attribute__((aligned(64))) = {
+       .version              = 1,
+       .rule_array_addr      = 0,     /* no rule overrides */
+       .rule_array_count     = 0,
+       .module_array_addr    = (uint64_t)modules_to_run,
+       .module_array_count   = sizeof(modules_to_run) / sizeof(uint32_t),
+       .skip_rule_array_addr = (uint64_t)rules_to_skip,
+       .skip_rule_array_count= sizeof(rules_to_skip) / sizeof(uint32_t),
    };
 
    void jump_to_acs(uint64_t acs_entry_pa)
@@ -164,13 +170,13 @@ do **not** set X19 to the magic value (for example, leave X19 = 0).
 Requirements for Partners
 -------------------------
 
-* ``bsa_el3_params`` must live in memory that NS-EL2 can read.
+* ``acs_el3_params`` must live in memory that NS-EL2 can read.
 * X19 must be set to ``ACS_EL3_PARAM_MAGIC`` to enable the override.
-* X20 must hold the address of a valid ``bsa_el3_params`` structure.
-* The module IDs in ``module_array_addr`` must be valid ACS test IDs
-  (typically the ``ACS_*_TEST_NUM_BASE`` values).
+* X20 must hold the address of a valid ``acs_el3_params`` structure.
+* The module IDs in ``module_array_addr`` must be valid ACS Rule IDs
 * If ``module_array_count == 0``, ACS will not override modules and will
   behave as if no module list was provided.
+* If ``skip_rule_array_count == 0``, ACS falls back to its default skip list.
 
 This interface allows platform firmware to control ACS execution in a
 simple, well-defined way without changing the ACS build or command-line
@@ -180,5 +186,4 @@ configuration.
 ## 📄 License
 
 Distributed under [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
-© 2026 Arm Limited and Contributors.
-
+© 2025-2026, Arm Limited and Contributors.

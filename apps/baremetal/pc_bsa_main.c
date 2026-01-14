@@ -154,12 +154,12 @@ ShellAppMainpcbsa(void)
         goto exit_acs;
     }
 
-    /* NEW: apply any compile-time test/module overrides before
-    *      we look at g_num_tests/g_num_modules and build masks.
+    /* apply any compile-time test/module overrides before
+    *  we look at g_num_modules and build masks.
     */
     acs_apply_compile_params();
-    /* NEW: apply any EL3-supplied test/module overrides before
-    *      we look at g_num_tests/g_num_modules and build masks.
+    /* apply any EL3-supplied test/module overrides before
+    *  we look at g_rule_list/g_skip_rule_list/g_num_modules and build masks.
     */
     acs_apply_el3_params();
 

@@ -36,23 +36,22 @@
 typedef struct {
   uint64_t version;
 
-  /* Optional: test selection override */
-  uint64_t test_array_addr;      /* uint32_t[] of test IDs (can be 0) */
-  uint64_t test_array_count;     /* number of entries in test_array_addr */
+  /* Optional: rule selection override */
+  uint64_t rule_array_addr;      /* RULE_ID_e[] of test IDs (can be 0) */
+  uint64_t rule_array_count;     /* number of entries in rule_array_addr */
 
   /* Optional: module selection override */
   uint64_t module_array_addr;    /* uint32_t[] of module IDs (can be 0) */
   uint64_t module_array_count;   /* number of entries in module_array_addr */
 
-  /* Reserved / future use */
-  uint64_t reserved0;
-  uint64_t reserved1;
+  /* Optional: rules to skip */
+  uint64_t skip_rule_array_addr;  /* RULE_ID_e[] of rule IDs to skip (can be 0) */
+  uint64_t skip_rule_array_count; /* number of entries in skip_rule_array_addr */
 } acs_el3_params;
 
 void acs_apply_el3_params(void);
 bool acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value);
 bool acs_is_module_enabled(uint32_t module_base);
 void acs_apply_compile_params(void);
-
 #endif /* ACS_EL3_PARAM_H */
 
