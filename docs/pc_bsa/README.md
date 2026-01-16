@@ -13,7 +13,7 @@
 - [PC BSA run steps](#pc-bsa-run-steps)
   - [For UEFI application](#for-uefi-application)
   - [For Linux application](#for-linux-application)
-- [TC3 reference flow](#tc3-reference-flow)
+- [RDV3CFG1 reference flow](#rdv3cfg1-reference-flow)
 - [Application arguments](#application-arguments)
 - [Coverage guidance](#coverage-guidance)
 - [Limitations](#limitations)
@@ -25,7 +25,7 @@
 debug requirements for Arm-based personal computing platforms. It builds on the
 Arm **BSA** ruleset and adds PC-specific constraints so that operating systems
 and firmware interoperate consistently across implementations. Refer to the
-[PC BSA specification](https://developer.arm.com/documentation/den0996/latest)
+[PC BSA specification](https://developer.arm.com/documentation/den0151/latest)
 for the authoritative rule set.
 
 ## PC BSA - Architecture Compliance Suite
@@ -44,7 +44,7 @@ validated by the Linux application and its kernel module companion.
 - **Prebuilt binaries:** [`prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0`](../../prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0)
 
 ## Documentation & Guides
-- [PC BSA specification](https://developer.arm.com/documentation/den0996/latest)
+- [PC BSA specification](https://developer.arm.com/documentation/den0151/latest)
 - [Arm PC BSA Testcase Checklist](arm_pc-bsa_testcase_checklist.md)
 - [Arm PC BSA Test Scenario Document](TPM_PAL_Porting_Guide.md)
 - [Common UEFI build guide](../common/uefi_build.md)
@@ -56,7 +56,7 @@ PC BSA rules are implemented across multiple ACS components. Run every path
 below to claim complete coverage.
 
 ### Sections covering PC BSA rules
-- [UEFI-based tests](#for-uefi-application) — execute `PC_bsa.efi` (or the TC3
+- [UEFI-based tests](#for-uefi-application) — execute `PC_bsa.efi` (or the RDV3CFG1
   reference flow) with the required modules, filters, and logging flags.
 - [Linux-based tests](#for-linux-application) — load `pcbsa_acs.ko` and run
   `pcbsa_app` to exercise OS-visible functionality.
@@ -144,23 +144,18 @@ Some emulation platforms embed binaries directly into the firmware image instead
     `sudo rmmod pcbsa_acs`
     *(Unload `bsa_acs` and `sbsa_acs` if they are no longer required.)*
 
-## TC3 reference flow
-Use this sequence to run the PC BSA UEFI application on the TC3 Arm FVP.
+## RDV3CFG1 reference flow
+Use this sequence to run the PC BSA UEFI application on the RDV3CFG1 Arm FVP.
 
-1. Build the TC3 software stack per the
-  [LSC23 TC3 Setup Guide](https://totalcompute.docs.arm.com/en/lsc23.1/totalcompute/lsc23/user-guide.html).
-2. Download the TC3 FVP model from the
-  [Arm Total Compute FVP portal](https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/Total%20Compute%20FVPs).
-3. Export the model path:\
-    `export MODEL=<path of FVP_TC3>`
-4. Prepare the ACS disk image as described above (FAT image with `PC_bsa.efi`)
-  and copy `hda.img` into `<TC_WORKSPACE>/output/tc3/debian-official/fvp/deploy/`.
-5. Patch the TC3 run script to reference the ACS image:\
-    `sed -i 's|ACS_DISK_IMAGE="\$DEPLOY_DIR/systemready_acs_live_image.img"|ACS_DISK_IMAGE="\$DEPLOY_DIR/hda.img"|' <TC_WORKSPACE>/run-scripts/common/run_model.sh`
-6. Launch the model:\
-    `cd <TC_WORKSPACE>/run-scripts/tc3`\
-    `./run_model.sh -m $MODEL -d acs-test-suite`
-7. In UEFI Shell, press **Esc**, choose **Built-in EFI Shell**, refresh
+1. Build the software stack and download the FVP for the RDV3CFG1 model by following the
+  [RDV3CFG1 Setup Guide](https://developer.arm.com/documentation/102858/0201/Running-BSA-ACS-tests-on-the-Arm-Neoverse-V3-reference-design--RD-V3--Fixed-Virtual-Platform--FVP--model/Setting-up-the-RD-V3-Cfg1-FVP?lang=en).
+2. Export the model path:\
+    `export MODEL=<path of FVP_RDV3CFG1>`
+3. Prepare the ACS disk image as described above [FAT image with `PC_bsa.efi`](#emulation-environment-with-secondary-storage)
+4. Launch the model:\
+    `cd <RDV3CFG1_WORKSPACE>/model-scripts/rdinfra/platforms/rdv3cfg1`\
+    `./run_model.sh –v <path of hda.img>`
+5. In UEFI Shell, press **Esc**, choose **Built-in EFI Shell**, refresh
   mappings, switch to the ACS filesystem, and run `PC_bsa.efi`.
 
 ### Application arguments
