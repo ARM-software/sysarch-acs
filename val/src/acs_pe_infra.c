@@ -218,11 +218,16 @@ val_pe_get_index_mpid(uint64_t mpid)
 }
 
 
+/* External assembly function to disable MMU and caches */
+void AA64DisableMmuCaches(void);
+
 /**
   @brief   'C' Entry point for Secondary PE.
            Uses PSCI_CPU_OFF to switch off PE after payload execution.
+           MMU and caches are disabled before CPU_OFF to ensure clean state.
            1. Caller       -  PAL code
            2. Prerequisite -  Stack pointer for this PE is setup by PAL
+                              MMU/caches enabled by ModuleEntryPoint
   @param   None
   @return  None
 **/
@@ -236,6 +241,10 @@ val_test_entry(void)
 
   val_get_test_data(val_pe_get_index_mpid(val_pe_get_mpid()), (uint64_t *)&vector, &test_arg);
   vector(test_arg);
+
+  // Disable MMU and caches before powering off the PE
+  // This ensures clean state for PSCI_CPU_OFF and next CPU_ON
+  AA64DisableMmuCaches();
 
   // We have completed our TEST code. So, switch off the PE now
   smc_args.Arg0 = ARM_SMC_ID_PSCI_CPU_OFF;
