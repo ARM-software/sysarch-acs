@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,6 +46,7 @@
 #define VAL_PFDI_RESERVED_BYTE_ZERO         0x0
 #define PFDI_ACS_NOT_IMPLEMENTED            0x1
 #define PFDI_INVALID_X_VALUE                0xF
+#define PFDI_RUN_ALL_TEST_PARTS             -1
 
 typedef enum {
     PFDI_ACS_SUCCESS                =  0,
