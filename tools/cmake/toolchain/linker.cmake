@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,18 +39,11 @@ function (create_executable EXE_NAME OUTPUT_DIR TEST)
 	set(SCATTER_INPUT_FILE "${ROOT_DIR}/tools/cmake/infra/${EXE_NAME}_image.ld.S")
     set(SCATTER_OUTPUT_FILE "${OUTPUT_DIR}/${EXE_NAME}_image.ld")
 
-    if(ACS MATCHES "sbsa")
-        # Preprocess the scatter file for image layout symbols
-        add_custom_command(OUTPUT CPP-LD--${EXE_NAME}${TEST}
-		COMMAND ${CROSS_COMPILE}gcc -E -P -I${ROOT_DIR}/apps/baremetal/ -I${ROOT_DIR}/pal/baremetal/target/${TARGET}/include -I${ROOT_DIR} ${SCATTER_INPUT_FILE} -o ${SCATTER_OUTPUT_FILE} -DCMAKE_BUILD={CMAKE_BUILD}
-                        DEPENDS ${VAL_LIB} ${PAL_LIB} ${TEST_LIB})
-        add_custom_target(CPP-LD-${EXE_NAME}${TEST} ALL DEPENDS CPP-LD--${EXE_NAME}${TEST})
-    elseif(ACS MATCHES "bsa")
-        add_custom_command(OUTPUT CPP-LD--${EXE_NAME}${TEST}
-                        COMMAND ${CROSS_COMPILE}gcc -E -P -I${ROOT_DIR}/apps/baremetal/ -I${ROOT_DIR}/pal/baremetal/target/${TARGET}/include -I${ROOT_DIR} ${SCATTER_INPUT_FILE} -o ${SCATTER_OUTPUT_FILE} -DCMAKE_BUILD={CMAKE_BUILD}
-                        DEPENDS ${VAL_LIB} ${PAL_LIB} ${TEST_LIB})
-        add_custom_target(CPP-LD-${EXE_NAME}${TEST} ALL DEPENDS CPP-LD--${EXE_NAME}${TEST})
-    endif()
+    add_custom_command(OUTPUT CPP-LD--${EXE_NAME}${TEST}
+                    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
+                    COMMAND ${CROSS_COMPILE}gcc -E -P -I${ROOT_DIR}/apps/baremetal/ -I${ROOT_DIR}/pal/baremetal/target/${TARGET}/include -I${ROOT_DIR} ${SCATTER_INPUT_FILE} -o ${SCATTER_OUTPUT_FILE} -DCMAKE_BUILD={CMAKE_BUILD}
+                    DEPENDS ${VAL_LIB} ${PAL_LIB} ${TEST_LIB})
+    add_custom_target(CPP-LD-${EXE_NAME}${TEST} ALL DEPENDS CPP-LD--${EXE_NAME}${TEST})
 
     # Link the objects
     add_custom_command(OUTPUT ${EXE_NAME}${TEST}.elf

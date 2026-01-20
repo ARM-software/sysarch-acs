@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 # Set the minimum required version of CMake for the project
 cmake_minimum_required(VERSION 3.21)
 
-project(bsa-acs LANGUAGES)
+project(sysarch-acs LANGUAGES)
 
 # cmake_policy
 cmake_policy(SET CMP0001 NEW)
@@ -29,7 +29,6 @@ get_filename_component(ROOT_DIR . ABSOLUTE)
 
 # Set internal build directory variable
 set(BUILD ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "Setting build directory to ${BUILD}" FORCE)
-file(MAKE_DIRECTORY ${BUILD}/output/)
 
 # Set global compile list variable
 set(COMPILE_LIST "")
@@ -133,9 +132,9 @@ option(TARGET_SIMULATION "Enable simulation/emulation optimizations (defines TAR
 if(TARGET_SIMULATION)
     message(STATUS "[ACS] : TARGET_SIMULATION is enabled (defining TARGET_SIMULATION)")
     add_compile_definitions(TARGET_SIMULATION)
- else()
+else()
     message(STATUS "[ACS] : TARGET_SIMULATION is disabled")
- endif()
+endif()
 
 # Include the files for make clean
 foreach(clean_item ${CLEAN_LIST})
@@ -165,7 +164,7 @@ add_custom_target(acs_all
     DEPENDS ${ACS_LIST}
 )
 
-message(STATUS "[ACS] : ACS is set to ${ACS}, and TAREGT to ${TARGET} based on configuration")
+message(STATUS "[ACS] : ACS is set to ${ACS}, and TARGET to ${TARGET} based on configuration")
 message(STATUS "[ACS] : You can change overide target using -DTARGET=<value>")
 message(STATUS "[ACS] : Supported values for TARGET: ${TARGET_LIST}")
 message(STATUS "[ACS] : Example - cmake --preset bsa -DTARGET=RDV3")
@@ -173,12 +172,3 @@ message(STATUS "[ACS] : Check available presets by - `cmake --list-presets`")
 message(STATUS "[ACS] : To build using cmake - `cmake --build --preset bsa`")
 message(STATUS "[ACS] : To build using make - `cmake --preset acs_all; cd build; make bsa` (to build all baremetal acs - `make acs_all`)")
 add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
-
-
-### Throw waring for the files which is not compiled ###
-
-# list(REMOVE_DUPLICATES COMPILE_LIST)
-# execute_process(COMMAND python ${ROOT_DIR}/tools/scripts/compile_check.py "${COMPILE_LIST}" "${ROOT_DIR}" "${TARGET}" OUTPUT_VARIABLE NOT_COMPILED_FILES)
-# if(NOT ${NOT_COMPILED_FILES} MATCHES NULL)
-#     message(WARNING "Following files are not compiled ${NOT_COMPILED_FILES}")
-# endif()

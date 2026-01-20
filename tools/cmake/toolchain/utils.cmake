@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2023, 2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2023, 2025-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,3 +26,8 @@ function(_get_sub_dir_list result parent_dir)
         endforeach()
         set(${result} ${dir_list} PARENT_SCOPE)
 endfunction(_get_sub_dir_list)
+
+function(acs_append_compile_list)
+    list(APPEND COMPILE_LIST ${ARGN})
+    set(COMPILE_LIST ${COMPILE_LIST} PARENT_SCOPE)
+endfunction(acs_append_compile_list)

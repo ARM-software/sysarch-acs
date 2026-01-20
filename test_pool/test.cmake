@@ -1,5 +1,5 @@
 ## @file
-# Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
 # SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,8 +92,7 @@ endforeach()
  add_library(${TEST_LIB} STATIC ${TEST_SRC})
 
  #Create compile list files
- list(APPEND COMPILE_LIST ${TEST_SRC})
- set(COMPILE_LIST ${COMPILE_LIST} PARENT_SCOPE)
+ acs_append_compile_list(${TEST_SRC})
 
  target_include_directories(${TEST_LIB} PRIVATE ${TEST_INCLUDE}
  )
