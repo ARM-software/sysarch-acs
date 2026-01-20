@@ -240,6 +240,8 @@
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_BUS      0x9    /* Max bus walked by bare-metal tests      */
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_DEV      32     /* Max device per bus checked              */
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_FUNC     8      /* Max function per device checked         */
+
+// This value is arbitrary and may have to be adjusted
 #define PLATFORM_BM_OVERRIDE_MAX_IRQ_CNT       0xFFFF /* Max IRQs any device may raise           */
 
 #define PLATFORM_OVERRIDE_TIMEOUT              0      /* Override default wakeup timeout         */
