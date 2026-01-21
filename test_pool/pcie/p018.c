@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020,2021,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020,2021,2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,7 +65,7 @@ payload(void)
           if (val_pcie_dev_p2p_support(bdf))
               continue;
 
-          /* Test runs for atleast an endpoint */
+          /* Test runs for atleast one Root Port */
           test_skip = 0;
           val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x", bdf);
 

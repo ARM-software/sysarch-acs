@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@ payload(void)
       /* Check entry is RP */
       if (dp_type == RP)
       {
-          /* Test runs for atleast an endpoint */
+          /* Test runs for atleast one Root Port */
           test_skip = 0;
           val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x", bdf);
 
