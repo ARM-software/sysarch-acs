@@ -1,5 +1,5 @@
 ## @file
-#  Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+#  Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
 #  SPDX-License-Identifier : Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ fi
 echo "Building DRTM ACS for UEFI"
 if [ ! -d edk2 ]
 then
-    git clone --recursive --branch edk2-stable202402 https://github.com/tianocore/edk2.git
+    git clone --recursive --branch edk2-stable202511 https://github.com/tianocore/edk2.git
     git clone https://github.com/tianocore/edk2-libc edk2/edk2-libc
 fi
 cd ${WORK_DIR}/edk2

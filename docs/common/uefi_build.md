@@ -11,7 +11,7 @@ This guide captures the shared steps required to build any of the ACS UEFI appli
 ## Workspace setup
 ```bash
 mkdir -p workspace && cd workspace
-git clone -b edk2-stable202508 https://github.com/tianocore/edk2.git
+git clone -b edk2-stable202511 https://github.com/tianocore/edk2.git
 cd edk2
 git submodule update --init --recursive
 git clone https://github.com/tianocore/edk2-libc.git

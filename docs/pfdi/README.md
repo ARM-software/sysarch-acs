@@ -61,7 +61,7 @@ ACS build requires that the following requirements are met, Please skip this if 
 #### Setup the workspace and clone required repositories
 ```
 mkdir workspace && cd workspace
-git clone -b edk2-stable202508 https://github.com/tianocore/edk2
+git clone -b edk2-stable202511 https://github.com/tianocore/edk2
 cd edk2
 git submodule update --init --recursive
 git clone https://github.com/tianocore/edk2-libc
@@ -178,4 +178,4 @@ PFDI ACS is distributed under Apache v2.0 License.
 
 --------------
 
-*Copyright (c) 2024-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2024-2026, Arm Limited and Contributors. All rights reserved.*
