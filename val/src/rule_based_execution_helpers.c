@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,6 +136,30 @@ void quick_sort_rule_list(RULE_ID_e *rule_list, uint32_t list_size)
 void
 print_rule_test_start(uint32_t rule_enum, uint32_t indent)
 {
+    static MODULE_NAME_e prev_module = MODULE_UNKNOWN;
+    MODULE_NAME_e curr_module = MODULE_UNKNOWN;
+
+    /* Check for module change */
+    if (rule_test_map[rule_enum].flag == INVALID_ENTRY) {
+        curr_module = MODULE_UNKNOWN;
+    } else {
+        curr_module = rule_test_map[rule_enum].module_id;
+    }
+
+    /* Print "Running <module> tests" if module change seen.
+       Don't print if MODULE_UNKNOWN was encounterd */
+    if (prev_module != curr_module && curr_module != MODULE_UNKNOWN) {
+        val_print(ACS_PRINT_TEST, "\n\n    ", 0);
+        if (indent)
+            val_print(ACS_PRINT_TEST, "    ", 0);
+        val_print(ACS_PRINT_TEST, "*** Running ", 0);
+        val_print(ACS_PRINT_TEST, module_name_string[curr_module], 0);
+        val_print(ACS_PRINT_TEST, " tests ***", 0);
+
+        /* Update prev_module for next call */
+        prev_module = curr_module;
+    }
+
     val_print(ACS_PRINT_TEST, "\n\n", 0);
     /* Print indent spaces */
     while (indent) {
@@ -143,21 +167,13 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
         indent--;
     }
 
-    val_print(ACS_PRINT_TEST, "START ", 0);
-
-    /* Print module name */
-    if (rule_test_map[rule_enum].flag == INVALID_ENTRY) {
-        val_print(ACS_PRINT_TEST, "-", 0);
-    } else {
-        val_print(ACS_PRINT_TEST, module_name_string[rule_test_map[rule_enum].module_id], 0);
-    }
-    val_print(ACS_PRINT_TEST, " ", 0);
+    /* Print rule id */
     val_print(ACS_PRINT_TEST, rule_id_string[rule_enum], 0);
 
     /* TODO
        Note: Test ID print would be deprecated in future, please use rule id as primary key to
        identify tests and comment on coverage */
-    val_print(ACS_PRINT_TEST, " ", 0);
+    val_print(ACS_PRINT_TEST, " : ", 0);
     if (rule_test_map[rule_enum].test_num == INVALID_ENTRY) {
         val_print(ACS_PRINT_TEST, "-", 0);
     }
@@ -186,6 +202,7 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
 void
 print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
 {
+    (void)rule_enum;
     /* Only count top-level rules (indent == 0) */
     uint32_t top_level_rule = (indent == 0);
 
@@ -196,8 +213,7 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
         indent--;
     }
 
-    val_print(ACS_PRINT_TEST, "END ", 0);
-    val_print(ACS_PRINT_TEST, rule_id_string[rule_enum], 0);
+    val_print(ACS_PRINT_TEST, "   Result: ", 0);
     val_print(ACS_PRINT_TEST, " ", 0);
 
     /* Update global counters for top-level rules only */
