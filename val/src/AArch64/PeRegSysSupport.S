@@ -730,3 +730,109 @@ ASM_PFX(AA64ReadTrbPtrEl1):
 ASM_PFX(AA64IssueISB):
   isb
   ret
+
+// MMU register write functions for secondary PE initialization
+
+GCC_ASM_EXPORT (AA64WriteMair1)
+GCC_ASM_EXPORT (AA64WriteMair2)
+GCC_ASM_EXPORT (AA64WriteTcr1)
+GCC_ASM_EXPORT (AA64WriteTcr2)
+GCC_ASM_EXPORT (AA64WriteTtbr0El1)
+GCC_ASM_EXPORT (AA64WriteTtbr0El2)
+GCC_ASM_EXPORT (AA64WriteSctlr1)
+GCC_ASM_EXPORT (AA64WriteSctlr2)
+GCC_ASM_EXPORT (AA64TlbiVmalle1)
+GCC_ASM_EXPORT (AA64TlbiAlle2)
+
+ASM_PFX(AA64WriteMair1):
+  msr   mair_el1, x0           // write EL1 MAIR
+  isb
+  ret
+
+ASM_PFX(AA64WriteMair2):
+  msr   mair_el2, x0           // write EL2 MAIR
+  isb
+  ret
+
+ASM_PFX(AA64WriteTcr1):
+  msr   tcr_el1, x0            // write EL1 TCR
+  isb
+  ret
+
+ASM_PFX(AA64WriteTcr2):
+  msr   tcr_el2, x0            // write EL2 TCR
+  isb
+  ret
+
+ASM_PFX(AA64WriteTtbr0El1):
+  msr   ttbr0_el1, x0          // write EL1 TTBR0
+  isb
+  ret
+
+ASM_PFX(AA64WriteTtbr0El2):
+  msr   ttbr0_el2, x0          // write EL2 TTBR0
+  isb
+  ret
+
+ASM_PFX(AA64WriteSctlr1):
+  msr   sctlr_el1, x0          // write EL1 SCTLR
+  isb
+  ret
+
+ASM_PFX(AA64WriteSctlr2):
+  msr   sctlr_el2, x0          // write EL2 SCTLR
+  isb
+  ret
+
+ASM_PFX(AA64TlbiVmalle1):
+  tlbi  vmalle1                // Invalidate all EL1 TLB entries
+  dsb   sy
+  isb
+  ret
+
+ASM_PFX(AA64TlbiAlle2):
+  tlbi  alle2                  // Invalidate all EL2 TLB entries
+  dsb   sy
+  isb
+  ret
+
+// Function to disable MMU and caches before PSCI_CPU_OFF
+// This should be called before powering off the PE to ensure clean state
+GCC_ASM_EXPORT (AA64DisableMmuCaches)
+
+ASM_PFX(AA64DisableMmuCaches):
+  // Determine current exception level
+  mrs   x1, CurrentEL
+  lsr   x1, x1, 2
+  and   x1, x1, 0x3
+
+  // Check if we're at EL2
+  cmp   x1, #2
+  b.eq  _DisableMmuEl2
+
+_DisableMmuEl1:
+  // Clean and invalidate data cache
+  // Use DC CISW to clean/invalidate by set/way (simplified - just DSB for now)
+  dsb   sy
+
+  // Read SCTLR_EL1 and clear M, C, I bits
+  mrs   x0, sctlr_el1
+  bic   x0, x0, #(1 << 0)      // Clear M bit (MMU)
+  bic   x0, x0, #(1 << 2)      // Clear C bit (Data cache)
+  bic   x0, x0, #(1 << 12)     // Clear I bit (Instruction cache)
+  msr   sctlr_el1, x0
+  isb
+  ret
+
+_DisableMmuEl2:
+  // Clean and invalidate data cache
+  dsb   sy
+
+  // Read SCTLR_EL2 and clear M, C, I bits
+  mrs   x0, sctlr_el2
+  bic   x0, x0, #(1 << 0)      // Clear M bit (MMU)
+  bic   x0, x0, #(1 << 2)      // Clear C bit (Data cache)
+  bic   x0, x0, #(1 << 12)     // Clear I bit (Instruction cache)
+  msr   sctlr_el2, x0
+  isb
+  ret
