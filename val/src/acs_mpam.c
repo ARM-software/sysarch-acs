@@ -1869,7 +1869,7 @@ val_mpam_msc_endis_partid(uint32_t msc_index, bool enable, bool nfu_flag, uint16
                             using val_mpam_supports_csumon API.
 
     @param   msc_index - index of the MSC node in the MPAM info table.
-    @return  1 on success, 0 on failure.
+    @return  0 on success, 1 on failure.
 */
 uint32_t
 val_mpam_reset_csumon(uint32_t msc_index, uint16_t mon_sel)

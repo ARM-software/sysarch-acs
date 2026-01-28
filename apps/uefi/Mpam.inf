@@ -69,6 +69,8 @@
   ../../test_pool/mpam/monitor003.c
   ../../test_pool/mpam/monitor004.c
   ../../test_pool/mpam/monitor005.c
+  ../../test_pool/mpam/monitor006.c
+  ../../test_pool/mpam/monitor007.c
   ../../test_pool/mpam/mem001.c
   ../../test_pool/mpam/mem002.c
   ../../test_pool/mpam/mem003.c

@@ -119,6 +119,9 @@ val_mpam_execute_membw_tests(uint32_t num_pe)
   status |= mem002_entry();
   status |= mem003_entry();
 
+  status |= monitor006_entry();
+  status |= monitor007_entry();
+
   val_print_test_end(status, "MEMORY BANDWIDTH");
 
   return status;
