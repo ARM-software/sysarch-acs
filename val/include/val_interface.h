@@ -847,6 +847,7 @@ uint32_t monitor004_entry(void);
 uint32_t monitor005_entry(void);
 uint32_t monitor006_entry(void);
 uint32_t monitor007_entry(void);
+uint32_t monitor008_entry(void);
 
 // Accessing system registers from .S -> can be moved to respective .h
 uint64_t arm64_write_sp(uint64_t write_data);
