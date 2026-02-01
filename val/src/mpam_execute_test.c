@@ -72,6 +72,7 @@ val_mpam_execute_error_tests(uint32_t num_pe)
   status |= intr001_entry();
   status |= intr002_entry();
   status |= intr003_entry();
+  status |= intr004_entry();
 
   val_print_test_end(status, "ERROR");
 

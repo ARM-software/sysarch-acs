@@ -830,6 +830,7 @@ uint32_t error014_entry(void);
 uint32_t intr001_entry(void);
 uint32_t intr002_entry(void);
 uint32_t intr003_entry(void);
+uint32_t intr004_entry(void);
 
 /* Cache Tests */
 uint32_t partition001_entry(void);
