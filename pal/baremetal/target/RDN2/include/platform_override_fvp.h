@@ -261,7 +261,15 @@
 
 #define PLATFORM_OVERRIDE_MAX_SID              24
 
-#define PLATFORM_OVERRIDE_TIMEOUT              0
+/* TIMEOUT should be in Microsecond 5us to 2 sec */
+#define PLATFORM_OVERRIDE_TIMEOUT              1000   /* time out for DUT */
+
+/* FAIL safe timeout (> PLATFORM_OVERRIDE_TIMEOUT) */
+#define PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT     (PLATFORM_OVERRIDE_TIMEOUT * 2)
+
+/*Max timeout set for systimer*/
+#define PLATFORM_OVERRIDE_SYS_TIMEOUT_MAX      0xFFFFFFFF
+
 /* Define the Timeout values to be used */
 #define PLATFORM_BM_OVERRIDE_TIMEOUT_LARGE         0x10000
 #define PLATFORM_BM_OVERRIDE_TIMEOUT_MEDIUM        0x1000

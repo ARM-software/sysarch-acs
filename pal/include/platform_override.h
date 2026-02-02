@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2022-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2022-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,6 +71,9 @@
 
 /* Size used to Map the SMMU Register Space, if not mapped */
 #define PLATFORM_OVERRIDE_SMMU_MAP_SIZE    0x20000 //2*64 KB
+
+/*Max timeout set for systimer*/
+#define PLATFORM_OVERRIDE_SYS_TIMEOUT_MAX      0xFFFFFFFF
 
 extern UINT32 g_pcie_p2p;
 extern UINT32 g_pcie_cache_present;

@@ -136,10 +136,8 @@ val_wd_disable(uint32_t index)
   @return  Success/Failure
  **/
 uint32_t
-val_wd_set_ws0(uint32_t index, uint32_t timeout)
+val_wd_set_ws0(uint32_t index, uint64_t timeout)
 {
-  uint64_t counter_freq;
-  uint64_t freq;
   uint32_t wor_l;
   uint32_t wor_h = 0;
   uint64_t ctrl_base;
@@ -155,35 +153,8 @@ val_wd_set_ws0(uint32_t index, uint32_t timeout)
   /* W_IIDR.Architecture Revision [19:16] = 0x1 for Watchdog Rev 1 */
   data = VAL_EXTRACT_BITS(val_mmio_read(ctrl_base + WD_IIDR_OFFSET), 16, 19);
 
-  /*
-   * The common system_counter_to_watchdog_counter frequency ratio can be
-   * anywhere from 1x to 256x, meaning the watchdog counter typically runs
-   * slower than the system counter. If we used the system counter frequency
-   * directly, the system-counter-based failsafe interrupt could fire before
-   * the watchdog interrupt, which would break the watchdog tests.
-   *
-   * To avoid this, we divide the watchdog counter frequency by 1024 so that
-   * the watchdog interrupt always occurs before the system-counter-based
-   * failsafe interrupt.Ensure the resulting frequency is never zero.
-   */
-  freq = val_get_counter_frequency();
-  counter_freq = freq / 1024;
-
-  if (counter_freq == 0)
-    counter_freq = 1;
-
-  /* Check if the timeout value exceeds */
-  if (data == 0)
-  {
-      if ((counter_freq * timeout) >> 32)
-      {
-          val_print(ACS_PRINT_ERR, "\nCounter frequency value exceeded", 0);
-          return 1;
-      }
-  }
-
-  wor_l = (uint32_t)(counter_freq * timeout);
-  wor_h = (uint32_t)((counter_freq * timeout) >> 32);
+  wor_l = (uint32_t)(timeout);
+  wor_h = (uint32_t)((timeout) >> 32);
 
   val_mmio_write((g_wd_info_table->wd_info[index].wd_ctrl_base + 8), wor_l);
 

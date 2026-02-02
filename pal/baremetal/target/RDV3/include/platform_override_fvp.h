@@ -295,7 +295,14 @@
 // This value is arbitrary and may have to be adjusted
 #define PLATFORM_BM_OVERRIDE_MAX_IRQ_CNT       0xFFFF /* Max IRQs any device may raise           */
 
-#define PLATFORM_OVERRIDE_TIMEOUT              0      /* Override default wakeup timeout         */
+/* TIMEOUT should be in Microsecond 5us to 2 sec */
+#define PLATFORM_OVERRIDE_TIMEOUT              1000   /* time out for DUT */
+
+/* FAIL safe timeout (> PLATFORM_OVERRIDE_TIMEOUT) */
+#define PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT     (PLATFORM_OVERRIDE_TIMEOUT * 2)
+
+/*Max timeout set for systimer*/
+#define PLATFORM_OVERRIDE_SYS_TIMEOUT_MAX      0xFFFFFFFF
 
 /* Generic timeout helpers for bare-metal tests */
 #define PLATFORM_BM_OVERRIDE_TIMEOUT_LARGE         0x10000

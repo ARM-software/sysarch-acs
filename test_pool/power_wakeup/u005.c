@@ -25,9 +25,10 @@
 #define TEST_DESC "Wake from System Timer Int            "
 
 static uint64_t timer_num;
-extern uint32_t g_wakeup_timeout;
 static uint32_t g_failsafe_int_rcvd;
 static uint32_t g_timer_int_rcvd;
+extern uint32_t g_timeout_pass;
+extern uint32_t g_timeout_fail;
 
 static
 void
@@ -65,8 +66,7 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint32_t timer_expire_val =
-        (uint32_t)((uint64_t)val_get_safe_timeout_ticks() * (g_wakeup_timeout + 1));
+  uint64_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
@@ -90,7 +90,7 @@ payload5()
   uint32_t intid;
   uint32_t delay_loop = MAX_SPIN_LOOPS;
   uint64_t cnt_base_n;
-  uint32_t timer_expire_val = (uint32_t)((uint64_t)val_get_safe_timeout_ticks() * g_wakeup_timeout);
+  uint64_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_pass));
 
   timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
   if (!timer_num) {

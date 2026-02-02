@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -315,8 +315,9 @@ HelpMsg (
          "-no_crypto_ext  Pass this flag if cryptography extension not supported due to export restrictions\n"
          "-p2p    Pass this flag to indicate that PCIe Hierarchy Supports Peer-to-Peer\n"
          "-cache  Pass this flag to indicate that if the test system supports PCIe address translation cache\n"
-         "-timeout  Set timeout multiple for wakeup tests\n"
-         "        1 - min value  5 - max value\n"
+         "-timeout <n> \n"
+         "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+         "        Example: -timeout 2000 \n"
          "-slc    Provide system last level cache type\n"
          "        1 - PPTT PE-side cache,  2 - HMAT mem-side cache\n"
          "         defaults to 0, if not set depicting SLC type unknown\n"

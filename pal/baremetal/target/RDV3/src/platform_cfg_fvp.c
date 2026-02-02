@@ -83,6 +83,9 @@ uint32_t g_level_filter_mode = LVL_FILTER_MAX; /* Default set to LVL_FILTER_MAX 
 */
 uint32_t g_sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC;
 
+uint32_t g_timeout_pass = PLATFORM_OVERRIDE_TIMEOUT;
+uint32_t g_timeout_fail = PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT;
+
 PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg = {
     .slot_count = PLATFORM_OVERRIDE_SMBIOS_SLOT_COUNT,
 

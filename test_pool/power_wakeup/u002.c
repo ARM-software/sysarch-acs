@@ -24,9 +24,10 @@
 #define TEST_RULE "B_WAK_03, B_WAK_07"
 #define TEST_DESC "Wake from EL1 VIR Timer Int           "
 
-extern uint32_t g_wakeup_timeout;
 static uint32_t g_el1vir_int_received;
 static uint32_t g_failsafe_int_rcvd;
+extern uint32_t g_timeout_pass;
+extern uint32_t g_timeout_fail;
 
 static
 void
@@ -48,8 +49,7 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint32_t timer_expire_val =
-        (uint32_t)((uint64_t)val_get_safe_timeout_ticks() * (g_wakeup_timeout + 1));
+  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
   val_timer_set_phy_el1(timer_expire_val);
@@ -85,7 +85,7 @@ payload2()
   uint32_t intid;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t delay_loop = MAX_SPIN_LOOPS;
-  uint32_t timer_expire_val = (uint32_t)((uint64_t)val_get_safe_timeout_ticks() * g_wakeup_timeout);
+  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_pass));
 
   intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);
   if (val_gic_install_isr(intid, isr2)) {

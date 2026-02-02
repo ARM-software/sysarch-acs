@@ -39,6 +39,7 @@
 #define CNTP_CTL         0x2C
 #define COUNTER_ID       0xFD0
 
+#define MICRO_SECONDS    1000000
 #define MAX_WAKEUP_TIMEOUT 5
 
 uint32_t t001_entry(uint32_t num_pe);

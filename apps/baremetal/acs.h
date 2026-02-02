@@ -118,7 +118,6 @@ extern uint32_t  g_acs_tests_fail;
 extern uint64_t  g_stack_pointer;
 extern uint64_t  g_exception_ret_addr;
 extern uint64_t  g_ret_addr;
-extern uint32_t  g_wakeup_timeout;
 extern bool      g_pcie_skip_dp_nic_ms;
 extern uint32_t  g_build_sbsa;
 extern uint32_t  g_build_pcbsa;

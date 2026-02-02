@@ -99,9 +99,8 @@ apply_user_config_and_defaults(void)
         g_skip_modules = g_skip_modules_arr;
     }
 
-    /* Set default values for g_print_mmio and g_wakeup_timeout */
+    /* Set default values for g_print_mmio */
     g_print_mmio = 0;
-    g_wakeup_timeout = 1;
 
     /* If selected rule count is zero, default to PCBSA */
     if (g_rule_count == 0) {

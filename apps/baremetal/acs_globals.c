@@ -29,7 +29,6 @@ uint32_t  g_enable_module;
 uint32_t  g_acs_tests_total;
 uint32_t  g_acs_tests_pass;
 uint32_t  g_acs_tests_fail;
-uint32_t  g_wakeup_timeout;
 uint32_t  g_build_sbsa = 0;
 uint32_t  g_build_pcbsa = 0;
 uint32_t  g_its_init = 0;

@@ -26,8 +26,9 @@
 
 static uint64_t wd_num;
 static uint32_t g_wd_int_received;
-extern uint32_t g_wakeup_timeout;
 static uint32_t g_failsafe_int_received;
+extern uint32_t g_timeout_pass;
+extern uint32_t g_timeout_fail;
 
 static
 void
@@ -63,7 +64,7 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint64_t timer_expire_val = (uint32_t)((uint64_t)val_get_safe_timeout_ticks() * g_wakeup_timeout);
+  uint64_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
@@ -86,7 +87,7 @@ payload4()
   uint32_t intid;
   uint32_t delay_loop = MAX_SPIN_LOOPS;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t timer_expire_val = 1 * g_wakeup_timeout;
+  uint64_t timer_expire_val = val_get_timeout_to_ticks(g_timeout_pass);
 
   wd_num = val_wd_get_info(0, WD_INFO_COUNT);
 

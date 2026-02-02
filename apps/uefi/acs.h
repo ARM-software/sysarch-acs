@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,7 +152,8 @@ extern UINT32  g_num_skip;
 extern UINT64  g_stack_pointer;
 extern UINT64  g_exception_ret_addr;
 extern UINT64  g_ret_addr;
-extern UINT32  g_wakeup_timeout;
+extern UINT32  g_timeout_pass;
+extern UINT32  g_timeout_fail;
 extern UINT32  g_build_sbsa;
 extern UINT32  g_build_pcbsa;
 extern UINT32  g_print_mmio;

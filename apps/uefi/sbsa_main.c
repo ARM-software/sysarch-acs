@@ -95,8 +95,8 @@ HelpMsg (VOID)
         "-slc    Provide system last level cache type\n"
         "        1 - PPTT PE-side cache,  2 - HMAT mem-side cache\n"
         "-timeout <n> \n"
-        "        Set timeout multiple for wakeup tests\n"
-        "        1 - min value  5 - max value, Defaults to 1 \n"
+        "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+        "        Example: -timeout 2000 \n"
         "-v <n>  Verbosity of the prints\n"
         "        1 prints all, 5 prints only the errors\n");
 }

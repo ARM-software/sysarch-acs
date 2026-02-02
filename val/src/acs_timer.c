@@ -458,3 +458,20 @@ val_get_safe_timeout_ticks(void)
 
     return (uint32_t)ticks;
 }
+
+/**
+  @brief  convert timeout in terms of us to ticks.
+
+  @param  timeout_us input timeout in terms of us
+
+  @return uint64_t  timeout in terms of ticks.
+**/
+uint64_t
+val_get_timeout_to_ticks(uint32_t timeout_us)
+{
+
+    uint64_t freq = val_get_counter_frequency();
+    uint64_t ticks = (timeout_us * freq)/MICRO_SECONDS;
+
+    return ticks;
+}
