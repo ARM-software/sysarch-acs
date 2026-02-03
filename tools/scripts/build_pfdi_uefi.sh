@@ -1,5 +1,5 @@
 ## @file
-#  Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+#  Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
 #  SPDX-License-Identifier : Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ fi
 echo "Building Pfdi ACS for UEFI"
 if [ ! -d edk2 ]
 then
-    git clone --depth 1 --single-branch --branch edk2-stable202411 https://github.com/tianocore/edk2.git
+    git clone --depth 1 --single-branch --branch edk2-stable202511 https://github.com/tianocore/edk2.git
     pushd edk2
     git checkout 836942fbadb629050b866a8052e6af755bcdf623
     git submodule update --init --recursive

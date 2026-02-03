@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
 IMAGE_BASE = PLATFORM_HOST_IMAGE_BASE;
 OUTPUT_FORMAT(elf64-littleaarch64)
 OUTPUT_ARCH(aarch64)
-ENTRY(bsa_acs_entry)
+ENTRY(acs_entry)
 
 MEMORY {
     RAM (rwx): ORIGIN = IMAGE_BASE, LENGTH = PLATFORM_HOST_IMAGE_SIZE
@@ -34,7 +34,7 @@ SECTIONS
            "TEXT_START address is not aligned to PAGE_SIZE.")
     .text : {
         __TEXT_START__ = .;
-        *BsaBootEntry.S.o(.text*)
+        *BootEntry.S.o(.text*)
         *(.text*)
         . = NEXT(PAGE_SIZE);
         __TEXT_END__ = .;

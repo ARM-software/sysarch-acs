@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include "platform_override_fvp.h"
 
 typedef uintptr_t addr_t;
 typedef char     char8_t;
@@ -395,7 +396,7 @@ typedef struct {
 **/
 
 #define LEGACY_PCI_IRQ_CNT 4  // Legacy PCI IRQ A, B, C. and D
-#define MAX_IRQ_CNT 0xFFFF    // This value is arbitrary and may have to be adjusted
+#define MAX_IRQ_CNT PLATFORM_BM_OVERRIDE_MAX_IRQ_CNT
 
 typedef struct {
   uint32_t  irq_list[MAX_IRQ_CNT];

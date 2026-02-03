@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2019-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2019-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,8 @@
 #include "val/include/acs_pe.h"
 #include "val/include/val_interface.h"
 #include "val/include/acs_pcie.h"
+
+extern bool g_pcie_skip_dp_nic_ms;
 
 static const
 test_config_t test_entries[] = {
@@ -51,6 +53,58 @@ esr(uint64_t interrupt_type, void *context)
   val_set_status(pe_index, RESULT_PASS(test_num, 01));
 }
 
+
+/*
+ * Locate the first downstream function under the given root port that is
+ * safe to exercise. Iterate the discovered BDF table within the rp bus
+ * window, skipping DP/NIC/MAS classes when the global skip flag is set.
+ */
+static
+uint32_t
+get_dsf_bdf(uint32_t rp_bdf, uint32_t *target_bdf)
+{
+
+  uint32_t index;
+  uint32_t reg_value;
+  uint32_t rp_seg, rp_sec_bus, rp_sub_bus;
+  uint32_t dev_bdf, dev_seg, dev_bus;
+  uint32_t base_cc;
+
+  *target_bdf = 0;
+  pcie_device_bdf_table *bdf_tbl_ptr;
+  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+
+  val_pcie_read_cfg(rp_bdf, TYPE1_PBN, &reg_value);
+  rp_sec_bus = (reg_value >> SECBN_SHIFT) & SECBN_MASK;
+  rp_sub_bus = (reg_value >> SUBBN_SHIFT) & SUBBN_MASK;
+  rp_seg = PCIE_EXTRACT_BDF_SEG(rp_bdf);
+
+  for (index = 0; index < bdf_tbl_ptr->num_entries; index++) {
+      dev_bdf = bdf_tbl_ptr->device[index].bdf;
+
+      if (val_pcie_function_header_type(dev_bdf) != TYPE0_HEADER)
+          continue;
+
+      dev_seg = PCIE_EXTRACT_BDF_SEG(dev_bdf);
+      dev_bus = PCIE_EXTRACT_BDF_BUS(dev_bdf);
+
+      if ((dev_seg == rp_seg) && (dev_bus >= rp_sec_bus) && (dev_bus <= rp_sub_bus)) {
+          val_pcie_read_cfg(dev_bdf, TYPE01_RIDR, &reg_value);
+          val_print(ACS_PRINT_DEBUG, "\n       Downstream class code is 0x%x", reg_value);
+          base_cc = reg_value >> TYPE01_BCC_SHIFT;
+          if (g_pcie_skip_dp_nic_ms &&
+              ((base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
+              val_print(ACS_PRINT_DEBUG, "\n       Skipping downstream BDF 0x%x", dev_bdf);
+              continue;
+          }
+          *target_bdf = dev_bdf;
+          return 0;
+      }
+  }
+
+  return 1;
+}
+
 static
 void
 payload(void *arg)
@@ -61,13 +115,14 @@ payload(void *arg)
   uint32_t pe_index;
   uint32_t tbl_index;
   uint32_t bar_data;
+  uint32_t reg_value;
+  uint32_t base_cc;
   uint32_t test_fails;
   uint32_t test_skip = 1;
   uint64_t bar_base;
   uint32_t dp_type;
   uint32_t status;
   uint32_t timeout;
-  uint32_t reg_value;
   test_data_t *test_data = (test_data_t *)arg;
 
   pcie_device_bdf_table *bdf_tbl_ptr;
@@ -135,11 +190,23 @@ payload(void *arg)
        * downstream function memory mapped BAR. If there is no
        * downstream Function exist, obtain its own BAR address.
        */
-      if ((val_pcie_function_header_type(bdf) == TYPE1_HEADER) &&
-           (!val_pcie_get_downstream_function(bdf, &dsf_bdf)))
+      if (val_pcie_function_header_type(bdf) == TYPE1_HEADER) {
+          if (get_dsf_bdf(bdf, &dsf_bdf))
+              continue;
+
           val_pcie_get_mmio_bar(dsf_bdf, &bar_base);
-      else
+      } else {
+          val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
+          val_print(ACS_PRINT_DEBUG, "\n       Class code is 0x%x", reg_value);
+          base_cc = reg_value >> TYPE01_BCC_SHIFT;
+          if (g_pcie_skip_dp_nic_ms &&
+              ((base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
+              val_print(ACS_PRINT_DEBUG, "\n       Skipping for BDF 0x%x", bdf);
+              continue;
+          }
+
           val_pcie_get_mmio_bar(bdf, &bar_base);
+      }
 
       /* Skip this function if it doesn't have mmio BAR */
       val_print(ACS_PRINT_DEBUG, "       Bar Base %x", bar_base);

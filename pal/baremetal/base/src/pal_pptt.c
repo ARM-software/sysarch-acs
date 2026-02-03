@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -135,5 +135,7 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
    }
 
   pal_cache_store_pe_res(CacheTable, PeTable);
-  pal_cache_dump_info_table(CacheTable, PeTable);
+
+  if (g_print_level <= ACS_PRINT_DEBUG)
+      pal_cache_dump_info_table(CacheTable, PeTable);
 }

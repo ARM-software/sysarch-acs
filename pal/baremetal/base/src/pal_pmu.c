@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,10 @@
 **/
 
 #include "platform_override_struct.h"
-#include "pal_pmu.h"
 #include "pal_common_support.h"
 
 extern PLATFORM_OVERRIDE_PMU_INFO_TABLE platform_pmu_cfg;
+extern PLATFORM_OVERRIDE_EVENT_DETAILS event_list[];
 
 /**
   @brief  Display PMU info table details
@@ -93,53 +93,17 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
       }
 
       /* Dump PMU info table */
-      pal_pmu_dump_info_table(PmuTable);
+      if (g_print_level <= ACS_PRINT_DEBUG)
+          pal_pmu_dump_info_table(PmuTable);
   }
 }
-
-typedef struct{
-    PMU_NODE_INFO_TYPE node_type;
-    PMU_EVENT_TYPE_e event_desc;
-    uint32_t event_id;
-}event_details;
-
-/* Array containing the details of implementation defined system PMU events */
-event_details event_list[] = {
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_IB_TOTAL_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_OB_TOTAL_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_IB_READ_BW,   PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_IB_WRITE_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_OB_READ_BW,   PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_OB_WRITE_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_IB_OPEN_TXN,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_IB_TOTAL_TXN, PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_OB_OPEN_TXN,  PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_OB_TOTAL_TXN, PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_LOCAL_BW,     PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_REMOTE_BW,    PMU_EVENT_INVALID},
-  {PMU_NODE_MEM_CNTR, PMU_EVENT_ALL_BW,       PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_IB_TOTAL_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_OB_TOTAL_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_IB_READ_BW,   PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_IB_WRITE_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_OB_READ_BW,   PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_OB_WRITE_BW,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_IB_OPEN_TXN,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_IB_TOTAL_TXN, PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_OB_OPEN_TXN,  PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_OB_TOTAL_TXN, PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_LOCAL_BW,     PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_REMOTE_BW,    PMU_EVENT_INVALID},
-  {PMU_NODE_PCIE_RC,  PMU_EVENT_ALL_BW,       PMU_EVENT_INVALID},
-  {PMU_NODE_ACPI_DEVICE, PMU_EVENT_TRAFFIC_1, PMU_EVENT_INVALID},
-  {PMU_NODE_ACPI_DEVICE, PMU_EVENT_TRAFFIC_2, PMU_EVENT_INVALID}
-};
 
 /**
   @brief  This API returns the event ID to be filled into PMEVTYPER register.
           Prerequisite - event_list array. This API should be called after
           filling the required event IDs into event_list array.
 
+  @param  node_index  -  Index of PMU node.
   @param  event_type  -  Type of the event.
   @param  node_type   -  PMU Node type
 
@@ -147,11 +111,14 @@ event_details event_list[] = {
 
 **/
 uint32_t
-pal_pmu_get_event_info(PMU_EVENT_TYPE_e event_type, PMU_NODE_INFO_TYPE node_type)
+pal_pmu_get_event_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
+                       PMU_NODE_INFO_TYPE node_type)
 {
-  uint32_t i=0;
-  while (event_list[i].node_type != node_type || event_list[i].event_desc != event_type) {
+  uint32_t i = 0;
+  while (event_list[i].node_index != node_index || event_list[i].node_type != node_type ||
+         event_list[i].event_desc != event_type) {
     i++;
   }
+
   return event_list[i].event_id;
 }

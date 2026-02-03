@@ -16,10 +16,8 @@
   * [MemTest ACS](#memory-model-consistency-tests)
 * [xBSA UEFI application](#xbsa-uefi-application)
 * [Security Implications](#-security-implications)
-* [Feedback and Support](#-feedback-and-support)
+* [Feedback, contributions and support](#-feedback-contributions-and-support)
 * [License](#-license)
-
----
 
 ## Introduction
 
@@ -38,57 +36,19 @@ Additionally, it also includes ACS for ...
 
 These suites enable silicon vendors, system integrators, and firmware developers to ensure platform compliance with Arm architectural standards across pre-silicon and silicon phases.
 
----
-
 ## 📁 Repository Structure
 
-```
-sysarch-acs/
-├── apps/
-│   ├── baremetal/
-│   |   └── <acs_name>_main.c
-│   ├── linux/
-│   |   └── <acs_name>_app
-│   ├── uefi/
-│   |   └── <acs_name>_main.c
-├── docs/
-│   ├── xbsa/
-│   ├── bsa/
-│   ├── sbsa/
-│   ├── drtm/
-│   ├── pfdi/
-│   ├── mpam/
-│   ├── pc_bsa/
-│   └── vbsa/
-├── test_pool/
-│   ├── <module>/
-├── val/
-├── pal/
-│   └── baremetal/
-│   └── uefi_acpi/
-│   └── uefi_dt/
-├── tools/
-├── mem_test/
-|── prebuilt_images/
-│   ├── bsa/
-│   ├── sbsa/
-│   ├── drtm/
-│   ├── pfdi/
-│   ├── mpam/
-│   ├── pc_bsa/
-│   └── vbsa/
-```
-
-
-* (`docs/<acs_name>`) : The documentation provides guides and reference materials to help partners onboard ACS
-* (`prebuilt_images/<acs>`) : Prebuilt ACS **release** binaries location for each supported acs
-* (`tools/scripts`) : Contains build scripts
-* (`apps/`) : Includes the application code for each ACS, which serves as the main entry point to invoke test execution
-* (`test_pool/`) : ACS test source files arranged in module basis
-* (`val/`) : Validation Abstraction Layer providing a platform-independent interface for ACS tests.
-* (`pal/`) : PAL abstraction for platform integration
-
----
+| Path/Folder            | Purpose                                                                 |
+|------------------------|-------------------------------------------------------------------------|
+| `apps`                 | Application code acting as ACS entry points for each environment        |
+| `docs`                 | Guides and references to help partners onboard each ACS                 |
+| `mem_test`             | Memory model consistency tests                                          |
+| `pal`                  | Platform Abstraction Layer used for platform integration                |
+| `patches`              | Patches for different ACS build with EDK2                               |
+| `prebuilt_images`      | Location of prebuilt ACS **release** binaries for supported suites      |
+| `test_pool`            | Module-organized ACS test sources                                       |
+| `tools`                | Build scripts                                                           |
+| `val`                  | Validation Abstraction Layer that supplies platform-independent APIs    |
 
 ## Architecture Compliance Suites
 
@@ -203,7 +163,6 @@ Validates platform compliance with Arm VBSA specification.
 ####  Reference for Build, Execution, and More
 Refer to the [VBSA ACS README](docs/vbsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
 
----
 
 ## xBSA UEFI application
 Provides a unified entry point for running BSA, SBSA, and PC-BSA validation from a single UEFI application.
@@ -211,26 +170,22 @@ Provides a unified entry point for running BSA, SBSA, and PC-BSA validation from
 ####  Reference for Build, Execution, and More
 Refer to the [xBSA README](docs/xbsa/README.md) for build steps, execution procedures, additional information, and known limitations.
 
----
 
 ## 🔐 Security Implications
 
 Running ACS requires elevated privileges. <br>
 Only execute on **development** systems. Do **not** run on production systems without sanitization.
 
----
 
-## 💬 Feedback and Support
+## 💬 Feedback, contributions and support
 
-* Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
-* Issues: [GitHub Tracker](../../issues)
-* Contributions: [GitHub Pull Requests](../../pulls)
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
 
----
 
 ## 📄 License
 
 Distributed under [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
-© 2025 Arm Limited and Contributors.
+© 2025-2026 Arm Limited and Contributors.
 
----

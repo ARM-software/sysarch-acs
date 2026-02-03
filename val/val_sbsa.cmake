@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,6 @@ list(REMOVE_ITEM VAL_SRC
  "${ROOT_DIR}/val/src/AArch64/Drtm.S"
  "${ROOT_DIR}/apps/baremetal/bsa_main.c"
  "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
- "${ROOT_DIR}/val/src/AArch64/BsaBootEntry.S"
  "${ROOT_DIR}/val/src/bsa_execute_test.c"
  "${ROOT_DIR}/val/src/mpam_execute_test.c"
 )

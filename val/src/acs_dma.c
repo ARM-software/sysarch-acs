@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,17 +133,22 @@ val_dma_get_info(DMA_INFO_e type, uint32_t index)
   @param  size       - Memory size to be allocated
   @param  dev_index  - DMA Controller Index
   @param  flags      - Flags to determine if DMA is Coherent
+  @param  dma_addr   - Start Address of the Allocated memory
 
-  @result Start Address of the Allocated memory
+  @return
+    - 0               : Success
+    - NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
 **/
-addr_t
-val_dma_mem_alloc(void **buffer, uint32_t size, uint32_t dev_index, uint32_t flags)
+uint64_t
+val_dma_mem_alloc(void **buffer, uint32_t size, uint32_t dev_index, uint32_t flags,
+                  addr_t *dma_addr)
 {
 
   void *ap = NULL;
 
   ap = (void *)val_dma_get_info(DMA_PORT_INFO, dev_index);
-  return pal_dma_mem_alloc(buffer, size, ap, flags);
+  return pal_dma_mem_alloc(buffer, size, ap, flags, dma_addr);
 
 }
 
@@ -203,7 +208,10 @@ val_dma_device_get_dma_addr(uint32_t ctrl_index, uint64_t *dma_addr, uint32_t *c
   @param  *attr - Memory attributes to return
   @param  *sh - Sharability
 
-  @result Status
+  @return
+  - 0               : Success
+  - NOT_IMPLEMENTED : Feature not implemented
+  - non-zero        : Failure (implementation-specific error code)
 **/
 int
 val_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,6 +128,7 @@ payload (void)
   uint32_t bdf, dp_type;
   uint32_t class_code;
   uint32_t base_cc;
+  uint32_t ret;
   status = 0;
 
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
@@ -166,7 +167,15 @@ payload (void)
           continue;
         }
 
-        if (val_get_msi_vectors (current_dev_bdf, &current_dev_mvec)) {
+        ret = val_get_msi_vectors (current_dev_bdf, &current_dev_mvec);
+
+        if (ret == NOT_IMPLEMENTED) {
+          val_print(ACS_PRINT_ERR,
+              "\n       pal_get_msi_vectors is unimplemented, Skipping test.", 0);
+          goto test_skip_unimplemented;
+        }
+
+        if (ret) {
             tbl_index_next = tbl_index + 1;
             while (tbl_index_next < bdf_tbl_ptr->num_entries && !status)
             {
@@ -205,8 +214,15 @@ payload (void)
                   }
 
                   /* Read MSI(X) vectors */
-                  if (val_get_msi_vectors (next_dev_bdf, &next_dev_mvec))
-                  {
+                  ret = val_get_msi_vectors (next_dev_bdf, &next_dev_mvec);
+
+                  if (ret == NOT_IMPLEMENTED) {
+                    val_print(ACS_PRINT_ERR,
+                        "\n       pal_get_msi_vectors is unimplemented, Skipping test.", 0);
+                    goto test_skip_unimplemented;
+                  }
+
+                  if (ret) {
                     test_skip = 0;
                     /* Compare two lists of MSI(X) vectors */
                     if (check_list_duplicates (current_dev_mvec, next_dev_mvec))
@@ -237,6 +253,10 @@ payload (void)
   } else  if (!status) {
     val_set_status (index, RESULT_PASS(TEST_NUM, 01));
   }
+  return;
+
+test_skip_unimplemented:
+  val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
 }
 
 uint32_t

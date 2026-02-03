@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,38 @@
 #include "val/include/acs_memory.h"
 #include "val/include/acs_dma.h"
 #include "acs.h"
+
+void
+createIoVirtInfoTable(
+)
+{
+  uint64_t   *IoVirtInfoTable;
+  IoVirtInfoTable = val_aligned_alloc(SIZE_4K, (sizeof(IOVIRT_INFO_TABLE)
+                    + ((IOVIRT_ITS_COUNT + IOVIRT_SMMUV3_COUNT + IOVIRT_RC_COUNT
+                    + IOVIRT_SMMUV2_COUNT + IOVIRT_NAMED_COMPONENT_COUNT + IOVIRT_PMCG_COUNT)
+                    * sizeof(IOVIRT_BLOCK)) + (IOVIRT_MAX_NUM_MAP * sizeof(ID_MAP))));
+  val_iovirt_create_info_table(IoVirtInfoTable);
+}
+
+
+void
+createPcieInfoTable(
+)
+{
+  uint64_t   *PcieInfoTable;
+  PcieInfoTable = val_aligned_alloc(SIZE_4K, (sizeof(PCIE_INFO_TABLE)
+                  + (PLATFORM_OVERRIDE_NUM_ECAM * sizeof(PCIE_INFO_BLOCK))));
+  val_pcie_create_info_table(PcieInfoTable);
+}
+
+void createMemoryInfoTable(
+)
+{
+  uint64_t   *MemoryInfoTable;
+  MemoryInfoTable = val_aligned_alloc(SIZE_4K, sizeof(MEMORY_INFO_TABLE)
+                    + (PLATFORM_OVERRIDE_MEMORY_ENTRY_COUNT * sizeof(MEM_INFO_BLOCK)));
+  val_memory_create_info_table(MemoryInfoTable);
+}
 
 void
 createSmbiosInfoTable(
@@ -91,25 +123,6 @@ createWatchdogInfoTable(
                     + (PLATFORM_OVERRIDE_WD_TIMER_COUNT * sizeof(WD_INFO_BLOCK)));
 
     val_wd_create_info_table(WdInfoTable);
-}
-
-
-void
-createPcieVirtInfoTable(
-)
-{
-    uint64_t   *PcieInfoTable;
-    uint64_t   *IoVirtInfoTable;
-
-    PcieInfoTable = val_aligned_alloc(SIZE_4K, (sizeof(PCIE_INFO_TABLE)
-                    + (PLATFORM_OVERRIDE_NUM_ECAM * sizeof(PCIE_INFO_BLOCK))));
-    val_pcie_create_info_table(PcieInfoTable);
-
-    IoVirtInfoTable = val_aligned_alloc(SIZE_4K, (sizeof(IOVIRT_INFO_TABLE)
-                        + ((IOVIRT_ITS_COUNT + IOVIRT_SMMUV3_COUNT + IOVIRT_RC_COUNT
-                        + IOVIRT_SMMUV2_COUNT + IOVIRT_NAMED_COMPONENT_COUNT + IOVIRT_PMCG_COUNT)
-                        * sizeof(IOVIRT_BLOCK)) + (IOVIRT_MAX_NUM_MAP * sizeof(ID_MAP))));
-    val_iovirt_create_info_table(IoVirtInfoTable);
 }
 
 void

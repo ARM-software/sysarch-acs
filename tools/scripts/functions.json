@@ -46,11 +46,6 @@
       "parameters": ["uint32_t int_id"]
     },
     {
-      "return_type": "uint32_t",
-      "function_name": "pal_gic_request_irq",
-      "parameters": ["uint32_t IrqNum", "uint32_t MappedIrqNum", "void *Isr"]
-    },
-    {
       "return_type": "void",
       "function_name": "pal_gic_free_irq",
       "parameters": ["uint32_t IrqNum", "uint32_t MappedIrqNum"]
@@ -71,19 +66,9 @@
       "parameters": []
     },
     {
-      "return_type": "uint32_t",
-      "function_name": "pal_smmu_create_pasid_entry",
-      "parameters": ["uint64_t SmmuBase", "uint32_t PasId"]
-    },
-    {
-      "return_type": "uint32_t",
-      "function_name": "pal_smmu_disable",
-      "parameters": ["uint64_t SmmuBase"]
-    },
-    {
       "return_type": "uint64_t",
       "function_name": "pal_smmu_pa2iova",
-      "parameters": ["uint64_t SmmuBase", "uint64_t Pa"]
+      "parameters": ["uint64_t SmmuBase", "uint64_t Pa", "uint64_t *dram_buf_iova"]
     },
     {
       "return_type": "uint32_t",
@@ -154,11 +139,6 @@
       "return_type": "uint32_t",
       "function_name": "pal_exerciser_get_state",
       "parameters": ["EXERCISER_STATE *State", "uint32_t Bdf"]
-    },
-    {
-      "return_type": "uint32_t",
-      "function_name": "pal_exerciser_set_state",
-      "parameters": ["EXERCISER_STATE State", "uint64_t *Value", "uint32_t Instance"]
     },
     {
       "return_type": "uint32_t",
@@ -255,17 +235,13 @@
     {
       "return_type": "uint64_t",
       "function_name": "pal_dma_mem_alloc",
-      "parameters": ["void **buffer", "uint32_t length", "void *dev", "uint32_t flag"]
+      "parameters": ["void **buffer", "uint32_t length", "void *dev", "uint32_t flag", 
+                     "addr_t *dma_addr"]
     },
     {
       "return_type": "void",
       "function_name": "pal_dma_mem_free",
       "parameters": ["void *buffer", "uint64_t mem_dma", "unsigned int length", "void *port", "unsigned int flags"]
-    },
-    {
-      "return_type": "unsigned int",
-      "function_name": "pal_dma_start_from_device",
-      "parameters": ["void *dma_target_buf", "unsigned int length", "void *host", "void *dev"]
     },
     {
       "return_type": "void",

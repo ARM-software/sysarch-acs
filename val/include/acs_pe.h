@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2020,2022-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2020,2022-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,6 +104,7 @@ typedef enum {
   ID_AA64MMFR0_EL1,
   ID_AA64MMFR1_EL1,
   ID_AA64MMFR2_EL1,
+  ID_AA64MMFR3_EL1,
   ID_AA64DFR0_EL1,
   ID_AA64DFR1_EL1,
   CTR_EL0,
@@ -201,6 +202,7 @@ uint64_t ArmReadIdPfr1(void);
 uint64_t AA64ReadMmfr0(void);
 uint64_t AA64ReadMmfr1(void);
 uint64_t AA64ReadMmfr2(void);
+uint64_t AA64ReadMmfr3(void);
 uint64_t AA64ReadCtr(void);
 uint64_t AA64ReadIsar0(void);
 uint64_t AA64ReadIsar1(void);

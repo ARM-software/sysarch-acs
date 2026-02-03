@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -431,7 +431,7 @@ val_pmu_configure_monitor(uint32_t node_index, PMU_EVENT_TYPE_e event_type, uint
 
     node_type = val_pmu_get_info(PMU_NODE_TYPE, node_index);
     /* Get event id details based on Implementation */
-    data = pal_pmu_get_event_info(event_type, node_type);
+    data = pal_pmu_get_event_info(node_index, event_type, node_type);
 
     if (data == PMU_EVENT_INVALID) {
         return 1;

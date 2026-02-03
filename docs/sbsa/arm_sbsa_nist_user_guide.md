@@ -28,7 +28,7 @@ Current release require the below tool:
     Before you start the ACS build, ensure that the following requirements are met.
 
 - Any mainstream Linux-based OS distribution running on a x86 or AArch64 machine.
-- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202505
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 commit is edk2-stable202511
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
 - Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Install the build prerequisite packages to build EDK2.<br />
@@ -138,4 +138,4 @@ For more details on NIST STS, see: <https://doi.org/10.6028/NIST.SP.800-22r1a>
 
 --------------
 
-*Copyright (c) 2020, 2023-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2020, 2023-2026, Arm Limited and Contributors. All rights reserved.*

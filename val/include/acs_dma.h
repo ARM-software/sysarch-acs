@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021, 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021, 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,8 @@
 
 void val_dma_free_info_table(void);
 
-addr_t val_dma_mem_alloc(void **buffer, uint32_t size, uint32_t dev_index, uint32_t flags);
+uint64_t val_dma_mem_alloc(void **buffer, uint32_t size, uint32_t dev_index, uint32_t flags,
+                         addr_t *dma_addr);
 
 void val_dma_mem_free(void *buffer, dma_addr_t mem_dma, uint32_t size, uint32_t dev_index,
                       uint32_t flags);

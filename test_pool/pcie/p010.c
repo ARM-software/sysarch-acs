@@ -1,5 +1,5 @@
 /** @file
-* Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+* Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
 * SPDX-License-Identifier : Apache-2.0
 
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ payload(void)
       /* Check entry is RP or iEP_RP */
       if ((dp_type == RP) || (dp_type == iEP_RP))
       {
-          /* Test runs for atleast an endpoint */
+          /* Test runs for atleast one RP/iEP_RP */
           test_skip = 0;
           val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x", bdf);
 

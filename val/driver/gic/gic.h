@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,10 +48,11 @@
 #define GIC_ICCIAR          0x0C
 #define GIC_ICCEIOR         0x10
 
-#define PE_AFF0   0xFF
-#define PE_AFF1   (0xFF << 8)
-#define PE_AFF2   (0xFF << 16)
-#define PE_AFF3   (0xFFULL << 32)
+#define PE_AFF0         0xFF
+#define PE_AFF1         (0xFF << 8)
+#define PE_AFF2         (0xFF << 16)
+#define PE_AFF3         (0xFFULL << 32)
+#define MAX_SGI_PPI     32
 
 
 void val_gic_init(void);

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2020-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2020-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -345,15 +345,16 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
   @param ptr Pointer to physical memory region
   @param size Size
   @param attr Attributes
+  @param baseptr   OUT: Returned mapped address pointer
 
-  @return Pointer to mapped virtual address space
+  @return  Status of mapping operation
 **/
-UINT64
-pal_memory_ioremap(VOID *ptr, UINT32 size, UINT32 attr)
+UINT32
+pal_memory_ioremap(VOID *ptr, UINT32 size, UINT32 attr, VOID **baseptr)
 {
+  *baseptr = ptr;
 
-
-  return (UINT64)ptr;
+  return NOT_IMPLEMENTED;
 }
 
 /**

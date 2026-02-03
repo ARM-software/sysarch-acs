@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -299,7 +299,9 @@ val_peripheral_create_info_table(uint64_t *peripheral_info_table)
     val_peripheral_get_info(NUM_SATA, 0));
   val_print(ACS_PRINT_TEST, " Peripheral: Num of UART controllers  :    %d\n",
     val_peripheral_get_info(NUM_UART, 0));
-  val_peripheral_dump_info();
+
+  if (g_print_level <= ACS_PRINT_DEBUG)
+    val_peripheral_dump_info();
 
 }
 

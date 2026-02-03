@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,9 @@ set(ASM_COMPILE_DEBUG_OPTIONS "-g -Wa,--gdwarf-4")
 
 add_definitions(-DTARGET_BAREMETAL)
 
-if(ACS MATCHES "sbsa")
+if(ACS MATCHES "pc_bsa")
+    add_definitions(-DPC_BSA)
+elseif(ACS MATCHES "sbsa")
     add_definitions(-DSBSA)
 elseif(ACS MATCHES "bsa")
     add_definitions(-DBSA)

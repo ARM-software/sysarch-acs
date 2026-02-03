@@ -180,7 +180,6 @@ void     val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
 uint32_t val_gic_get_info(GIC_INFO_e type);
 uint32_t val_gic_install_isr(uint32_t int_id, void (*isr)(void));
 uint32_t val_gic_end_of_interrupt(uint32_t int_id);
-uint32_t val_gic_request_irq(uint32_t irq_num, uint32_t mapped_irq_num, void *isr);
 uint32_t val_gic_get_intr_trigger_type(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e *trigger_type);
 uint32_t val_gic_its_configure(void);
 uint32_t val_gic_its_get_base(uint32_t its_id, uint64_t *its_base);
@@ -271,6 +270,8 @@ void     val_pcie_enable_msa(uint32_t bdf);
 void     val_pcie_clear_urd(uint32_t bdf);
 void     val_pcie_enable_eru(uint32_t bdf);
 void     val_pcie_disable_eru(uint32_t bdf);
+void     val_pcie_enable_dpc(uint32_t bdf, uint32_t err_type);
+void     val_pcie_disable_dpc(uint32_t bdf);
 void     val_pcie_get_mmio_bar(uint32_t bdf, void *base);
 void     val_pcie_read_acsctrl(uint32_t arr[][1]);
 void     val_pcie_write_acsctrl(uint32_t arr[][1]);
@@ -556,6 +557,7 @@ typedef enum {
 
 uint32_t val_ras_create_info_table(uint64_t *ras_info_table);
 uint32_t val_ras_get_info(uint32_t info_type, uint32_t param1, uint64_t *ret_data);
+void val_ras_free_info_table(void);
 void val_ras2_create_info_table(uint64_t *ras2_info_table);
 void val_ras2_free_info_table(void);
 uint64_t val_ras2_get_mem_info(RAS2_MEM_INFO_e type, uint32_t index);

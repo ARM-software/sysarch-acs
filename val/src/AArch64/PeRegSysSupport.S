@@ -1,5 +1,5 @@
 #/** @file
-# Copyright (c) 2016-2020,2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2016-2020,2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
 # SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ GCC_ASM_EXPORT (ArmReadIdPfr1)
 GCC_ASM_EXPORT (AA64ReadMmfr0)
 GCC_ASM_EXPORT (AA64ReadMmfr1)
 GCC_ASM_EXPORT (AA64ReadMmfr2)
+GCC_ASM_EXPORT (AA64ReadMmfr3)
 GCC_ASM_EXPORT (AA64ReadCtr)
 GCC_ASM_EXPORT (ArmReadMmfr0)
 GCC_ASM_EXPORT (AA64ReadIsar0)
@@ -176,6 +177,10 @@ ASM_PFX(AA64ReadMmfr1):
 
 ASM_PFX(AA64ReadMmfr2):
   mrs   x0, id_aa64mmfr2_el1
+  ret
+
+ASM_PFX(AA64ReadMmfr3):
+  mrs   x0, id_aa64mmfr3_el1
   ret
 
 ASM_PFX(AA64ReadCtr):

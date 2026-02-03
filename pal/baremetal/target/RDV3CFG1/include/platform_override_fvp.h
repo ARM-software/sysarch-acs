@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -240,6 +240,8 @@
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_BUS      0x9    /* Max bus walked by bare-metal tests      */
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_DEV      32     /* Max device per bus checked              */
 #define PLATFORM_BM_OVERRIDE_PCIE_MAX_FUNC     8      /* Max function per device checked         */
+
+// This value is arbitrary and may have to be adjusted
 #define PLATFORM_BM_OVERRIDE_MAX_IRQ_CNT       0xFFFF /* Max IRQs any device may raise           */
 
 #define PLATFORM_OVERRIDE_TIMEOUT              0      /* Override default wakeup timeout         */
@@ -697,7 +699,7 @@
 
 #define DVSEC_CTRL      0x08
 #define PASID           0x1B
-#define PCI_E           0x01
+#define PCIE_REG        0x01
 #define DVSEC           0x23
 
 /* PCI/PCIe express extended capability structure's

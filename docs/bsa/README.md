@@ -1,6 +1,6 @@
 > **Important change — BSA ACS rule-based execution**
 >
-> BSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.  
+> BSA ACS has undergone a framework change to support **specification rule-based execution and reporting**.
 > For details on using BSA Specification rule IDs to run the latest BSA binaries and to collate results per rule, see the [Rule-Based Guide](../common/RuleBasedGuide.md)
 
 ## Table of Contents
@@ -17,6 +17,7 @@
   - [For UEFI application](#for-uefi-application)
   - [For Linux application](#for-linux-application)
 - [Limitations](#limitations)
+- [Feedback, contributions and support](#feedback-contributions-and-support)
 - [License](#license)
 
 
@@ -35,10 +36,18 @@ A subset runs from Linux via a BSA ACS user-space application and its kernel mod
 Tests can also run in a bare-metal environment. Initialization of the bare-metal environment is platform-specific and out of scope for this document.
 
 ## Release details
+- **Code quality:** BETA
 - **Latest release version:** v1.2.0
+- **Release tag:** `v25.12_BSA_1.2.0`
+- **Specification coverage:** BSA v1.2
 - **Execution levels:** Pre-Silicon and Silicon.
 - **Scope:** The compliance suite is **not** a substitute for design verification.
+- **Prebuilt binaries:** [`prebuilt_images/BSA/v25.12_BSA_1.2.0`](../../prebuilt_images/BSA/v25.12_BSA_1.2.0)
 - **Access to logs:** Arm licensees can contact Arm through their partner managers.
+
+> **For complete coverage of PCIe capability rules**
+> - Run the Exerciser VIP alongside the BSA ACS to exercise PCIe endpoint behaviors referenced by the specification.
+> - Capture Exerciser logs with the test output to demonstrate compliance evidence.
 
 #### BSA ACS version mapping
 
@@ -64,183 +73,114 @@ Tests can also run in a bare-metal environment. Initialization of the bare-metal
 - To get the latest code with bug fixes and new features, use the **main** branch.
 
 #### Prebuilt release binaries
-Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.  
+Prebuilt images for each release, including [`v25.12_BSA_1.2.0`](../../prebuilt_images/BSA/v25.12_BSA_1.2.0), are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.
 
 ## Documentation and Guides
 - [Arm BSA Test Scenario Document](arm_bsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.
 - [Arm BSA Test Checklist](arm_bsa_testcase_checklist.md) — test categories (UEFI, Linux, Bare-metal) and applicable systems.
 - [Arm BSA Validation Methodology](arm_bsa_architecture_compliance_validation_methodology.pdf).
-- [Arm BSA ACS User Guide](arm_bsa_architecture_compliance_user_guide.pdf).  
-- Bare-metal porting guides  
-  - [Arm BSA ACS Bare-metal User Guide](arm_bsa_architecture_compliance_bare-metal_user_guide.pdf)  
-  - [Bare-metal Code](../../pal/baremetal/)  
-
-  **Note:** The Bare-metal PCIe enumeration code provided with BSA ACS must be used and **must not be replaced**. It is essential for accurate analysis of test results.
-
-- Exerciser VIP guides - The **Exerciser** is a client device wrapped by a PCIe Endpoint, created to satisfy BSA requirements for PCIe capability validation. Running Exerciser tests increases platform coverage.
+- [Arm BSA ACS User Guide](arm_bsa_architecture_compliance_user_guide.pdf).
+- Bare-metal porting guides:
+  - [Arm BSA ACS Bare-metal User Guide](arm_bsa_architecture_compliance_bare-metal_user_guide.pdf)
+  - [Bare-metal Code](../../pal/baremetal/)
+- Exerciser VIP guides (the Exerciser PCIe endpoint increases coverage of PCIe-capability rules):
   - [Exerciser.md](../pcie/Exerciser.md)
-  - [Exerciser_API_porting_guide.md](../pcie/Exerciser_API_porting_guide.md).
+  - [Exerciser_API_porting_guide.md](../pcie/Exerciser_API_porting_guide.md)
+
+> **Important:** The Bare-metal PCIe enumeration code shipped with BSA ACS **must not be replaced**; it is required for accurate analysis of test results.
 
 ## BSA build steps
 
 ### UEFI Shell application
 
-#### Prerequisites
-- A mainstream Linux distribution on x86 or AArch64.
-- Bash Shell for build
-- Install prerequisite packages to build EDK2.  
-  *Note: Package details are beyond the scope of this document.*
+Follow the [Common UEFI build guide](../common/uefi_build.md) to set up the
+edk2 workspace and Arm toolchain, then run:
 
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-git clone -b edk2-stable202508 https://github.com/tianocore/edk2
-cd edk2
-git submodule update --init --recursive
-git clone https://github.com/tianocore/edk2-libc
-git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
-cd -
-```
-- On x86 machine download and setup toolchain
-```
-wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-export GCC_AARCH64_PREFIX=$PWD/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
-```
-- On Aarch64 machine, export toolchain variable to native tools
-```
-export GCC_AARCH64_PREFIX=/usr/bin
-```
+- `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh bsa      # ACPI flow`
+- `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh bsa_dt   # Device Tree flow`
 
-#### Build edk2 by following below steps:
-```
-export PACKAGES_PATH=$PWD/edk2-libc
-source edksetup.sh
-make -C BaseTools/Source/C
-```
-
-#### To start the ACS build for platform using ACPI table, perform the following steps:
-```
-rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh bsa
-```
-
-#### To start the ACS build for platform using Device tree, perform the following steps:
-```
-rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh bsa_dt
-```
-
-#### Build output
-The EFI executable is generated at: `workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/Bsa.efi`
+Both flows emit `Bsa.efi` under `Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/` inside
+the edk2 workspace.
 
 ### Linux application
-Certain Peripheral, PCIe, and Memory Map tests require a Linux OS. This section covers building and executing these tests from the Linux application.
 
-#### Prerequisites
-- A mainstream Linux distribution on x86 or AArch64.
-- Bash Shell for build
+Certain Peripheral, PCIe, and Memory Map tests require Linux.\
+Use the [Common Linux application guide](../common/linux_build.md) for the shared build
+script, arguments, and output locations.
 
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
-chmod +x build.sh
-```
-
-#### To start the build, perform below steps:
-Build Script arguments :The following arguments can be used with `build.sh`:
- - `-v` or `--version` — Linux kernel version for cross-compilation. Default: **6.10**.  
- - `--GCC_TOOLS` — GCC toolchain version for cross-compilation. Default: **13.2.rel1**.  
- - `--help` — Displays environment info, defaults, usage, and notes.  
- - `--clean` — Removes the `build/` output folder (modules and apps).  
- - `--clean_all` — Removes all downloaded repositories and build artifacts, including the output directory.
-
-```
-source build.sh $args (as needed)
-```
-
-#### Build Output
-The ACS kernel module and app will be generated at `workspace/build/`
- - `bsa_acs.ko` : Kernel module which needs to be insmod before running bsa_app
- - `bsa_app` : bsa linux app
+- The BSA artifacts are `bsa_acs.ko` and `bsa_app`, generated under `workspace/build/`.
 
 ### Baremetal application
-The bare-metal build environment is platform-specific.
+The bare-metal build environment is platform-specific.\
 For details on generating binaries for bare-metal environments, refer to [README.md](../../pal/baremetal/README.md).
 
 
 ## BSA run steps
 
-### For UEFI application 
+### For UEFI application
 
 #### Silicon System
 On a system with a functional USB port:
-1. Copy `Bsa.efi` to a USB device which is fat formatted.  
+1. Copy `Bsa.efi` to a FAT-formatted USB device.
+  - **If the platform boots through U-Boot then perform below steps:**
+    1. Copy `Shell.efi` (from [prebuilt_images](../../prebuilt_images/BSA)) to the same USB device.
+    2. Boot to the U-Boot shell and run:\
+       `usb start`
+    3. Load `Shell.efi` and launch the UEFI shell:\
+       `fatload usb <dev_num> ${kernel_addr_r} Shell.efi`\
+       `bootefi ${kernel_addr_r}`
+2. In the UEFI shell, refresh mappings with:\
+   `map -r`
+3. Switch to the USB filesystem (for example, `fs0:`).
+4. Run `Bsa.efi` with the required parameters (see [Common CLI arguments](../common/cli_args.md)).
+5. Capture the UART console output to a log file for analysis.
 
-- **For u-boot firmware Systems, additional steps**
-  1. Copy `Shell.efi` to the USB device.
-  *Note:* `Shell.efi` is available in [prebuilt_images](../../prebuilt_images/BSA).
-  
-  2. Boot to the **U-Boot** shell.  
-  3. Determine the USB device with:
-    ```
-    usb start
-    ```
-  4. Load `Shell.efi` to memory and boot UEFI Shell:
-    ```
-    fatload usb <dev_num> ${kernel_addr_r} Shell.efi
-    fatload usb 0 ${kernel_addr_r} Shell.efi
-    ```
+**Example**
 
-2. In UEFI Shell, refresh mappings:
-   ```sh
-   map -r
-   ```
-3. Change to the USB filesystem (e.g., `fs0:`).  
-4. Run `Bsa.efi` with appropriate parameters.  
-5. Capture UART console output to a log file.
+`Shell> Bsa.efi -v 1 -skip B_PE_01,B_GIC_02 -f bsa_uefi.log`
 
-- For application parameters, see the [User Guide](arm_bsa_architecture_compliance_user_guide.pdf).
+Runs at INFO level, skips rules `B_PE_01`/`B_GIC_02`, and saves the UART log to
+`bsa_uefi.log`.
+
+> BSA rule filters follow the `B_<section>_<nn>` pattern defined in the
+  [BSA checklist](arm_bsa_testcase_checklist.md)
+  (for example, `B_PE_01`, `B_GIC_02`).\
+> Module selectors mirror the BSA spec sections such as `PE`, `GIC`, `PCIE`, and
+  `MEM_MAP`.
+
 
 #### Emulation environment with secondary storage
-1. Create an image containing `Bsa.efi` and **'Shell.efi` (only for u-boot systems)**:
-   ```
-   mkfs.vfat -C -n HD0 hda.img 2097152
-   sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/bsa
-   sudo cp "<path to application>/Bsa.efi" /mnt/bsa/
-   sudo umount /mnt/bsa
-   ```
-   *(If `/dev/loop0` is busy, select a free loop device.)*
-2. Load the image to secondary storage via a backdoor (environment-specific).
-3. Boot to UEFI Shell.  
-4. Identify the filesystem with `map -r`.  
-5. Switch to the filesystem (`fs<x>:`).  
-6. Run `Bsa.efi` with parameters.  
-7. Save UART console output for analysis/certification.
-
-- For application parameters, see the [User Guide](arm_bsa_architecture_compliance_user_guide.pdf).
+1. Create a FAT image containing `Bsa.efi` (and `Shell.efi` if required for U-Boot platforms):\
+    `mkfs.vfat -C -n HD0 hda.img 2097152`\
+    `sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/bsa`\
+    `sudo cp "<path to application>/Bsa.efi" /mnt/bsa/`\
+    `sudo umount /mnt/bsa`\
+    *(Pick a free loop device if `/dev/loop0` is busy.)*
+2. Attach the image to the virtual platform or emulator using its documented backdoor method.
+3. Boot to the UEFI shell.
+4. Refresh filesystem mappings with:\
+   `map -r`
+5. Switch to the assigned filesystem (`fs<x>`), run `Bsa.efi` with the desired arguments (see [Common CLI arguments](../common/cli_args.md)).
+6. Capture UART console output for certification and debug reports.
 
 ### For Linux application
 
-1. Copy the bsa_acs.ko and bsa_app into USB drive
-2. Boot to Linux and identify the USB drive
-3. Load the BSA kernel module
-  ```sh
-  sudo insmod bsa_acs.ko
-  ```
-4. Run the BSA application
-  ```sh
-  ./bsa_app
-  ```
-5. Remove the BSA kernel module after run
-  ```sh
-  sudo rmmod bsa_acs
-  ```
-- For application parameters, see the [User Guide](arm_bsa_architecture_compliance_user_guide.pdf).
+1. Copy `bsa_acs.ko` and `bsa_app` to removable media or the DUT.
+2. Boot into Linux and mount the media if needed.
+3. Load the kernel module:\
+    `sudo insmod bsa_acs.ko`
+4. Run the user-space application (see [Common CLI arguments](../common/cli_args.md)).\
+    `./bsa_app`
+5. After the run, unload the module:\
+    `sudo rmmod bsa_acs`
+
+### Application Arguments
+Refer to [Common CLI arguments](../common/cli_args.md) for flag syntax,
+module filters, and logging options, and consult the [User Guide](arm_bsa_architecture_compliance_user_guide.pdf)
+for additional usage notes.
 
 ## Limitations
-- For systems with firmware compliant to SBBR, BSA depends on the **SPCR ACPI table** to obtain UART information.  
+- For systems with firmware compliant to SBBR, BSA depends on the **SPCR ACPI table** to obtain UART information.
   Set the UEFI console to **serial**.
 - ITS tests are available only for systems presenting firmware compliant to SBBR.
 - Some PCIe and Exerciser tests depend on platform PCIe features. Please populate the required PAL APIs with platform details:
@@ -254,10 +194,15 @@ On a system with a functional USB port:
   - Ability to check BDF and register addresses observed for each configuration access along with access type.
 - Linux DMA-related tests have **not** been verified
 
+## Feedback, contributions and support
+
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
 
 ## License
-BSA ACS is distributed under the **Apache v2.0 License**.
+BSA ACS is distributed under the [Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 --------------
 
-*Copyright (c) 2021-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2021-2026, Arm Limited and Contributors. All rights reserved.*

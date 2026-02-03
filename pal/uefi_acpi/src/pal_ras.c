@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,6 +258,12 @@ pal_ras_create_info_table(RAS_INFO_TABLE *RasInfoTable)
   aest = (EFI_ACPI_ARM_ERROR_SOURCE_TABLE *)pal_get_aest_ptr();
   if (aest == NULL) {
       acs_print(ACS_PRINT_DEBUG, L" AEST table not found\n");
+      return;
+  }
+
+  if (aest->Header.Revision == 2) {
+      acs_print(ACS_PRINT_WARN, L" NOT_SUPPORTED: AEST Revision %d detected.\n",
+                                  aest->Header.Revision);
       return;
   }
 

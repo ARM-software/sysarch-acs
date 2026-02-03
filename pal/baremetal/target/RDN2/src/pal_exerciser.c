@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -310,7 +310,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
           }
 
      case ERROR_INJECT_TYPE:
-        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
+        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE_REG, &CapabilityOffset);
         Data = pal_mmio_read(Ecam + CapabilityOffset +
                              pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
         Data = ((Value1 << ERR_CODE_SHIFT) | (Value2 << FATAL_SHIFT));
@@ -322,7 +322,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
                 return 3;
 
       case ENABLE_POISON_MODE:
-        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
+        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE_REG, &CapabilityOffset);
         Data = pal_mmio_read(Ecam + CapabilityOffset +
                              pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
         Data = Data | (1 << 18);
@@ -338,7 +338,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         return 0;
 
       case DISABLE_POISON_MODE:
-        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
+        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE_REG, &CapabilityOffset);
         Data = pal_mmio_read(Ecam + CapabilityOffset +
                              pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
         Data = Data & (0 << 18);
@@ -576,7 +576,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
         data = ((Param & PASID_VAL_MASK));
         pal_mmio_write(Base + PASID_VAL, data);
 
-        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCI_E, &CapabilityOffset)) {
+        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCIE_REG, &CapabilityOffset)) {
             pal_mmio_write(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + CapabilityOffset + PCIE_CAP_CTRL_OFFSET,
                             (pal_mmio_read(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + CapabilityOffset + PCIE_CAP_CTRL_OFFSET)) | PCIE_CAP_EN_MASK);
             return 0;
@@ -586,7 +586,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
     case PASID_TLP_STOP:
         pal_mmio_write(Base + DMACTL1, (pal_mmio_read(Base + DMACTL1) & PASID_TLP_STOP_MASK));
 
-        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCI_E, &CapabilityOffset)) {
+        if (!pal_exerciser_find_pcie_capability(PASID, Bdf, PCIE_REG, &CapabilityOffset)) {
             pal_mmio_write(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + CapabilityOffset + PCIE_CAP_CTRL_OFFSET,
                             (pal_mmio_read(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + CapabilityOffset + PCIE_CAP_CTRL_OFFSET)) & PCIE_CAP_DIS_MASK);
             return 0;
@@ -617,7 +617,7 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
         return 0;
 
     case INJECT_ERROR:
-        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCI_E, &CapabilityOffset);
+        pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE_REG, &CapabilityOffset);
         data = pal_mmio_read(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) +
                              CapabilityOffset + DVSEC_CTRL);
         data = data | (1 << ERROR_INJECT_BIT);
@@ -630,23 +630,6 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
   }
 
   return 1;
-}
-
-
-
-/**
-  @brief   This API sets the state of the PCIe stimulus generation hardware
-  @param   State        - State that needs to be set for the stimulus hadrware
-  @param   Value        - Additional information associated with the state
-  @param   Instance     - Stimulus hardware instance number
-  @return  Status       - SUCCESS if the input state is successfully written to hardware
-**/
-uint32_t pal_exerciser_set_state (EXERCISER_STATE State, uint64_t *Value, uint32_t Instance)
-{
-  (void) State;
-  (void) Value;
-  (void) Instance;
-  return 0;
 }
 
 /**
@@ -691,26 +674,34 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE Type, exerciser_data_t *Data
               Data->bar_space.type = MMIO_NON_PREFETCHABLE;
           return 0;
       case EXERCISER_DATA_MMIO_SPACE:
+          uint32_t BarRegLowerValue = 0;
+          uint32_t Seg, Bus, Dev, Func;
+          uint32_t Offset;
           Index = 0;
           Data->bar_space.base_addr = 0;
           while (Index < TYPE0_MAX_BARS)
           {
               EcamBAR = pal_exerciser_get_ecsr_base(Bdf, Index);
 
+              Seg  = PCIE_EXTRACT_BDF_SEG(Bdf);
+              Bus  = PCIE_EXTRACT_BDF_BUS(Bdf);
+              Dev  = PCIE_EXTRACT_BDF_DEV(Bdf);
+              Func = PCIE_EXTRACT_BDF_FUNC(Bdf);
+              Offset = BAR0_OFFSET + (4 * Index);
+              pal_cfg_read(Seg, Bus, Dev, Func, Offset, &BarRegLowerValue);
+
               /* Check if the BAR is Memory Mapped IO type */
-              if (((EcamBAR >> BAR_MIT_SHIFT) & BAR_MIT_MASK) == MMIO)
+              if (((BarRegLowerValue >> BAR_MIT_SHIFT) & BAR_MIT_MASK) == MMIO)
               {
                   Data->bar_space.base_addr = (void *)(EcamBAR);
-                  if (((EcamBAR >> PREFETCHABLE_BIT_SHIFT) & MASK_BIT) == 0x1)
+                  if (((BarRegLowerValue >> PREFETCHABLE_BIT_SHIFT) & MASK_BIT) == 0x1)
                       Data->bar_space.type = MMIO_PREFETCHABLE;
                   else
                       Data->bar_space.type = MMIO_NON_PREFETCHABLE;
-
-                  Data->bar_space.base_addr = (void *)EcamBAR;
                   return 0;
               }
 
-              if (((EcamBAR >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
+              if (((BarRegLowerValue >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
               {
                   /* Adjust the index to skip next sequential BAR */
                   Index++;

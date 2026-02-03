@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,8 @@ payload()
   uint64_t num_node;
   uint64_t value;
   uint32_t node_index;
+  uint32_t err_rec_idx;
+  uint64_t num_err_recs;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   /* Get Number of nodes with RAS Functionality */
@@ -73,35 +75,45 @@ payload()
         continue;
     }
 
-    /* Read FR register of the first error record */
-    value = val_ras_reg_read(node_index, RAS_ERR_FR, 0);
-    if (value == INVALID_RAS_REG_VAL) {
-        val_print(ACS_PRINT_ERR,
-                    "\n       Couldn't read ERR<0>FR register for RAS node index: 0x%lx",
-                    node_index);
+    /* Get Error Record number for this Node */
+    status = val_ras_get_info(RAS_INFO_NUM_ERR_REC, node_index, &num_err_recs);
+    if (status || num_err_recs == 0) {
+         val_print(ACS_PRINT_ERR, "\n       RAS Node %d has no error records implemented ",
+                                   node_index);
+         continue;
+    }
+
+    /* Enumerate all implemented Error Records */
+    for (err_rec_idx = 0; err_rec_idx < num_err_recs; err_rec_idx++) {
+      /* Read FR register of the current error record */
+      value = val_ras_reg_read(node_index, RAS_ERR_FR, err_rec_idx);
+      if (value == INVALID_RAS_REG_VAL) {
+          val_print(ACS_PRINT_ERR, "\n       Couldn't read ERR<%d>FR register", err_rec_idx);
+          val_print(ACS_PRINT_ERR, "\n       RAS node index: %d", node_index);
+          fail_cnt++;
+          continue;
+      }
+
+      /* Check only if DE[52] != 0 then DUI[17:16] != 0 of FR Register For DUI Control */
+      if ((value & ERR_FR_DE_MASK) && !(value & ERR_FR_DUI_MASK)) {
+        val_print(ACS_PRINT_ERR, "\n       DUI not implemented for node_index %d", node_index);
         fail_cnt++;
         continue;
-    }
+      }
 
-    /* Check only if DE[52] != 0 then DUI[17:16] != 0 of FR Register For DUI Control */
-    if ((value & ERR_FR_DE_MASK) && !(value & ERR_FR_DUI_MASK)) {
-      val_print(ACS_PRINT_ERR, "\n       DUI not implemented for node_index %d", node_index);
-      fail_cnt++;
-      continue;
-    }
+      /* Check only if ERR_FR.CE != 0 -> Check CFI[11:10] != 0 of FR Register For CFI Control */
+      if ((value & ERR_FR_CE_MASK) && !(value & ERR_FR_CFI_MASK)) {
+        val_print(ACS_PRINT_ERR, "\n       CFI not implemented for node_index %d", node_index);
+        fail_cnt++;
+        continue;
+      }
 
-    /* Check only if ERR_FR.CE != 0 -> Check CFI[11:10] != 0 of FR Register For CFI Control */
-    if ((value & ERR_FR_CE_MASK) && !(value & ERR_FR_CFI_MASK)) {
-      val_print(ACS_PRINT_ERR, "\n       CFI not implemented for node_index %d", node_index);
-      fail_cnt++;
-      continue;
-    }
-
-    /* Check UI[5:4] != 0 of FR Register For UI Control */
-    if (!(value & ERR_FR_UI_MASK)) {
-      val_print(ACS_PRINT_ERR, "\n       UI not implemented for node_index %d", node_index);
-      fail_cnt++;
-      continue;
+      /* Check UI[5:4] != 0 of FR Register For UI Control */
+      if (!(value & ERR_FR_UI_MASK)) {
+        val_print(ACS_PRINT_ERR, "\n       UI not implemented for node_index %d", node_index);
+        fail_cnt++;
+        continue;
+      }
     }
   }
 

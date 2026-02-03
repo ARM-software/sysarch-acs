@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,7 +153,9 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
       MpamTable->msc_count++;
       curr_entry = MPAM_NEXT_MSC(curr_entry);
   }
-  pal_mpam_dump_table(MpamTable);
+
+  if (g_print_level <= ACS_PRINT_DEBUG)
+      pal_mpam_dump_table(MpamTable);
 }
 
 /**
@@ -207,5 +209,6 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
       Ptr++;
   }
 
-  pal_srat_dump_table(SratTable);
+  if (g_print_level <= ACS_PRINT_DEBUG)
+      pal_srat_dump_table(SratTable);
 }

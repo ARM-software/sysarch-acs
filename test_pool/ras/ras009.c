@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,6 +54,7 @@ payload()
   uint64_t node_type;
   uint64_t err_inj_addr;
   uint64_t prox_base_addr;
+  uint64_t anerr = 0;
 
   uint32_t status;
   uint32_t fail_cnt = 0, test_skip = 0;
@@ -64,6 +65,22 @@ payload()
 
   RAS_ERR_IN_t err_in_params;
   RAS_ERR_OUT_t err_out_params;
+
+  /* Read ID_AA64MMFR3_EL1.ANERR[47:44] == 0b0010 or 0b0011 indicate FEAT_ANERR support */
+  anerr = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64MMFR3_EL1), 44, 47);
+
+  val_print(ACS_PRINT_INFO, "\n       ID_AA64MMFR3_EL1.ANERR field = 0x%llx", anerr);
+
+  if (anerr == FEAT_ANERR_VAL2 || anerr == FEAT_ANERR_VAL3) {
+    val_print(ACS_PRINT_INFO, "\n       FEAT_ANERR implemented.", 0);
+    val_set_status(index, RESULT_PASS(TEST_NUM, 01));
+    return;
+  }
+
+  val_print(ACS_PRINT_INFO,
+            "\n       FEAT_ANERR not implemented."
+            " Proceeding to synchronous Data Abort test.\n",
+            0);
 
   /* get number of nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
@@ -188,7 +205,7 @@ exception_return:
     return;
   }
 
-  val_set_status(index, RESULT_PASS(TEST_NUM, 01));
+  val_set_status(index, RESULT_PASS(TEST_NUM, 02));
 }
 
 uint32_t

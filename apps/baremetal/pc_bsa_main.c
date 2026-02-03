@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,24 +21,60 @@
 #include "val/include/acs_val.h"
 #include "val/include/acs_memory.h"
 #include "val/include/acs_dma.h"
+#include "acs_el3_param.h"
 #include "acs.h"
 
 void
 freeAcsMem(void)
 {
     val_pe_free_info_table();
-    val_gic_free_info_table();
-    val_timer_free_info_table();
-    val_wd_free_info_table();
-    val_pcie_free_info_table();
-    val_iovirt_free_info_table();
-    val_peripheral_free_info_table();
-    val_smbios_free_info_table();
-    val_dma_free_info_table();
-    val_tpm2_free_info_table();
-    val_free_shared_mem();
-}
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(MPAM)        ||
+        acs_is_module_enabled(RAS)         ||
+        acs_is_module_enabled(ETE)         ||
+        acs_is_module_enabled(PMU))
+        val_gic_free_info_table();
+    if (acs_is_module_enabled(GIC)          ||
+        acs_is_module_enabled(TIMER))
+        val_timer_free_info_table();
+    if (acs_is_module_enabled(WATCHDOG))
+        val_wd_free_info_table();
+    if (acs_is_module_enabled(MPAM))
+        val_cache_free_info_table();
+    if (acs_is_module_enabled(MPAM))
+    {
+        val_mpam_free_info_table();
+        val_hmat_free_info_table();
+        val_srat_free_info_table();
+        val_pcc_free_info_table();
+    }
+   if (acs_is_module_enabled(PCIE))
+       val_pcie_free_info_table();
+   if (acs_is_module_enabled(SMMU)   ||
+       acs_is_module_enabled(MEM_MAP) ||
+       acs_is_module_enabled(PCIE))
+       val_iovirt_free_info_table();
+   if (acs_is_module_enabled(PE)     ||
+       acs_is_module_enabled(PCIE)   ||
+       acs_is_module_enabled(MEM_MAP) ||
+       acs_is_module_enabled(MPAM))
+       val_peripheral_free_info_table();
+   if (acs_is_module_enabled(PMU))
+       val_pmu_free_info_table();
+   if (acs_is_module_enabled(RAS))
+   {
+       val_ras2_free_info_table();
+       val_ras_free_info_table();
+   }
+   if (acs_is_module_enabled(TPM))
+        val_tpm2_free_info_table();
 
+   val_smbios_free_info_table();
+   val_dma_free_info_table();
+   val_free_shared_mem();
+}
 /* This routine will furnish global variables with user defined config and set any
    default values for the ACS */
 static uint32_t
@@ -118,6 +154,18 @@ ShellAppMainpcbsa(void)
         goto exit_acs;
     }
 
+    /* NEW: apply any compile-time test/module overrides before
+    *      we look at g_num_tests/g_num_modules and build masks.
+    */
+    acs_apply_compile_params();
+    /* NEW: apply any EL3-supplied test/module overrides before
+    *      we look at g_num_tests/g_num_modules and build masks.
+    */
+    acs_apply_el3_params();
+
+#if ACS_ENABLE_MMU
+    val_print(ACS_PRINT_TEST, " Enabling MMU\n", 0);
+
     /* Create MMU page tables before enabling the MMU at EL2 */
     if (val_setup_mmu())
         return ACS_STATUS_FAIL;
@@ -125,6 +173,9 @@ ShellAppMainpcbsa(void)
     /* Enable Stage-1 MMU */
     if (val_enable_mmu())
         return ACS_STATUS_FAIL;
+#else
+    val_print(ACS_PRINT_TEST, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n", 0);
+#endif
 
     val_print(ACS_PRINT_TEST, "\n\n PC BSA Architecture Compliance Suite\n", 0);
     val_print(ACS_PRINT_TEST, "\n          Version %d.", PC_BSA_ACS_MAJOR_VER);
@@ -142,9 +193,18 @@ ShellAppMainpcbsa(void)
     if (Status)
         return Status;
 
-    Status = createGicInfoTable();
-    if (Status)
-        return Status;
+    if (acs_is_module_enabled(PE)          ||
+      acs_is_module_enabled(GIC)         ||
+      acs_is_module_enabled(PCIE)        ||
+      acs_is_module_enabled(MPAM)        ||
+      acs_is_module_enabled(RAS)         ||
+      acs_is_module_enabled(ETE)         ||
+      acs_is_module_enabled(PMU))
+    {
+        Status = createGicInfoTable();
+        if (Status)
+            return Status;
+    }
 
     /* Initialise exception vector, so any unexpected exception gets handled
     *  by default exception handler.
@@ -152,15 +212,49 @@ ShellAppMainpcbsa(void)
     branch_label = &&print_test_status;
     val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
     val_pe_initialize_default_exception_handler(val_pe_default_esr);
+    if (acs_is_module_enabled(GIC)          ||
+        acs_is_module_enabled(TIMER))
+        createTimerInfoTable();
+    if (acs_is_module_enabled(WATCHDOG))
+        createWatchdogInfoTable();
+    if (acs_is_module_enabled(MPAM))
+        createCacheInfoTable();
+    if (acs_is_module_enabled(MPAM))
+    {
+        createPccInfoTable();
+        createMpamInfoTable();
+        createHmatInfoTable();
+        createSratInfoTable();
+    }
+    if (acs_is_module_enabled(PCIE))
+        createPcieInfoTable();
+    if (acs_is_module_enabled(SMMU)        ||
+        acs_is_module_enabled(MEM_MAP)      ||
+        acs_is_module_enabled(PCIE))
+        createIoVirtInfoTable();
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(MEM_MAP)      ||
+        acs_is_module_enabled(MPAM))
+        createPeripheralInfoTable();
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(SMMU)        ||
+        acs_is_module_enabled(MEM_MAP))
+        createMemoryInfoTable();
+    if (acs_is_module_enabled(PMU))
+        createPmuInfoTable();
+    if (acs_is_module_enabled(RAS))
+    {
+        createRasInfoTable();
+        createRas2InfoTable();
+    }
+    if (acs_is_module_enabled(TPM))
+    {
+       createTpm2InfoTable();
+    }
 
-    createTimerInfoTable();
-    createWatchdogInfoTable();
-    createSratInfoTable();
-    createPcieVirtInfoTable();
-    createPeripheralInfoTable();
     createDmaInfoTable();
     createSmbiosInfoTable();
-    createTpm2InfoTable();
     val_allocate_shared_mem();
 
 

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,6 +64,12 @@ uint32_t smmu_oas[SMMU_OAS_MAX_IDX] = {32, 36, 40, 42, 44, 48, 52};
 #define CR0_SMMUEN  (1 << 0)
 
 #define SMMU_CR0ACK_OFFSET 0x24
+
+#define SMMU_GBPA_OFFSET   0x44
+#define SMMU_GBPA_ABORT    (1U << 20)
+#define SMMU_GBPA_UPDATE   (1U << 31)
+
+#define SMMU_SYNC_TIMEOUT  0x1000000ULL
 
 #define SMMU_CR1_OFFSET 0x28
 BITFIELD_DECL(uint32_t, CR1_TABLE_SH, 11, 10)

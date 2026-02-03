@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,19 +22,44 @@
 #include "val/include/acs_memory.h"
 #include "val/include/acs_dma.h"
 #include "acs.h"
+#include "acs_el3_param.h"   /* NEW: EL3 parameter block interface */
 
 void
 freeAcsMeM()
 {
     val_pe_free_info_table();
-    val_gic_free_info_table();
-    val_timer_free_info_table();
-    val_wd_free_info_table();
-    val_pcie_free_info_table();
-    val_iovirt_free_info_table();
-    val_peripheral_free_info_table();
-    val_smbios_free_info_table();
-    val_dma_free_info_table();
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(TIMER)       ||
+        acs_is_module_enabled(WATCHDOG)          ||
+        acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(PERIPHERAL)  ||
+        acs_is_module_enabled(POWER_WAKEUP))
+            val_gic_free_info_table();
+    if (acs_is_module_enabled(TIMER)      ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(WATCHDOG)         ||
+        acs_is_module_enabled(POWER_WAKEUP))
+            val_timer_free_info_table();
+    if (acs_is_module_enabled(WATCHDOG)         ||
+        acs_is_module_enabled(POWER_WAKEUP))
+            val_wd_free_info_table();
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(GIC))
+            val_pcie_free_info_table();
+    if (acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(MEM_MAP)     ||
+        acs_is_module_enabled(SMMU))
+            val_iovirt_free_info_table();
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL))
+            val_peripheral_free_info_table();
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL))
+            val_dma_free_info_table();
+    if (acs_is_module_enabled(PE))
+            val_smbios_free_info_table();
     val_free_shared_mem();
 }
 
@@ -118,13 +143,14 @@ ShellAppMainbsa()
         goto exit_acs;
     }
 
-    /* Create MMU page tables before enabling the MMU at EL2 */
-    if (val_setup_mmu())
-        return ACS_STATUS_FAIL;
-
-    /* Enable Stage-1 MMU */
-    if (val_enable_mmu())
-        return ACS_STATUS_FAIL;
+    /* NEW: apply any compile-time test/module overrides before
+    *      we look at g_num_tests/g_num_modules and build masks.
+    */
+    acs_apply_compile_params();
+    /* NEW: apply any EL3-supplied test/module overrides before
+    *      we look at g_num_tests/g_num_modules and build masks.
+    */
+    acs_apply_el3_params();
 
     val_print(ACS_PRINT_TEST, "\n\n BSA Architecture Compliance Suite\n", 0);
     val_print(ACS_PRINT_TEST, "\n          Version %d.", BSA_ACS_MAJOR_VER);
@@ -136,15 +162,77 @@ ShellAppMainbsa()
 
     val_print(ACS_PRINT_TEST, "(Print level is %2d)\n\n", g_print_level);
 
+#if ACS_ENABLE_MMU
+    val_print(ACS_PRINT_TEST, " Enabling MMU\n", 0);
+
+    /* Create MMU page tables before enabling the MMU at EL2 */
+    if (val_setup_mmu())
+        return ACS_STATUS_FAIL;
+
+    /* Enable Stage-1 MMU */
+    if (val_enable_mmu())
+        return ACS_STATUS_FAIL;
+#else
+    val_print(ACS_PRINT_TEST, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n", 0);
+#endif
+
     val_print(ACS_PRINT_TEST, " Creating Platform Information Tables\n", 0);
 
     Status = createPeInfoTable();
     if (Status)
         return Status;
 
-    Status = createGicInfoTable();
-    if (Status)
-        return Status;
+
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(TIMER)       ||
+        acs_is_module_enabled(WATCHDOG)          ||
+        acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(PERIPHERAL)  ||
+        acs_is_module_enabled(POWER_WAKEUP))
+    {
+        Status = createGicInfoTable();
+        if (Status)
+            return Status;
+    }
+
+    if (acs_is_module_enabled(TIMER)      ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(WATCHDOG)         ||
+        acs_is_module_enabled(POWER_WAKEUP))
+            createTimerInfoTable();
+
+    if (acs_is_module_enabled(WATCHDOG)         ||
+        acs_is_module_enabled(POWER_WAKEUP))
+            createWatchdogInfoTable();
+
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(SMMU))
+            createPcieInfoTable();
+
+    if (acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(MEM_MAP)     ||
+        acs_is_module_enabled(SMMU))
+            createIoVirtInfoTable();
+
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL))
+            createPeripheralInfoTable();
+
+    if (acs_is_module_enabled(MEM_MAP) ||
+        acs_is_module_enabled(SMMU))
+            createMemoryInfoTable();
+
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL))
+        createDmaInfoTable();
+
+    if (acs_is_module_enabled(PE))
+        createSmbiosInfoTable();
+
+    val_allocate_shared_mem();
 
     /* Initialise exception vector, so any unexpected exception gets handled
     *  by default exception handler.
@@ -153,13 +241,6 @@ ShellAppMainbsa()
     val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
     val_pe_initialize_default_exception_handler(val_pe_default_esr);
 
-    createTimerInfoTable();
-    createWatchdogInfoTable();
-    createPcieVirtInfoTable();
-    createPeripheralInfoTable();
-    createDmaInfoTable();
-    createSmbiosInfoTable();
-    val_allocate_shared_mem();
 
     if ((g_rule_count > 0 && g_rule_list != NULL) || (g_arch_selection != ARCH_NONE)) {
             /* Merge arch rules if any, then apply CLI filters (-skip, -m, -skipmodule) */

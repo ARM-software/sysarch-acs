@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -301,9 +301,7 @@ typedef struct {
 void     pal_gic_create_info_table(GIC_INFO_TABLE *gic_info_table);
 uint32_t pal_gic_install_isr(uint32_t int_id, void (*isr)(void));
 void pal_gic_end_of_interrupt(uint32_t int_id);
-uint32_t pal_gic_request_irq(unsigned int irq_num, unsigned int mapped_irq_num, void *isr);
 void pal_gic_free_irq(unsigned int irq_num, unsigned int mapped_irq_num);
-uint32_t pal_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_type);
 uint32_t pal_target_is_bm(void);
 uint32_t pal_get_num_nongic_ctrl(void);
 
@@ -571,9 +569,7 @@ void     pal_smmu_create_info_table(SMMU_INFO_TABLE *smmu_info_table);
 uint32_t pal_smmu_check_device_iova(void *port, uint64_t dma_addr);
 void     pal_smmu_device_start_monitor_iova(void *port);
 void     pal_smmu_device_stop_monitor_iova(void *port);
-uint32_t pal_smmu_create_pasid_entry(uint64_t smmu_base, uint32_t pasid);
-uint32_t pal_smmu_disable(uint64_t smmu_base);
-uint64_t pal_smmu_pa2iova(uint64_t smmu_base, uint64_t pa);
+uint64_t pal_smmu_pa2iova(uint64_t smmu_base, uint64_t pa, uint64_t *dram_buf_iova);
 
 
 /** Peripheral Tests related definitions **/
@@ -623,7 +619,7 @@ typedef struct {
 **/
 typedef struct {
   PERIPHERAL_INFO_HDR     header;
-  PERIPHERAL_INFO_BLOCK   info[]; ///< Array of Information blocks - instantiated for each peripheral
+  PERIPHERAL_INFO_BLOCK   info[]; ///< Array of Information blocks instantiated for each peripheral
 }PERIPHERAL_INFO_TABLE;
 
 void  pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *per_info_table);
@@ -649,7 +645,8 @@ typedef struct PERIPHERAL_VECTOR_LIST_STRUCT
   struct PERIPHERAL_VECTOR_LIST_STRUCT *next;
 }PERIPHERAL_VECTOR_LIST;
 
-uint32_t pal_get_msi_vectors (uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_VECTOR_LIST **mvector);
+uint32_t pal_get_msi_vectors (uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn,
+                              PERIPHERAL_VECTOR_LIST **mvector);
 
 #define LEGACY_PCI_IRQ_CNT 4  // Legacy PCI IRQ A, B, C. and D
 
@@ -664,7 +661,8 @@ typedef struct {
 
 #define DEVCTL_SNOOP_BIT 11        // Device control register no snoop bit
 
-uint32_t pal_pcie_get_legacy_irq_map(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn, PERIPHERAL_IRQ_MAP *irq_map);
+uint32_t pal_pcie_get_legacy_irq_map(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn,
+                                     PERIPHERAL_IRQ_MAP *irq_map);
 uint32_t pal_pcie_get_root_port_bdf(uint32_t *seg, uint32_t *bus, uint32_t *dev, uint32_t *func);
 uint32_t pal_pcie_get_snoop_bit(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn);
 uint32_t pal_pcie_get_dma_support(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn);
@@ -697,10 +695,8 @@ typedef struct {
 }DMA_INFO_TABLE;
 
 void pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table);
-uint32_t pal_dma_start_from_device(void *dma_target_buf, uint32_t length,
-                          void *host, void *dev);
 uint64_t
-pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flags);
+pal_dma_mem_alloc(void **buffer, uint32_t length, void *dev, uint32_t flags, addr_t *dma_addr);
 
 void
 pal_dma_mem_free(void *buffer, addr_t mem_dma, unsigned int length, void *port, unsigned int flags);
@@ -734,7 +730,7 @@ typedef struct {
 } MEMORY_INFO_TABLE;
 
 void  pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable);
-uint64_t pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr);
+uint32_t pal_memory_ioremap(void *addr, uint32_t size, uint32_t attr, void **baseptr);
 void pal_memory_unmap(void *addr);
 uint64_t pal_memory_get_unpopulated_addr(uint64_t *addr, uint32_t instance);
 uint32_t pal_mem_set_wb_executable(void *addr, uint32_t size);
@@ -926,7 +922,6 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE type, uint64_t value1, uin
                                                                              uint32_t bdf);
 uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE type, uint64_t *value1, uint64_t *value2,
                                                                               uint32_t bdf);
-uint32_t pal_exerciser_set_state(EXERCISER_STATE state, uint64_t *value, uint32_t bdf);
 uint32_t pal_exerciser_get_state(EXERCISER_STATE *state, uint32_t bdf);
 uint32_t pal_exerciser_ops(EXERCISER_OPS ops, uint64_t param, uint32_t instance);
 uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data, uint32_t bdf,
@@ -1047,7 +1042,8 @@ typedef enum {
   @return  None
 **/
 void pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable);
-uint32_t pal_pmu_get_event_info(PMU_EVENT_TYPE_e event_type, PMU_NODE_INFO_TYPE node_type);
+uint32_t pal_pmu_get_event_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
+                                PMU_NODE_INFO_TYPE node_type);
 uint32_t pal_pmu_get_multi_traffic_support_interface(uint64_t *interface_acpiid,
                                                        uint32_t *num_traffic_type_support);
 uint32_t pal_generate_traffic(uint64_t interface_acpiid, uint32_t pmu_node_index,

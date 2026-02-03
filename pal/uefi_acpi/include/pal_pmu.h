@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,5 +72,12 @@ typedef struct {
     UINT32 affinity;
     UINT32 implementation_id;
 } APMT_NODE;
+
+typedef struct{
+    UINT32 node_index;
+    PMU_NODE_INFO_TYPE node_type;
+    PMU_EVENT_TYPE_e event_desc;
+    UINT32 event_id;
+} event_details;
 
 #endif
