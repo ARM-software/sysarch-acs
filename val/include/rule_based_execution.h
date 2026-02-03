@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,11 @@ typedef struct {
     VBSA_LEVEL_e level;
 } vbsa_rule_entry_t;
 
+typedef struct {
+    RULE_ID_e rule_id;
+    PFDI_LEVEL_e level;
+} pfdi_rule_entry_t;
+
 /* ---------------------------- Helper functions declarations ---------------------------------- */
 void     quick_sort_rule_list(RULE_ID_e *rule_list, uint32_t list_size);
 uint32_t check_module_init(MODULE_NAME_e module_id);
@@ -97,6 +102,7 @@ extern const bsa_rule_entry_t bsa_rule_list[];
 extern const sbsa_rule_entry_t sbsa_rule_list[];
 extern const pcbsa_rule_entry_t pcbsa_rule_list[];
 extern const vbsa_rule_entry_t vbsa_rule_list[];
+extern const pfdi_rule_entry_t pfdi_rule_list[];
 
 /* Global selections configured by the app */
 extern uint32_t g_level_filter_mode;  /* LEVEL_FILTER_MODE_e */

@@ -131,6 +131,7 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
     const sbsa_rule_entry_t  *sbsa_tbl  = NULL;
     const pcbsa_rule_entry_t *pcbsa_tbl = NULL;
     const vbsa_rule_entry_t  *vbsa_tbl  = NULL;
+    const pfdi_rule_entry_t  *pfdi_tbl  = NULL;
     uint32_t tbl_count = 0;
 
     /* if pointer is NULL, API misuse return */
@@ -158,6 +159,10 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
             while (vbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
                 add_count++;
             vbsa_tbl = vbsa_rule_list;
+        } else if (g_arch_selection == ARCH_PFDI) {
+            while (pfdi_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
+                add_count++;
+            pfdi_tbl = pfdi_rule_list;
         }
 
         if (add_count > 0) {
@@ -195,6 +200,12 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
                         if (!rule_in_list(rid, new_list, new_count))
                             new_list[new_count++] = rid;
                     }
+                } else if (pfdi_tbl) {
+                    for (i = 0; i < add_count; i++) {
+                        RULE_ID_e rid = pfdi_tbl[i].rule_id;
+                        if (!rule_in_list(rid, new_list, new_count))
+                            new_list[new_count++] = rid;
+                    }
                 }
 
                 /* Free old buffer (if allocated via VAL) and update pointer */
@@ -219,6 +230,9 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
             vbsa_tbl = vbsa_rule_list;
             while (vbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
         }
+        } else if (g_arch_selection == ARCH_PFDI) {
+            pfdi_tbl = pfdi_rule_list;
+            while (pfdi_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
     }
 
     /* if rule list is NULL no filtering required */
@@ -346,6 +360,20 @@ uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size)
                                     skip = 1;
                             } else if (g_level_filter_mode == LVL_FILTER_MAX) {
                                 if ((uint32_t)vbsa_tbl[ti].level > g_level_value)
+                                    skip = 1;
+                            }
+                            break;
+                        }
+                    }
+                } else if (pfdi_tbl) {
+                    for (uint32_t ti = 0; ti < tbl_count; ti++) {
+                        if (pfdi_tbl[ti].rule_id == rule) {
+                            found_entry = 1;
+                            if (g_level_filter_mode == LVL_FILTER_ONLY) {
+                                if ((uint32_t)pfdi_tbl[ti].level != g_level_value)
+                                    skip = 1;
+                            } else if (g_level_filter_mode == LVL_FILTER_MAX) {
+                                if ((uint32_t)pfdi_tbl[ti].level > g_level_value)
                                     skip = 1;
                             }
                             break;

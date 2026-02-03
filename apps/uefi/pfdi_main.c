@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,281 +28,76 @@
 
 #include "acs.h"
 
-UINT32  g_print_level;
-UINT32  g_acs_tests_pass;
-UINT32  g_acs_tests_fail;
-UINT32  *g_skip_test_num;
-UINT32  g_num_skip;
-UINT64  g_exception_ret_addr;
-UINT32  g_print_mmio;
-UINT32  g_curr_module;
-UINT32  g_enable_module;
-UINT32  *g_execute_tests;
-UINT32  g_num_tests = 0;
-UINT32  *g_execute_modules;
-UINT32  g_num_modules = 0;
-UINT32  g_acs_tests_total;
-
-SHELL_FILE_HANDLE g_acs_log_file_handle;
-
 VOID
 HelpMsg (
   VOID
   )
 {
-  Print (L"\nUsage: pfdi.efi [-v <n>] | [-f <filename>] | [-skip <n>] | [-t <n>] | [-m <n>]\n"
-         "Options:\n"
-         "-v      Verbosity of the prints\n"
-         "        1 prints all, 5 prints only the errors\n"
-         "        Note: pal_mmio prints can be enabled for specific modules by passing\n"
-         "              module numbers along with global verbosity level 1\n"
-         "              Module numbers are Interface 0, Dynamic Launch 1   ...\n"
-         "              E.g., To enable mmio prints \n"
-         "-f      Name of the log file to record the test results in\n"
-         "-skip   Test(s) to be skipped\n"
-         "        Refer to section pfdi ACS User Guide\n"
-         "        To skip a module, use Module ID as mentioned in user guide\n"
-         "        To skip a particular test within a module, use the exact testcase number\n"
-         "-t      If Test ID(s) set, will only run the specified test(s), all others will be skipped.\n"
-         "-m      If Module ID(s) set, will only run the specified module(s), all others will be skipped.\n"
-  );
+  Print (L"\nUsage: pfdi.efi [options]\n"
+        "-f <file>    Log file to record test results\n"
+        "-h, -help    Print this message\n"
+        "-m <list>    Run only the specified modules (comma-separated names)\n"
+        "-r <rules>   Run specified rule IDs (comma-separated) or a rules file\n"
+        "-skip <rules>\n"
+        "             Skip the specified rule IDs\n"
+        "             Accepted value: PFDI\n"
+        "-skipmodule <list>\n"
+        "             Skip the specified modules\n"
+        "-v <n>       Verbosity of the prints (1-5)\n");
 }
 
-STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {L"-v", TypeValue},    // -v    # Verbosity of the Prints. 1 shows all prints, 5 shows Errors
-  {L"-f", TypeValue},    // -f    # Name of the log file to record the test results in.
-  {L"-skip", TypeValue}, // -skip # test(s) to skip execution
-  {L"-t", TypeValue},    // -t    # Test to be run
-  {L"-m", TypeValue},    // -m    # Module to be run
-  {L"-help", TypeFlag},  // -help # help : info about commands
-  {L"-h", TypeFlag},     // -h    # help : info about commands
+CONST SHELL_PARAM_ITEM ParamList[] = {
+  {L"-f", TypeValue},
+  {L"-h", TypeFlag},
+  {L"-help", TypeFlag},
+  {L"-m", TypeValue},
+  {L"-r", TypeValue},
+  {L"-skip", TypeValue},
+  {L"-skipmodule", TypeValue},
+  {L"-v", TypeValue},
   {NULL, TypeMax}
   };
 
-/***
-  Pfdi Compliance Suite Entry Point.
-
-  Call the Entry points of individual modules.
-
-  @retval  0         The application exited normally.
-  @retval  Other     An error occurred.
-***/
-UINT32
-command_init ()
-{
-
-  LIST_ENTRY         *ParamPackage;
-  CONST CHAR16       *CmdLineArg;
-  CHAR16             *ProbParam;
-  UINT32             Status;
-  UINT32             i;
-  UINT32             ReadVerbosity;
-
-  //
-  // Process Command Line arguments
-  //
-  Status = ShellInitialize();
-  Status = ShellCommandLineParse (ParamList, &ParamPackage, &ProbParam, TRUE);
-  if (Status) {
-    Print(L"Shell command line parse error %x\n", Status);
-    Print(L"Unrecognized option %s passed\n", ProbParam);
-    HelpMsg();
-    return SHELL_INVALID_PARAMETER;
-  }
-
-  // Options with Values
-  if (ShellCommandLineGetFlag (ParamPackage, L"-skip")) {
-    CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-skip");
-    if (CmdLineArg == NULL)
-    {
-      Print(L"Invalid parameter passed for -skip\n", 0);
-      HelpMsg();
-      return SHELL_INVALID_PARAMETER;
-    }
-    else
-    {
-      Status = gBS->AllocatePool(EfiBootServicesData,
-                                 StrLen(CmdLineArg),
-                                 (VOID **) &g_skip_test_num);
-      if (EFI_ERROR(Status))
-      {
-        Print(L"Allocate memory for -skip failed \n", 0);
-        return ACS_PARSE_SKIP_RUN;
-      }
-
-      g_skip_test_num[0] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg+0));
-      for (i = 0; i < StrLen(CmdLineArg); i++) {
-      if (*(CmdLineArg+i) == L',') {
-          g_skip_test_num[++g_num_skip] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg+i+1));
-        }
-      }
-
-      g_num_skip++;
-    }
-  }
-
-    // Options with Values
-  CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-v");
-  if (CmdLineArg == NULL) {
-    g_print_level = 3;
-  } else {
-    ReadVerbosity = StrDecimalToUintn(CmdLineArg);
-    while (ReadVerbosity/10) {
-      g_enable_module |= (1 << ReadVerbosity%10);
-      ReadVerbosity /= 10;
-    }
-    g_print_level = ReadVerbosity;
-    if (g_print_level > 5) {
-      g_print_level = 3;
-    }
-  }
-
-    // Options with Values
-  CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-f");
-  if (CmdLineArg == NULL) {
-    g_acs_log_file_handle = NULL;
-  } else {
-    Status = ShellOpenFileByName(CmdLineArg, &g_acs_log_file_handle,
-             EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE, 0x0);
-    if (EFI_ERROR(Status)) {
-         Print(L"Failed to open log file %s\n", CmdLineArg);
-         g_acs_log_file_handle = NULL;
-    }
-  }
-
-  // Options with Flags
-  if ((ShellCommandLineGetFlag (ParamPackage, L"-help")) ||
-      (ShellCommandLineGetFlag (ParamPackage, L"-h"))) {
-     HelpMsg();
-     return ACS_PARSE_SKIP_RUN;
-  }
-
-  // Options with Values
-  if (ShellCommandLineGetFlag (ParamPackage, L"-t")) {
-      CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-t");
-      if (CmdLineArg == NULL)
-      {
-          Print(L"Invalid parameter passed for -t\n", 0);
-          HelpMsg();
-          return SHELL_INVALID_PARAMETER;
-      }
-      else
-      {
-          Status = gBS->AllocatePool(EfiBootServicesData,
-                                     StrLen(CmdLineArg),
-                                     (VOID **) &g_execute_tests);
-          if (EFI_ERROR(Status))
-          {
-              Print(L"Allocate memory for -t failed \n", 0);
-              return ACS_PARSE_SKIP_RUN;
-          }
-
-          /* Check if the first value to -t is a decimal character. */
-          if (!ShellIsDecimalDigitCharacter(*CmdLineArg)) {
-              Print(L"Invalid parameter passed for -t\n", 0);
-              HelpMsg();
-              return SHELL_INVALID_PARAMETER;
-          }
-
-          g_execute_tests[0] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg + 0));
-          for (i = 0; i < StrLen(CmdLineArg); i++) {
-              if (*(CmdLineArg + i) == L',') {
-                  g_execute_tests[++g_num_tests] = StrDecimalToUintn(
-                                                          (CONST CHAR16 *)(CmdLineArg + i + 1));
-              }
-          }
-
-          g_num_tests++;
-        }
-  }
-
-  // Options with Values
-  if (ShellCommandLineGetFlag (ParamPackage, L"-m")) {
-      CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-m");
-      if (CmdLineArg == NULL)
-      {
-          Print(L"Invalid parameter passed for -m\n", 0);
-          HelpMsg();
-          return SHELL_INVALID_PARAMETER;
-      }
-      else
-      {
-          Status = gBS->AllocatePool(EfiBootServicesData,
-                                     StrLen(CmdLineArg),
-                                     (VOID **) &g_execute_modules);
-          if (EFI_ERROR(Status))
-          {
-              Print(L"Allocate memory for -m failed \n", 0);
-              return ACS_PARSE_SKIP_RUN;
-          }
-
-          /* Check if the first value to -m is a decimal character. */
-          if (!ShellIsDecimalDigitCharacter(*CmdLineArg)) {
-              Print(L"Invalid parameter passed for -m\n", 0);
-              HelpMsg();
-              return SHELL_INVALID_PARAMETER;
-          }
-
-          g_execute_modules[0] = StrDecimalToUintn((CONST CHAR16 *)(CmdLineArg + 0));
-          for (i = 0; i < StrLen(CmdLineArg); i++) {
-              if (*(CmdLineArg + i) == L',') {
-                  g_execute_modules[++g_num_modules] = StrDecimalToUintn(
-                                                          (CONST CHAR16 *)(CmdLineArg + i + 1));
-              }
-          }
-
-          g_num_modules++;
-      }
-  }
-  return(0);
-}
-
-EFI_STATUS
-createPeInfoTable (
-)
-{
-
-  EFI_STATUS Status;
-
-  UINT64   *PeInfoTable;
-
-  PeInfoTable = val_aligned_alloc(SIZE_4K, PE_INFO_TBL_SZ);
-
-  Status = val_pe_create_info_table(PeInfoTable);
-
-  return Status;
-
-}
-
-EFI_STATUS
-createGicInfoTable (
-)
-{
-  EFI_STATUS Status;
-  UINT64     *GicInfoTable;
-
-  GicInfoTable = val_aligned_alloc(SIZE_4K, GIC_INFO_TBL_SZ);
-
-  Status = val_gic_create_info_table(GicInfoTable);
-
-  return Status;
-
-}
-
-VOID
-freePfdiAcsMem()
+static VOID
+freePfdiAcsMem(void)
 {
   val_pe_free_info_table();
   val_gic_free_info_table();
   val_free_shared_mem();
 }
 
+static UINT32
+apply_cli_defaults(void)
+{
+  if (g_rule_count == 0) {
+      g_arch_selection = ARCH_PFDI;
+  }
+
+  if (g_level_filter_mode == LVL_FILTER_NONE) {
+      g_level_filter_mode = LVL_FILTER_MAX;
+      g_level_value = PFDI_LEVEL_1;
+  }
+
+  if (g_level_value >= PFDI_LEVEL_SENTINEL) {
+      val_print(ACS_PRINT_ERR, "\nInvalid level value passed (%d), ", g_level_value);
+      val_print(ACS_PRINT_ERR, "value should be less than %d.", PFDI_LEVEL_SENTINEL);
+      return ACS_STATUS_FAIL;
+  }
+
+  return ACS_STATUS_PASS;
+}
+
 UINT32
 execute_tests()
 {
-  UINT32             Status;
+  UINT32 Status;
 
-  val_print(ACS_PRINT_TEST, "\n\n Pfdi Architecture Compliance Suite", 0);
+  Status = apply_cli_defaults();
+  if (Status != ACS_STATUS_PASS) {
+      goto exit_close;
+  }
+
+  val_print(ACS_PRINT_TEST, "\n\n PFDI Architecture Compliance Suite", 0);
   val_print(ACS_PRINT_TEST, "\n          Version %d.", PFDI_ACS_MAJOR_VER);
   val_print(ACS_PRINT_TEST, "%d.", PFDI_ACS_MINOR_VER);
   val_print(ACS_PRINT_TEST, "%d\n", PFDI_ACS_SUBMINOR_VER);
@@ -311,43 +106,44 @@ execute_tests()
   val_print(ACS_PRINT_TEST, "\n Creating Platform Information Tables\n", 0);
 
   Status = createPeInfoTable();
-  if (Status) {
-      if (g_acs_log_file_handle)
-        ShellCloseFile(&g_acs_log_file_handle);
-    return Status;
-  }
+  if (Status)
+      goto exit_close;
 
   Status = createGicInfoTable();
-  if (Status) {
-      if (g_acs_log_file_handle)
-        ShellCloseFile(&g_acs_log_file_handle);
-    return Status;
-  }
+  if (Status)
+      goto exit_close;
 
   val_allocate_shared_mem();
-  g_acs_tests_pass  = 0;
-  g_acs_tests_fail  = 0;
 
-  /* Starting Platform Fault Detection Interface Tests */
-  Status = val_pfdi_execute_pfdi_tests(val_pe_get_num());
-  if (Status != PFDI_ACS_NOT_IMPLEMENTED) {
-    /* Print Summary */
-    val_print(ACS_PRINT_TEST,
-                        "\n     -------------------------------------------------------\n", 0);
-    val_print(ACS_PRINT_TEST, "     Total Tests Run  = %4d", g_acs_tests_total);
-    val_print(ACS_PRINT_TEST, "  Tests Passed  = %4d", g_acs_tests_pass);
-    val_print(ACS_PRINT_TEST, "  Tests Failed = %4d\n", g_acs_tests_fail);
-    val_print(ACS_PRINT_TEST, "     -------------------------------------------------------\n", 0);
-    val_print(ACS_PRINT_TEST, "\n      *** Pfdi tests complete. *** \n\n", 0);
-  } else {
-    val_print(ACS_PRINT_ERR, "\n      PFDI not implemented - Skipping all PFDI tests\n", 0);
+  Status = val_pfdi_check_implementation();
+  if (Status == PFDI_ACS_NOT_IMPLEMENTED) {
+      val_print(ACS_PRINT_ERR, "\n      PFDI not implemented - Skipping all PFDI tests\n", 0);
+      goto exit_summary;
+  } else if (Status != ACS_STATUS_PASS) {
+      goto exit_summary;
   }
 
+  if ((g_rule_count > 0 && g_rule_list != NULL) || (g_arch_selection != ARCH_NONE)) {
+      g_rule_count = filter_rule_list_by_cli(&g_rule_list, g_rule_count);
+      if (g_rule_count == 0 || g_rule_list == NULL)
+          goto exit_summary;
+
+      print_selection_summary();
+      run_tests(g_rule_list, g_rule_count);
+  } else {
+    val_print(ACS_PRINT_TEST, "\nNo rules selected for execution.\n", 0);
+  }
+
+exit_summary:
+  val_print_acs_test_status_summary();
+  val_print(ACS_PRINT_ERR, "\n      *** PFDI tests complete. *** \n\n", 0);
+
+exit_close:
   freePfdiAcsMem();
 
   if (g_acs_log_file_handle) {
     ShellCloseFile(&g_acs_log_file_handle);
   }
 
-  return 0;
+  return ACS_STATUS_PASS;
 }

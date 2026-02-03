@@ -1,5 +1,5 @@
 #/** @file
-# Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
 # SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ finish:
   stp  x11, x12, [x22], #16
   stp  x13, x14, [x22], #16
   stp  x15, x16, [x22], #16
-  str  x17, [x21]
+  str  x17, [x22]
 
 
   // Store the SMC returned values x0-x4 into the ARM_SMC_ARGS structure.

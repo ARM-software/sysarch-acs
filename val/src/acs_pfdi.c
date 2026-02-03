@@ -1,7 +1,7 @@
 /** @file
  * PFDI API
  *
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,33 @@
 #include "include/acs_memory.h"
 
 extern int32_t gPsciConduit;
+
+/**
+  @brief   Probe to see if the platform implements any PFDI entry points.
+           1. Caller       -  Application layer.
+           2. Prerequisite - None.
+  @return  ACS_STATUS_PASS if at least one call is supported, else PFDI_ACS_NOT_IMPLEMENTED.
+**/
+uint32_t
+val_pfdi_check_implementation(void)
+{
+    uint32_t f_id;
+    uint32_t test_skip = 1;
+    int64_t  pfdi_fn_status;
+
+    for (f_id = PFDI_FN_PFDI_VERSION; f_id <= PFDI_FN_PFDI_FORCE_ERROR; f_id++) {
+        pfdi_fn_status = val_invoke_pfdi_fn(f_id, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+        if (pfdi_fn_status != PFDI_ACS_NOT_SUPPORTED) {
+            test_skip = 0;
+            break;
+        }
+    }
+
+    if (test_skip)
+        return PFDI_ACS_NOT_IMPLEMENTED;
+
+    return ACS_STATUS_PASS;
+}
 
 /**
   @brief   This function checks if reserved_bits received are zero

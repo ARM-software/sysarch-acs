@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -400,4 +400,40 @@ const vbsa_rule_entry_t vbsa_rule_list[] = {
 
     /* Sentinel to indicate end-of-list */
     { RULE_ID_SENTINEL, VBSA_LEVEL_SENTINEL }
+};
+
+/* PFDI rule checklist (single level at present) */
+const pfdi_rule_entry_t pfdi_rule_list[] = {
+    { R0040, PFDI_LEVEL_1 },
+    { R0053, PFDI_LEVEL_1 },
+    { R0060, PFDI_LEVEL_1 },
+    { R0066, PFDI_LEVEL_1 },
+    { R0071, PFDI_LEVEL_1 },
+    { R0076, PFDI_LEVEL_1 },
+    { R0082, PFDI_LEVEL_1 },
+    { R0089, PFDI_LEVEL_1 },
+    { R0099, PFDI_LEVEL_1 },
+    { R0100, PFDI_LEVEL_1 },
+    { R0102, PFDI_LEVEL_1 },
+    { R0104, PFDI_LEVEL_1 },
+    { R0154, PFDI_LEVEL_1 },
+    { R0155, PFDI_LEVEL_1 },
+    { R0156, PFDI_LEVEL_1 },
+    { R0157, PFDI_LEVEL_1 },
+    { R0158, PFDI_LEVEL_1 },
+    { R0160, PFDI_LEVEL_1 },
+    { R0163, PFDI_LEVEL_1 },
+    { R0164, PFDI_LEVEL_1 },
+    { R0165, PFDI_LEVEL_1 },
+    { R0166, PFDI_LEVEL_1 },
+    { R0167, PFDI_LEVEL_1 },
+    { R0168, PFDI_LEVEL_1 },
+    { R0172, PFDI_LEVEL_1 },
+    { R0173, PFDI_LEVEL_1 },
+    { R0176, PFDI_LEVEL_1 },
+    { R0179, PFDI_LEVEL_1 },
+    { R0180, PFDI_LEVEL_1 },
+    { R0193, PFDI_LEVEL_1 },
+    { R0194, PFDI_LEVEL_1 },
+    { RULE_ID_SENTINEL, PFDI_LEVEL_SENTINEL }
 };

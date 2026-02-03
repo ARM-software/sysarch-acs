@@ -32,6 +32,8 @@
   ../
   ../../
   app.c
+  acs_globals.c
+  acs_helpers.c
   pfdi_main.c
   ../../test_pool/pfdi/pfdi001.c
   ../../test_pool/pfdi/pfdi002.c
@@ -45,6 +47,7 @@
   ../../test_pool/pfdi/pfdi010.c
   ../../test_pool/pfdi/pfdi011.c
   ../../test_pool/pfdi/pfdi012.c
+  ../../test_pool/pfdi/pfdi013.c
   ../../test_pool/pfdi/pfdi014.c
   ../../test_pool/pfdi/pfdi016.c
   ../../test_pool/pfdi/pfdi017.c
@@ -94,4 +97,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
-  GCC:*_*_*_CC_FLAGS   = -O0 -DTARGET_UEFI -DEXCLUDE_RBX  -I${ACS_PATH}/val
+  GCC:*_*_*_CC_FLAGS   = -O0 -I${ACS_PATH}/ -I${ACS_PATH}/val -DTARGET_UEFI

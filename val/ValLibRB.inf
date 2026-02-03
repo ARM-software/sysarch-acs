@@ -60,6 +60,7 @@
   src/acs_ete.c
   src/acs_pcc.c
   src/acs_interface.c
+  src/acs_pfdi.c
   src/acs_msc_error.c
   src/acs_tpm.c
   driver/smmu_v3/smmu_v3.c

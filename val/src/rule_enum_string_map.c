@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -508,6 +508,40 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [V_L2PE_01]  = "V_L2PE_01",
     [V_L2PE_02]  = "V_L2PE_02",
     [V_L2WD_01]  = "V_L2WD_01",
+
+    /* PFDI rules */
+    [R0040]       = "R0040",
+    [R0053]       = "R0053",
+    [R0060]       = "R0060",
+    [R0066]       = "R0066",
+    [R0071]       = "R0071",
+    [R0076]       = "R0076",
+    [R0082]       = "R0082",
+    [R0089]       = "R0089",
+    [R0099]       = "R0099",
+    [R0100]       = "R0100",
+    [R0102]       = "R0102",
+    [R0104]       = "R0104",
+    [R0154]       = "R0154",
+    [R0155]       = "R0155",
+    [R0156]       = "R0156",
+    [R0157]       = "R0157",
+    [R0158]       = "R0158",
+    [R0160]       = "R0160",
+    [R0163]       = "R0163",
+    [R0164]       = "R0164",
+    [R0165]       = "R0165",
+    [R0166]       = "R0166",
+    [R0167]       = "R0167",
+    [R0168]       = "R0168",
+    [R0172]       = "R0172",
+    [R0173]       = "R0173",
+    [R0176]       = "R0176",
+    [R0179]       = "R0179",
+    [R0180]       = "R0180",
+    [R0193]       = "R0193",
+    [R0194]       = "R0194",
+
 };
 
 /* Module name strings mapping to MODULE_NAME_e */
@@ -528,4 +562,5 @@ char *module_name_string[MODULE_ID_SENTINEL] = {
     [ETE]          = "ETE",
     [TPM]          = "TPM",
     [POWER_WAKEUP] = "POWER_WAKEUP",
+    [PFDI]         = "PFDI",
 };

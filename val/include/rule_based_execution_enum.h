@@ -526,6 +526,39 @@ typedef enum {
     V_L2PE_02,
     V_L2WD_01,
 
+    /* PFDI rules */
+    R0040,
+    R0053,
+    R0060,
+    R0066,
+    R0071,
+    R0076,
+    R0082,
+    R0089,
+    R0099,
+    R0100,
+    R0102,
+    R0104,
+    R0154,
+    R0155,
+    R0156,
+    R0157,
+    R0158,
+    R0160,
+    R0163,
+    R0164,
+    R0165,
+    R0166,
+    R0167,
+    R0168,
+    R0172,
+    R0173,
+    R0176,
+    R0179,
+    R0180,
+    R0193,
+    R0194,
+
     /* Sentinel must remain last */
     RULE_ID_SENTINEL
 } RULE_ID_e;
@@ -890,6 +923,37 @@ typedef enum {
     P100_ENTRY,
     P104_ENTRY,
     GPU_04_ENTRY,
+    PFDI001_ENTRY,
+    PFDI002_ENTRY,
+    PFDI003_ENTRY,
+    PFDI004_ENTRY,
+    PFDI005_ENTRY,
+    PFDI006_ENTRY,
+    PFDI007_ENTRY,
+    PFDI008_ENTRY,
+    PFDI009_ENTRY,
+    PFDI010_ENTRY,
+    PFDI011_ENTRY,
+    PFDI012_ENTRY,
+    PFDI013_ENTRY,
+    PFDI014_ENTRY,
+    PFDI015_ENTRY,
+    PFDI016_ENTRY,
+    PFDI017_ENTRY,
+    PFDI018_ENTRY,
+    PFDI019_ENTRY,
+    PFDI020_ENTRY,
+    PFDI021_ENTRY,
+    PFDI022_ENTRY,
+    PFDI023_ENTRY,
+    PFDI024_ENTRY,
+    PFDI025_ENTRY,
+    PFDI026_ENTRY,
+    PFDI027_ENTRY,
+    PFDI028_ENTRY,
+    PFDI029_ENTRY,
+    PFDI030_ENTRY,
+    PFDI031_ENTRY,
     TEST_ENTRY_SENTINEL
 } TEST_ENTRY_ID_e;
 
@@ -912,6 +976,7 @@ typedef enum {
     ETE,
     TPM,
     POWER_WAKEUP,
+    PFDI,
     MODULE_ID_SENTINEL /* need to be in last */
 } MODULE_NAME_e;
 
@@ -955,6 +1020,12 @@ typedef enum {
     VBSA_LEVEL_SENTINEL /* Keep last */
 } VBSA_LEVEL_e;
 
+/* PFDI levels enum */
+typedef enum {
+    PFDI_LEVEL_1 = 1,
+    PFDI_LEVEL_SENTINEL /* Keep last */
+} PFDI_LEVEL_e;
+
 /* Software views enum for BSA */
 typedef enum {
     SW_OS,
@@ -969,13 +1040,14 @@ typedef enum {
     PLATFORM_LINUX     = 1 << 2   // 0x04
 } PLATFORM_e;
 
-/* Architecture selection for rule expansion via -a */
+/* Architecture selection for rule expansion */
 typedef enum {
     ARCH_NONE = 0,
     ARCH_BSA,
     ARCH_SBSA,
     ARCH_PCBSA,
-    ARCH_VBSA
+    ARCH_VBSA,
+    ARCH_PFDI
 } ARCH_SEL_e;
 
 /* Level filter mode for CLI selection */

@@ -850,7 +850,7 @@ val_pfdi_verify_regs(ARM_SMC_ARGS *args, int32_t conduit,
               uint64_t post_smc_regs[REG_COUNT_X5_X17]);
 void val_pfdi_invalidate_ret_params(PFDI_RET_PARAMS *args);
 
-uint32_t val_pfdi_execute_pfdi_tests(uint32_t num_pe);
+uint32_t val_pfdi_check_implementation(void);
 
 uint32_t pfdi001_entry(uint32_t num_pe);
 uint32_t pfdi002_entry(uint32_t num_pe);
@@ -864,6 +864,7 @@ uint32_t pfdi009_entry(uint32_t num_pe);
 uint32_t pfdi010_entry(uint32_t num_pe);
 uint32_t pfdi011_entry(uint32_t num_pe);
 uint32_t pfdi012_entry(uint32_t num_pe);
+uint32_t pfdi013_entry(uint32_t num_pe);
 uint32_t pfdi014_entry(uint32_t num_pe);
 uint32_t pfdi015_entry(uint32_t num_pe);
 uint32_t pfdi016_entry(uint32_t num_pe);

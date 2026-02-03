@@ -18,7 +18,7 @@
  
    SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
 +  BaseFdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
-+  ValLib|ShellPkg/Application/sysarch-acs/val/ValLib.inf
++  ValLib|ShellPkg/Application/sysarch-acs/val/ValLibRB.inf
 +  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_dt/PalLib.inf
  
  [PcdsFixedAtBuild]
@@ -31,3 +31,9 @@
  
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
+@@ -157,4 +161,4 @@
+   ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
+ 
+ [BuildOptions]
+-  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
++  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES -D PFDI_DT_BUILD
