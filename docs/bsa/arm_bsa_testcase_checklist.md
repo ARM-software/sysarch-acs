@@ -1371,7 +1371,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td rowspan="2">PCI_MSI_2</td>
@@ -1380,7 +1380,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>1533</td>
@@ -1567,7 +1567,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy P2P support required</td>
     </tr>
     <tr>
       <td rowspan="3">PCI_PP_04</td>
@@ -1576,7 +1576,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>1501</td>
@@ -1601,7 +1601,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PAS_1</td>
@@ -1610,7 +1610,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PASID support required</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -1930,7 +1930,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>RI_ORD_1</td>
@@ -1966,7 +1966,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>Exerciser VIP required</td>
+      <td>Exerciser VIP required; ATC cache required</td>
     </tr>
     <tr>
       <td>RI_SMU_2</td>
@@ -2407,7 +2407,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>PCI_MSI_2</td>
@@ -2416,7 +2416,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>PCI_LI_01</td>
@@ -2587,7 +2587,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_04</td>
@@ -2596,7 +2596,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_05</td>
@@ -2605,7 +2605,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_06</td>
@@ -2623,7 +2623,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PASID support required</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -2713,7 +2713,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>RE_ACS_2</td>
@@ -2722,7 +2722,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>RE_ACS_3</td>
@@ -2823,7 +2823,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>RI_ORD_1</td>
@@ -2859,7 +2859,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>Exerciser VIP required</td>
+      <td>Exerciser VIP required; ATC cache required</td>
     </tr>
     <tr>
       <td>RI_SMU_2</td>
@@ -3300,7 +3300,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>PCI_MSI_2</td>
@@ -3309,7 +3309,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>PCI_LI_01</td>
@@ -3480,7 +3480,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_04</td>
@@ -3489,7 +3489,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_05</td>
@@ -3498,7 +3498,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_06</td>
@@ -3516,7 +3516,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PASID support required</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -3606,7 +3606,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>IE_ACS_2</td>
@@ -3615,7 +3615,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>IE_REG_1</td>
@@ -3707,7 +3707,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>FR</td>

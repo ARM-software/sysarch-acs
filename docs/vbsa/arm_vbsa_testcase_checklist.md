@@ -903,7 +903,7 @@ The checklist provides information about:
       <td>Check MSI support for PCIe dev</td>
       <td>✅</td>
       <td>❌</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td>PCI_MSI_2</td>
@@ -911,7 +911,7 @@ The checklist provides information about:
       <td>Check MSI=X vectors uniqueness</td>
       <td>❌</td>
       <td>✅</td>
-      <td></td>
+      <td>MSI/MSI-X support required</td>
     </tr>
     <tr>
       <td></td>
@@ -1079,7 +1079,7 @@ The checklist provides information about:
       <td>RP must suprt ACS if P2P Txn are allow</td>
       <td>✅</td>
       <td>❌</td>
-      <td></td>
+      <td>PCIe Hierarchy P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_04</td>
@@ -1087,7 +1087,7 @@ The checklist provides information about:
       <td>Check RP Adv Error Report</td>
       <td>✅</td>
       <td>❌</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td></td>
@@ -1111,7 +1111,7 @@ The checklist provides information about:
       <td>Check Direct Transl P2P Support</td>
       <td>✅</td>
       <td>❌</td>
-      <td></td>
+      <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
       <td>PCI_PP_06</td>
@@ -1127,7 +1127,7 @@ The checklist provides information about:
       <td>PASID support atleast 16 bits</td>
       <td>✅</td>
       <td>❌</td>
-      <td></td>
+      <td>PASID support required</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
