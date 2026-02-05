@@ -183,6 +183,7 @@ freeSbsaAvsMem()
       val_iovirt_free_info_table();
 
   if (acs_is_module_enabled(PE)     ||
+      acs_is_module_enabled(RAS)    ||
       acs_is_module_enabled(PCIE)   ||
       acs_is_module_enabled(MEM_MAP) ||
       acs_is_module_enabled(MPAM))
@@ -299,8 +300,9 @@ ShellAppMainsbsa()
         createIoVirtInfoTable();
 
     if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(RAS)         ||
         acs_is_module_enabled(PCIE)        ||
-        acs_is_module_enabled(MEM_MAP)      ||
+        acs_is_module_enabled(MEM_MAP)     ||
         acs_is_module_enabled(MPAM))
         createPeripheralInfoTable();
 
