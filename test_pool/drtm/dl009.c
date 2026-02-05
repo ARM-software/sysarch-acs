@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,8 +56,9 @@ payload(uint32_t num_pe)
 
   /* R312090 : Request DLME Authorities Schema without requesting
    * DLME image authentication */
+  drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA;
   drtm_params->launch_features = drtm_params->launch_features |
-            (DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP << DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA);
+            (DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP << DRTM_LAUNCH_FEATURES_SHIFT_PCR_SCHEMA);
 
   status = val_drtm_dynamic_launch(drtm_params);
   /* This will return invalid parameter */

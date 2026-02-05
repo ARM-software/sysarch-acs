@@ -1,7 +1,7 @@
 /** @file
  * DRTM API
  *
- * Copyright (c) 2024, 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -296,6 +296,45 @@ uint32_t val_drtm_get_smccc_ver(void)
     return smc_args.Arg0;
 }
 
+uint32_t create_mem_prot_table(uint64_t *mem_prot_table_address, uint64_t *mem_prot_table_size)
+{
+    uint32_t mem_desc_table_size;
+    uint32_t max_mem_regions;
+    DRTM_MEMORY_REGION *mem_region;
+    DRTM_MEMORY_REGION_DESCRIPTOR_TABLE *mem_desc_table;
+
+    /* Check max number of regions */
+    max_mem_regions = VAL_EXTRACT_BITS(g_drtm_features.dma_prot_features.value, 8, 23);
+    if (max_mem_regions < 1) {
+      val_print(ACS_PRINT_ERR, "\n    Maximum Region is 0 for Memory Descriptor Table", 0);
+      return ACS_STATUS_FAIL;
+    }
+
+    /* Size of MEM Descriptor Header + Size for one Memory Regions */
+    mem_desc_table_size = sizeof (DRTM_MEMORY_REGION_HDR) + sizeof (DRTM_MEMORY_REGION);
+
+    /* Allocate Memory For Memory Region Descriptor Table 4KB Aligned */
+    mem_desc_table = (DRTM_MEMORY_REGION_DESCRIPTOR_TABLE *)
+                        ((uint64_t)val_aligned_alloc(DRTM_SIZE_4K, mem_desc_table_size));
+    if (!mem_desc_table) {
+      val_print(ACS_PRINT_ERR, "\n    Failed to allocate memory for Memory Descriptor Table", 0);
+      return ACS_STATUS_FAIL;
+    }
+
+    /* Fill 1 Region with full range */
+    mem_desc_table->header.revision    = 1;
+    mem_desc_table->header.reserved    = 0;
+    mem_desc_table->header.num_regions = 1;
+
+    mem_region = mem_desc_table->regions;
+    mem_region->start_addr = 0x0;
+    mem_region->size_type  = DRTM_MEM_PROT_FULL_RANGE_SIZE_TYPE;
+
+    *mem_prot_table_address = (uint64_t)mem_desc_table;
+    *mem_prot_table_size = mem_desc_table_size;
+    return ACS_STATUS_PASS;
+}
+
 /**
   @brief  This API is used to initialize the dl params
   @return status
@@ -313,10 +352,37 @@ int64_t val_drtm_init_drtm_params(DRTM_PARAMETERS *drtm_params)
     uint64_t dlme_image_addr;
     uint64_t mmu_on = (val_pe_reg_read(SCTLR_EL2) & 0x1);
     uint32_t last_index;
+    uint32_t mem_prot_type = 0;
+    uint32_t launch_feat_mem_prot = 0;
+    uint64_t mem_prot_table_address = 0;
+    uint64_t mem_prot_table_size = 0;
+
+    if (!drtm_params) {
+        val_print(ACS_PRINT_ERR, "\n    Invalid DRTM Params pointer", 0);
+        return ACS_STATUS_FAIL;
+    }
+
+    val_memory_set((void *)drtm_params, sizeof(DRTM_PARAMETERS), 0);
 
     /*Status grater than zero indicates availability of feature bits in return value*/
     dlme_data_region_size =
         DRTM_SIZE_4K * VAL_EXTRACT_BITS(g_drtm_features.min_memory_req.value, 0, 31);
+
+    /* Get Memory Protection Type */
+    if (g_drtm_features.dma_prot_features.status > DRTM_ACS_SUCCESS) {
+      mem_prot_type = VAL_EXTRACT_BITS(g_drtm_features.dma_prot_features.value, 0, 7);
+      val_print(ACS_PRINT_DEBUG, "\n       Protection Type from Features : %x", mem_prot_type);
+
+      if (mem_prot_type == DRTM_DMA_FEATURES_DMA_PROTECTION_ALL)
+          launch_feat_mem_prot = DRTM_LAUNCH_FEAT_MEM_PROT_ALL_SUPP <<
+                     DRTM_LAUNCH_FEATURES_SHIFT_MEM_PROTECTION;
+      else if (mem_prot_type == DRTM_DMA_FEATURES_DMA_PROTECTION_REGION)
+          launch_feat_mem_prot = DRTM_LAUNCH_FEAT_MEM_PROT_REGION_SUPP <<
+                     DRTM_LAUNCH_FEATURES_SHIFT_MEM_PROTECTION;
+
+      val_print(ACS_PRINT_DEBUG, "\n       Setting DRTM Params Protection Type : %x",
+                                launch_feat_mem_prot);
+    }
 
     /* Assign size based on MMU on/off */
     dlme_image_size = (mmu_on) ? ROUND_UP_TO_4K(g_drtm_acs_dlme_size)
@@ -346,9 +412,18 @@ int64_t val_drtm_init_drtm_params(DRTM_PARAMETERS *drtm_params)
 
     val_memory_set((void *)dlme_base_addr, dlme_region_size, 0);
 
+    /* If Region Based DMA Protection Supported */
+    if (mem_prot_type == DRTM_DMA_FEATURES_DMA_PROTECTION_REGION) {
+      status = create_mem_prot_table(&mem_prot_table_address, &mem_prot_table_size);
+      if (status) {
+        val_print(ACS_PRINT_ERR, "\n    Could Not Fill Memory Region Descriptor Table", 0);
+        return ACS_STATUS_FAIL;
+      }
+    }
+
     drtm_params->revision                = VAL_DRTM_PARAMETERS_REVISION;
     drtm_params->reserved                = 0;
-    drtm_params->launch_features         = 0;
+    drtm_params->launch_features         = drtm_params->launch_features | launch_feat_mem_prot;
     drtm_params->dlme_region_address     = (uint64_t) dlme_base_addr;
     drtm_params->dlme_region_size        = dlme_region_size;
     drtm_params->dlme_image_start        = free_space_1_size;
@@ -357,8 +432,8 @@ int64_t val_drtm_init_drtm_params(DRTM_PARAMETERS *drtm_params)
     drtm_params->dlme_data_offset        = free_space_1_size + dlme_image_size + free_space_2_size;
     drtm_params->nw_dce_region_address   = 0;
     drtm_params->nw_dce_region_size      = 0;
-    drtm_params->mem_prot_table_address  = 0;
-    drtm_params->mem_prot_table_size     = 0;
+    drtm_params->mem_prot_table_address  = mem_prot_table_address;
+    drtm_params->mem_prot_table_size     = mem_prot_table_size;
 
     /* We have free space at drtm_params->dlme_region_address of 4KB */
     g_drtm_acs_dl_saved_state = (DRTM_ACS_DL_SAVED_STATE *)drtm_params->dlme_region_address;

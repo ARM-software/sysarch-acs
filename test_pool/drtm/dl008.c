@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@ payload(uint32_t num_pe)
   DRTM_PARAMETERS *drtm_params;
   uint64_t drtm_params_size = DRTM_SIZE_4K;
   uint64_t drtm_feature;
+  uint32_t original_launch_features;
 
   /* Allocate Memory For DRTM Parameters 4KB Aligned */
   drtm_params = (DRTM_PARAMETERS *)((uint64_t)val_aligned_alloc(DRTM_SIZE_4K, drtm_params_size));
@@ -53,6 +54,9 @@ payload(uint32_t num_pe)
     goto free_drtm_params;
   }
 
+  /* Save Launch Features Value */
+  original_launch_features = drtm_params->launch_features;
+
   /* Invoke DRTM Dynamic Launch, This will return only in case of error */
 
   /* Part 1: R44065 : DRTM_PARAMETER should not request features that are
@@ -62,11 +66,13 @@ payload(uint32_t num_pe)
   drtm_feature = val_drtm_get_feature(DRTM_DRTM_FEATURES_DMA_PROTECTION);
 
   if (drtm_feature == DRTM_DMA_FEATURES_DMA_PROTECTION_ALL) {
-    drtm_params->launch_features = drtm_params->launch_features |
-            (DRTM_LAUNCH_FEAT_MEM_PROT_REGION_SUPP << DRTM_LAUNCH_FEATURES_MASK_MEM_PROTECTION);
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_MEM_PROTECTION;
+    drtm_params->launch_features |=
+            (DRTM_LAUNCH_FEAT_MEM_PROT_REGION_SUPP << DRTM_LAUNCH_FEATURES_SHIFT_MEM_PROTECTION);
   } else {
-    drtm_params->launch_features = drtm_params->launch_features |
-            (DRTM_LAUNCH_FEAT_MEM_PROT_ALL_SUPP << DRTM_LAUNCH_FEATURES_MASK_MEM_PROTECTION);
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_MEM_PROTECTION;
+    drtm_params->launch_features |=
+            (DRTM_LAUNCH_FEAT_MEM_PROT_ALL_SUPP << DRTM_LAUNCH_FEATURES_SHIFT_MEM_PROTECTION);
   }
 
   status = val_drtm_dynamic_launch(drtm_params);
@@ -84,7 +90,8 @@ payload(uint32_t num_pe)
     goto free_dlme_region;
   }
 
-  drtm_params->launch_features = 0;
+  /* Restore */
+  drtm_params->launch_features = original_launch_features;
 
   /* Part 2: R44065 : DRTM_PARAMETER should not request features that are
    * not supported by DRTM implementation */
@@ -93,11 +100,13 @@ payload(uint32_t num_pe)
   drtm_feature = val_drtm_get_feature(DRTM_DRTM_FEATURES_PCR_SCHEMA);
 
   if (drtm_feature == DRTM_TPM_FEAT_PCR_SCHEMA_DEF_SUPP) {
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA;
     drtm_params->launch_features = drtm_params->launch_features |
-            (DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP << DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA);
+            (DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP << DRTM_LAUNCH_FEATURES_SHIFT_PCR_SCHEMA);
   } else {
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA;
     drtm_params->launch_features = drtm_params->launch_features |
-            (DRTM_LAUNCH_FEAT_PCR_SCHEMA_DEF_SUPP << DRTM_LAUNCH_FEATURES_MASK_PCR_SCHEMA);
+            (DRTM_LAUNCH_FEAT_PCR_SCHEMA_DEF_SUPP << DRTM_LAUNCH_FEATURES_SHIFT_PCR_SCHEMA);
   }
 
   status = val_drtm_dynamic_launch(drtm_params);
@@ -115,14 +124,15 @@ payload(uint32_t num_pe)
     goto free_dlme_region;
   }
 
-  drtm_params->launch_features = 0;
+  drtm_params->launch_features = original_launch_features;
 
   /* Part 3: R44065 : DRTM_PARAMETER should not request features that are
    * not supported by DRTM implementation */
   drtm_feature = val_drtm_get_feature(DRTM_DRTM_FEATURES_DLME_IMG_AUTH);
 
   if (drtm_feature != DRTM_DLME_IMG_FEAT_DLME_IMG_AUTH_SUPP) {
-    drtm_params->launch_features = REQUEST_DLME_IMAGE_AUTH;
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_DLME_IMAGE_AUTH;
+    drtm_params->launch_features |= (0x1 << DRTM_LAUNCH_FEATURES_SHIFT_DLME_IMAGE_AUTH);
 
     status = val_drtm_dynamic_launch(drtm_params);
     /* This will return invalid parameter */
@@ -139,7 +149,8 @@ payload(uint32_t num_pe)
       goto free_dlme_region;
     }
 
-    drtm_params->launch_features = 0;
+    /* Restore */
+    drtm_params->launch_features = original_launch_features;
   } else {
       val_print(ACS_PRINT_DEBUG,
               "\n       DRTM implementation supports DLME Image Authentication, skip check", 0);
@@ -151,7 +162,9 @@ payload(uint32_t num_pe)
   drtm_feature = val_drtm_get_feature(DRTM_DRTM_FEATURES_TPM_BASED_HASHING);
 
   if (drtm_feature != DRTM_TPM_BASED_HASHING_SUPPORT) {
-    drtm_params->launch_features = REQUEST_TPM_BASED_HASHING;
+    drtm_params->launch_features &= ~DRTM_LAUNCH_FEATURES_MASK_TYPE_HASH;
+    drtm_params->launch_features |= (0x1 << DRTM_LAUNCH_FEATURES_SHIFT_TYPE_HASH);
+
 
     status = val_drtm_dynamic_launch(drtm_params);
     /* This will return invalid parameter */
