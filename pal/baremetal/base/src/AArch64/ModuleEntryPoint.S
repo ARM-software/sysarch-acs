@@ -1,5 +1,5 @@
 #/** @file
-# Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
 # SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,12 +24,105 @@
 GCC_ASM_IMPORT(ArmReadMpidr)
 GCC_ASM_IMPORT(PalGetSecondaryStackBase)
 GCC_ASM_IMPORT(PalGetMaxMpidr)
+GCC_ASM_IMPORT(PalGetMmuConfigAddr)
 GCC_ASM_EXPORT(ModuleEntryPoint)
 
 StartupAddr:         .8byte ASM_PFX(val_test_entry)
 ASM_PFX(StackSize):  .8byte 0x100
 
+// PE_MMU_CONFIG structure offsets
+.equ MMU_CFG_TTBR0,     0
+.equ MMU_CFG_TTBR1,     8
+.equ MMU_CFG_TCR,       16
+.equ MMU_CFG_MAIR,      24
+.equ MMU_CFG_SCTLR,     32
+.equ MMU_CFG_EL,        40
+
+// SCTLR bits
+.equ SCTLR_M_BIT,       (1 << 0)   // MMU enable
+.equ SCTLR_C_BIT,       (1 << 2)   // Data cache enable
+.equ SCTLR_I_BIT,       (1 << 12)  // Instruction cache enable
+
 ASM_PFX(ModuleEntryPoint):
+//
+  // Enable MMU and caches using primary PE's configuration
+  //
+_EnableMmu:
+  // Get the MMU configuration address from primary PE
+  // Note: This is a C function call, but we haven't set up stack yet
+  // so we use a special calling convention (just branch and link)
+  adr   x9, MmuConfigAddr
+  ldr   x9, [x9]
+  blr   x9
+
+  // x0 now contains the address of PE_MMU_CONFIG structure
+  mov   x11, x0  // Save config address in x11
+
+  // Load all config values from the structure
+  ldr   x12, [x11, #MMU_CFG_TTBR0]  // TTBR0
+  ldr   x13, [x11, #MMU_CFG_TTBR1]  // TTBR1
+  ldr   x14, [x11, #MMU_CFG_TCR]    // TCR
+  ldr   x15, [x11, #MMU_CFG_MAIR]   // MAIR
+  ldr   x16, [x11, #MMU_CFG_SCTLR]  // SCTLR
+  ldr   w17, [x11, #MMU_CFG_EL]     // Current EL (32-bit)
+
+  // Determine current exception level
+  mrs   x18, CurrentEL
+  lsr   x18, x18, 2
+  and   x18, x18, 0x3
+
+  // Check if we're at EL2
+  cmp   x18, #2
+  b.eq  _SetupMmuEl2
+
+_SetupMmuEl1:
+  // Invalidate TLB for EL1
+  tlbi  vmalle1
+  dsb   sy
+  isb
+
+  // Set MAIR, TCR, TTBR0/1 for EL1
+  msr   mair_el1, x15
+  isb
+  msr   tcr_el1, x14
+  isb
+  msr   ttbr0_el1, x12
+  isb
+  msr   ttbr1_el1, x13
+  isb
+
+  // Enable MMU and caches for EL1
+  // Use the same SCTLR value as primary PE (which has M, C, I bits set)
+  msr   sctlr_el1, x16
+  isb
+  b     _MmuEnabled
+
+_SetupMmuEl2:
+  // Invalidate TLB for EL2
+  tlbi  alle2
+  dsb   sy
+  isb
+
+  // Set MAIR, TCR, TTBR0/1 for EL2
+  msr   mair_el2, x15
+  isb
+  msr   tcr_el2, x14
+  isb
+  msr   ttbr0_el2, x12
+  isb
+  msr   ttbr1_el2, x13
+  isb
+
+  // Enable MMU and caches for EL2
+  // Use the same SCTLR value as primary PE (which has M, C, I bits set)
+  msr   sctlr_el2, x16
+  isb
+
+_MmuEnabled:
+  //
+  // MMU and caches are now enabled, proceed with original entry code
+  //
+
   // Get ID of this CPU in Multicore system
   bl    ASM_PFX(ArmReadMpidr)
   // Keep a copy of the MpId register value
@@ -82,3 +175,7 @@ _PrepareArguments:
 
 _NeverReturn:
   b _NeverReturn
+
+// Function pointer for PalGetMmuConfigAddr
+.align 3
+MmuConfigAddr:   .8byte ASM_PFX(PalGetMmuConfigAddr)

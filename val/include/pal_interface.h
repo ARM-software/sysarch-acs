@@ -195,10 +195,12 @@ typedef struct {
 **/
 typedef struct {
   uint64_t ttbr0;      ///< Translation Table Base Register 0
+  uint64_t ttbr1;      ///< Translation Table Base Register 1
   uint64_t tcr;        ///< Translation Control Register
   uint64_t mair;       ///< Memory Attribute Indirection Register
   uint64_t sctlr;      ///< System Control Register
   uint32_t current_el; ///< Current Exception Level (1 or 2)
+  uint32_t reserved;   ///< Reserved for alignment
 } PE_MMU_CONFIG;
 
 void pal_pe_create_info_table(PE_INFO_TABLE *pe_info_table);

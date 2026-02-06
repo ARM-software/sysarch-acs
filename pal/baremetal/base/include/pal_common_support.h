@@ -1122,6 +1122,16 @@ typedef struct {
   int32_t  status;             /* command response status code */
 } PCC_MPAM_MSC_WRITE_RESP_PARA;
 
+typedef struct {
+  uint64_t ttbr0;      ///< Translation Table Base Register 0
+  uint64_t ttbr1;      ///< Translation Table Base Register 1
+  uint64_t tcr;        ///< Translation Control Register
+  uint64_t mair;       ///< Memory Attribute Indirection Register
+  uint64_t sctlr;      ///< System Control Register
+  uint32_t current_el; ///< Current Exception Level (1 or 2)
+  uint32_t reserved;   ///< Reserved for alignment
+} PE_MMU_CONFIG;
+
 #define MPAM_FB_PROTOCOL_ID    0x1A
 #define MPAM_MSG_TYPE_CMD      0x0
 #define MPAM_MSC_READ_CMD_ID   0x4

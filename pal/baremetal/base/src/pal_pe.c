@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,26 @@ extern int32_t gPsciConduit;
 
 uint8_t   *gSecondaryPeStack;
 uint64_t  gMpidrMax;
+
+/**
+  Global MMU configuration structure for secondary PE initialization.
+  This is populated by the primary PE and used by secondary PEs to
+  enable MMU/caches with the same page table configuration.
+**/
+static PE_MMU_CONFIG gMmuConfig __attribute__((aligned(64)));
+
+/* External assembly functions for reading MMU registers */
+uint64_t AA64ReadCurrentEL(void);
+uint64_t AA64ReadTtbr0El1(void);
+uint64_t AA64ReadTtbr0El2(void);
+uint64_t AA64ReadTtbr1El1(void);
+uint64_t AA64ReadTtbr1El2(void);
+uint64_t AA64ReadTcr1(void);
+uint64_t AA64ReadTcr2(void);
+uint64_t AA64ReadMair1(void);
+uint64_t AA64ReadMair2(void);
+uint64_t AA64ReadSctlr1(void);
+uint64_t AA64ReadSctlr2(void);
 
 #define SIZE_STACK_SECONDARY_PE  0x100          //256 bytes per core
 #define UPDATE_AFF_MAX(src,dest,mask)  ((dest & mask) > (src & mask) ? (dest & mask) : (src & mask))
@@ -137,6 +157,65 @@ PalAllocateSecondaryStack(uint64_t mpidr)
 }
 
 /**
+  @brief   Captures the primary PE's MMU configuration for use by secondary PEs.
+           This function reads TTBR0, TCR, MAIR, and SCTLR from the current EL
+           and stores them in a global structure that secondary PEs can access.
+
+  @param   None
+  @return  None
+**/
+static
+void
+PalCaptureMmuConfig(void)
+{
+  uint64_t CurrentEl;
+
+  /* Read current exception level */
+  CurrentEl = (AA64ReadCurrentEL() >> 2) & 0x3;
+  gMmuConfig.current_el = (uint32_t)CurrentEl;
+
+  /* Read MMU configuration registers based on current EL */
+  if (CurrentEl == 2) {
+    gMmuConfig.ttbr0 = AA64ReadTtbr0El2();
+    gMmuConfig.ttbr1 = AA64ReadTtbr1El2();
+    gMmuConfig.tcr   = AA64ReadTcr2();
+    gMmuConfig.mair  = AA64ReadMair2();
+    gMmuConfig.sctlr = AA64ReadSctlr2();
+  } else {
+    /* Assume EL1 */
+    gMmuConfig.ttbr0 = AA64ReadTtbr0El1();
+    gMmuConfig.ttbr1 = AA64ReadTtbr1El1();
+    gMmuConfig.tcr   = AA64ReadTcr1();
+    gMmuConfig.mair  = AA64ReadMair1();
+    gMmuConfig.sctlr = AA64ReadSctlr1();
+  }
+
+  print(ACS_PRINT_INFO,  "  MMU Config captured at EL%d\n", gMmuConfig.current_el);
+  print(ACS_PRINT_DEBUG, "    TTBR0: 0x%lx\n", gMmuConfig.ttbr0);
+  print(ACS_PRINT_DEBUG, "    TTBR1: 0x%lx\n", gMmuConfig.ttbr1);
+  print(ACS_PRINT_DEBUG, "    TCR:   0x%lx\n", gMmuConfig.tcr);
+  print(ACS_PRINT_DEBUG, "    MAIR:  0x%lx\n", gMmuConfig.mair);
+  print(ACS_PRINT_DEBUG, "    SCTLR: 0x%lx\n", gMmuConfig.sctlr);
+
+  /* Clean cache to ensure secondary PEs see the config */
+  pal_pe_data_cache_ops_by_va((uint64_t)&gMmuConfig, CLEAN_AND_INVALIDATE);
+}
+
+/**
+  @brief   Returns the address of the MMU configuration structure.
+           This function is called by secondary PE entry code to get
+           the primary PE's MMU configuration.
+
+  @param   None
+  @return  Address of PE_MMU_CONFIG structure
+**/
+uint64_t
+PalGetMmuConfigAddr(void)
+{
+  return (uint64_t)&gMmuConfig;
+}
+
+/**
   @brief  This API fills in the PE_INFO Table with information about the PEs in the
           system. This is achieved by parsing the ACPI - MADT table.
 
@@ -184,6 +263,10 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   pal_pe_data_cache_ops_by_va((uint64_t)PeTable, CLEAN_AND_INVALIDATE);
   pal_pe_data_cache_ops_by_va((uint64_t)&gMpidrMax, CLEAN_AND_INVALIDATE);
   PalAllocateSecondaryStack(gMpidrMax);
+
+  /* Capture primary PE's MMU configuration for secondary PE initialization */
+  PalCaptureMmuConfig();
+
 
 }
 
