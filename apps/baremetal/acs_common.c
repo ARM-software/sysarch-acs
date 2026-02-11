@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include "val/include/val_interface.h"
 #include "val/include/acs_el3_param.h"
+#include "val/include/rule_based_execution_enum.h"
 
 extern uint64_t  g_el3_param_magic;
 extern uint64_t  g_el3_param_addr;
@@ -38,17 +39,9 @@ acs_is_module_enabled(uint32_t module_base)
     if (g_num_modules) {
         return acs_list_contains(g_execute_modules, g_num_modules, module_base);
     }
-
-#if ACS_HAS_ENABLED_MODULE_LIST
-    /* Build-time default list */
-    return acs_list_contains(acs_build_module_array,
-                             acs_build_module_count,
-                             module_base);
-#else
     /* No overrides: enable everything */
     (void)module_base;
     return true;
-#endif
 }
 
 bool
@@ -85,7 +78,7 @@ acs_apply_el3_params(void)
   params = (acs_el3_params *)(uintptr_t)g_el3_param_addr;
 
   /* Optional: version check (kept minimal, versioned for future proofing) */
-  if (params->version != ACS_EL3_PARAM_VERSION) {
+  if ((params->version < 0x1) || (params->version > ACS_EL3_PARAM_VERSION)) {
     val_print(WARN,
               "Unsupported EL3 param version %ld, ignoring\n", params->version);
     return;
@@ -110,9 +103,54 @@ acs_apply_el3_params(void)
   }
 
   /* Override skip list if provided */
-  if (params->skip_rule_array_addr && params->skip_rule_array_count) {
+  if ((params->version >= 0x2) && params->skip_rule_array_addr
+     && params->skip_rule_array_count)
+  {
     g_skip_rule_list   = (RULE_ID_e *)(uintptr_t)params->skip_rule_array_addr;
     g_skip_rule_count  = (uint32_t)params->skip_rule_array_count;
+  }
+
+  if ((params->version >= 0x3))
+  {
+    if (params->skip_module_array_addr && params->skip_module_array_count) {
+      g_skip_modules      = (uint32_t *)(uintptr_t)params->skip_module_array_addr;
+      g_num_skip_modules  = (uint32_t)params->skip_module_array_count;
+    }
+
+    /* global parameter override by el3 parameter*/
+    g_pcie_p2p            = params->p2p;
+    g_pcie_skip_dp_nic_ms = params->skip_dp_nic_ms;
+    g_print_mmio          = params->mmio;
+    g_crypto_support      = params->no_crypto_ext;
+    g_el1skiptrap_mask    = params->el1skiptrap_mask;
+    g_bsa_sw_view_mask    = params->software_view_filter;
+    g_pcie_cache_present  = params->cache;
+    g_sys_last_lvl_cache  = params->sys_cache;
+    g_level_value         = params->level;
+
+    if (params->level_selection >= LVL_FILTER_NONE &&
+       params->level_selection <= LVL_FILTER_FR)
+      g_level_filter_mode   = params->level_selection;
+    else
+      val_print(WARN,
+                "Override skipped for level filter mode  %d\n", params->level_selection);
+
+    if (params->verbose >= TRACE && params->verbose <= FATAL)
+      g_print_level         = params->verbose;
+    else
+      val_print(WARN,
+                "Override skipped for verbose  %d\n", params->verbose);
+
+    if (params->timeout >= TIMEOUT_THRESHOLD
+       && params->timeout <= TIMEOUT_MAX_THRESHOLD)
+    {
+      g_timeout_pass        = params->timeout;
+      g_timer_timeout_us    = params->timeout;
+      g_timeout_fail        = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+    }
+    else
+      val_print(WARN,
+                "Override skipped for timeout  %d\n", params->timeout);
   }
 }
 
@@ -132,8 +170,8 @@ acs_apply_compile_params(void)
 
   if (g_print_level < TRACE)
     g_print_level = TRACE;
-  else if (g_print_level > ERROR)
-    g_print_level = ERROR;
+  else if (g_print_level > FATAL)
+    g_print_level = FATAL;
 #endif
 
   return;

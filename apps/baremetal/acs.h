@@ -99,6 +99,8 @@ extern uint32_t g_skip_modules_arr[];
 extern uint32_t g_num_skip_modules;
 extern uint32_t g_level_filter_mode;
 extern uint32_t g_sys_last_lvl_cache;
+extern uint32_t g_timeout_pass;
+extern uint32_t g_timeout_fail;
 
 /* Globals from apps/baremetal/acs_globals.c */
 extern RULE_ID_e *g_rule_tests;
@@ -107,6 +109,10 @@ extern RULE_ID_e *g_rule_list;
 extern RULE_ID_e *g_skip_rule_list;
 extern uint32_t  *g_execute_modules;
 extern uint32_t  *g_skip_modules;
+extern uint32_t  g_pcie_cache_present;
+extern uint32_t  g_el1physkip;
+extern uint32_t  g_pcie_p2p;
+extern uint32_t  g_crypto_support;
 extern uint32_t  g_print_level;
 extern uint32_t  g_print_mmio;
 extern uint32_t  g_curr_module;

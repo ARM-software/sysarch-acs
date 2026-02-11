@@ -40,27 +40,57 @@ The structure layout is defined in ``acs_el3_param.h`` as:
 
    #define ACS_EL3_PARAM_MAGIC  0x425341454C335031ULL  /* 'BSAEL3P1' */
 
-   typedef struct {
-     uint64_t version;               /* 0 or 1 */
+  typedef struct {
+  uint64_t version;              /*1, 2 or 3 */
 
-   /* Optional: rule selection override */
-   uint64_t rule_array_addr;      /* RULE_ID_e[] of test IDs (can be 0) */
-   uint64_t rule_array_count;     /* number of entries in rule_array_addr */
+  /* Optional: rule selection override */
+  uint64_t rule_array_addr;      /* RULE_ID_e[] rule IDs (can be 0) */
+  uint64_t rule_array_count;     /* number of entries in rule_array_addr */
 
-   /* Optional: module selection override */
-   uint64_t module_array_addr;    /* uint32_t[] of module IDs (can be 0) */
-   uint64_t module_array_count;   /* number of entries in module_array_addr */
+  /* Optional: module selection override */
+  uint64_t module_array_addr;    /* uint32_t[] of module IDs (can be 0) */
+  uint64_t module_array_count;   /* number of entries in module_array_addr */
 
-   /* Optional: rules to skip */
-   uint64_t skip_rule_array_addr;  /* RULE_ID_e[] of rule IDs to skip (can be 0) */
-   uint64_t skip_rule_array_count; /* number of entries in skip_rule_array_addr */
-   } acs_el3_params;
+  /* Optional: rules to skip */
+  uint64_t skip_rule_array_addr;  /* RULE_ID_e[] of rule IDs to skip (can be 0) */
+  uint64_t skip_rule_array_count; /* number of entries in skip_rule_array_addr */
+
+  /* Optional: rules to skip */
+  uint64_t skip_module_array_addr;  /* uint32_t[] of module IDs (can be 0) */
+  uint64_t skip_module_array_count; /* number of entries in module_array_addr */
+
+  uint64_t cache  :1;               /*Pass this flag to indicate that if the test system supports
+                                    PCIe address translation cache\n*/
+  uint64_t el1skiptrap_mask  :1;          /*Skips EL1 register checks*/
+  uint64_t mmio   :1;               /*enable pal_mmio_read/write prints use with **verbose** */
+  uint64_t no_crypto_ext :1;        /*cryptography extension not supported*/
+  uint64_t software_view_filter :3; /*b0 : OS software view test b1 : Hypervisior view test
+                                    b2:platform security view test (can be used in combination)*/
+  uint64_t p2p :1;                  /* PCIe Hierarchy Supports Peer-to-Peer*/
+  uint64_t skip_dp_nic_ms :1;       /*Skip PCIe tests for DisplayPort, Network,
+                                    and Mass Storage devices*/
+  uint64_t verbose :3;              /*Verbosity of the prints*/
+  uint64_t timeout :32;             /*Set pass timeout (in us) for wakeup tests (500 us - 2 sec)*/
+  uint64_t level_selection :3;      /*
+                                    0: Level none
+                                    1: run test till input level
+                                    2: run test only for that level
+                                    3:future requirement level*/
+  uint64_t level :4;                /*Input level use along with level_selection*/
+  uint64_t sys_cache :2;            /*Specify SLC cache type 0-unknown
+                                    1-PPTT PE-side LLC
+                                    2 - HMAT mem-side LLC */
+  uint64_t reserved :11;
+} acs_el3_params;
 
 Notes:
 
 * The structure must live in memory that NS-EL2 / ACS can read.
 * Only the **address** of the structure is passed in X20.
-* ``version`` is used by ACS to check compatibility (currently 0 or 1).
+* ``version`` is used by ACS to check compatibility (currently the version is at 3).
+* version 1 supports module and rule selection
+* version 2 includes rule skip
+* version 3 includes module skip and other global variable overrides
 * Any combination of tests, modules, or skip list may be provided.
 
 Module and Rule IDs
@@ -70,7 +100,7 @@ Module IDs are the **existing ENUMs**. For example:
 
 .. code-block:: c
 typedef enum {
-    PE,
+    PE = 2,
     GIC,
     PERIPHERAL,
     MEM_MAP,
@@ -85,6 +115,10 @@ typedef enum {
     ETE,
     TPM,
     POWER_WAKEUP,
+    PFDI,
+    CXL,
+    RME,
+    GPU
 } MODULE_NAME_e;
 
 
@@ -112,6 +146,21 @@ At boot, ACS:
      - Overrides ``g_rule_list`` / ``g_rule_count`` if test override is given.
      - Overrides ``g_execute_modules`` / ``g_num_modules`` if module override is given.
      - Overrides ``g_skip_rule_list`` / ``g_skip_rule_count`` if a skip list is given.
+     - Overrides ``g_skip_modules`` / ``g_num_skip_modules`` if a skip module overide is given.
+
+       **global parameter override by el3 parameter**
+
+      - overrides ``g_pcie_p2p            `` if p2p is set
+      - overrides ``g_pcie_skip_dp_nic_ms `` if pcie skip is set
+      - overrides ``g_print_level         `` if print level is set
+      - overrides ``g_wakeup_timeout      `` if wakeup timeout is set
+      - overrides ``g_print_mmio          `` if print mmio is set
+      - overrides ``g_crypto_support      `` if crypto support is set
+      - overrides ``g_bsa_sw_view_mask    `` if software view mask is set
+      - overrides ``g_pcie_cache_present  `` if pcie cache is set
+      - overrides ``g_sys_last_lvl_cache  `` if system level cache is set
+      - overrides ``g_level_filter_mode   `` if level filter mode is set
+      - overrides ``g_level_value         `` if level value is set
 3. Uses the (possibly overridden) ``g_execute_modules`` / ``g_num_modules`` to
    compute ``g_enabled_modules``, and then:
    * Creates only the required information tables.
