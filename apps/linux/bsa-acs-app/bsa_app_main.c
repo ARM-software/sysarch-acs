@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2020-2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2020-2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ extern char *rule_id_string[RULE_ID_SENTINEL];
 /* Global variables for app */
 int  g_print_level = 3;
 bool g_pcie_skip_dp_nic_ms = 0;
-uint32_t g_level_filter_mode;  /* LEVEL_FILTER_MODE_e */
+uint32_t g_level_filter_mode = LVL_FILTER_MAX;  /* default: filter by max level */
 uint32_t g_level_value = BSA_LEVEL_1; /* Default BSA_LEVEL_1*/
 
 /* Legacy numeric skip support kept inert for compatibility with other files */
@@ -116,7 +116,7 @@ main (int argc, char **argv)
       {"skip", required_argument, NULL, 'n'},
       {"skip-dp-nic-ms", no_argument, NULL, 'c'},
       {"help", no_argument, NULL, 'h'},
-      {"only", required_argument, NULL, 'o'},
+      {"only", no_argument, NULL, 'o'},
       {"fr", no_argument, NULL, 'f'},
       {"rules", required_argument, NULL, 'r'},
       {NULL, 0, NULL, 0}
@@ -138,7 +138,6 @@ main (int argc, char **argv)
          g_level_filter_mode = LVL_FILTER_MAX;
          break;
        case 'o':
-         g_level_value =  strtol(optarg, &endptr, 10);
          g_level_filter_mode = LVL_FILTER_ONLY;
          break;
        case 'f':
