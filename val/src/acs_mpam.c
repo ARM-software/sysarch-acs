@@ -29,6 +29,66 @@ static HMAT_INFO_TABLE *g_hmat_info_table;
 
 uint8_t **g_shared_memcpy_buffer;
 
+static char8_t *
+mpam_reg_offset_name(uint32_t reg_offset)
+{
+  switch (reg_offset) {
+  case REG_MPAMF_IDR:            return "MPAMF_IDR";
+  case REG_MPAMF_SIDR:           return "MPAMF_SIDR";
+  case REG_MPAMF_IIDR:           return "MPAMF_IIDR";
+  case REG_MPAMF_AIDR:           return "MPAMF_AIDR";
+  case REG_MPAMF_IMPL_IDR:       return "MPAMF_IMPL_IDR";
+  case REG_MPAMF_CPOR_IDR:       return "MPAMF_CPOR_IDR";
+  case REG_MPAMF_CCAP_IDR:       return "MPAMF_CCAP_IDR";
+  case REG_MPAMF_MBW_IDR:        return "MPAMF_MBW_IDR";
+  case REG_MPAMF_PRI_IDR:        return "MPAMF_PRI_IDR";
+  case REG_MPAMF_PARTID_NRW_IDR: return "MPAMF_PARTID_NRW_IDR";
+  case REG_MPAMF_MSMON_IDR:      return "MPAMF_MSMON_IDR";
+  case REG_MPAMF_CSUMON_IDR:     return "MPAMF_CSUMON_IDR";
+  case REG_MPAMF_MBWUMON_IDR:    return "MPAMF_MBWUMON_IDR";
+  case REG_MPAMF_ECR:            return "MPAMF_ECR";
+  case REG_MPAMF_ESR:            return "MPAMF_ESR";
+  case REG_MPAMCFG_PART_SEL:     return "MPAMCFG_PART_SEL";
+  case REG_MPAMCFG_CMAX:         return "MPAMCFG_CMAX";
+  case REG_MPAMCFG_CASSOC:       return "MPAMCFG_CASSOC";
+  case REG_MPAMCFG_MBW_MIN:      return "MPAMCFG_MBW_MIN";
+  case REG_MPAMCFG_MBW_MAX:      return "MPAMCFG_MBW_MAX";
+  case REG_MPAMCFG_EN:           return "MPAMCFG_EN";
+  case REG_MPAMCFG_DIS:          return "MPAMCFG_DIS";
+  case REG_MPAMCFG_INTPARTID:    return "MPAMCFG_INTPARTID";
+  case REG_MPAMCFG_CPBM:         return "MPAMCFG_CPBM";
+  case REG_MPAMCFG_MBW_PBM:      return "MPAMCFG_MBW_PBM";
+  case REG_MSMON_CFG_MON_SEL:    return "MSMON_CFG_MON_SEL";
+  case REG_MSMON_CAPT_EVNT:      return "MSMON_CAPT_EVNT";
+  case REG_MSMON_CFG_CSU_FLT:    return "MSMON_CFG_CSU_FLT";
+  case REG_MSMON_CFG_CSU_CTL:    return "MSMON_CFG_CSU_CTL";
+  case REG_MSMON_CFG_MBWU_FLT:   return "MSMON_CFG_MBWU_FLT";
+  case REG_MSMON_CFG_MBWU_CTL:   return "MSMON_CFG_MBWU_CTL";
+  case REG_MSMON_CSU:            return "MSMON_CSU";
+  case REG_MSMON_CSU_CAPTURE:    return "MSMON_CSU_CAPTURE";
+  case REG_MSMON_CSU_OFSR:       return "MSMON_CSU_OFSR";
+  case REG_MSMON_MBWU:           return "MSMON_MBWU";
+  case REG_MSMON_MBWU_CAPTURE:   return "MSMON_MBWU_CAPTURE";
+  case REG_MSMON_MBWU_L:         return "MSMON_MBWU_L";
+  case REG_MSMON_MBWU_L_CAPTURE: return "MSMON_MBWU_L_CAPTURE";
+  default:
+      return NULL;
+  }
+}
+
+#define MPAM_PRINT_REG(op, reg_offset, value)                                 \
+  do {                                                                        \
+      char8_t *name__ = mpam_reg_offset_name(reg_offset);                     \
+      val_print(ACS_PRINT_DEBUG, "\n       MPAM_" op " ", 0);                 \
+      if (name__ != NULL) {                                                   \
+          val_print(ACS_PRINT_DEBUG, name__, 0);                              \
+      } else {                                                                \
+          val_print(ACS_PRINT_DEBUG, "0x%x", reg_offset);                     \
+      }                                                                       \
+      val_print(ACS_PRINT_DEBUG, " : 0x%llx",                                 \
+                (unsigned long long)(value));                                \
+  } while (0)
+
 /**
   @brief   This API provides a 'C' interface to call MPAM system register reads
            1. Caller       -  Test Suite
@@ -1486,13 +1546,11 @@ val_mpam_mmr_read(uint32_t msc_index, uint32_t reg_offset)
 
   if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
       value = val_mmio_read(base_addr + reg_offset);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Read reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", value);
+      MPAM_PRINT_REG("Read", reg_offset, value);
       return value;
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       value = val_mpam_pcc_read(msc_index, reg_offset);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Read reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", value);
+      MPAM_PRINT_REG("Read", reg_offset, value);
       return value;
   } else {
     val_print(ACS_PRINT_ERR,
@@ -1522,16 +1580,14 @@ val_mpam_mmr_read64(uint32_t msc_index, uint32_t reg_offset)
 
   if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
       value = val_mmio_read64(base_addr + reg_offset);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Read reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", value);
+      MPAM_PRINT_REG("Read", reg_offset, value);
       return value;
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       /* PCC supports only supports 32 bit read at a time, hence reading twice
          and concating */
       value = ((uint64_t)val_mpam_pcc_read(msc_index, reg_offset + 4) << 32)
                                 | val_mpam_pcc_read(msc_index, reg_offset);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Read reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", value);
+      MPAM_PRINT_REG("Read", reg_offset, value);
       return value;
   } else {
     val_print(ACS_PRINT_ERR,
@@ -1561,12 +1617,10 @@ val_mpam_mmr_write(uint32_t msc_index, uint32_t reg_offset, uint32_t data)
 
   if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
       val_mmio_write(base_addr + reg_offset, data);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Write reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", data);
+      MPAM_PRINT_REG("Write", reg_offset, data);
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       val_mpam_pcc_write(msc_index, reg_offset, data);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Write reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", data);
+      MPAM_PRINT_REG("Write", reg_offset, data);
   } else {
     val_print(ACS_PRINT_ERR,
               "\n    Invalid interface type reported for MPAM MSC index = %x", msc_index);
@@ -1595,13 +1649,11 @@ val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t data)
 
   if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
       val_mmio_write64(base_addr + reg_offset, data);
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Write reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", data);
+      MPAM_PRINT_REG("Write", reg_offset, data);
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       val_mpam_pcc_write(msc_index, reg_offset, (uint32_t)(data & 0xFFFFFFFF));
       val_mpam_pcc_write(msc_index, reg_offset + 4, (uint32_t)(data >> 32));
-      val_print(ACS_PRINT_DEBUG, "\n       MPAM Write reg_offset : 0x%x", reg_offset);
-      val_print(ACS_PRINT_DEBUG, " value : 0x%llx", data);
+      MPAM_PRINT_REG("Write", reg_offset, data);
   } else {
     val_print(ACS_PRINT_ERR,
               "\n    Invalid interface type reported for MPAM MSC index = %x", msc_index);
