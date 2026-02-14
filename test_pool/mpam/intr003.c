@@ -33,27 +33,29 @@ static
 void intr_handler(void)
 {
     uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t ctl;
 
     val_print(ACS_PRINT_DEBUG, "\n       Received Oflow error interrupt %d     ", intr_num);
     val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
 
-    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL,
-                                                ((1 << MBWU_CTL_OFLOW_STATUS_BIT_SHIFT) |
-                                                (1 << MBWU_CTL_OFLOW_STATUS_L_SHIFT)));
+    ctl = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+    ctl &= ~(((uint32_t)1 << MBWU_CTL_OFLOW_STATUS_BIT_SHIFT) |
+             ((uint32_t)1 << MBWU_CTL_OFLOW_STATUS_L_SHIFT) |
+             ((uint32_t)1 << MBWU_CTL_OFLOW_INTR_SHIFT));
+    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, ctl);
 
     /* Write 0b0000 into MPAMF_ESR.ERRCODE to clear the interrupt */
     val_mpam_msc_reset_errcode(msc_index);
 
     /* Send EOI to the CPU Interface */
     val_gic_end_of_interrupt(intr_num);
-    return;
 }
 
 static
 void payload(void)
 {
 
-    uint16_t mon_count;
+    uint16_t mon_count = 0;
     uint32_t pe_index;
     uint32_t total_nodes;
     uint32_t rsrc_node_cnt;
@@ -61,12 +63,12 @@ void payload(void)
     uint64_t mpam2_el2;
     uint64_t timeout;
     uint32_t status;
-    uint64_t buf_size;
-    uint64_t base;
+    uint64_t buf_size = 0;
+    uint64_t base = 0;
     uint32_t data;
     uint64_t nrdy_timeout;
-    void *src_buf = 0;
-    void *dest_buf = 0;
+    void *src_buf = NULL;
+    void *dest_buf = NULL;
     uint32_t intr_count = 0;
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -133,9 +135,9 @@ void payload(void)
 
             intr_count++;
             /* Generate MBWU monitor overflow error for this memory node */
-            val_mpam_msc_generate_msmon_oflow_error(msc_index, mon_count);
+            val_mpam_msc_generate_msmon_oflow_error(msc_index, 0);
 
-            /* Create 1 MB buffers sufficient to cretae overflow for this memory channel */
+            /* Create 1 MB buffers sufficient to create overflow for this memory channel */
             buf_size = 1 * SIZE_1M;
             base = val_mpam_memory_get_base(msc_index, rsrc_index);
             src_buf = (void *)val_mem_alloc_at_address(base, buf_size);
@@ -144,6 +146,7 @@ void payload(void)
             if ((src_buf == NULL) || (dest_buf == NULL)) {
                 val_print(ACS_PRINT_ERR, "\n       Mem allocation for buffers failed", 0x0);
                 val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+                val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
                 return;
             }
 
@@ -172,18 +175,18 @@ void payload(void)
                                             val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL));
             val_print(ACS_PRINT_DEBUG, "\n       Monitor count is %llx",
                                                 val_mpam_memory_mbwumon_read_count(msc_index));
+            /* Free the buffers after return from overflow interrupt */
+            val_mem_free_at_address(base, buf_size);
+            val_mem_free_at_address(base + buf_size, buf_size);
+
+            /* Disable and reset the MBWU monitor */
+            val_mpam_memory_mbwumon_disable(msc_index);
+            val_mpam_memory_mbwumon_reset(msc_index);
+
             if (timeout == 0) {
                 val_print(ACS_PRINT_ERR,
                     "\n       MSC MSMON Oflow Err Interrupt not received on %d", intr_num);
                 val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
-
-                /* Free the buffers after return from overflow interrupt */
-                val_mem_free_at_address(base, buf_size);
-                val_mem_free_at_address(base + buf_size, buf_size);
-
-                /* disable and reset the MBWU monitor */
-                val_mpam_memory_mbwumon_disable(msc_index);
-                val_mpam_memory_mbwumon_reset(msc_index);
                 val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
                 return;
             }
@@ -192,9 +195,6 @@ void payload(void)
 
     /* Restore MPAM2_EL2 settings */
     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-    /* Free the buffers after return from overflow interrupt */
-    val_mem_free_at_address(base, buf_size);
-    val_mem_free_at_address(base + buf_size, buf_size);
 
     /* Set the test status to Skip if none of the MPAM nodes implement error interrupts */
     if (intr_count == 0) {

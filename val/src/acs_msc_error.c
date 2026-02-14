@@ -302,11 +302,11 @@ void val_mpam_msc_generate_msmon_oflow_error(uint32_t msc_index, uint16_t mon_co
     uint64_t max_count = 0;
     uint64_t nrdy_timeout;
 
-    /* Set interrupt enable bit in MPAMF_ECR */
-    val_mpam_mmr_write(msc_index, REG_MPAMF_ECR, (1 << ECR_ENABLE_INTEN_SHIFT));
-
     /* Write mon_count to MON_SEL register to configure the last monitor */
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MON_SEL, mon_count);
+
+    /* Write 0b0000 into MPAMF_ESR.ERRCODE to clear the interrupt */
+    val_mpam_msc_reset_errcode(msc_index);
 
     /* Configure monitor filter reg for default partid and default pmg */
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_FLT,
@@ -314,7 +314,6 @@ void val_mpam_msc_generate_msmon_oflow_error(uint32_t msc_index, uint16_t mon_co
 
     /* Configure monitor ctrl reg for default partid and pmg to generate a oflow interrupt */
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, (
-                                                    (1 << MBWU_CTL_OFLOW_INTR_L_SHIFT) |
                                                     (1 << MBWU_CTL_ENABLE_MATCH_PARTID_SHIFT) |
                                                     (1 << MBWU_CTL_ENABLE_MATCH_PMG_SHIFT) |
                                                     (1 << MBWU_CTL_ENABLE_OFLOW_INTR_SHIFT)
@@ -337,6 +336,9 @@ void val_mpam_msc_generate_msmon_oflow_error(uint32_t msc_index, uint16_t mon_co
             max_count = MSMON_COUNT_31BIT;  // (31 bits)
             val_mpam_mmr_write(msc_index, REG_MSMON_MBWU, ((0 << MBWU_NRDY_SHIFT) | max_count));
     }
+
+    /* Set interrupt enable bit in MPAMF_ECR */
+    val_mpam_mmr_write(msc_index, REG_MPAMF_ECR, (1 << ECR_ENABLE_INTEN_SHIFT));
 
     val_mem_issue_dsb();
 
