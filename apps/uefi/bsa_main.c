@@ -97,7 +97,7 @@ HelpMsg (VOID)
         "-skip   Rule ID(s) to be skipped (comma-separated, like -r)\n"
         "        Example: -skip B_PE_01,B_GIC_02\n"
         "-skip-dp-nic-ms \n"
-        "        Skip PCIe tests for DisplayPort, Network, and Mass Storage devices\n"
+        "        Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
         "-skipmodule \n"
         "        Skip the specified modules (comma-separated names).\n"
         "        Example: -skipmodule PE,GIC,PCIE\n"

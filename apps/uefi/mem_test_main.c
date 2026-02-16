@@ -108,7 +108,7 @@ HelpMsg (
          "-dtb    Enable the execution of dtb dump\n"
          "-sbsa   Enable sbsa requirements for bsa binary\n"
          "-el1physkip Skips EL1 register checks\n"
-         "-skip-dp-nic-ms Skip PCIe tests for DisplayPort, Network, and Mass Storage devices\n"
+         "-skip-dp-nic-ms Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
 );
 }
 

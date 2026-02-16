@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,7 +87,7 @@ HelpMsg (VOID)
         "-skip   Rule ID(s) to be skipped (comma-separated, like -r)\n"
         "        Example: -skip B_PE_01,B_GIC_02\n"
         "-skip-dp-nic-ms \n"
-        "        Skip PCIe tests for DisplayPort, Network, and Mass Storage devices\n"
+        "        Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
         "-timeout <n> \n"
         "        Set timeout multiple for wakeup tests\n"
         "        1 - min value  5 - max value, Defaults to 1 \n"

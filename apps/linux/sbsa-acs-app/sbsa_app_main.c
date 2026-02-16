@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,12 +53,34 @@ static RULE_ID_e g_skip_rule_buf[RULE_ID_LIST_MAX];
 unsigned int g_skip_rule_count = 0;
 
 /*  Helpers for rule parsing  */
+static int sizeof_char_ptr(const char *tok)
+{
+  int i = 0;
+
+  if (tok)
+  {
+    while (tok[i] != '\0')
+      i++;
+  }
+  return i;
+
+}
+
 static int rule_id_from_string(const char *tok)
 {
     unsigned int rid;
+    int cmp_len;
+
     if (!tok || !*tok) return -1;
     for (rid = 0; rid < RULE_ID_SENTINEL; rid++) {
-        if (rule_id_string[rid] && strcmp((const char *)rule_id_string[rid], tok) == 0)
+        if (!rule_id_string[rid])
+            continue;
+
+        cmp_len = sizeof_char_ptr(rule_id_string[rid]);
+        if (cmp_len < sizeof_char_ptr(tok))
+            cmp_len = sizeof_char_ptr(tok);
+
+        if (strncmp((const char *)rule_id_string[rid], tok, cmp_len) == 0)
             return (int)rid;
     }
     return -1;
@@ -99,7 +121,7 @@ void print_help(){
         "-r      Comma-separated rule IDs to run (overwrites default rule list) [no spaces]\n"
         "--fr    Run future requirement tests (FR); use without -l\n"
         "--skip  Rules to skip as comma-separated RULE IDs (e.g. B_PE_01,B_PE_02) [no spaces]\n"
-        "--skip-dp-nic-ms Skip PCIe tests for DisplayPort, Network, and Mass Storage devices\n"
+        "--skip-dp-nic-ms Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
     );
 }
 
