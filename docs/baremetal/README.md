@@ -28,7 +28,7 @@ Run the command
 - `python tools/scripts/generate.py <platformname>`
 
 > Eg: `python tools/scripts/generate.py RDN2`
-> This command will create a folder RDN2 under the `pal/target` folder path and the files `pal_bsa.c` and `pal_sbsa.c` files within the `RDN2/src` folder.
+> This command will create a folder RDN2 under the `pal/target` folder path and the files `pal_bsa.c`, `pal_sbsa.c` and `pal_exerciser.c" files within the `RDN2/src` folder.
 
 1. To compile BSA, perform the following steps\
 &emsp; 1.1 `cd sysarch-acs`\

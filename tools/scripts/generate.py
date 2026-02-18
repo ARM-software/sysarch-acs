@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@ import os
 
 def func_config(functions, output_file):
     """Generate a .c file with stubs for a list of functions."""
-    with open(output_file, "w") as out_file:
+    with open(output_file, "w", encoding="utf-8") as out_file:
         out_file.write("#include <stdio.h>\n\n")
         out_file.write("#include <stdint.h>\n\n")
         out_file.write("#include \"pal_common_support.h\"\n\n")
@@ -60,26 +60,30 @@ def generate(platform_name):
     shutil.copytree(src_inc_folder, platform_inc_folder, dirs_exist_ok=True)
     config_file_path = os.path.join(ref_dir, "src", "platform_cfg_fvp.c")
     shutil.copy(config_file_path, src_dir)
-    
 
     # Load functions.json
     pal_path = os.path.join(acs_dir, "tools", "scripts", "functions.json")
-    with open(pal_path, "r") as f:
-        data = json.load(f)
+    with open(pal_path, "r", encoding="utf-8") as pal_funcs:
+        data = json.load(pal_funcs)
 
     common = data.get("common", [])
+    common_exerciser = data.get("common_exerciser", [])
     bsa = data.get("bsa", [])
     sbsa = data.get("sbsa", [])
+    sbsa_exerciser = data.get("sbsa_exerciser", [])
 
     # Generate pal_bsa.c from common + bsa
     bsa_path = os.path.join(src_dir, "pal_bsa.c")
     func_config(common + bsa, bsa_path)
 
-    # Generate pal_sbsa.c from common + sbsa
+    # Generate pal_sbsa.c from sbsa
     sbsa_path = os.path.join(src_dir, "pal_sbsa.c")
     func_config(sbsa, sbsa_path)
 
-    print(f"Generated {bsa_path} and {sbsa_path}")
+    # Generate pal_exerciser.c from common_exerciser + sbsa_exerciser
+    exer_path = os.path.join(src_dir, "pal_exerciser.c")
+    func_config(common_exerciser + sbsa_exerciser, exer_path)
+    print(f"Generated {bsa_path} and {sbsa_path} and {exer_path}")
 
 
 if __name__ == "__main__":
