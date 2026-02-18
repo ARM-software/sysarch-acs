@@ -28,6 +28,7 @@
 static uint32_t msc_index;
 static uint32_t intr_num;
 static uint64_t mpam2_el2_temp;
+static volatile bool isr_completion_flag;
 
 static
 void intr_handler(void)
@@ -46,6 +47,8 @@ void intr_handler(void)
 
     /* Write 0b0000 into MPAMF_ESR.ERRCODE to clear the interrupt */
     val_mpam_msc_reset_errcode(msc_index);
+
+    isr_completion_flag = 1;
 
     /* Send EOI to the CPU Interface */
     val_gic_end_of_interrupt(intr_num);
@@ -67,6 +70,7 @@ void payload(void)
     uint64_t base = 0;
     uint32_t data;
     uint64_t nrdy_timeout;
+    uint64_t esr_value;
     void *src_buf = NULL;
     void *dest_buf = NULL;
     uint32_t intr_count = 0;
@@ -134,6 +138,7 @@ void payload(void)
             val_gic_route_interrupt_to_pe(intr_num, val_pe_get_mpid_index(pe_index));
 
             intr_count++;
+            isr_completion_flag = 0;
             /* Generate MBWU monitor overflow error for this memory node */
             val_mpam_msc_generate_msmon_oflow_error(msc_index, 0);
 
@@ -169,7 +174,7 @@ void payload(void)
 
             /* PE busy polls to check the completion of interrupt service routine */
             timeout = TIMEOUT_LARGE;
-            while ((--timeout > 0) && (IS_RESULT_PENDING(val_get_status(pe_index))));
+            while ((--timeout > 0) && (isr_completion_flag == 0));
 
             val_print(ACS_PRINT_DEBUG, "\n       MSMON_CFG_MBWU_CTL is %llx",
                                             val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL));
@@ -183,10 +188,22 @@ void payload(void)
             val_mpam_memory_mbwumon_disable(msc_index);
             val_mpam_memory_mbwumon_reset(msc_index);
 
-            if (timeout == 0) {
+            if (isr_completion_flag == 0) {
                 val_print(ACS_PRINT_ERR,
                     "\n       MSC MSMON Oflow Err Interrupt not received on %d", intr_num);
                 val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
+                val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
+                return;
+            }
+
+            /* Read MPAMF_ESR to make sure the isr cleared the ERRCODE and OVRWR bits */
+            esr_value = val_mpam_mmr_read64(msc_index, REG_MPAMF_ESR);
+
+            if ((((esr_value >> ESR_ERRCODE_SHIFT) & ESR_ERRCODE_MASK) != 0) ||
+                  (((esr_value >> ESR_OVRWR_SHIFT) & ESR_OVRWR_MASK) != 0)) {
+                val_print(ACS_PRINT_ERR,
+                    "\n       MPAMF_ESR.ERRCODE/OVRWR is not cleared by ISR for MSC %d", msc_index);
+                val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 04));
                 val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
                 return;
             }
