@@ -46,8 +46,6 @@ Some PCIe and Exerciser tests, primarily related to interrupt/MSI generation, ar
 
 | Test ID | Description                                | Suite    | Status |
 |---------|--------------------------------------------|----------|--------|
-| 830     | Check Cmd Reg memory space enable          | BSA      | Skipped in config   |
-| 858     | Check MSE, CapPtr & BIST: RCiEP, RCEC      | SBSA     | Skipped in config   |
 | 1506    | Generate PCIe legacy interrupt             | BSA      | Fail   |
 | 1507    | Check PCIe I/O Coherency                   | BSA      | Fail   |
 | 1533    | MSI(-X) triggers interrupt with unique ID  | BSA      | Fail   |
@@ -56,6 +54,8 @@ Some PCIe and Exerciser tests, primarily related to interrupt/MSI generation, ar
 | 1523    | Check AER functionality for RPs            | SBSA     | Fail   |
 | 1524    | Check DPC functionality for RPs            | SBSA     | Fail   |
 
+**Note:** To run PCIe MSE tests on RDV3-Cfg1 FVP, add `-C pcie_group_0.pcie0.ur_rao_wi=1` to `run_model.sh` so UR handling is enabled and the tests do not trigger an EL3 exception. If PCIe MSE tests still fail, set `g_pcie_skip_dp_nic_ms=1` in `apps/baremetal/acs_globals.c` locally.
+
 -----------------
 
-*Copyright (c) 2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2025-2026, Arm Limited and Contributors. All rights reserved.*

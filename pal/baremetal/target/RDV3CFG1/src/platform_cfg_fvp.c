@@ -47,9 +47,7 @@
 RULE_ID_e g_rule_list_arr[] = {} ;
 uint32_t  g_rule_count = sizeof(g_rule_list_arr)/sizeof(g_rule_list_arr[0]);
 
-/* TODO: PCI_IN_19, RE_REG_1 tests found to cause issues while running on RDV3CGF1, hence skipping
-   them by default until it is triaged and fixed */
-RULE_ID_e g_skip_rule_list_arr[] = {PCI_IN_19, RE_REG_1};
+RULE_ID_e g_skip_rule_list_arr[] = {};
 uint32_t g_skip_rule_count = sizeof(g_skip_rule_list_arr)/sizeof(g_skip_rule_list_arr[0]);
 
 uint32_t  g_execute_modules_arr[] = {};
