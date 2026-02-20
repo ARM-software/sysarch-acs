@@ -46,6 +46,34 @@
 #define ACS_EXERCISER_TEST_NUM_BASE  1500
 #define ACS_TPM2_TEST_NUM_BASE       1600
 
+/*
+ * Vendor Test Numbering
+ *
+ * Vendor-specific tests use a separate numbering space (10000+) to avoid
+ * conflicts with standard BSA/SBSA tests. Each vendor gets a 1000-test range.
+ *
+ * Directory structure: test_pool/vendor/<vendor_name>/<module>/
+ * See test_pool/vendor/README.md for details.
+ */
+#define ACS_VENDOR_TEST_NUM_BASE     10000
+
+/* Per-vendor base offsets (1000 tests per vendor) */
+#define ACS_VENDOR_NVIDIA_BASE       (ACS_VENDOR_TEST_NUM_BASE + 0)
+#define ACS_VENDOR_QUALCOMM_BASE     (ACS_VENDOR_TEST_NUM_BASE + 1000)
+#define ACS_VENDOR_MEDIATEK_BASE     (ACS_VENDOR_TEST_NUM_BASE + 2000)
+#define ACS_VENDOR_AMPERE_BASE       (ACS_VENDOR_TEST_NUM_BASE + 3000)
+#define ACS_VENDOR_MARVELL_BASE      (ACS_VENDOR_TEST_NUM_BASE + 4000)
+/* Add more vendors as needed, incrementing by 1000 */
+
+/* Module offsets within each vendor's range (100 tests per module) */
+#define ACS_VENDOR_TIMER_OFFSET      0
+#define ACS_VENDOR_PCIE_OFFSET       100
+#define ACS_VENDOR_PE_OFFSET         200
+#define ACS_VENDOR_GIC_OFFSET        300
+#define ACS_VENDOR_SMMU_OFFSET       400
+#define ACS_VENDOR_MEMORY_OFFSET     500
+/* Add more modules as needed, incrementing by 100 */
+
 /* Module specific print APIs */
 
 typedef enum {
@@ -65,7 +93,8 @@ typedef enum {
     NIST_MODULE,
     ETE_MODULE,
     EXERCISER_MODULE,
-    TPM2_MODULE
+    TPM2_MODULE,
+    VENDOR_MODULE       /* Vendor-specific tests */
 } MODULE_ID_e;
 
 #define STATE_BIT   28
