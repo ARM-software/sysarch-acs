@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +23,11 @@
 #define ICC_EOIR1_EL1   S3_0_C12_C12_1
 
 void bsa_gic_set_el2_vector_table(void);
-uint32_t bsa_gic_update_elr(uint64_t elr_value);
-uint32_t bsa_gic_get_elr(void);
-uint32_t bsa_gic_get_far(void);
-uint32_t bsa_gic_get_esr(void);
-uint32_t bsa_gic_ack_intr(void);
+void bsa_gic_update_elr(uint64_t elr_value);
+uint64_t bsa_gic_get_elr(void);
+uint64_t bsa_gic_get_far(void);
+uint64_t bsa_gic_get_esr(void);
+uint64_t bsa_gic_ack_intr(void);
 void bsa_gic_end_intr(uint32_t interrupt_id);
 void bsa_gic_vector_table_init(void);
 uint32_t common_exception_handler(uint32_t exception_type);

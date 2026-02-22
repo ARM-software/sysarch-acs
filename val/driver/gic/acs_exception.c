@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,8 +93,8 @@ uint32_t common_exception_handler(uint32_t exception_type)
    */
   g_esr_handler[exception_type](exception_type, NULL);
 
-  val_print(ACS_PRINT_INFO, "\n       GIC_INIT: Common Handler, FAR = %x", bsa_gic_get_far());
-  val_print(ACS_PRINT_INFO, "\n       GIC_INIT: Common Handler, ESR = %x", bsa_gic_get_esr());
+  val_print(ACS_PRINT_INFO, "\n       GIC_INIT: Common Handler, FAR = %llx", bsa_gic_get_far());
+  val_print(ACS_PRINT_INFO, "\n       GIC_INIT: Common Handler, ESR = %llx", bsa_gic_get_esr());
 
   /* If ELR is updated inside the handler then skip the elr update in assembly handler
    * Return 1 else return 0

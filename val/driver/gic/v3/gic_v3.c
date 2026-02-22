@@ -171,7 +171,7 @@ uint64_t v3_get_pe_gicr_base(void)
   @param  none
   @return interrupt id
 **/
-uint32_t
+uint64_t
 v3_AcknowledgeInterrupt(void)
 {
   return bsa_gic_ack_intr();

@@ -41,7 +41,7 @@
 void v3_Init(void);
 void v3_EnableInterruptSource(uint32_t);
 void v3_DisableInterruptSource(uint32_t);
-uint32_t v3_AcknowledgeInterrupt(void);
+uint64_t v3_AcknowledgeInterrupt(void);
 void v3_EndofInterrupt(uint32_t int_id);
 uint32_t v3_read_gicdTyper(void);
 uint64_t v3_get_pe_gicr_base(void);
