@@ -331,7 +331,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
+      <td>Manual testing required</td>
     </tr>
     <tr>
       <td>L1</td>

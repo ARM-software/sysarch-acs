@@ -158,7 +158,7 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
 ---
 
 ### V_L1SM_03 — Boot devices not blocked by SMMU
-**Summary**: Test to cover this rule is not implemented and requires manual verification by the VE owner
+**Summary**: For compliance with this rule, ACS recommends that the VE owner be able to boot an off-the-shelf OS successfully on the virtual environment.
 
 ---
 
