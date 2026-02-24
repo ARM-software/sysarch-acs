@@ -1,6 +1,6 @@
 # Common UEFI Build Guide
 
-This guide captures the shared steps required to build any of the ACS UEFI applications (BSA, SBSA, PC-BSA, VBSA, and derivatives) from source. Each individual README can reference this document and only highlight the variant-specific details.
+This guide captures the shared steps required to build any of the ACS UEFI applications (BSA, SBSA, PC-BSA, VBSA, PFDI and derivatives) from source. Each individual README can reference this document and only highlight the variant-specific details.
 
 ## Prerequisites
 - Linux host (x86_64 or AArch64) with a POSIX-compatible shell
@@ -46,6 +46,7 @@ source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh <target>
 | SBSA | `sbsa` | `Build/Shell/DEBUG_GCC/AARCH64/Sbsa.efi` | |
 | PC-BSA | `pc_bsa` | `Build/Shell/DEBUG_GCC/AARCH64/PC_Bsa.efi` | |
 | VBSA | `vbsa` | `Build/Shell/DEBUG_GCC/AARCH64/Vbsa.efi` | |
+| PFDI | `pfdi` | `Build/Shell/DEBUG_GCC/AARCH64/pfdi.efi` | |
 
 ### Tips
 - Pass extra edk2 build options via `BUILD_OPTIONS` before sourcing `acsbuild.sh`

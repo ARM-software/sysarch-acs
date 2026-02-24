@@ -144,7 +144,7 @@ Validates platform compliance with Arm PFDI specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference |
 |---------|--------------|-----------------|---------------------|
-| v0.8.0  | BET          | [pfdi.efi](prebuilt_images/PFDI/v25.09_PFDI_0.8.0)| [PFDI 1.0 BET0 ](https://developer.arm.com/documentation/110468/1-0bet0/?lang=en) |
+| v0.9.0  | BET          | [pfdi.efi](prebuilt_images/PFDI/v26.03_PFDI_0.9.0)| [PFDI 1.0 BET1 ](https://developer.arm.com/documentation/110468/latest) |
 
 ####  Reference for Build, Execution, and More
 Refer to the [PFDI ACS README](docs/pfdi/README.md) for detailed build steps, execution procedures, additional information, and known limitations.

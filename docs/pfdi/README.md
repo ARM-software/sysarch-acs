@@ -25,15 +25,16 @@ This suite provides examples of the invariant behaviors defined in the PFDI spec
 All tests run from the UEFI (Unified Extensible Firmware Interface) Shell via the PFDI UEFI shell application.
 
 ## Release details
-- **Latest release version:** v0.8.0 
-- **Execution levels:** Silicon.  
-- **Scope:** The compliance suite is **not** a substitute for design verification.  
-- **Access to logs:** Arm licensees can contact Arm through their partner managers.  
+- **Latest release version:** v0.9.0
+- **Execution levels:** Silicon.
+- **Scope:** The compliance suite is **not** a substitute for design verification.
+- **Access to logs:** Arm licensees can contact Arm through their partner managers.
 
 #### PFDI ACS version mapping
 
 |  PFDI ACS Version   |     PFDI Tag ID     | PFDI Spec Version |   Pre-Si Support |
 |:-------------------:|:-------------------:|:-----------------:|-----------------:|
+|        v0.9.0       |  v26.03_PFDI_0.9.0  |  PFDI v1.0 BET1   |       No         |
 |        v0.8.0       |  v25.09_PFDI_0.8.0  |  PFDI v1.0 BET0   |       No         |
 
 #### GitHub branch
@@ -41,71 +42,32 @@ All tests run from the UEFI (Unified Extensible Firmware Interface) Shell via th
 - To get the latest code with bug fixes and new features, use the **main** branch.
 
 #### Prebuilt release binaries
-Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/PFDI) folder of the main branch.  
+Prebuilt images for each release are available in the [`prebuilt_images`](../../prebuilt_images/PFDI) folder of the main branch.
 
 ## Documentation and Guides
-- [Arm PFDI Test Scenario Document](arm_pfdi_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.
+- [Arm PFDI Test Scenario Document](arm_pfdi_architecture_compliance_test_scenario.pdf) - algorithms for implementable rules and notes on unimplemented rules.
+- [Arm PFDI Testcase Checklist](arm_pfdi_testcase_checklist.md) - checklist for test cases and coverage details.
 
 ## PFDI build steps
 
 ### UEFI Shell application
 
-#### Prerequisites
-ACS build requires that the following requirements are met, Please skip this if you are using [PFDI Application Build Script](../../tools/scripts/build_pfdi_uefi.sh).
+Follow the [Common UEFI build guide](../common/uefi_build.md) to set up the
+edk2 workspace and Arm toolchain, then run:
 
-- A mainstream Linux distribution on x86 or AArch64.
-- Bash Shell for build
-- Install prerequisite packages to build EDK2.  
-  *Note: Package details are beyond the scope of this document.*
-
-#### Setup the workspace and clone required repositories
-```
-mkdir workspace && cd workspace
-git clone -b edk2-stable202511 https://github.com/tianocore/edk2
-cd edk2
-git submodule update --init --recursive
-git clone https://github.com/tianocore/edk2-libc
-git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
-cd -
-```
-- On x86 machine download and setup toolchain
-```
-wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-export GCC_AARCH64_PREFIX=$PWD/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
-```
-- On Aarch64 machine, export toolchain variable to native tools
-```
-export GCC_AARCH64_PREFIX=/usr/bin
-```
-
-#### Build edk2 by following below steps:
-```
-export PACKAGES_PATH=$PWD/edk2-libc
-source edksetup.sh
-make -C BaseTools/Source/C
-```
-
-#### To start the ACS build for platform using Device tree, perform the following steps:
-```
-rm -rf Build/
-source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pfdi
-```
-
-#### Build output
-The EFI executable is generated at: `workspace/edk2/Build/Shell/DEBUG_GCC/AARCH64/pfdi.efi`
+- `source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh pfdi      # Device Tree flow`
 
 ## PFDI run steps for UEFI application
 
 #### Silicon System
 On a system with a functional USB port:
-1. Copy `pfdi.efi` to a USB device which is fat formatted.  
+1. Copy `pfdi.efi` to a USB device which is FAT formatted.
 
-- **For u-boot firmware Systems, additional steps**
+- **For U-Boot firmware systems, additional steps**
   1. Copy `Shell.efi` to the USB device.
-  *Note:* `Shell.efi` is available in [prebuilt_images](../../prebuilt_images/BSA).
-  
-  2. Boot to the **U-Boot** shell.  
+  *Note:* `Shell.efi` is available in [prebuilt_images](../../prebuilt_images/PFDI).
+
+  2. Boot to the **U-Boot** shell.
   3. Determine the USB device with:
     ```
     usb start
@@ -120,12 +82,20 @@ On a system with a functional USB port:
    ```sh
    map -r
    ```
-3. Change to the USB filesystem (e.g., `fs0:`).  
-4. Run `pfdi.efi` with appropriate parameters.  
+3. Change to the USB filesystem (e.g., `fs0:`).
+4. Run `pfdi.efi` with required parameters (see [Common CLI arguments](../common/cli_args.md)).
 5. Capture UART console output to a log file.
 
+**Example**
+
+`Shell> pfdi.efi -v 1 -skip R0053,R0104 -f pfdi_uefi.log`
+
+Runs PFDI ACS with verbosity INFO, skips rules `R0053`/`R0104`and stores the UART output in `pfdi_uefi.log`.
+
+> Use PFDI rule IDs defined in [PFDI checklist](arm_pfdi_testcase_checklist.md) (for example, `R0053`, `R0104`)
+
 #### Emulation environment with secondary storage
-1. Create an image containing `pfdi.efi` and **'Shell.efi` (only for u-boot systems)**:
+1. Create a FAT image containing `pfdi.efi` and **`Shell.efi` (only for U-Boot systems)**:
    ```
    mkfs.vfat -C -n HD0 hda.img 2097152
    sudo mount -o rw,loop=/dev/loop0,uid=$(whoami),gid=$(whoami) hda.img /mnt/pfdi/
@@ -134,41 +104,15 @@ On a system with a functional USB port:
    ```
    *(If `/dev/loop0` is busy, select a free loop device.)*
 2. Load the image to secondary storage via a backdoor (environment-specific).
-3. Boot to UEFI Shell.  
-4. Identify the filesystem with `map -r`.  
-5. Switch to the filesystem (`fs<x>:`).  
-6. Run `pfdi.efi` with parameters.  
+3. Boot to UEFI Shell.
+4. Identify the filesystem with `map -r`.
+5. Switch to the filesystem (`fs<x>:`).
+6. Run `pfdi.efi` with parameters.
 7. Save UART console output for analysis/certification.
 
 ## Application parameters
-
-Command line arguments are similar for uefi application, with some exceptions.
-
-#### UEFI
-
-Shell> pfdi.efi [-v &lt;verbosity&gt;] [-skip &lt;test_id&gt;] [-f &lt;filename&gt;]
-
-##### -v
-Choose the verbosity level.
-
-- 1 - ERROR
-- 2 - WARN and ERROR
-- 3 - TEST and above
-- 4 - DEBUG and above
-- 5 - INFO and above
-
-##### -skip
-Overrides the suite to skip the execution of a particular
-test. For example, <i>-skip 10</i> skips test 10.
-
-#### -f (Only for UEFI application)
-Save the test output into a file in secondary storage. For example <i>-f pfdi.log</i> creates a file pfdi.log with test output.
-
-##### UEFI example
-
-Shell> pfdi.efi -v 5 -skip 15,20,30 -f pfdi_uefi.log
-
-Runs PFDI ACS with verbosity INFO, skips test 15, 20 and 30 and saves the test results in <i>pfdi_uefi.log</i>.
+Refer to [Common CLI arguments](../common/cli_args.md) for detailed flag
+descriptions, logging options, and sample invocations.
 
 ## Limitations
  - PFDI ACS currently supports only Device Tree (DT)-based platforms. ACPI support is planned for a future release.
