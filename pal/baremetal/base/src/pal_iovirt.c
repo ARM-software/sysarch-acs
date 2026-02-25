@@ -290,7 +290,7 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
   block = &(IoVirtTable->blocks[0]);
   print(ACS_PRINT_DEBUG, " Number of IOVIRT blocks = %d\n", IoVirtTable->num_blocks);
 
-  if (g_print_level <= ACS_PRINT_DEBUG) {
+  if (g_print_level <= ACS_PRINT_INFO) {
       for (i = 0; i < IoVirtTable->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
       {
         dump_block(block);

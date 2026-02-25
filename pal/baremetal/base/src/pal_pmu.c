@@ -93,7 +93,7 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
       }
 
       /* Dump PMU info table */
-      if (g_print_level <= ACS_PRINT_DEBUG)
+      if (g_print_level <= ACS_PRINT_INFO)
           pal_pmu_dump_info_table(PmuTable);
   }
 }

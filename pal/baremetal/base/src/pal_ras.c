@@ -236,7 +236,7 @@ pal_ras_create_info_table(RAS_INFO_TABLE *RasInfoTable)
       curr_node++;
   }
 
-  if (g_print_level <= ACS_PRINT_DEBUG)
+  if (g_print_level <= ACS_PRINT_INFO)
       pal_ras_dump_info_table(RasInfoTable);
 }
 
@@ -333,6 +333,6 @@ pal_ras2_create_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
       RasFeatInfoTable->num_all_block++;
   }
 
-  if (g_print_level <= ACS_PRINT_DEBUG)
+  if (g_print_level <= ACS_PRINT_INFO)
       pal_ras2_dump_info_table(RasFeatInfoTable);
 }

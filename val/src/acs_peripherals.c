@@ -300,7 +300,7 @@ val_peripheral_create_info_table(uint64_t *peripheral_info_table)
   val_print(ACS_PRINT_TEST, " Peripheral: Num of UART controllers  :    %d\n",
     val_peripheral_get_info(NUM_UART, 0));
 
-  if (g_print_level <= ACS_PRINT_DEBUG)
+  if (g_print_level <= ACS_PRINT_INFO)
     val_peripheral_dump_info();
 
 }

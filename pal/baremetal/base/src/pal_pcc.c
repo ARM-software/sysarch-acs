@@ -130,7 +130,7 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
     curr_entry++;
   }
 
-  if (g_print_level <= ACS_PRINT_DEBUG)
+  if (g_print_level <= ACS_PRINT_INFO)
       pal_pcc_dump_info_table(PccInfoTable);
 
   return;
