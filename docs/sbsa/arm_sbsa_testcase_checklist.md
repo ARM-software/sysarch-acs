@@ -3541,25 +3541,34 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>FR</td>
-      <td>KBRZG</td>
-      <td>KBRZG</td>
-      <td>Not Covered</td>
+      <td rowspan="2">FR</td>
+      <td rowspan="2">LVQBC</td>
+      <td>ZVDJG</td>
+      <td>1216</td>
+      <td>Check FEAT_RASSA_RV implementation</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+    </tr>
+    <tr>
+      <td>RKLPK</td>
+      <td>1217</td>
+      <td>Check FEAT_RASSA_DFI and CED support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
       <td>FR</td>
-      <td>LVQBC</td>
-      <td>LVQBC</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>KBRZG</td>
+      <td>KBRZG</td>
+      <td>1218</td>
+      <td>Data abort on containable device err</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3610,6 +3619,9 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
-- Updated Checklist as per SBSA 8.0 Specification.
-- Added version 8.0 rules.
+- **FR Added:** LVQBC, KBRZG
+
+### v25.12_SBSA_8.0.0
+- Updated checklist as per SBSA 8.0 specification.
+- Added Version 8.0 rules.
 - Added details for rules which are not covered.
