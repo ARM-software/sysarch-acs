@@ -134,6 +134,7 @@ pmu003.c
 pmu004.c
 pmu005.c
 pmu006.c
+pmu008.c
 pmu009.c
 mpam001.c
 mpam002.c

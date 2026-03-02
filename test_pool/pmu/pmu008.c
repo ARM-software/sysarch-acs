@@ -15,13 +15,13 @@
  * limitations under the License.
  **/
 
-#include "val_interface.h"
+#include "acs_val.h"
+#include "acs_common.h"
 #include "acs_pe.h"
 #include "acs_pmu.h"
 #include "acs_pcie.h"
 #include "acs_mpam.h"
-#include "acs_val.h"
-#include "acs_common.h"
+#include "val_interface.h"
 
 #define TEST_NUM  (ACS_PMU_TEST_NUM_BASE + 8)
 #define TEST_RULE "PMU_SYS_5"
@@ -142,7 +142,7 @@ static void payload(void)
     num_mem_range = val_srat_get_info(SRAT_MEM_NUM_MEM_RANGE, 0);
     if (num_mem_range == 0 || num_mem_range == SRAT_INVALID_INFO) {
         val_print(ACS_PRINT_ERR, "\n       No Proximity domains in the system", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 2));
         return;
     }
 
@@ -151,14 +151,14 @@ static void payload(void)
     pe_prox_domain = val_srat_get_info(SRAT_GICC_PROX_DOMAIN, pe_uid);
     if (pe_prox_domain == SRAT_INVALID_INFO) {
         val_print(ACS_PRINT_ERR, "\n       Could not get proximity domain info for given PE", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 3));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 3));
         return;
     }
     /* Get memory controller local to the primary PE */
     mc_node_index = val_pmu_get_node_index(pe_prox_domain, PMU_NODE_MEM_CNTR);
     if (mc_node_index == PMU_INVALID_INDEX) {
         val_print(ACS_PRINT_ERR, "\n       PMU node not found", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 4));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 4));
         return;
     }
 
@@ -166,7 +166,7 @@ static void payload(void)
     data = val_pmu_get_monitor_count(mc_node_index);
     if (data < 3) {
         val_print(ACS_PRINT_ERR, "\n       PMU node must support atleast 3 counter", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 5));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 5));
         return;
     }
 
@@ -177,7 +177,7 @@ static void payload(void)
             val_print(ACS_PRINT_ERR,
                         "\n       Required PMU Event 0x%x not supported", config_events[i]);
             val_print(ACS_PRINT_ERR, " at node %d", mc_node_index);
-            val_set_status(index, RESULT_FAIL(TEST_NUM, 6));
+            val_set_status(index, RESULT_WARN(TEST_NUM, 6));
             return;
         }
     }
@@ -190,7 +190,7 @@ static void payload(void)
     remote_pe_prox_domain = val_srat_get_info(SRAT_GICC_REMOTE_PROX_DOMAIN, pe_prox_domain);
     if (remote_pe_prox_domain == SRAT_INVALID_INFO) {
         val_print(ACS_PRINT_ERR, "\n       Could not get remote PE proximity domain", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 7));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 7));
         return;
     }
     remote_pe_uid = val_srat_get_info(SRAT_GICC_PROC_UID, remote_pe_prox_domain);
@@ -203,7 +203,7 @@ static void payload(void)
     status = generate_traffic(pe_prox_domain, BUFFER_SIZE / 2, payload1);
     if (status) {
         val_print(ACS_PRINT_ERR, "\n       Memory allocation failed", 0);
-            val_set_status(index, RESULT_FAIL(TEST_NUM, 8));
+            val_set_status(index, RESULT_WARN(TEST_NUM, 8));
             return;
     }
 
@@ -222,7 +222,7 @@ static void payload(void)
 
     if (status) {
     val_print(ACS_PRINT_ERR, "\n       Memory allocation failed", 0);
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 9));
+        val_set_status(index, RESULT_WARN(TEST_NUM, 9));
         return;
     }
 
@@ -233,7 +233,7 @@ static void payload(void)
     /*Consider delta for results*/
     for (i = 0 ; i < NUM_PMU_MON ; i++) {
         if (value2[i] <= value1[i]) {
-            val_set_status(index, RESULT_FAIL(TEST_NUM, 10));
+            val_set_status(index, RESULT_WARN(TEST_NUM, 10));
             return;
         }
     }

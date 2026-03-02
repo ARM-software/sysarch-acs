@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +77,7 @@ uint32_t pmu004_entry(uint32_t num_pe);
 uint32_t pmu005_entry(uint32_t num_pe);
 uint32_t pmu006_entry(uint32_t num_pe);
 uint32_t pmu007_entry(uint32_t num_pe);
+uint32_t pmu008_entry(uint32_t num_pe);
 uint32_t pmu009_entry(uint32_t num_pe);
 uint32_t pmu010_entry(uint32_t num_pe);
 uint32_t pmu011_entry(uint32_t num_pe);

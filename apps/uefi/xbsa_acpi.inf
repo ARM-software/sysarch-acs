@@ -277,6 +277,7 @@
   ../../test_pool/pmu/pmu004.c
   ../../test_pool/pmu/pmu005.c
   ../../test_pool/pmu/pmu006.c
+  ../../test_pool/pmu/pmu008.c
   ../../test_pool/pmu/pmu009.c
   ../../test_pool/mpam/mpam001.c
   ../../test_pool/mpam/mpam002.c
