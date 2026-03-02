@@ -15,6 +15,32 @@ This document explains how to use these configuration options in a clear,
 simple way.
 
 -------------------------------------
+Verbosity Control (ACS_VERBOSE_LEVEL)
+-------------------------------------
+You can provide Verbosity to the build system to specify the
+print level of the ACS
+
+**Default:** Print Level is ACS_PRINT_TEST (3)
+**Change Print Level** define `ACS_VERBOSE_LEVEL=<PRINT_LVL>` at CMake configure time.
+
+`PRINT_LVL` can range from  ACS_PRINT_INFO (1) to ACS_PRINT_ERR (5)
+- ACS_PRINT_INFO  (1)
+- ACS_PRINT_DEBUG (2)
+- ACS_PRINT_TEST  (3)
+- ACS_PRINT_WARN  (4)
+- ACS_PRINT_ERR   (5)
+
+Both macros and numerics can be used
+
+Examples
+~~~~~~~~
+.. code-block:: bash
+
+   cmake .. -DACS_VERBOSE_LEVEL=ACS_PRINT_INFO
+                  or
+   cmake .. -DACS_VERBOSE_LEVEL=1
+
+-------------------------------------
 MMU Control (ACS_ENABLE_MMU)
 -------------------------------------
 
