@@ -307,7 +307,7 @@ PCIE_INFO_TABLE platform_pcie_cfg = {
 };
 
 PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg = {
-    .block[0].hb_enteries         = PLATFORM_OVERRIDE_PCIE_ECAM0_HB_COUNT,
+    .block[0].hb_entries         = PLATFORM_OVERRIDE_PCIE_ECAM0_HB_COUNT,
     .block[0].segment_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM0_SEG_NUM,
     .block[0].start_bus_num[0]    = PLATFORM_OVERRIDE_PCIE_ECAM0_START_BUS_NUM,
     .block[0].end_bus_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM0_END_BUS_NUM,

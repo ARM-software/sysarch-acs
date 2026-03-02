@@ -148,7 +148,7 @@ typedef struct {
 } PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE;
 
 typedef struct {
-  uint32_t   hb_enteries;                              ///< No. of HB's in the ECAM
+  uint32_t   hb_entries;                              ///< No. of HB's in the ECAM
   uint32_t   segment_num[PLATFORM_MAX_HB_COUNT];       ///< Segment number of the ECAM
   uint32_t   start_bus_num[PLATFORM_MAX_HB_COUNT];     ///< Start Bus number for this ecam space
   uint32_t   end_bus_num[PLATFORM_MAX_HB_COUNT];       ///< Last Bus number

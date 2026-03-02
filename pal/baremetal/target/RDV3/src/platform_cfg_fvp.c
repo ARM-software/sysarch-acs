@@ -304,7 +304,7 @@ PCIE_INFO_TABLE platform_pcie_cfg = {
 };
 
 PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg = {
-    .block[0].hb_enteries         = PLATFORM_OVERRIDE_PCIE_ECAM0_HB_COUNT,
+    .block[0].hb_entries         = PLATFORM_OVERRIDE_PCIE_ECAM0_HB_COUNT,
     .block[0].segment_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM0_SEG_NUM,
     .block[0].start_bus_num[0]    = PLATFORM_OVERRIDE_PCIE_ECAM0_START_BUS_NUM,
     .block[0].end_bus_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM0_END_BUS_NUM,
@@ -315,7 +315,7 @@ PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg = {
     .block[0].rp_bar32_value[0]   = PLATFORM_OVERRIDE_PCIE_ECAM0_RP_BAR32,
 
     /* Example: Populate multi RC info
-    .block[1].hb_enteries         = PLATFORM_OVERRIDE_PCIE_ECAM1_HB_COUNT,
+    .block[1].hb_entries         = PLATFORM_OVERRIDE_PCIE_ECAM1_HB_COUNT,
     .block[1].segment_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM1_SEG_NUM,
     .block[1].start_bus_num[0]    = PLATFORM_OVERRIDE_PCIE_ECAM1_START_BUS_NUM,
     .block[1].end_bus_num[0]      = PLATFORM_OVERRIDE_PCIE_ECAM1_END_BUS_NUM,
