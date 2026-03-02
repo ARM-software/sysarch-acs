@@ -123,5 +123,18 @@ acs_apply_compile_params(void)
   g_execute_modules = acs_build_module_array;
   g_num_modules = acs_build_module_count;
 #endif
+
+#ifdef ACS_VERBOSE_LEVEL
+  /*
+   * Allow compile-time override of the default print verbosity.
+   */
+  g_print_level = ACS_VERBOSE_LEVEL;
+
+  if (g_print_level < ACS_PRINT_INFO)
+    g_print_level = ACS_PRINT_INFO;
+  else if (g_print_level > ACS_PRINT_ERR)
+    g_print_level = ACS_PRINT_ERR;
+#endif
+
   return;
 }
