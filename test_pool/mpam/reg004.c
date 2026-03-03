@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ static void payload(void)
     if (val_pe_feat_check(PE_FEAT_RME))
     {
       /* Skip the test */
-      val_print(ACS_PRINT_INFO, "\n       PE Does not Support RME", 0);
+      val_print_primary_pe(ACS_PRINT_INFO, "\n       PE Does not Support RME", 0, pe_index);
       val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
       return;
     }
@@ -53,7 +53,7 @@ static void payload(void)
     if ((mpam_major == 0) && (mpam_minor == 0))
     {
       /* Skip the test */
-      val_print(ACS_PRINT_INFO, "\n       PE Does not Support MPAM", 0);
+      val_print_primary_pe(ACS_PRINT_INFO, "\n       PE Does not Support MPAM", 0, pe_index);
       val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 02));
       return;
     }
@@ -61,7 +61,7 @@ static void payload(void)
     /* Check Support for MPAM v1.1 */
     if ((mpam_major < 1) || ((mpam_major == 1) && (mpam_minor < 1)))
     {
-      val_print(ACS_PRINT_ERR, "\n       PE Does not Support MPAMv1.1", 0);
+      val_print_primary_pe(ACS_PRINT_ERR, "\n       PE Does not Support MPAMv1.1", 0, pe_index);
       val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
       return;
     }
@@ -69,14 +69,15 @@ static void payload(void)
     /* Check PE Supports 4 PARTID Spaces */
     mpamidr_val = val_mpam_reg_read(MPAMIDR_EL1);
     if (VAL_EXTRACT_BITS(mpamidr_val, MPAMIDR_SP4, MPAMIDR_SP4) == 0) {
-      val_print(ACS_PRINT_ERR, "\n       PE Does not Support 4 PARTID Spaces", 0);
+      val_print_primary_pe(ACS_PRINT_ERR,
+                                    "\n       PE Does not Support 4 PARTID Spaces", 0, pe_index);
       val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
       return;
     }
 
     /* Check alternative space, ALTSP feature */
     if (VAL_EXTRACT_BITS(mpamidr_val, MPAMIDR_HAS_ALTSP, MPAMIDR_HAS_ALTSP) == 0) {
-      val_print(ACS_PRINT_ERR, "\n       PE Does not Support ALTSP", 0);
+      val_print_primary_pe(ACS_PRINT_ERR, "\n       PE Does not Support ALTSP", 0, pe_index);
       val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
       return;
     }
