@@ -165,13 +165,14 @@ primary_cpu_entry:
   add  x1,x1,:lo12:__BSS_END__
   sub x1, x1, x0
   //bl  val_inv_dcache_range
-#endif
+
 1:
    stp xzr, xzr, [x0]
    add x0, x0, #16
    sub x1, x1, #16
    cmp xzr, x1
    b.ne 1b
+#endif
 
    b  0f
 
