@@ -84,6 +84,7 @@
   src/rule_lookup.c
   src/test_wrappers.c
   src/val_logger.c
+  src/val_libc.c
 
 [Packages]
   MdePkg/MdePkg.dec

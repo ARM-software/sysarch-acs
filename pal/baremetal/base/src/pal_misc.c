@@ -417,20 +417,6 @@ void *pal_strncpy(void *DestinationStr, const void *SourceStr, uint32_t Length)
   return ptr;
 }
 
-int32_t
-pal_mem_compare(void *Src, void *Dest, uint32_t Len)
-{
-    if (Len != 0) {
-    register const unsigned char *p1 = Dest, *p2 = Src;
-
-    do {
-      if (*p1++ != *p2++)
-        return (*--p1 - *--p2);
-    } while (--Len != 0);
-  }
-  return (0);
-}
-
 void
 pal_mem_set(void *buf, uint32_t size, uint8_t value)
 {

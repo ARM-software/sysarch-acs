@@ -294,42 +294,6 @@ pal_mem_free(VOID *Buffer)
 }
 
 /**
-  @brief  Compare the contents of the src and dest buffers
-  @param  Src   - source buffer to be compared
-  @param  Dest  - destination buffer to be compared
-  @param  Len   - Length of the comparison to be performed
-
-  @return Zero if the buffer contecnts are same, else Nonzero
-**/
-UINT32
-pal_mem_compare (
-  VOID *Src,
-  VOID *Dest,
-  UINT32 Len
-  )
-{
-  return CompareMem (Src, Dest, Len);
-}
-
-/**
-  @brie a buffer with a known specified input value
-  @param  Buf   - Pointer to the buffer to fill
-  @param  Size  - Number of bytes in buffer to fill
-  @param  Value - Value to fill buffer with
-
-  @return None
-**/
-VOID
-pal_mem_set (
-  VOID *Buf,
-  UINT32 Size,
-  UINT8 Value
-  )
-{
-  SetMem(Buf, Size, Value);
-}
-
-/**
   @brief  Allocate memory which is to be used to share data across PEs
 
   @param  num_pe      - Number of PEs in the system
@@ -551,26 +515,6 @@ pal_strncmp (
   )
 {
   return AsciiStrnCmp(FirstString, SecondString, Length);
-}
-
-/**
-  Copies a source buffer to a destination buffer, and returns the destination buffer.
-
-  @param  DestinationBuffer   The pointer to the destination buffer of the memory copy.
-  @param  SourceBuffer        The pointer to the source buffer of the memory copy.
-  @param  Length              The number of bytes to copy from SourceBuffer to DestinationBuffer.
-
-  @return DestinationBuffer.
-
-**/
-VOID *
-pal_memcpy (
-  VOID *DestinationBuffer,
-  VOID *SourceBuffer,
-  UINT32 Length
-  )
-{
-  return CopyMem (DestinationBuffer, SourceBuffer, Length);
 }
 
 /**

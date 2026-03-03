@@ -786,7 +786,6 @@ typedef enum {
 
 /* LibC functions declaration */
 
-int32_t pal_mem_compare(void *Src, void *Dest, uint32_t Len);
 void *pal_memcpy(void *DestinationBuffer, const void *SourceBuffer, uint32_t Length);
 void *pal_strncpy(void *DestinationStr, const void *SourceStr, uint32_t Length);
 uint32_t pal_strncmp(const char8_t *str1, const char8_t *str2, uint32_t len);

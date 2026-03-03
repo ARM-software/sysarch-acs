@@ -308,37 +308,6 @@ val_memory_free(void *addr)
 }
 
 /**
-  @brief  Compare two buffers of length len
-
-  @param  *src  Source Buffer
-  @param  *dest Destination Buffer
-  @param  len   Length
-
-  @return 0 If contents are same
-  @return 1 Otherwise
-**/
-int
-val_memory_compare(void *src, void *dest, uint32_t len)
-{
-  return pal_mem_compare(src, dest, len);
-}
-
-/**
-  @brief  Set buffer with value given in arguments
-
-  @param  *buf  Buffer
-  @param  size  size
-  @param  value value to be written
-
-  @return None
-**/
-void
-val_memory_set(void *buf, uint32_t size, uint8_t value)
-{
-  pal_mem_set(buf, size, value);
-}
-
-/**
   @brief  Returns the physical address for virtual address space.
 
   @param  *va   pointer to virtual address space

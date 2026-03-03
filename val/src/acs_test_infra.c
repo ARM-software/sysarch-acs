@@ -860,37 +860,6 @@ val_debug_brk(uint32_t data)
 }
 
 /**
-  @brief  Compares two strings
-
-  @param  str1  The pointer to a Null-terminated ASCII string.
-  @param  str2  The pointer to a Null-terminated ASCII string.
-  @param  len   The maximum number of ASCII characters for compare.
-
-  @return Zero if strings are identical, else non-zero value
-**/
-uint32_t
-val_strncmp(char8_t *str1, char8_t *str2, uint32_t len)
-{
-  return pal_strncmp(str1, str2, len);
-}
-
-/**
-  Copies a source buffer to a destination buffer, and returns the destination buffer.
-
-  @param  DestinationBuffer   The pointer to the destination buffer of the memory copy.
-  @param  SourceBuffer        The pointer to the source buffer of the memory copy.
-  @param  Length              The number of bytes to copy from SourceBuffer to DestinationBuffer.
-
-  @return DestinationBuffer.
-
-**/
-void*
-val_memcpy(void *dst_buffer, void *src_buffer, uint32_t len)
-{
-  return pal_memcpy(dst_buffer, src_buffer, len);
-}
-
-/**
   Stalls the CPU for the number of microseconds specified by MicroSeconds.
 
   @param  MicroSeconds  The minimum number of microseconds to delay.

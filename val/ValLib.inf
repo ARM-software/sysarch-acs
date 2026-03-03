@@ -60,6 +60,7 @@
   src/acs_pfdi.c
   src/acs_msc_error.c
   src/acs_tpm.c
+  src/val_libc.c
   driver/smmu_v3/smmu_v3.c
   driver/gic/gic.c
   driver/gic/acs_exception.c
