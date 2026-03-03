@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -110,7 +110,7 @@ payload_check_sel2_and_smmu_stg2_support()
 
     /* Skip the test if Secure EL2 is implemented */
     if (pe_s_el2 == 0x1) {
-        val_print(ACS_PRINT_DEBUG, "\n       Secure EL2 not supported, skipping the test.", 0);
+        val_print(ACS_PRINT_DEBUG, "\n       Secure EL2 is supported, skipping the test.", 0);
         val_set_status(index, RESULT_SKIP(TEST_NUM1, 1));
         return;
     }
