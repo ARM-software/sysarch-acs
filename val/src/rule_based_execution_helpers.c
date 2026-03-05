@@ -21,8 +21,8 @@
 extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
 extern char *rule_id_string[RULE_ID_SENTINEL];
 extern char *module_name_string[MODULE_ID_SENTINEL];
-extern uint32_t alias_rule_map_count;
-extern alias_rule_map_t alias_rule_map[];
+extern const uint32_t alias_rule_map_count;
+extern const alias_rule_map_t alias_rule_map[];
 extern uint8_t g_current_pal;
 
 /**

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 #include "pal_common_support.h"
 #include "platform_override_struct.h"
 
-extern PLATFORM_OVERRIDE_TPM2_INFO_TABLE platform_tpm2_cfg;
+extern const PLATFORM_OVERRIDE_TPM2_INFO_TABLE platform_tpm2_cfg;
 
 /**
   @brief  Populate the TPM2 info table from platform configuration.

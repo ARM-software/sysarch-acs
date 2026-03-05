@@ -19,9 +19,9 @@
 #include "pal_common_support.h"
 #include "pal_pcie_enum.h"
 
-extern SRAT_INFO_TABLE platform_srat_cfg;
-extern PLATFORM_OVERRIDE_SRAT_NODE_INFO_TABLE platform_srat_node_type;
-extern PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg;
+extern const SRAT_INFO_TABLE platform_srat_cfg;
+extern const PLATFORM_OVERRIDE_SRAT_NODE_INFO_TABLE platform_srat_node_type;
+extern const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg;
 
 /**
   @brief  Display MPAM info table details

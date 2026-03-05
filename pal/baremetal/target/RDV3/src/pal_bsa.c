@@ -29,15 +29,15 @@
 #define CONDUIT_HVC       1
 #define CONDUIT_NONE     -2
 
-extern PLATFORM_OVERRIDE_GIC_INFO_TABLE     platform_gic_cfg;
-extern PLATFORM_OVERRIDE_TIMER_INFO_TABLE   platform_timer_cfg;
-extern PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE  platform_iovirt_cfg;
-extern PLATFORM_OVERRIDE_NODE_DATA          platform_node_type;
-extern PLATFORM_OVERRIDE_UART_INFO_TABLE    platform_uart_cfg;
-extern PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
-extern PCIE_INFO_TABLE                      platform_pcie_cfg;
-extern WD_INFO_TABLE                        platform_wd_cfg;
-extern DMA_INFO_TABLE                       platform_dma_cfg;
+extern const PLATFORM_OVERRIDE_GIC_INFO_TABLE     platform_gic_cfg;
+extern const PLATFORM_OVERRIDE_TIMER_INFO_TABLE   platform_timer_cfg;
+extern const PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE  platform_iovirt_cfg;
+extern const PLATFORM_OVERRIDE_NODE_DATA          platform_node_type;
+extern const PLATFORM_OVERRIDE_UART_INFO_TABLE    platform_uart_cfg;
+extern const PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
+extern const PCIE_INFO_TABLE                      platform_pcie_cfg;
+extern const WD_INFO_TABLE                        platform_wd_cfg;
+extern const DMA_INFO_TABLE                       platform_dma_cfg;
 
 extern addr_t __TEXT_START__, __TEXT_END__;
 #define TEXT_START    ((addr_t)&__TEXT_START__)

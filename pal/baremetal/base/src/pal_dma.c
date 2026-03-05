@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 #include "pal_pcie_enum.h"
 
 
-extern DMA_INFO_TABLE platform_dma_cfg;
+extern const DMA_INFO_TABLE platform_dma_cfg;
 
 
 /**

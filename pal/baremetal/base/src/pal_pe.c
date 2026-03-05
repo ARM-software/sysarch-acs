@@ -20,8 +20,8 @@
 #include "platform_override_struct.h"
 
 
-extern PE_INFO_TABLE platform_pe_cfg;
-extern PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg;
+extern const PE_INFO_TABLE platform_pe_cfg;
+extern const PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg;
 extern PE_INFO_TABLE *g_pe_info_table;
 extern int32_t gPsciConduit;
 

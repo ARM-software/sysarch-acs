@@ -23,14 +23,14 @@
 #include "pal_common_support.h"
 #include "pal_pcie_enum.h"
 
-extern PLATFORM_OVERRIDE_GIC_INFO_TABLE     platform_gic_cfg;
-extern PLATFORM_OVERRIDE_TIMER_INFO_TABLE   platform_timer_cfg;
-extern PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE  platform_iovirt_cfg;
-extern PLATFORM_OVERRIDE_NODE_DATA          platform_node_type;
-extern PLATFORM_OVERRIDE_UART_INFO_TABLE    platform_uart_cfg;
-extern PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
-extern PCIE_INFO_TABLE                      platform_pcie_cfg;
-extern WD_INFO_TABLE                        platform_wd_cfg;
+extern const PLATFORM_OVERRIDE_GIC_INFO_TABLE     platform_gic_cfg;
+extern const PLATFORM_OVERRIDE_TIMER_INFO_TABLE   platform_timer_cfg;
+extern const PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE  platform_iovirt_cfg;
+extern const PLATFORM_OVERRIDE_NODE_DATA          platform_node_type;
+extern const PLATFORM_OVERRIDE_UART_INFO_TABLE    platform_uart_cfg;
+extern const PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
+extern const PCIE_INFO_TABLE                      platform_pcie_cfg;
+extern const WD_INFO_TABLE                        platform_wd_cfg;
 
 /** SMMU API's **/
 /**
@@ -173,4 +173,3 @@ pal_ras_inject_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;
 }
-

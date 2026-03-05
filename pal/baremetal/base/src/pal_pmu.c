@@ -18,8 +18,8 @@
 #include "platform_override_struct.h"
 #include "pal_common_support.h"
 
-extern PLATFORM_OVERRIDE_PMU_INFO_TABLE platform_pmu_cfg;
-extern PLATFORM_OVERRIDE_EVENT_DETAILS event_list[];
+extern const PLATFORM_OVERRIDE_PMU_INFO_TABLE platform_pmu_cfg;
+extern const PLATFORM_OVERRIDE_EVENT_DETAILS event_list[];
 
 /**
   @brief  Display PMU info table details

@@ -20,11 +20,11 @@
 #include "platform_override_fvp.h"
 #include "platform_override_struct.h"
 
-extern PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE platform_iovirt_cfg;
-extern PLATFORM_OVERRIDE_NODE_DATA platform_node_type;
-extern PLATFORM_OVERRIDE_PMCG_NODE_DATA platform_pmcg_node_data;
-extern PLATFORM_OVERRIDE_NAMED_NODE_DATA platform_named_node_data;
-extern PLATFORM_OVERRIDE_CS_COMP_NODE_DATA platform_cs_comp_node_data;
+extern const PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE platform_iovirt_cfg;
+extern const PLATFORM_OVERRIDE_NODE_DATA platform_node_type;
+extern const PLATFORM_OVERRIDE_PMCG_NODE_DATA platform_pmcg_node_data;
+extern const PLATFORM_OVERRIDE_NAMED_NODE_DATA platform_named_node_data;
+extern const PLATFORM_OVERRIDE_CS_COMP_NODE_DATA platform_cs_comp_node_data;
 
 uint64_t
 pal_iovirt_get_rc_smmu_base (
@@ -102,7 +102,7 @@ pal_iovirt_get_rc_smmu_base (
   @return  1 if the IDs are unique else 0
 **/
 static uint8_t
-smmu_ctx_int_distinct(uint64_t *ctx_int, uint8_t ctx_int_cnt) {
+smmu_ctx_int_distinct(const uint64_t *ctx_int, uint8_t ctx_int_cnt) {
   uint8_t i, j;
   for(i = 0; i < ctx_int_cnt - 1; i++) {
     for(j = i + 1; j < ctx_int_cnt; j++) {

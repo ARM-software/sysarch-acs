@@ -4257,7 +4257,7 @@ RULE_ID_e v_l1pr_02_rule_list[]   = {
                                      RULE_ID_SENTINEL};
 
 // TODO update all alias rules in xbsa specs
-alias_rule_map_t alias_rule_map[] = {
+const alias_rule_map_t alias_rule_map[] = {
     /* BSA alias rules */
     {B_WD_00,   b_wd_00_rule_list},
     {B_PER_08,  b_per_08_rule_list},
@@ -4293,4 +4293,4 @@ alias_rule_map_t alias_rule_map[] = {
 
 };
 
-uint32_t alias_rule_map_count = sizeof(alias_rule_map) / sizeof(alias_rule_map[0]);
+const uint32_t alias_rule_map_count = sizeof(alias_rule_map) / sizeof(alias_rule_map[0]);

@@ -19,7 +19,7 @@
 #include "platform_override_struct.h"
 
 extern PCIE_INFO_TABLE *g_pcie_info_table;
-extern PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg;
+extern const PCIE_ROOT_INFO_TABLE platform_root_pcie_cfg;
 
 uint32_t pcie_index = 0, enumerate = 1;
 /*64-bit address initialisation*/

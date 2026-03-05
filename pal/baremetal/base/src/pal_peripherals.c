@@ -19,10 +19,10 @@
 #include "pal_common_support.h"
 #include "platform_override_struct.h"
 
-extern PLATFORM_OVERRIDE_UART_INFO_TABLE platform_uart_cfg;
-extern PLATFORM_OVERRIDE_SATA_INFO_TABLE platform_sata_cfg;
-extern PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
-extern PCIE_INFO_TABLE platform_pcie_cfg;
+extern const PLATFORM_OVERRIDE_UART_INFO_TABLE platform_uart_cfg;
+extern const PLATFORM_OVERRIDE_SATA_INFO_TABLE platform_sata_cfg;
+extern const PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
+extern const PCIE_INFO_TABLE platform_pcie_cfg;
 
 #define USB_CLASSCODE   0x0C0300
 #define SATA_CLASSCODE  0x010600
