@@ -966,6 +966,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = ALIAS_RULE,
         },
+        [S_L8SHD_1] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = ETE,
+            .rule_desc        = "Check for ETE Features",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
     /* RAS */
         [RAS_01] = {
             .test_entry_id    = RAS001_ENTRY,
@@ -4154,6 +4161,12 @@ RULE_ID_e s_l7pmu_rule_list[]   = {
                                     /********/
                                     RULE_ID_SENTINEL};
 
+RULE_ID_e s_l8shd_1_rule_list[]   = {
+                                    ETE_01, ETE_02, ETE_03, ETE_04, ETE_05,
+                                    ETE_06, ETE_07, ETE_08, ETE_09, ETE_10,
+                                    RULE_ID_SENTINEL
+};
+
 /* PCBSA alias lists */
 /* P_L2WD_01 */
 RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
@@ -4241,6 +4254,7 @@ alias_rule_map_t alias_rule_map[] = {
     {S_L6PE_01, s_l6pe_01_rule_list},
     {S_PCIe_10, s_pcie_10_rule_list},
     {S_L7PMU,   s_l7pmu_rule_list},
+    {S_L8SHD_1, s_l8shd_1_rule_list},
     {SYS_RAS,   sys_ras_rule_list},
     {LVQBC,     lvqbc_rule_list},
 

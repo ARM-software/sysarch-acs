@@ -282,6 +282,7 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [S_L7MP_08]   = "S_L7MP_08",
 
     /* ETE */
+    [ETE_01]      = "ETE_01",
     [ETE_02]      = "ETE_02",
     [ETE_03]      = "ETE_03",
     [ETE_04]      = "ETE_04",
