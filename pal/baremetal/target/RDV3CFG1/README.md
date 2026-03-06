@@ -42,17 +42,6 @@ Follow the build steps mentioned in [README](../../README.md) with the TARGET pa
 - ./run_model.sh
 
 ## Known Limitations
-Some PCIe and Exerciser tests, primarily related to interrupt/MSI generation, are expected to fail on the RDV3-Cfg1 platform. This is due to overlapping BAR register mappings observed during PCIe enumeration in the Baremetal environment. While a fix is under development, the following tests may fail:
-
-| Test ID | Description                                | Suite    | Status |
-|---------|--------------------------------------------|----------|--------|
-| 1506    | Generate PCIe legacy interrupt             | BSA      | Fail   |
-| 1507    | Check PCIe I/O Coherency                   | BSA      | Fail   |
-| 1533    | MSI(-X) triggers interrupt with unique ID  | BSA      | Fail   |
-| 1535    | MSI-cap device can target any ITS block    | BSA      | Fail   |
-| 1508    | Tx pending bit clear correctness RCiEP     | SBSA     | Fail   |
-| 1523    | Check AER functionality for RPs            | SBSA     | Fail   |
-| 1524    | Check DPC functionality for RPs            | SBSA     | Fail   |
 
 **Note:** To run PCIe MSE tests on RDV3-Cfg1 FVP, add `-C pcie_group_0.pcie0.ur_rao_wi=1` to `run_model.sh` so UR handling is enabled and the tests do not trigger an EL3 exception. If PCIe MSE tests still fail, set `g_pcie_skip_dp_nic_ms=1` in `apps/baremetal/acs_globals.c` locally.
 

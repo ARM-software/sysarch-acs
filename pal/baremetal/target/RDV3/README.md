@@ -41,21 +41,5 @@ Follow the build steps mentioned in [README](../../README.md) with the TARGET pa
 
 - ./run_model.sh
 
-## Known Limitations
-Some PCIe and Exerciser tests, primarily related to interrupt/MSI generation, are expected to fail on the RDV3 platform. This is due to overlapping BAR register mappings observed during PCIe enumeration in the Baremetal environment. While a fix is under development, the following tests may fail:
 
-
-| Test ID | Description                                | Suite    | Status |
-|---------|--------------------------------------------|----------|--------|
-| 830     | Check Cmd Reg memory space enable          | BSA      | Fail   |
-| 1506    | Generate PCIe legacy interrupt             | BSA      | Fail   |
-| 1507    | Check PCIe I/O Coherency                   | BSA      | Fail   |
-| 1533    | MSI(-X) triggers interrupt with unique ID  | BSA      | Fail   |
-| 1535    | MSI-cap device can target any ITS block    | BSA      | Fail   |
-| 1508    | Tx pending bit clear correctness RCiEP     | SBSA     | Fail   |
-| 1523    | Check AER functionality for RPs            | SBSA     | Fail   |
-| 1524    | Check DPC functionality for RPs            | SBSA     | Fail   |
-
------------------
-
-*Copyright (c) 2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2025-2026, Arm Limited and Contributors. All rights reserved.*

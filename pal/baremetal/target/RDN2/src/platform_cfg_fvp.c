@@ -534,6 +534,10 @@ PLATFORM_OVERRIDE_UART_INFO_TABLE platform_uart_cfg = {
     .PciSegment            = UART_PCI_SEGMENT
 };
 
+PLATFORM_OVERRIDE_SATA_INFO_TABLE platform_sata_cfg = {
+    .GlobalSystemInterrupt = SATA_GLOBAL_SYSTEM_INTERRUPT
+};
+
 DMA_INFO_TABLE platform_dma_cfg = {
     .num_dma_ctrls = PLATFORM_OVERRIDE_DMA_CNT
 
@@ -872,6 +876,11 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[19].dma_64bit     = PLATFORM_PCIE_DEV19_DMA_64BIT,
     .device[19].behind_smmu   = PLATFORM_PCIE_DEV19_BEHIND_SMMU,
     .device[19].atc_present   = PLATFORM_PCIE_DEV19_ATC_SUPPORT,
+     /* IRQ list of interrupt pin INTx# */
+    .device[19].irq_map.legacy_irq_map[0].irq_count = 1,
+    .device[19].irq_map.legacy_irq_map[0].irq_list[0] = 100,
+    .device[19].irq_map.legacy_irq_map[1].irq_count = 1,
+    .device[19].irq_map.legacy_irq_map[1].irq_list[0] = 200,
 
     .device[20].class_code    = PLATFORM_PCIE_DEV20_CLASSCODE,
     .device[20].vendor_id     = PLATFORM_PCIE_DEV20_VENDOR_ID,

@@ -523,6 +523,10 @@ typedef struct {
   uint8_t                                      PciSegment;
 } PLATFORM_OVERRIDE_UART_INFO_TABLE;
 
+typedef struct {
+  uint32_t                                     GlobalSystemInterrupt;
+} PLATFORM_OVERRIDE_SATA_INFO_TABLE;
+
 /**
   @brief MSI(X) controllers info structure
 **/

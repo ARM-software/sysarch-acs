@@ -68,6 +68,13 @@ payload (void)
     count--;
     if (val_peripheral_get_info (ANY_GSIV, count)) {
       dev_bdf = val_peripheral_get_info (ANY_BDF, count);
+
+      if (dev_bdf == 0) {
+        val_print(ACS_PRINT_INFO,
+                  "\n       Skipping legacy IRQ check for peripheral without BDF", 0);
+        continue;
+      }
+
       status = val_pci_get_legacy_irq_map (dev_bdf, irq_map);
 
       switch (status) {

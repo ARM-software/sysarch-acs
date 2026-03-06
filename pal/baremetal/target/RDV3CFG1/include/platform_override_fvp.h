@@ -581,6 +581,8 @@
 #define UART_PCI_FLAGS                   0x0
 #define UART_PCI_SEGMENT                 0x0
 
+#define SATA_GLOBAL_SYSTEM_INTERRUPT     0x100       /* SATA GSIV                                */
+
 /* IOVIRT platform config parameters */
 #define IOVIRT_ADDRESS                0xF98DEB18  /* Non-zero if IORT is present                 */
 #define IORT_NODE_COUNT               3           /* Total nodes in IORT                         */

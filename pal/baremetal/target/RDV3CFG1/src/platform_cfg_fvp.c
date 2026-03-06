@@ -374,6 +374,10 @@ PLATFORM_OVERRIDE_UART_INFO_TABLE platform_uart_cfg = {
     .PciSegment            = UART_PCI_SEGMENT
 };
 
+PLATFORM_OVERRIDE_SATA_INFO_TABLE platform_sata_cfg = {
+    .GlobalSystemInterrupt = SATA_GLOBAL_SYSTEM_INTERRUPT
+};
+
 DMA_INFO_TABLE platform_dma_cfg = {
     .num_dma_ctrls = PLATFORM_OVERRIDE_DMA_CNT
 
@@ -498,9 +502,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[5].dma_64bit     = PLATFORM_PCIE_DEV5_DMA_64BIT,
     .device[5].behind_smmu   = PLATFORM_PCIE_DEV5_BEHIND_SMMU,
     .device[5].atc_present   = PLATFORM_PCIE_DEV5_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
-    .device[5].irq_map.legacy_irq_map[2].irq_count = 1,
-    .device[5].irq_map.legacy_irq_map[2].irq_list[0] = 200,
+    /* IRQ list of interrupt pin INTD# */
+    .device[5].irq_map.legacy_irq_map[3].irq_count = 1,
+    .device[5].irq_map.legacy_irq_map[3].irq_list[0] = 244,
 
     .device[6].class_code    = PLATFORM_PCIE_DEV6_CLASSCODE,
     .device[6].vendor_id     = PLATFORM_PCIE_DEV6_VENDOR_ID,
@@ -515,9 +519,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[6].dma_64bit     = PLATFORM_PCIE_DEV6_DMA_64BIT,
     .device[6].behind_smmu   = PLATFORM_PCIE_DEV6_BEHIND_SMMU,
     .device[6].atc_present   = PLATFORM_PCIE_DEV6_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
-    .device[6].irq_map.legacy_irq_map[2].irq_count = 1,
-    .device[6].irq_map.legacy_irq_map[2].irq_list[0] = 200,
+    /* IRQ list of interrupt pin INTD# */
+    .device[6].irq_map.legacy_irq_map[3].irq_count = 1,
+    .device[6].irq_map.legacy_irq_map[3].irq_list[0] = 244,
 
     .device[7].class_code    = PLATFORM_PCIE_DEV7_CLASSCODE,
     .device[7].vendor_id     = PLATFORM_PCIE_DEV7_VENDOR_ID,
@@ -532,7 +536,7 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[7].dma_64bit     = PLATFORM_PCIE_DEV7_DMA_64BIT,
     .device[7].behind_smmu   = PLATFORM_PCIE_DEV7_BEHIND_SMMU,
     .device[7].atc_present   = PLATFORM_PCIE_DEV7_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
+    /* IRQ list of interrupt pin INTD# */
     .device[7].irq_map.legacy_irq_map[3].irq_count = 1,
     .device[7].irq_map.legacy_irq_map[3].irq_list[0] = 200,
 
@@ -594,7 +598,7 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[11].dma_64bit     = PLATFORM_PCIE_DEV11_DMA_64BIT,
     .device[11].behind_smmu   = PLATFORM_PCIE_DEV11_BEHIND_SMMU,
     .device[11].atc_present   = PLATFORM_PCIE_DEV11_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
+    /* IRQ list of interrupt pin INTA# */
     .device[11].irq_map.legacy_irq_map[0].irq_count = 1,
     .device[11].irq_map.legacy_irq_map[0].irq_list[0] = 200,
 
@@ -611,6 +615,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[12].dma_64bit     = PLATFORM_PCIE_DEV12_DMA_64BIT,
     .device[12].behind_smmu   = PLATFORM_PCIE_DEV12_BEHIND_SMMU,
     .device[12].atc_present   = PLATFORM_PCIE_DEV12_ATC_SUPPORT,
+    /* IRQ list of interrupt pin INTD# */
+    .device[12].irq_map.legacy_irq_map[3].irq_count = 1,
+    .device[12].irq_map.legacy_irq_map[3].irq_list[0] = 246,
 
     .device[13].class_code    = PLATFORM_PCIE_DEV13_CLASSCODE,
     .device[13].vendor_id     = PLATFORM_PCIE_DEV13_VENDOR_ID,
@@ -625,6 +632,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[13].dma_64bit     = PLATFORM_PCIE_DEV13_DMA_64BIT,
     .device[13].behind_smmu   = PLATFORM_PCIE_DEV13_BEHIND_SMMU,
     .device[13].atc_present   = PLATFORM_PCIE_DEV13_ATC_SUPPORT,
+    /* IRQ list of interrupt pin INTD# */
+    .device[13].irq_map.legacy_irq_map[3].irq_count = 1,
+    .device[13].irq_map.legacy_irq_map[3].irq_list[0] = 246,
 
     .device[14].class_code    = PLATFORM_PCIE_DEV14_CLASSCODE,
     .device[14].vendor_id     = PLATFORM_PCIE_DEV14_VENDOR_ID,
@@ -695,9 +705,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[18].dma_64bit     = PLATFORM_PCIE_DEV18_DMA_64BIT,
     .device[18].behind_smmu   = PLATFORM_PCIE_DEV18_BEHIND_SMMU,
     .device[18].atc_present   = PLATFORM_PCIE_DEV18_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
+    /* IRQ list of interrupt pin INTD# */
     .device[18].irq_map.legacy_irq_map[3].irq_count = 1,
-    .device[18].irq_map.legacy_irq_map[3].irq_list[0] = 200,
+    .device[18].irq_map.legacy_irq_map[3].irq_list[0] = 243,
 
     .device[19].class_code    = PLATFORM_PCIE_DEV19_CLASSCODE,
     .device[19].vendor_id     = PLATFORM_PCIE_DEV19_VENDOR_ID,
@@ -712,6 +722,11 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[19].dma_64bit     = PLATFORM_PCIE_DEV19_DMA_64BIT,
     .device[19].behind_smmu   = PLATFORM_PCIE_DEV19_BEHIND_SMMU,
     .device[19].atc_present   = PLATFORM_PCIE_DEV19_ATC_SUPPORT,
+     /* IRQ list of interrupt pin INTx# */
+    .device[19].irq_map.legacy_irq_map[0].irq_count = 1,
+    .device[19].irq_map.legacy_irq_map[0].irq_list[0] = 100,
+    .device[19].irq_map.legacy_irq_map[1].irq_count = 1,
+    .device[19].irq_map.legacy_irq_map[1].irq_list[0] = 200,
 
     .device[20].class_code    = PLATFORM_PCIE_DEV20_CLASSCODE,
     .device[20].vendor_id     = PLATFORM_PCIE_DEV20_VENDOR_ID,
@@ -726,9 +741,9 @@ PCIE_READ_TABLE platform_pcie_device_hierarchy = {
     .device[20].dma_64bit     = PLATFORM_PCIE_DEV20_DMA_64BIT,
     .device[20].behind_smmu   = PLATFORM_PCIE_DEV20_BEHIND_SMMU,
     .device[20].atc_present   = PLATFORM_PCIE_DEV20_ATC_SUPPORT,
-    /* IRQ list of interrupt pin INTC# */
+    /* IRQ list of interrupt pin INTD# */
     .device[20].irq_map.legacy_irq_map[3].irq_count = 1,
-    .device[20].irq_map.legacy_irq_map[3].irq_list[0] = 200,
+    .device[20].irq_map.legacy_irq_map[3].irq_list[0] = 243,
 };
 
 /** SBSA Module definitions */
