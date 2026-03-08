@@ -350,6 +350,5 @@ exit_acs:
     freeAcsMeM();
 
     val_pe_context_restore(AA64WriteSp(g_stack_pointer));
-    while (1);
-    return 0;
+    return val_exit_acs();
 }

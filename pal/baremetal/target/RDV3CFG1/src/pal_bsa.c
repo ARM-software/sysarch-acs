@@ -1281,3 +1281,19 @@ pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;
 }
+
+/**
+  @brief   Exit ACS gracefully predominantly used
+           in pre-si environment, Should be implemented by partner
+           .Where as for FVPS we are waiting on while(1)
+
+  @return
+    - 0               : Success
+    - PAL_STATUS_NOT_IMPLEMENTED : Feature not implemented
+    - non-zero        : Failure (implementation-specific error code)
+**/
+uint32_t pal_exit_acs(void)
+{
+  while (1);
+  return 0;
+}
