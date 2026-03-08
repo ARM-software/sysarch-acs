@@ -105,6 +105,7 @@ void *val_memcpy(void *dest_buffer, void *src_buffer, uint32_t len);
 void val_dump_dtb(void);
 void view_print_info(uint32_t view);
 void val_log_context(char8_t *file, char8_t *func, uint32_t line);
+uint32_t val_exit_acs(void);
 
 /* Print consolidated ACS test status summary from global counters */
 void val_print_acs_test_status_summary(void);

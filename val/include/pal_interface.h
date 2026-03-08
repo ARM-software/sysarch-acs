@@ -720,7 +720,7 @@ void
 pal_dma_mem_free(void *buffer, addr_t mem_dma, unsigned int length, void *port, unsigned int flags);
 int pal_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh);
 void pal_dma_scsi_get_dma_addr(void *port, void *dma_addr, uint32_t *dma_len);
-
+uint32_t pal_exit_acs(void);
 
 
 /* Memory INFO table */

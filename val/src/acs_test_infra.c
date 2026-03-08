@@ -950,3 +950,18 @@ val_check_for_prerequisite(uint32_t num_pe, uint32_t prereq_status,
 
     return ACS_STATUS_PASS;
 }
+
+/**
+  @brief  Exit execution of ACS gracefully majorly used in
+          pre-si environment
+        1. Caller       - Application Layer
+
+  @param  None
+
+  @result None
+**/
+uint32_t
+val_exit_acs(void)
+{
+  return pal_exit_acs();
+}
