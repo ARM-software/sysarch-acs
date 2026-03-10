@@ -45,7 +45,7 @@ void payload(void)
         val_print_primary_pe(ACS_PRINT_DEBUG, "\n       FEAT_ECV is Implemented, Reading CntPctSS",
                                                                                         0, index);
 
-        if (g_el1physkip)
+        if (g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)
             goto read_virt_ss_timer;
 
         while (iter) {
@@ -89,7 +89,7 @@ read_virt_ss_timer:
     }
     else {
 
-        if (g_el1physkip)
+        if (g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)
             goto read_virt_timer;
 
         val_print_primary_pe(ACS_PRINT_DEBUG, "\n       FEAT_ECV isn't Implemented, Reading CntPct",

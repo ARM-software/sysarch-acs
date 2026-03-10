@@ -30,7 +30,7 @@
 /* CLI parameter table for SBSA ACS, for description refer HelpMsg */
 CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-cache", TypeFlag},
-    {L"-el1physkip", TypeFlag},
+    {L"-el1skiptrap", TypeValue},
     {L"-f", TypeValue},
     {L"-fr", TypeValue},
     {L"-h", TypeFlag},
@@ -60,11 +60,9 @@ HelpMsg (VOID)
         "Options:\n"
         "-cache  Pass this flag to indicate that if the test system supports\n"
         "        PCIe address translation cache\n"
-        "-el1physkip \n"
-        "        Skips EL1 register checks\n"
-        "        VE systems run ACS at EL1 and in some systems crash is observed\n"
-        "        during access of EL1 registers, this flag was introduced\n"
-        "        for debugging purposes only.\n"
+        "-el1skiptrap <list>\n"
+        "        Skip specific EL1 register reads known to trap by the hypervisor.\n"
+        "        Tokens: cntpct, devmem, pmsidr\n"
         "-f      Name of the log file to record the test results in\n"
         "-fr     Run rules up to the Future requirements (FR) level.\n"
         "-h, -help\n"

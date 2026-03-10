@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2022-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2022-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,11 +41,11 @@ extern uint32_t g_num_modules;
 extern uint32_t g_build_sbsa;
 extern uint32_t g_build_pcbsa;
 extern uint32_t g_curr_module;
-extern uint32_t g_el1physkip;
 extern uint32_t g_sys_last_lvl_cache;
 extern uint32_t g_crypto_support;
 extern uint32_t g_drtm_acs_dlme[];
 extern uint64_t g_drtm_acs_dlme_size;
+extern uint32_t g_el1skiptrap_mask;
 
 
 #endif

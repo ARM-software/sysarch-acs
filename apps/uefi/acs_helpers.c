@@ -982,10 +982,56 @@ command_init (void)
         g_pcie_cache_present = FALSE;
     }
 
-    if (ShellCommandLineGetFlag (ParamPackage, L"-el1physkip")) {
-        /* Flag is applicable when ACS is running at EL1 */
+    /* -el1skiptrap <params>: skip specific EL1 register accesses known to trap under hypervisors */
+    CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-el1skiptrap");
+    if (CmdLineArg != NULL) {
+
+        /* -el1skiptrap only applicable while running ACS at EL1 */
         if (val_pe_reg_read(CurrentEL) == AARCH64_EL1) {
-            g_el1physkip = TRUE;
+
+            UINTN arg_len = StrLen(CmdLineArg);
+            UINTN token_start = 0;
+            UINTN token_end = 0;
+            BOOLEAN invalid_token = FALSE;
+
+            while (token_start < arg_len) {
+                /* find end of token (comma or newline/CR) */
+                token_end = token_start;
+                while (token_end < arg_len && CmdLineArg[token_end] != L','
+                                && CmdLineArg[token_end] != L'\n'
+                                && CmdLineArg[token_end] != L'\r')
+                    token_end++;
+                /* trim */
+                while (token_start < token_end &&
+                    (CmdLineArg[token_start] == L' ' || CmdLineArg[token_start] == L'\t'))
+                    token_start++;
+                while (token_end > token_start &&
+                    (CmdLineArg[token_end-1] == L' ' || CmdLineArg[token_end-1] == L'\t'))
+                    token_end--;
+                if (token_end > token_start) {
+                    CHAR16 token[32];
+                    UINTN  tlen = token_end - token_start;
+                    UINTN  ii;
+                    if (tlen >= (sizeof(token)/sizeof(token[0])))
+                        tlen = (sizeof(token)/sizeof(token[0])) - 1;
+                    for (ii = 0; ii < tlen; ii++) token[ii] = CmdLineArg[token_start + ii];
+                    token[tlen] = L'\0';
+
+                    if (w_ascii_streq_caseins(token, L"pmsidr")) {
+                        g_el1skiptrap_mask |= EL1SKIPTRAP_PMSIDR;
+                    } else if (w_ascii_streq_caseins(token, L"cntpct")) {
+                        g_el1skiptrap_mask |= EL1SKIPTRAP_CNTPCT;
+                    } else if (w_ascii_streq_caseins(token, L"devmem")) {
+                        g_el1skiptrap_mask |= EL1SKIPTRAP_DEVMEM;
+                    } else {
+                        Print(L"Invalid -el1skiptrap token: %s\n", token);
+                        invalid_token = TRUE;
+                    }
+                }
+                token_start = (token_end < arg_len) ? token_end + 1 : token_end;
+            }
+            if (invalid_token)
+                return SHELL_INVALID_PARAMETER;
         }
     }
 

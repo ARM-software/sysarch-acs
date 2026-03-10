@@ -228,7 +228,7 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           }
 
           status |= g005_entry(num_pe);
-          if (!g_el1physkip)
+          if (!(g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT))
               status |= g006_entry(num_pe);
 
           status |= g007_entry(num_pe);

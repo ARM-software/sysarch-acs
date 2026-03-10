@@ -58,6 +58,12 @@ payload()
   val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
   val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
 
+  if (g_el1skiptrap_mask & EL1SKIPTRAP_DEVMEM) {
+      val_print(ACS_PRINT_DEBUG,
+                "\n       Skipping device memory access due to -el1skiptrap devmem", 0);
+      goto normal_mem_test;
+  }
+
   branch_to_test = (uint64_t)&&exception_taken_d;
   while (loop_var) {
       timeout = TIMEOUT_SMALL;

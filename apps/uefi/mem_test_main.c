@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,13 +62,35 @@ UINT32  g_crypto_support = TRUE;
 UINT32  g_num_tests = 0;
 UINT32  *g_execute_modules;
 UINT32  g_num_modules = 0;
-/* VE systems run acs at EL1 and in some systems crash is observed during acess
-   of EL1 phy and virt timer, Below command line option is added only for debug
-   purpose to complete BSA run on these systems */
-UINT32  g_el1physkip = FALSE;
+UINT32  g_el1skiptrap_mask = 0;
 
 SHELL_FILE_HANDLE g_acs_log_file_handle;
 SHELL_FILE_HANDLE g_dtb_log_file_handle;
+
+static BOOLEAN
+w_ascii_streq_caseins(const CHAR16 *a, const CHAR16 *b)
+{
+  CHAR16 ca;
+  CHAR16 cb;
+
+  if (a == NULL || b == NULL)
+    return FALSE;
+
+  while (*a && *b) {
+    ca = *a;
+    cb = *b;
+    if (ca >= L'A' && ca <= L'Z')
+      ca = (CHAR16)(ca - L'A' + L'a');
+    if (cb >= L'A' && cb <= L'Z')
+      cb = (CHAR16)(cb - L'A' + L'a');
+    if (ca != cb)
+      return FALSE;
+    a++;
+    b++;
+  }
+
+  return (*a == L'\0' && *b == L'\0');
+}
 
 VOID
 HelpMsg (
@@ -109,7 +131,9 @@ HelpMsg (
          "-ps     Enable the execution of platform security tests\n"
          "-dtb    Enable the execution of dtb dump\n"
          "-sbsa   Enable sbsa requirements for bsa binary\n"
-         "-el1physkip Skips EL1 register checks\n"
+         "-el1skiptrap <list>\n"
+         "        Skip specific EL1 register reads known to trap by the hypervisor.\n"
+         "        Tokens: cntpct, devmem, pmsidr\n"
          "-skip-dp-nic-ms Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
 );
 }
@@ -136,7 +160,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
   {L"-sbsa", TypeFlag},  // -sbsa # Enable sbsa requirements for bsa binary\n"
   {L"-no_crypto_ext", TypeFlag},  // -no_crypto_ext  # Skip tests which have export restrictions
   {L"-mmio", TypeFlag}, // -mmio # Enable pal_mmio prints
-  {L"-el1physkip", TypeFlag}, // -el1physkip # Skips EL1 register checks
+  {L"-el1skiptrap", TypeValue}, // -el1skiptrap <list> # Skip specific EL1 register reads
   {NULL, TypeMax}
   };
 
@@ -495,8 +519,52 @@ command_init ()
     g_pcie_cache_present = FALSE;
   }
 
-  if (ShellCommandLineGetFlag (ParamPackage, L"-el1physkip")) {
-    g_el1physkip = TRUE;
+  CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-el1skiptrap");
+  if (CmdLineArg != NULL) {
+    UINTN arg_len = StrLen(CmdLineArg);
+    UINTN token_start = 0;
+    UINTN token_end = 0;
+
+    while (token_start < arg_len) {
+      token_end = token_start;
+      while (token_end < arg_len && CmdLineArg[token_end] != L','
+                                 && CmdLineArg[token_end] != L'\n'
+                                 && CmdLineArg[token_end] != L'\r')
+        token_end++;
+
+      while (token_start < token_end &&
+             (CmdLineArg[token_start] == L' ' || CmdLineArg[token_start] == L'\t'))
+        token_start++;
+      while (token_end > token_start &&
+             (CmdLineArg[token_end - 1] == L' ' || CmdLineArg[token_end - 1] == L'\t'))
+        token_end--;
+
+      if (token_end > token_start) {
+        CHAR16 token[32];
+        UINTN tlen = token_end - token_start;
+        UINTN ii;
+
+        if (tlen >= (sizeof(token) / sizeof(token[0])))
+          tlen = (sizeof(token) / sizeof(token[0])) - 1;
+        for (ii = 0; ii < tlen; ii++)
+          token[ii] = CmdLineArg[token_start + ii];
+        token[tlen] = L'\0';
+
+        if (w_ascii_streq_caseins(token, L"pmsidr")) {
+          g_el1skiptrap_mask |= EL1SKIPTRAP_PMSIDR;
+        } else if (w_ascii_streq_caseins(token, L"cntpct")) {
+          g_el1skiptrap_mask |= EL1SKIPTRAP_CNTPCT;
+        } else if (w_ascii_streq_caseins(token, L"devmem")) {
+          g_el1skiptrap_mask |= EL1SKIPTRAP_DEVMEM;
+        } else {
+          Print(L"Invalid -el1skiptrap token: %s\n", token);
+          HelpMsg();
+          return SHELL_INVALID_PARAMETER;
+        }
+      }
+
+      token_start = (token_end < arg_len) ? token_end + 1 : token_end;
+    }
   }
   //
   // Initialize global counters

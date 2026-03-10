@@ -45,6 +45,10 @@ extern uint32_t g_enable_module;
 #define MEM_ALIGN_32K      0x8000
 #define MEM_ALIGN_64K      0x10000
 
+#define EL1SKIPTRAP_PMSIDR   (1u << 0)
+#define EL1SKIPTRAP_CNTPCT   (1u << 1)
+#define EL1SKIPTRAP_DEVMEM   (1u << 2)
+
 #define TRUE 1
 #define FALSE 0
 

@@ -13,7 +13,7 @@ semantics so individual READMEs can simply reference it.
 | `-a {bsa\|sbsa\|pcbsa}` | xBSA | Choose which checklist the composite binary validates; also gates the level validation for `-l`, `-only`, and `-fr`. |
 | `-cache` | BSA & SBSA | Declare that the PCIe hierarchy exposes an address translation cache so PAL enables the related exerciser tests. |
 | `-dtb` | BSA | Dump the platform Device Tree Blob to the active filesystem for debug review. |
-| `-el1physkip` | VBSA | Skip EL1 register accesses when ACS runs at EL1 (for example, under a hypervisor). Use strictly for debug and document the coverage gap. |
+| `-el1skiptrap <tokens>` | VBSA | Skip specific EL1 register reads that trap in the current environment.<br>Supported tokens include `cntpct` for EL1 physical counter accesses, `pmsidr` for `PMSIDR_EL1`, and `devmem` to skip the device-memory phase of `B_MEM_01` and continue with the normal-memory checks;<br>use only when the trap is expected and document the coverage gap. |
 | `-f <path>` | All | Copy UART output to the specified file on the active filesystem (for example, `-f fs0:\logs\run.txt`). |
 | `-fr` | All | Include future-requirement (FR) rules for the selected specification. |
 | `-help`, `-h` | All | Display the full usage banner inside the UEFI shell. |

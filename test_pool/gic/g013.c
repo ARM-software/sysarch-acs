@@ -37,7 +37,7 @@ payload()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
 
-  if (!g_el1physkip) {
+  if (!(g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)) {
    /* Check non-secure physical timer interrupt */
    intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
    if (IS_PPI_RESERVED(intid))

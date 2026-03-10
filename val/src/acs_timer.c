@@ -247,7 +247,7 @@ val_timer_create_info_table(uint64_t *timer_info_table)
   /* UEFI or other EL1 software may have enabled the EL1 physical/virtual timer.
      Disable the timers to prevent interrupts at un-expected times */
 
-  if (!g_el1physkip) {
+  if (!(g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)) {
      val_timer_set_phy_el1(0);
      val_timer_set_vir_el1(0);
   }

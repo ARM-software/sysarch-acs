@@ -165,7 +165,7 @@ extern UINT32  g_num_modules;
 extern UINT32 *g_skip_modules;
 extern UINT32  g_num_skip_modules;
 extern UINT32  g_sys_last_lvl_cache;
-extern UINT32  g_el1physkip;
+extern UINT32  g_el1skiptrap_mask;
 extern SHELL_FILE_HANDLE g_acs_log_file_handle;
 extern SHELL_FILE_HANDLE g_dtb_log_file_handle;
 extern RULE_ID_e *g_rule_list;

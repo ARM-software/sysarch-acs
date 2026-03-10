@@ -54,6 +54,12 @@
                                                          under test*/
 #define WAKEUP_WD_PASS_TIMEOUT_DEFAULT        1000       /*minimum timeout set
                                                          by default (1ms)*/
+
+/* EL1 skip-trap param defines (-el1skiptrap) */
+#define EL1SKIPTRAP_PMSIDR   (1u << 0)
+#define EL1SKIPTRAP_CNTPCT   (1u << 1)
+#define EL1SKIPTRAP_DEVMEM   (1u << 2)
+
 /* Test status counters visible across ACS */
 typedef struct {
     uint32_t total_rules_run;     /* Total rules/tests that reported a status */

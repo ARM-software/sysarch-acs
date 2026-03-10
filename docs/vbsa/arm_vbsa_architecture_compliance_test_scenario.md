@@ -194,7 +194,7 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
 
 **Scenario**:
 - Detect whether FEAT_ECV is present by reading ID_AA64MMFR0_EL1.ECV and branch accordingly; the run covers 2,000,000 samples to stress the counter monotonicity
-- If physical counter accesses are permitted (g_el1physkip unset), repeatedly read CNTPCTSS_EL0 when FEAT_ECV is implemented, or CNTPCT_EL0 with an ISB barrier otherwise, and fail immediately if any new value is less than the previous sample.
+- If physical counter accesses are permitted (`-el1skiptrap` does not include `cntpct`), repeatedly read CNTPCTSS_EL0 when FEAT_ECV is implemented, or CNTPCT_EL0 with an ISB barrier otherwise, and fail immediately if any new value is less than the previous sample.
 - Always reset the iteration counter and validate the matching virtual counter (CNTVCTSS_EL0 with FEAT_ECV, else CNTVCT_EL0 plus ISB), again flagging any regression.
 - If any decrement is observed the payload records a failure; otherwise the rule passes once all iterations complete.
 

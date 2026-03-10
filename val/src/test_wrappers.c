@@ -378,7 +378,7 @@ v_l1wk_02_05_entry(uint32_t num_pe)
     return TEST_SKIP;
 #endif
 
-    if (g_el1physkip) {
+    if (g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT) {
         val_print(ACS_PRINT_TEST,
                     "\n       Skipping rule as EL1 physical timer access not supported", 0);
         return TEST_SKIP;
@@ -408,7 +408,8 @@ v_l1pp_00_entry(uint32_t num_pe)
     TEST_ENTRY_ID_e skip_list[] = {G007_ENTRY, TEST_ENTRY_SENTINEL};
     TEST_ENTRY_ID_e default_list[] = {G006_ENTRY, G007_ENTRY, TEST_ENTRY_SENTINEL};
 
-    TEST_ENTRY_ID_e *entry_list = g_el1physkip ? skip_list : default_list;
+    TEST_ENTRY_ID_e *entry_list =
+        (g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT) ? skip_list : default_list;
 
     return run_test_entries(entry_list, num_pe);
 }

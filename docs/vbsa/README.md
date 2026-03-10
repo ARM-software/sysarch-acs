@@ -96,14 +96,14 @@ lists tailor the coverage to VBSA rules (see the Linux run steps below).
 
 **Example**
 
-`Shell> Vbsa.efi -v 1 -skip V_L2PE_01 -el1physkip -f vbsa.log`
+`Shell> Vbsa.efi -v 1 -skip V_L2PE_01 -el1skiptrap cntpct -f vbsa.log`
 
-Runs at INFO level, skips rule `V_L2PE_01`, enables `-el1physkip` for
+Runs at INFO level, skips rule `V_L2PE_01`, enables `-el1skiptrap cntpct` for
 hypervisors trapping EL1 timers, and captures logs in `vbsa.log`.
 
 > Use VBSA rule IDs that follow the `V_L<level><module>_<nn>` pattern from the
 	[VBSA checklist](arm_vbsa_testcase_checklist.md)
-	(for example, `V_L2PE_01`) with `-skip`/`-r`, and enable `-el1physkip` only when
+	(for example, `V_L2PE_01`) with `-skip`/`-r`, and enable `-el1skiptrap cntpct` only when
 	the hypervisor traps EL1 physical timer accesses; document any coverage gaps.
 
 **Creating a bootable `.img` (Linux host)**
@@ -137,7 +137,7 @@ the specification evolves.
 ### Application arguments
 Refer to [Common CLI arguments](../common/cli_args.md) for the complete
 flag list, including VBSA-specific guidance on skip lists and logging options.\
-That guide also documents VBSA-specific behavior such as the extended module list and the `-el1physkip`
+That guide also documents VBSA-specific behavior such as the extended module list and the `-el1skiptrap`
 option for hypervisor scenarios.
 
 ## Limitations
@@ -149,8 +149,8 @@ option for hypervisor scenarios.
 	available virtual platform.
 
 ## Troubleshoot guide
-- Some hypervisors trap EL1 physical timer access, causing exceptions during
-	VBSA ACS runs. Use `-el1physkip` when necessary, but document the resulting
+- Some hypervisors trap EL1 register accesses, causing exceptions during
+	VBSA ACS runs. Use `-el1skiptrap <register list>` when necessary, but document the resulting
 	coverage gap.
 
 ## Feedback, contributions and support

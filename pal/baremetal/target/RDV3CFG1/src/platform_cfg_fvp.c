@@ -56,11 +56,9 @@ uint32_t  g_num_modules = sizeof(g_execute_modules_arr)/sizeof(g_execute_modules
 uint32_t  g_skip_modules_arr[] = {};
 uint32_t  g_num_skip_modules = sizeof(g_skip_modules_arr)/sizeof(g_skip_modules_arr[0]);
 
-/* VE systems run acs at EL1 and in some systems crash is observed during access
-   of EL1 phy and virt timer, Below command line option is added only for debug
-   purpose to complete BSA run on these systems
-*/
-uint32_t  g_el1physkip       = FALSE;
+/* Bitmask of EL1 register accesses to skip. For example:
+   g_el1skiptrap_mask = EL1SKIPTRAP_CNTPCT; */
+uint32_t  g_el1skiptrap_mask = 0;
 
 /* B_PE_06 and S_L5PE_05 rules are conditional implementation based on export restrictions
    In case due to export restrictions, cryptography algorithm support is not present, set
