@@ -94,7 +94,7 @@ void pal_warn_not_implemented(const char *api_name);
 
 /* TYPE 0/1 Cmn Cfg reg offsets and mask*/
 #define TYPE01_CPR           0x34
-#define TYPE01_CPR_MASK      0xff
+#define TYPE01_CPR_MASK      0xfc
 #define COMMAND_REG_OFFSET   0x04
 #define REG_ACC_DATA         0x7
 
@@ -137,7 +137,7 @@ void pal_warn_not_implemented(const char *api_name);
 #define PCIE_CIDR_MASK       0xff
 #define PCIE_NCPR_MASK       0xff
 #define PCIE_ECAP_CIDR_MASK  0xffff
-#define PCIE_ECAP_NCPR_MASK  0xfff
+#define PCIE_ECAP_NCPR_MASK  0xffc
 
 #define PCIE_ECAP_START      0x100
 

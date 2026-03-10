@@ -48,6 +48,8 @@ static PE_MMU_CONFIG gMmuConfig __attribute__((aligned(64)));
 UINT64 AA64ReadCurrentEL(VOID);
 UINT64 AA64ReadTtbr0El1(VOID);
 UINT64 AA64ReadTtbr0El2(VOID);
+UINT64 AA64ReadTtbr1El1(VOID);
+UINT64 AA64ReadTtbr1El2(VOID);
 UINT64 AA64ReadTcr1(VOID);
 UINT64 AA64ReadTcr2(VOID);
 UINT64 AA64ReadMair1(VOID);
@@ -87,6 +89,8 @@ static char psci_dt_arr[][PSCI_COMPATIBLE_STR_LEN] = {
 #define MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED  1024
 #define SIZE_STACK_SECONDARY_PE  0x100                //256 bytes per core
 #define UPDATE_AFF_MAX(src,dest,mask)  ((dest & mask) > (src & mask) ? (dest & mask) : (src & mask))
+
+#define TCR_EPD1_BIT  23U
 
 UINT64
 pal_get_madt_ptr();
@@ -266,7 +270,7 @@ PalGetMaxMpidr()
 
 /**
   @brief   Captures the primary PE's MMU configuration for use by secondary PEs.
-           This function reads TTBR0, TCR, MAIR, and SCTLR from the current EL
+           This function reads TTBR0, TTBR1, TCR, MAIR, and SCTLR from the current EL
            and stores them in a global structure that secondary PEs can access.
 
   @param   None
@@ -277,6 +281,7 @@ VOID
 PalCaptureMmuConfig(VOID)
 {
   UINT64 CurrentEl;
+  UINT32 SkipTtbr1;
 
   /* Read current exception level */
   CurrentEl = (AA64ReadCurrentEL() >> 2) & 0x3;
@@ -288,19 +293,30 @@ PalCaptureMmuConfig(VOID)
     gMmuConfig.tcr   = AA64ReadTcr2();
     gMmuConfig.mair  = AA64ReadMair2();
     gMmuConfig.sctlr = AA64ReadSctlr2();
+    /* Read TTBR1_EL2 only if TCR_EL2 allows translation via TTBR1 (EPD1 bit[23]) */
+    SkipTtbr1 = (gMmuConfig.tcr >> TCR_EPD1_BIT) & 0x1;
+    if (!SkipTtbr1)
+        gMmuConfig.ttbr1 = AA64ReadTtbr1El2();
   } else {
     /* Assume EL1 */
     gMmuConfig.ttbr0 = AA64ReadTtbr0El1();
     gMmuConfig.tcr   = AA64ReadTcr1();
     gMmuConfig.mair  = AA64ReadMair1();
     gMmuConfig.sctlr = AA64ReadSctlr1();
+    /* Read TTBR1_EL1 only if TCR_EL1 allows translation via TTBR1 (EPD1 bit[23]) */
+    SkipTtbr1 = (gMmuConfig.tcr >> TCR_EPD1_BIT) & 0x1;
+    if (!SkipTtbr1)
+        gMmuConfig.ttbr1 = AA64ReadTtbr1El1();
   }
 
-  acs_print(ACS_PRINT_INFO, L"  MMU Config captured at EL%d\n", gMmuConfig.current_el);
+  acs_print(ACS_PRINT_DEBUG, L"  MMU Config captured at EL%d\n", gMmuConfig.current_el);
   acs_print(ACS_PRINT_DEBUG, L"    TTBR0: 0x%lx\n", gMmuConfig.ttbr0);
   acs_print(ACS_PRINT_DEBUG, L"    TCR:   0x%lx\n", gMmuConfig.tcr);
   acs_print(ACS_PRINT_DEBUG, L"    MAIR:  0x%lx\n", gMmuConfig.mair);
   acs_print(ACS_PRINT_DEBUG, L"    SCTLR: 0x%lx\n", gMmuConfig.sctlr);
+
+  if (!SkipTtbr1)
+    acs_print(ACS_PRINT_DEBUG, L"    TTBR1: 0x%lx\n", gMmuConfig.ttbr1);
 
   /* Clean cache to ensure secondary PEs see the config */
   pal_pe_data_cache_ops_by_va((UINT64)&gMmuConfig, CLEAN_AND_INVALIDATE);

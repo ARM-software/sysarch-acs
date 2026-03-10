@@ -961,7 +961,7 @@ val_pcie_find_capability(uint32_t bdf, uint32_t cid_type, uint32_t cid, uint32_t
 
   if (cid_type == PCIE_CAP) {
 
-      /* Serach in PCIe configuration space */
+      /* Search in PCIe configuration space */
       ret = val_pcie_read_cfg(bdf, TYPE01_CPR, &reg_value);
       if (ret == PCIE_NO_MAPPING || reg_value == PCIE_UNKNOWN_RESPONSE)
           return ret;
@@ -980,11 +980,16 @@ val_pcie_find_capability(uint32_t bdf, uint32_t cid_type, uint32_t cid, uint32_t
   } else if (cid_type == PCIE_ECAP)
   {
 
-      /* Serach in PCIe extended configuration space */
+      /* Search in PCIe extended configuration space */
       next_cap_offset = PCIE_ECAP_START;
       while (next_cap_offset)
       {
           val_pcie_read_cfg(bdf, next_cap_offset, &reg_value);
+
+          /* if data at next ECAP offset reads 0xFFFF-FFFF, exit with failure code */
+          if (reg_value == PCIE_UNKNOWN_RESPONSE)
+            return PCIE_UNKNOWN_RESPONSE;
+
           if ((reg_value & PCIE_ECAP_CIDR_MASK) == cid)
           {
               *cid_offset = next_cap_offset;

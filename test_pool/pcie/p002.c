@@ -185,6 +185,16 @@ payload(void)
                   while (next_offset)
                   {
                      val_pcie_read_cfg(bdf, next_offset, &data);
+
+                     /* if data read from next ECAP offset is 0xFFFF-FFFF, report failure */
+                     if (data == PCIE_UNKNOWN_RESPONSE) {
+                        val_print(ACS_PRINT_ERR,
+                                "\n       Invalid data read from ECAP offset 0x%x", next_offset);
+                        val_memory_set(skip_rid_list, sizeof(uint32_t) * MAX_VFS, 0);
+                        val_set_status(index, RESULT_FAIL(TEST_NUM, 03));
+                        return;
+                     }
+
                      curr_offset = next_offset;
                      next_offset = ((data >> PCIE_ECAP_NCPR_SHIFT) & PCIE_ECAP_NCPR_MASK);
                   }

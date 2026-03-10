@@ -744,6 +744,8 @@ GCC_ASM_EXPORT (AA64WriteTcr1)
 GCC_ASM_EXPORT (AA64WriteTcr2)
 GCC_ASM_EXPORT (AA64WriteTtbr0El1)
 GCC_ASM_EXPORT (AA64WriteTtbr0El2)
+GCC_ASM_EXPORT (AA64WriteTtbr1El1)
+GCC_ASM_EXPORT (AA64WriteTtbr1El2)
 GCC_ASM_EXPORT (AA64WriteSctlr1)
 GCC_ASM_EXPORT (AA64WriteSctlr2)
 GCC_ASM_EXPORT (AA64TlbiVmalle1)
@@ -776,6 +778,16 @@ ASM_PFX(AA64WriteTtbr0El1):
 
 ASM_PFX(AA64WriteTtbr0El2):
   msr   ttbr0_el2, x0          // write EL2 TTBR0
+  isb
+  ret
+
+ASM_PFX(AA64WriteTtbr1El1):
+  msr   ttbr1_el1, x0          // write EL1 TTBR1
+  isb
+  ret
+
+ASM_PFX(AA64WriteTtbr1El2):
+  msr   ttbr1_el2, x0          // write EL2 TTBR1
   isb
   ret
 

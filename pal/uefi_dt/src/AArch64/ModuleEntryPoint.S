@@ -30,10 +30,11 @@ ASM_PFX(StackSize):  .8byte 0x100
 
 // PE_MMU_CONFIG structure offsets
 .equ MMU_CFG_TTBR0,     0
-.equ MMU_CFG_TCR,       8
-.equ MMU_CFG_MAIR,      16
-.equ MMU_CFG_SCTLR,     24
-.equ MMU_CFG_EL,        32
+.equ MMU_CFG_TTBR1,     8
+.equ MMU_CFG_TCR,       16
+.equ MMU_CFG_MAIR,      24
+.equ MMU_CFG_SCTLR,     32
+.equ MMU_CFG_EL,        40
 
 // SCTLR bits
 .equ SCTLR_M_BIT,       (1 << 0)   // MMU enable
@@ -77,13 +78,20 @@ _SetupMmuEl1:
   dsb   sy
   isb
 
-  // Set MAIR, TCR, TTBR0 for EL1
+  // Set MAIR, TCR, TTBR0, TTBR1 for EL1
   msr   mair_el1, x14
   isb
   msr   tcr_el1, x13
   isb
   msr   ttbr0_el1, x12
   isb
+
+  // Program TTBR1 only if TCR.EPD1 (bit[23]) enables TTBR1 walks
+  tbnz  x13, #23, _SkipTtbr1El1
+  ldr   x18, [x11, #MMU_CFG_TTBR1]
+  msr   ttbr1_el1, x18
+  isb
+_SkipTtbr1El1:
 
   // Enable MMU and caches for EL1
   // Use the same SCTLR value as primary PE (which has M, C, I bits set)
@@ -97,13 +105,20 @@ _SetupMmuEl2:
   dsb   sy
   isb
 
-  // Set MAIR, TCR, TTBR0 for EL2
+  // Set MAIR, TCR, TTBR0, TTBR1 for EL2
   msr   mair_el2, x14
   isb
   msr   tcr_el2, x13
   isb
   msr   ttbr0_el2, x12
   isb
+
+  // Program TTBR1 only if TCR.EPD1 (bit[23]) enables TTBR1 walks
+  tbnz  x13, #23, _SkipTtbr1El2
+  ldr   x18, [x11, #MMU_CFG_TTBR1]
+  msr   ttbr1_el2, x18
+  isb
+_SkipTtbr1El2:
 
   // Enable MMU and caches for EL2
   // Use the same SCTLR value as primary PE (which has M, C, I bits set)

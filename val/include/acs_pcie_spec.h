@@ -35,7 +35,7 @@
 #define TYPE01_CCR_SHIFT    8
 #define TYPE01_CCR_MASK     0xffffff
 #define TYPE01_CPR_SHIFT    0
-#define TYPE01_CPR_MASK     0xff
+#define TYPE01_CPR_MASK     0xfc
 #define TYPE01_HTR_SHIFT    16
 #define TYPE01_HTR_MASK     0xff
 #define TYPE01_IPR_SHIFT    8
@@ -184,7 +184,7 @@
 #define PCIE_CIDR_MASK      0xff
 #define PCIE_NCPR_MASK      0xff
 #define PCIE_ECAP_CIDR_MASK  0xffff
-#define PCIE_ECAP_NCPR_MASK  0xfff
+#define PCIE_ECAP_NCPR_MASK  0xffc
 
 #define PCIE_CAP_START   0x40
 #define PCIE_CAP_END     0xFC
