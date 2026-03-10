@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,17 +33,18 @@ static void payload(void)
     uint64_t data = 0;
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-    if (val_memory_check_for_persistent_mem()) {
-        /* ID_AA64ISAR1_EL1.DPB[3:0] = 0b0001 or 0b0010 indicate support for
-           DC CVAP instruction */
-        data = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR1_EL1), 0, 3);
-        if (data == 0b0001 || data == 0b0010)
-            val_set_status(index, RESULT_PASS(TEST_NUM, 01));
-        else
-            val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
-        return;
+    /* ID_AA64ISAR1_EL1.DPB[3:0] = 0b0001 or 0b0010 indicate support for
+        DC CVAP instruction */
+    data = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR1_EL1), 0, 3);
+
+    if (data == 0b0001 || data == 0b0010)
+        val_set_status(index, RESULT_PASS(TEST_NUM, 01));
+    else {
+       if (val_memory_check_for_persistent_mem())
+           val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+       else
+           val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
     }
-    val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
 }
 
 uint32_t pe028_entry(uint32_t num_pe)
