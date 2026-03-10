@@ -23,6 +23,7 @@ extern char *rule_id_string[RULE_ID_SENTINEL];
 extern char *module_name_string[MODULE_ID_SENTINEL];
 extern uint32_t alias_rule_map_count;
 extern alias_rule_map_t alias_rule_map[];
+extern uint8_t g_current_pal;
 
 /**
  * @brief Check if a rule ID exists in a list.
@@ -189,6 +190,50 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
 }
 
 /**
+ * @brief Print PALs that validate the rule when current PAL cannot.
+ *
+ * When a rule is marked `NOT TESTED (PAL NOT SUPPORTED)`, this helper prints
+ * an informational line listing which PAL(s) validate the rule, based on
+ * the rule metadata bitmask.
+ *
+ * @param rule_enum Rule identifier
+ * @param indent    Indentation level; output is prefixed by (indent * 4)
+ *                  spaces.
+ */
+void
+print_pal_validation_info(uint32_t rule_enum, uint32_t indent)
+{
+    uint8_t pal_mask = rule_test_map[rule_enum].platform_bitmask;
+    uint8_t other_pals = pal_mask & ~g_current_pal;
+    bool first = 1;
+    uint32_t i;
+
+    if (!other_pals)
+        return;
+
+    for (i = 0; i < indent; i++)
+        val_print(ACS_PRINT_TEST, "    ", 0);
+
+    val_print(ACS_PRINT_TEST, "   Rule is validated by ", 0);
+
+    if (other_pals & PLATFORM_BAREMETAL) {
+        val_print(ACS_PRINT_TEST, "Baremetal", 0);
+        first = 0;
+    }
+    if (other_pals & PLATFORM_UEFI) {
+        if (!first) val_print(ACS_PRINT_TEST, "/", 0);
+        val_print(ACS_PRINT_TEST, "UEFI", 0);
+        first = 0;
+    }
+    if (other_pals & PLATFORM_LINUX) {
+        if (!first) val_print(ACS_PRINT_TEST, "/", 0);
+        val_print(ACS_PRINT_TEST, "Linux", 0);
+    }
+
+    val_print(ACS_PRINT_TEST, " test\n", 0);
+}
+
+/**
  * @brief Print the status for a rule test result.
  *
  * Example output
@@ -207,6 +252,10 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
     uint32_t top_level_rule = (indent == 0);
 
     val_print(ACS_PRINT_TEST, "\n", 0);
+    /* Print other PAL(s) that validate this rule */
+    if (status == TEST_PAL_NS) {
+        print_pal_validation_info(rule_enum, indent);
+    }
     /* Print indent spaces */
     while (indent) {
         val_print(ACS_PRINT_TEST, "    ", 0);

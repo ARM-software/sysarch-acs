@@ -90,6 +90,7 @@ void     print_rule_test_start(uint32_t rule_enum, uint32_t indent);
 void     print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status);
 void     rule_status_map_reset(void);
 bool     rule_in_list(RULE_ID_e rid, const RULE_ID_e *list, uint32_t count);
+void     print_pal_validation_info(uint32_t rule_enum, uint32_t indent);
 
 /* ---------------------------- Externs ---------------------------- */
 extern uint32_t rule_status_map[RULE_ID_SENTINEL];
