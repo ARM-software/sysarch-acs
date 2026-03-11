@@ -228,7 +228,7 @@ uint32_t val_mmu_update_entry(uint64_t address, uint32_t size, uint64_t attr)
 /**
   @brief  This is local function is used to get log base 2 of input value.
 
-  @param  value - input value
+  @param  value - input value.
 
   @return result
 **/
@@ -258,27 +258,54 @@ void val_setup_mair_register(void)
         MAIR_DEVICE_nGnRnE, MAIR_NORMAL_NC, MAIR_NORMAL_WT_AGR,
         MAIR_NORMAL_WB, MAIR_DEVICE_nGnRE, MAIR_DEVICE_nGRE, MAIR_DEVICE_GRE,
         MAIR_NORMAL_WT};
-    uint64_t mair_val = 0;
+    uint64_t mair_val;
+    uint64_t current_mair;
+    uint8_t attr_seen[256];
+    uint8_t free_slots[8];
+    uint32_t free_cnt = 0;
 
     currentEL = (val_read_current_el() & 0xc) >> 2;
-     /*
-     * Setup Memory Attribute Indirection Register
-     * Attr0 = MAIR_DEVICE_nGnRnE
-     * Attr1 = MAIR_NORMAL_NC
-     * Attr2 = MAIR_NORMAL_WT_AGR
-     * Attr3 = MAIR_NORMAL_WB
-     * Attr4 = MAIR_DEVICE_nGnRE
-     * Attr5 = MAIR_DEVICE_nGRE
-     * Attr6 = MAIR_DEVICE_GRE
-     * Attr7 = MAIR_NORMAL_WT
-     */
-    for (uint64_t attr = 0; attr < (sizeof(mair_attr) / sizeof(mair_attr[0])); attr++)
-    {
-        mair_val = mair_val | ((uint64_t)(mair_attr[attr]) << (attr * 8));
+
+    current_mair = val_pe_reg_read(MAIR_ELx);
+    mair_val = current_mair;
+
+    val_memory_set(attr_seen, sizeof(attr_seen), 0);
+    /* Identify unique existing attributes so we leave them untouched,
+       and treat any duplicate slots as available for new attributes. */
+    for (uint32_t idx = 0; idx < 8; idx++) {
+        uint8_t entry = (current_mair >> (idx * 8)) & 0xFF;
+
+        if (!attr_seen[entry]) {
+            attr_seen[entry] = 1;
+        } else {
+            free_slots[free_cnt++] = idx;
+        }
     }
 
-    val_mair_write(mair_val, currentEL);
+    for (uint32_t attr = 0; attr < (sizeof(mair_attr) / sizeof(mair_attr[0])); attr++)
+    {
+        uint8_t new_attr = mair_attr[attr];
 
+        if (attr_seen[new_attr])
+            continue;
+
+        if (free_cnt == 0) {
+            val_print(ACS_PRINT_WARN,
+                      "\n   MAIR register full, could not add attribute 0x%02x", new_attr);
+            break;
+        }
+
+        uint32_t slot = free_slots[--free_cnt];
+        mair_val &= ~((uint64_t)0xFF << (slot * 8));
+        mair_val |= ((uint64_t)new_attr << (slot * 8));
+        attr_seen[new_attr] = 1;
+    }
+
+    if (mair_val != current_mair)
+        val_mair_write(mair_val, currentEL);
+
+    val_print(ACS_PRINT_DEBUG, "\n  Previous MAIR register value 0x%lx", current_mair);
+    val_print(ACS_PRINT_DEBUG, "\n  Current MAIR register value 0x%lx\n", mair_val);
     return;
 }
 
