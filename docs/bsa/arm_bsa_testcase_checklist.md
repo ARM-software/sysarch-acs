@@ -912,11 +912,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>B_WD_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>701</td>
+      <td>Non Secure Watchdog Access</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -1886,8 +1886,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="99">FR</td>
-      <td rowspan="99">B_REP_1</td>
+      <td rowspan="87">FR</td>
+      <td rowspan="87">B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -2185,93 +2185,12 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_IN_04</td>
-      <td>803</td>
-      <td>All EP/Sw under RP in same ECAM Region</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_05</td>
-      <td>820</td>
-      <td>Type 0/1 common config rule</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_IN_07</td>
       <td>Not Covered</td>
       <td></td>
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_08</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_09</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_10</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_11</td>
-      <td>1510</td>
-      <td>Check RP Sec Bus transaction are TYPE0</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-    </tr>
-    <tr>
-      <td>PCI_IN_12</td>
-      <td>837</td>
-      <td>Check Config Txn for RP in HB</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_13</td>
-      <td>804</td>
-      <td>Check RootPort NP Memory Access</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -2296,33 +2215,6 @@ The checklist provides information about:
       <td>PCI_IN_16</td>
       <td>808</td>
       <td>Check all 1's for out of range</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_17</td>
-      <td>1515</td>
-      <td>Check ARI forwarding enable rule</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-    </tr>
-    <tr>
-      <td>PCI_IN_18</td>
-      <td>811</td>
-      <td>Check RP Byte Enable Rules</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_IN_19</td>
-      <td>830</td>
-      <td>Check Cmd Reg memory space enable</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3736,6 +3628,8 @@ The checklist provides information about:
 
 ## Latest Checklist Changes
 - **RI_ Added:** RI_PWR_1
+- Updated B_WD_02.
+- Updated checklist to be consistent with I-VGLFZ.
 
 ### v25.12_BSA_1.2.0
 - Updated Rule Checklist as per BSA 1.2 Specification

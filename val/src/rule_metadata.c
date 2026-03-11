@@ -1421,6 +1421,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_WD_TEST_NUM_BASE + 1,
         },
+        [B_WD_02] = {
+            .test_entry_id    = W001_ENTRY,
+            .module_id        = WATCHDOG,
+            .rule_desc        = "Non Secure Watchdog Access ",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_WD_TEST_NUM_BASE + 1,
+        },
         [B_WD_03] = {
             .test_entry_id    = W002_ENTRY,
             .module_id        = WATCHDOG,
