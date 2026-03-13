@@ -550,6 +550,7 @@ command_init (void)
     if (CmdLineArg == NULL) {
         g_timeout_pass = WAKEUP_WD_PASS_TIMEOUT_DEFAULT;
         g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+        g_timer_timeout_us = TIMER_TIMEOUT_DEFAULT;
     } else {
         /* Accept a single value; ignore any trailing delimiters */
         CHAR16 buf[64];
@@ -581,8 +582,9 @@ command_init (void)
 
         g_timeout_pass = (UINT32)StrDecimalToUintn(buf);
         g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
-        if (!(g_timeout_pass >= WAKEUP_WD_PASS_TIMEOUT_THRESHOLD &&
-              g_timeout_pass <= WAKEUP_WD_PASS_TIMEOUT_MAX_THRESHOLD)) {
+        g_timer_timeout_us = g_timeout_pass;
+        if (!(g_timeout_pass >= TIMEOUT_THRESHOLD &&
+              g_timeout_pass <= TIMEOUT_MAX_THRESHOLD)) {
             Print(L"Invalid -timeout: pass timeout range should be within 500ms and 2sec\n");
             return SHELL_INVALID_PARAMETER;
         }
