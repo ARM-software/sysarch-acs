@@ -46,15 +46,16 @@
 
 #define VAL_EXTRACT_BITS(data, start, end) ((data >> start) & ((1ul << (end-start+1))-1))
 
-#define WAKEUP_WD_PASS_TIMEOUT_THRESHOLD      500        /*minimum timeout that can be
-                                                         set for wakeup and wd tests*/
-#define WAKEUP_WD_PASS_TIMEOUT_MAX_THRESHOLD  2000000    /*minimum timeout that can be
-                                                         set for wakeup and wd tests*/
-#define WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER 100        /*fail safe timeout multipler
-                                                         multiplied to timeout of ISR
-                                                         under test*/
-#define WAKEUP_WD_PASS_TIMEOUT_DEFAULT        1000       /*minimum timeout set
-                                                         by default (1ms)*/
+#define TIMEOUT_THRESHOLD                       500       /*minimum timeout that can be
+                                                          set for wakeup and wd and timer tests*/
+#define TIMEOUT_MAX_THRESHOLD                   2000000   /*maximum timeout that can be
+                                                          set for wakeup and wd and timer tests*/
+#define WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER   100       /*fail safe timeout multipler
+                                                          multiplied to timeout of ISR under test*/
+#define WAKEUP_WD_PASS_TIMEOUT_DEFAULT          1000      /*minimum timeout set
+                                                          by default for wakeup & WD tests (1ms)*/
+#define TIMER_TIMEOUT_DEFAULT                   1000000   /*minimum timeout set
+                                                          by default for timer tests (1s)*/
 
 /* EL1 skip-trap param defines (-el1skiptrap) */
 #define EL1SKIPTRAP_PMSIDR   (1u << 0)
@@ -502,7 +503,7 @@ void val_setup_mair_register(void);
 #define CEIL_TO_MAX_SYS_TIMEOUT(v)                           \
 ({                                                           \
     uint64_t __x = (uint64_t)(v);                            \
-    ((__x >> 32) != 0) ? WAKEUP_WD_SYS_TIMEOUT_MAX : (uint32_t)__x; \
+    ((__x >> 32) != 0) ? SYS_TIMEOUT_MAX : (uint32_t)__x;     \
 })
 
 void     val_memory_create_info_table(uint64_t *memory_info_table);

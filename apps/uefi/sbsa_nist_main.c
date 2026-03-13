@@ -51,7 +51,9 @@ UINT32  g_crypto_support = TRUE;
 UINT64  g_stack_pointer;
 UINT64  g_exception_ret_addr;
 UINT64  g_ret_addr;
-UINT32  g_wakeup_timeout;
+UINT32  g_timeout_pass;
+UINT32  g_timeout_fail;
+UINT32  g_timer_timeout_us;
 UINT32 g_its_init = 0;
 UINT32  g_sys_last_lvl_cache;
 SHELL_FILE_HANDLE g_acs_log_file_handle;
@@ -351,8 +353,8 @@ HelpMsg (
          "-no_crypto_ext  Pass this flag if cryptography extension not supported due to export restrictions\n"
          "-p2p    Pass this flag to indicate that PCIe Hierarchy Supports Peer-to-Peer\n"
          "-cache  Pass this flag to indicate that if the test system supports PCIe address translation cache\n"
-         "-timeout <n> \n"
-         "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+         "-timeout <microseconds> \n"
+         "        Set pass timeout (delay in microseconds) for wakeup & WD & timer tests (500us - 2sec)\n"
          "        Example: -timeout 2000 \n"
          "-slc    Provide system last level cache type\n"
          "        1 - PPTT PE-side cache,  2 - HMAT mem-side cache\n"
@@ -441,16 +443,52 @@ command_init ()
     }
   }
 
-  // Options with Values
+  /* Parse -timeout */
   CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-timeout");
   if (CmdLineArg == NULL) {
-    g_wakeup_timeout = 1;
+      g_timeout_pass = WAKEUP_WD_PASS_TIMEOUT_DEFAULT;
+      g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      g_timer_timeout_us = TIMER_TIMEOUT_DEFAULT;
   } else {
-    g_wakeup_timeout = StrDecimalToUintn(CmdLineArg);
-    Print(L"Wakeup timeout multiple %d.\n", g_wakeup_timeout);
-    if (g_wakeup_timeout > 5)
-        g_wakeup_timeout = 5;
-    }
+      /* Accept a single value; ignore any trailing delimiters */
+      CHAR16 buf[64];
+      UINTN len = StrLen(CmdLineArg);
+      UINTN i;
+
+      if (len >= (sizeof(buf) / sizeof(buf[0])))
+          len = (sizeof(buf) / sizeof(buf[0])) - 1;
+
+      for (i = 0; i < len; i++) {
+          buf[i] = CmdLineArg[i];
+      }
+      buf[i] = L'\0';
+
+      if (i == 0) {
+          Print(L"Invalid -timeout: provide a timeout value\n");
+          return SHELL_INVALID_PARAMETER;
+      }
+
+      /* trim leading/trailing spaces */
+      while (buf[0] == L' ' || buf[0] == L'\t') {
+          for (i = 0; buf[i] != L'\0'; i++) buf[i] = buf[i + 1];
+      }
+      i = StrLen(buf);
+      while (i > 0 && (buf[i - 1] == L' ' || buf[i - 1] == L'\t')) {
+          buf[i - 1] = L'\0';
+          i--;
+      }
+
+      g_timeout_pass = (UINT32)StrDecimalToUintn(buf);
+      g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      g_timer_timeout_us = g_timeout_pass;
+      if (!(g_timeout_pass >= TIMEOUT_THRESHOLD &&
+            g_timeout_pass <= TIMEOUT_MAX_THRESHOLD)) {
+          Print(L"Invalid -timeout: pass timeout range should be within 500ms and 2sec\n");
+          return SHELL_INVALID_PARAMETER;
+      }
+
+      Print(L"Timeouts (us): PASS=%d, FAIL=%d\n", g_timeout_pass, g_timeout_fail);
+  }
 
     // Options with Values
   CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-v");

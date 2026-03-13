@@ -46,6 +46,7 @@ extern uint32_t g_crypto_support;
 extern uint32_t g_drtm_acs_dlme[];
 extern uint64_t g_drtm_acs_dlme_size;
 extern uint32_t g_el1skiptrap_mask;
+extern uint32_t g_timer_timeout_us;
 
 
 #endif

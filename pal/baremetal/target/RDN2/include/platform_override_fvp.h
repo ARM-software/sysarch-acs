@@ -261,8 +261,10 @@
 
 #define PLATFORM_OVERRIDE_MAX_SID              24
 
-/* TIMEOUT should be in Microsecond 5us to 2 sec */
+/* Wakeup/WD timeout (us); range 500us to 2 sec */
 #define PLATFORM_OVERRIDE_TIMEOUT              1000   /* time out for DUT */
+/* Timer test timeout (us); range 500us to 2 sec */
+#define PLATFORM_OVERRIDE_TIMER_TIMEOUT        10000
 
 /* FAIL safe timeout (> PLATFORM_OVERRIDE_TIMEOUT) */
 #define PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT     (PLATFORM_OVERRIDE_TIMEOUT * 2)

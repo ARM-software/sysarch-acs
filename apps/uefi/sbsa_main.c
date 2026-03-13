@@ -92,8 +92,8 @@ HelpMsg (VOID)
         "        Example: -skipmodule PE,GIC,PCIE\n"
         "-slc    Provide system last level cache type\n"
         "        1 - PPTT PE-side cache,  2 - HMAT mem-side cache\n"
-        "-timeout <n> \n"
-        "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+        "-timeout <microseconds> \n"
+        "        Set pass timeout (delay in microseconds) for wakeup & WD & timer tests (500us - 2sec)\n"
         "        Example: -timeout 2000 \n"
         "-v <n>  Verbosity of the prints\n"
         "        1 prints all, 5 prints only the errors\n");

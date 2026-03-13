@@ -29,7 +29,7 @@ semantics so individual READMEs can simply reference it.
 | `-skip-dp-nic-ms` | All | Skip PCIe exerciser coverage for DisplayPort, network, and mass-storage devices when those endpoints are unavailable. |
 | `-skipmodule <modules>` | All | Exclude the listed modules from the run (for example, `-skipmodule PE,GIC`). |
 | `-slc <type>` | SBSA | Provide the system last-level cache implementation (`1` for PPTT PE-side cache, `2` for HMAT memory-side cache). |
-| `-timeout <1-5>` | All | Scale watchdog and wakeup waits (1 = default/minimum, 5 = maximum delay). |
+| `-timeout <microseconds>` | All | Set pass timeout (delay in microseconds) for wakeup and watchdog and & timer tests (1ms = wakeup & WD default , 1sec = timer default, 500us = minimum, 2sec = maximum delay). |
 | `-v <level>` | All | Set verbosity: 5=ERROR, 4=WARN, 3=TEST, 2=DEBUG, 1=INFO. |
 
 Refer to each specification README for other variant-level constraints, rule
