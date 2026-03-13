@@ -86,8 +86,8 @@ HelpMsg (VOID)
         "        Example: -skip B_PE_01,B_GIC_02\n"
         "-skip-dp-nic-ms \n"
         "        Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
-        "-timeout <n> \n"
-        "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+        "-timeout <microseconds> \n"
+        "        Set pass timeout (delay in microseconds) for wakeup & WD & timer tests (500us - 2sec)\n"
         "        Example: -timeout 2000 \n"
         "-v <n>  Verbosity of the prints\n"
         "        1 prints all, 5 prints only the errors\n");

@@ -295,8 +295,10 @@
 // This value is arbitrary and may have to be adjusted
 #define PLATFORM_BM_OVERRIDE_MAX_IRQ_CNT       0xFFFF /* Max IRQs any device may raise           */
 
-/* TIMEOUT should be in Microsecond 5us to 2 sec */
+/* Wakeup/WD timeout (us); range 500us to 2 sec */
 #define PLATFORM_OVERRIDE_TIMEOUT              1000   /* time out for DUT */
+/* Timer test timeout (us); range 500us to 2 sec */
+#define PLATFORM_OVERRIDE_TIMER_TIMEOUT        10000
 
 /* FAIL safe timeout (> PLATFORM_OVERRIDE_TIMEOUT) */
 #define PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT     (PLATFORM_OVERRIDE_TIMEOUT * 2)
