@@ -33,6 +33,7 @@ extern uint32_t  *g_execute_modules;
 extern uint32_t   g_num_modules;
 extern uint32_t  *g_skip_modules;
 extern uint32_t   g_num_skip_modules;
+extern RULE_ID_e g_base_rule;
 
 /**
  * @brief Check PAL support for a rule and report if unsupported.
@@ -456,6 +457,8 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
             rule_test_status = rule_support_status;
             goto report_status;
         }
+
+        g_base_rule = rule_list[i];
 
         /* Check if rule id is alias, if yes do the table walk to find base rules */
         if (rule_test_map[rule_list[i]].flag == ALIAS_RULE) {

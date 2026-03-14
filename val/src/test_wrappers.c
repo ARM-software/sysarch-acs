@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-20226, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@
 #include "include/rule_based_execution.h"
 
 extern test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL];
+extern RULE_ID_e g_base_rule;
 
 /* Helper to execute test entries  */
 static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_pe)
@@ -160,8 +161,12 @@ pci_ic_11_entry(uint32_t num_pe)
 uint32_t
 pci_in_04_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e tst_entry_list[] = {P003_ENTRY, P072_ENTRY, TEST_ENTRY_SENTINEL};
 
+    if (g_base_rule == B_PER_08) {
+        TEST_ENTRY_ID_e tst_entry_list[] = {P003_ENTRY, TEST_ENTRY_SENTINEL};
+        return run_test_entries(tst_entry_list, num_pe);
+    }
+    TEST_ENTRY_ID_e tst_entry_list[] = {P003_ENTRY, P072_ENTRY, TEST_ENTRY_SENTINEL};
     return run_test_entries(tst_entry_list, num_pe);
 }
 
@@ -179,8 +184,12 @@ pci_li_02_entry(uint32_t num_pe)
 uint32_t
 pci_li_03_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e tst_entry_list[] = {P023_ENTRY, P078_ENTRY, TEST_ENTRY_SENTINEL};
+    if (g_base_rule == B_PER_08) {
+        TEST_ENTRY_ID_e tst_entry_list[] = {P023_ENTRY, TEST_ENTRY_SENTINEL};
+        return run_test_entries(tst_entry_list, num_pe);
+    }
 
+    TEST_ENTRY_ID_e tst_entry_list[] = {P023_ENTRY, P078_ENTRY, TEST_ENTRY_SENTINEL};
     return run_test_entries(tst_entry_list, num_pe);
 }
 
@@ -254,6 +263,11 @@ pci_in_19_entry(uint32_t num_pe)
 uint32_t
 pci_li_01_entry(uint32_t num_pe)
 {
+    if (g_base_rule == B_PER_08) {
+        TEST_ENTRY_ID_e tst_entry_list[] = {P006_ENTRY, TEST_ENTRY_SENTINEL};
+        return run_test_entries(tst_entry_list, num_pe);
+    }
+
     TEST_ENTRY_ID_e tst_entry_list[] = {P006_ENTRY, P027_ENTRY, TEST_ENTRY_SENTINEL};
 
     return run_test_entries(tst_entry_list, num_pe);
@@ -263,7 +277,11 @@ pci_li_01_entry(uint32_t num_pe)
 uint32_t
 pci_mm_01_entry(uint32_t num_pe)
 {
+#ifdef BSA_LINUX_BUILD
+    TEST_ENTRY_ID_e p_list[] = { P045_ENTRY, TEST_ENTRY_SENTINEL };
+#else
     TEST_ENTRY_ID_e p_list[] = { P045_ENTRY, P103_ENTRY, TEST_ENTRY_SENTINEL };
+#endif
     TEST_ENTRY_ID_e e_list[] = { E016_ENTRY, TEST_ENTRY_SENTINEL };
 
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
@@ -273,7 +291,11 @@ pci_mm_01_entry(uint32_t num_pe)
 uint32_t
 pci_mm_03_entry(uint32_t num_pe)
 {
+#ifdef BSA_LINUX_BUILD
+    TEST_ENTRY_ID_e p_list[] = { P094_ENTRY, TEST_ENTRY_SENTINEL };
+#else
     TEST_ENTRY_ID_e p_list[] = { P094_ENTRY, P104_ENTRY, TEST_ENTRY_SENTINEL };
+#endif
     TEST_ENTRY_ID_e e_list[] = { E039_ENTRY, TEST_ENTRY_SENTINEL };
 
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);

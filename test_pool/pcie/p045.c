@@ -117,6 +117,8 @@ next_bdf:
 
       offset = BAR0_OFFSET;
 
+      val_print(ACS_PRINT_DEBUG, "\n   BDF under check %.6x", bdf);
+
       while (offset <= max_bar_offset) {
           val_pcie_read_cfg(bdf, offset, &bar_value);
           val_print(ACS_PRINT_DEBUG, "\n       The BAR value of bdf %.6x", bdf);
@@ -145,7 +147,7 @@ next_bdf:
           if (g_pcie_skip_dp_nic_ms &&
               ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
               || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
-              val_print(ACS_PRINT_DEBUG, "\n   Skipping BDF as  0x%x", bdf);
+              val_print(ACS_PRINT_DEBUG, "\n       Skipping BDF as  0x%x", bdf);
               tbl_index++;
               goto next_bdf;
           }
@@ -192,7 +194,7 @@ next_bdf:
               base = bar_value;
           }
 
-          val_print(ACS_PRINT_DEBUG, "\n BAR size is %x", bar_size);
+          val_print(ACS_PRINT_DEBUG, "\n       BAR size is %x", bar_size);
 
           /* Check if bar supports the remap size */
           if (bar_size < 1024) {

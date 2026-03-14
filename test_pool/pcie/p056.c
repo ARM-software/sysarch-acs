@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2019-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2019-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 #include "p056_data.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 56)
-#define TEST_DESC  "Check Power Mgmt Cap/Ctrl/Status - RC "
+#define TEST_DESC  "Check Power Mgmt Cap/Ctrl/Status - RCiEP/RCEC "
 #define TEST_RULE  "RE_REG_2"
 
 /* This test covers bit-field entries for registers of RCiEP and RCEC type devices*/

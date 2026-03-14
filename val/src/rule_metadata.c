@@ -49,6 +49,14 @@
  */
 uint32_t rule_status_map[RULE_ID_SENTINEL] = { 0 };
 
+/* The variable is used for special cases where a RULE needs to call
+ * different set of entry functions depending on base rule it is been
+ * called under, ex PCI_LI_01 needs to run only pci test when called
+ * as part of B_PER_08 and both pci and integrated endpoint when called
+ * as part of B_IEP_1
+ */
+RULE_ID_e g_base_rule = RULE_ID_SENTINEL;
+
 /* Following structure has every test entry that was is sysarch-acs on 23/07/25 */
 rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L3_01] = {
@@ -2057,7 +2065,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [RE_REG_2] = {
             .test_entry_id    = P056_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "Check Power Mgmt Cap/Ctrl/Status - RC",
+            .rule_desc        = "Check Power Mgmt Cap/Ctrl/Status - RCEC/RCiEP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 56,
@@ -3848,7 +3856,7 @@ RULE_ID_e bsa_l1_rule_list[] = {
         PCI_IEP_1,
         /* E.11 - Peer-to-Peer */
         PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05, PCI_PP_06,
+        PCI_PP_04, PCI_PP_05,
         /* E.12 - PASID Support */
         PCI_PAS_1,
         /* E.13 - PCIe Precision Time Measurement */
@@ -3902,7 +3910,7 @@ RULE_ID_e b_rep_1_rule_list[] = {
         PCI_IEP_1,
         /* E.11 - Peer-to-Peer */
         PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05, PCI_PP_06,
+        PCI_PP_04, PCI_PP_05,
         /* E.12 - PASID Support */
         PCI_PAS_1,
         /* E.13 - PCIe Precision Time Measurement */
@@ -3962,7 +3970,7 @@ RULE_ID_e b_iep_1_rule_list[] = {
         PCI_IEP_1,
         /* E.11 - Peer-to-Peer */
         PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05, PCI_PP_06,
+        PCI_PP_04, PCI_PP_05,
         /* E.12 - PASID Support */
         PCI_PAS_1,
         /* E.13 - PCIe Precision Time Measurement */
@@ -4010,7 +4018,7 @@ RULE_ID_e b_per_08_rule_list[] = {
     PCI_IEP_1,
     /* E.11 - Peer-to-Peer */
     PCI_PP_01, PCI_PP_02, PCI_PP_03,
-    PCI_PP_04, PCI_PP_05, PCI_PP_06,
+    PCI_PP_04, PCI_PP_05,
     /* E.12 - PASID Support */
     PCI_PAS_1,
     /* E.13 - PCIe Precision Time Measurement */
@@ -4069,7 +4077,7 @@ RULE_ID_e s_l6pci_1_rule_list[] = {
             PCI_IEP_1,
             /* E.11 - Peer-to-Peer */
             PCI_PP_01, PCI_PP_02, PCI_PP_03,
-            PCI_PP_04, PCI_PP_05, PCI_PP_06,
+            PCI_PP_04, PCI_PP_05,
             /* E.12 - PASID Support */
             PCI_PAS_1,
             /* E.13 - PCIe Precision Time Measurement */
@@ -4182,7 +4190,7 @@ RULE_ID_e v_l1pr_02_rule_list[]   = {
 
                                      /* E.11 - Peer-to-Peer */
                                      PCI_PP_01, PCI_PP_02, PCI_PP_03,
-                                     PCI_PP_04, PCI_PP_05, PCI_PP_06,
+                                     PCI_PP_04, PCI_PP_05,
 
                                      /* E.12 - PASID Support */
                                      PCI_PAS_1,
