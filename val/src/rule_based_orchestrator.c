@@ -408,6 +408,7 @@ void
 run_tests(RULE_ID_e *rule_list, uint32_t list_size)
 {
     bool test_ns_flag;
+    bool test_pass_flag;
     uint32_t i, j;
     uint32_t alias_rule_map_index;
     uint32_t rule_test_status;
@@ -489,6 +490,8 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
             rule_test_status = TEST_STATUS_UNKNOWN;
             /* init a flag to track partial coverage */
             test_ns_flag = 0;
+            /* track whether any base rule completed with PASS */
+            test_pass_flag = 0;
             /* convenience alias to the base rule list for this alias */
             base_rule_list = alias_rule_map[alias_rule_map_index].base_rule_list;
 
@@ -533,6 +536,8 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
                     test_entry_func_table[rule_test_map[base_rule_id].test_entry_id](num_pe);
                 /* record base rule status */
                 rule_status_map[base_rule_id] = base_rule_status;
+                if (base_rule_status == TEST_PASS)
+                    test_pass_flag = 1;
                 /* report status of base rule run */
                 print_rule_test_status(base_rule_list[j], 1, base_rule_status);
                 /* update overall alias rule status */
@@ -541,9 +546,15 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
                     rule_test_status = base_rule_status;
                 }
             }
-            /* Post-check: if any base rule was not supported but overall
-               status is PASS, mark the alias as partial coverage. */
-            if (test_ns_flag && (rule_test_status == TEST_PASS)) {
+            /* Post-check:
+               1) If any base rule PASSed but the aggregated alias status is
+                  WARN or SKIP, report partial coverage.
+               2) If any base rule was not supported and the aggregated alias
+                  status is PASS, report partial coverage. */
+            if ((test_pass_flag &&
+                 ((rule_test_status == TEST_SKIP) ||
+                  (rule_test_status == TEST_WARN))) ||
+                (test_ns_flag && (rule_test_status == TEST_PASS))) {
                 rule_test_status = TEST_PART_COV;
             }
 
