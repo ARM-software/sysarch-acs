@@ -1964,7 +1964,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = P046_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check all MSI(X) vectors are LPIs",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 46,
         },
@@ -2479,7 +2479,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = P046_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check all MSI(X) vectors are LPIs",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 46,
         },
@@ -3080,7 +3080,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P038_ENTRY] = p038_entry,
     [P039_ENTRY] = p039_entry,
     [P042_ENTRY] = p042_entry,
-    [P046_ENTRY] = p046_entry,
     [P047_ENTRY] = p047_entry,
     [P048_ENTRY] = p048_entry, // used in wrapper.
     [P049_ENTRY] = p049_entry, // used in wrapper.

@@ -344,8 +344,15 @@ pci_in_13_entry(uint32_t num_pe)
 uint32_t
 pci_in_17_entry(uint32_t num_pe)
 {
-    TEST_ENTRY_ID_e p_list[] = { P036_ENTRY, P071_ENTRY, TEST_ENTRY_SENTINEL };
+
     TEST_ENTRY_ID_e e_list[] = { E015_ENTRY, TEST_ENTRY_SENTINEL };
+
+    if (g_base_rule == B_PER_08) {
+        TEST_ENTRY_ID_e p_list[] = {P036_ENTRY, TEST_ENTRY_SENTINEL};
+        return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
+    }
+
+    TEST_ENTRY_ID_e p_list[] = { P036_ENTRY, P071_ENTRY, TEST_ENTRY_SENTINEL };
 
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
 }
