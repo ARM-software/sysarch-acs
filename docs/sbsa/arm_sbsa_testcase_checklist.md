@@ -3065,19 +3065,11 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="2">L7</td>
-      <td rowspan="2">SYS_RAS_2</td>
-      <td rowspan="2">SYS_RAS_2</td>
+      <td>L7</td>
+      <td>SYS_RAS_2</td>
+      <td>SYS_RAS_2</td>
       <td>1211</td>
-      <td>Check Poison Storage &amp; Forwarding</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>1212</td>
-      <td>Check Pseudo Fault Injection</td>
+      <td>Check Poison Storage & Forwarding</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3631,6 +3623,7 @@ The checklist provides information about:
 - **FR Added:** LVQBC, KBRZG
 - **RI_ Added:** RI_PWR_1
 - B_PCIe_10 and B_PCIe_11 mapped to S_PCIe_10
+- Removed Test ID 1212 (Pseudo Fault Injection Test) for rule SYS_RAS_2
 
 ### v25.12_SBSA_8.0.0
 - Updated checklist as per SBSA 8.0 specification.

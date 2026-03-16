@@ -152,7 +152,6 @@ ras008.c
 ras009.c
 ras010.c
 ras011.c
-ras012.c
 ras013.c
 ras014.c
 ras016.c

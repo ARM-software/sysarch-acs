@@ -111,15 +111,6 @@ s_l7mp_03_entry(uint32_t num_pe)
     return run_test_entries(tst_entry_list, num_pe);
 }
 
-/* SYS_RAS_2 */
-uint32_t
-sys_ras_2_entry(uint32_t num_pe)
-{
-    TEST_ENTRY_ID_e tst_entry_list[] = {RAS011_ENTRY, RAS012_ENTRY, TEST_ENTRY_SENTINEL};
-
-    return run_test_entries(tst_entry_list, num_pe);
-}
-
 /* Appendix I.6 */
 uint32_t
 appendix_i_6_entry(uint32_t num_pe)
