@@ -385,7 +385,8 @@ pal_pcie_dev_p2p_support (
    * transactions is platform implementation specific
    */
 
-  return 1;
+  pal_warn_not_implemented(__func__);
+  return PAL_STATUS_NOT_IMPLEMENTED;
 }
 
 

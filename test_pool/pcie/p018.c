@@ -36,6 +36,7 @@ payload(void)
   uint32_t cap_base = 0;
   uint32_t test_fails;
   uint32_t test_skip = 1;
+  uint32_t status;
   pcie_device_bdf_table *bdf_tbl_ptr;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -59,7 +60,12 @@ payload(void)
       if (dp_type == RP)
       {
           /* Check If RP supports P2P with other RP's. */
-          if (val_pcie_dev_p2p_support(bdf))
+          status = val_pcie_dev_p2p_support(bdf);
+          if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+              val_set_status(pe_index, RESULT_WARN(TEST_NUM, 1));
+              return;
+          }
+          if (status)
               continue;
 
           /* Test runs for atleast one Root Port */

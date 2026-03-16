@@ -39,6 +39,7 @@ payload(void)
   uint32_t test_skip = 1;
   uint32_t acs_data;
   uint32_t data;
+  uint32_t status;
   uint32_t iep_rp_bdf;
   uint32_t curr_bdf_failed = 0;
   pcie_device_bdf_table *bdf_tbl_ptr;
@@ -65,7 +66,12 @@ payload(void)
       {
           val_print(ACS_PRINT_DEBUG, "\n       BDF - 0x%x", bdf);
           /* Check If iEP_EP supports P2P with others. */
-          if (val_pcie_dev_p2p_support(bdf))
+          status = val_pcie_dev_p2p_support(bdf);
+          if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+              val_set_status(pe_index, RESULT_WARN(TEST_NUM, 01));
+              return;
+          }
+          if (status)
               continue;
 
           /* If test runs for atleast an endpoint */

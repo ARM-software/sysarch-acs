@@ -71,6 +71,7 @@ payload(void *arg)
   uint32_t aer_cap_fail = 0;
   uint32_t acs_data;
   uint32_t data;
+  uint32_t status;
   uint8_t p2p_support_flag = 0;
   pcie_device_bdf_table *bdf_tbl_ptr;
   test_data_t *test_data = (test_data_t *)arg;
@@ -103,7 +104,12 @@ payload(void *arg)
               continue;
 
           /* Check If Endpoint supports P2P with other Functions. */
-          if (val_pcie_dev_p2p_support(bdf))
+          status = val_pcie_dev_p2p_support(bdf);
+          if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+              val_set_status(pe_index, RESULT_WARN(test_data->test_num, 01));
+              return;
+          }
+          if (status)
               continue;
 
           /* If test runs for atleast an endpoint */
