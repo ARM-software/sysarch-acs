@@ -24,6 +24,9 @@
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 0.1
   ENTRY_POINT                    = ShellCEntryLib
+  DEFINE ACS_CORE_INCLUDE_FLAGS  = -I${ACS_PATH}/ -I${ACS_PATH}/val/ -I${ACS_PATH}/val/include -I${ACS_PATH}/pal/include
+  DEFINE ACS_GIC_INCLUDE_FLAGS   = -I${ACS_PATH}/val/driver/gic -I${ACS_PATH}/val/driver/gic/its -I${ACS_PATH}/val/driver/gic/v2 -I${ACS_PATH}/val/driver/gic/v3
+  DEFINE ACS_PCIE_INCLUDE_FLAGS  = -I${ACS_PATH}/val/driver/pcie
 
 #
 #  VALID_ARCHITECTURES           = AARCH64
@@ -345,4 +348,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.1-a
-  GCC:*_*_*_CC_FLAGS   = -O0 -I${ACS_PATH}/ -I${ACS_PATH}/val/ -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   = -O0 $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI

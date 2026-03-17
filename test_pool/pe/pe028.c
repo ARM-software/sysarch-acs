@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "val_interface.h"
+#include "acs_memory.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE + 28)
 #ifdef PC_BSA

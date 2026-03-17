@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2023, 2025 Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2023,2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "include/bsa_app.h"
-#include "include/bsa_drv_intf.h"
+#include "bsa_app.h"
+#include "bsa_drv_intf.h"
 
 
 extern unsigned int  *g_skip_test_num;

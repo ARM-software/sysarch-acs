@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2018-2021,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2018-2021,2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@
  * The test assume PCIe RC addr space is within PE outer shareable domain.
  */
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_memory.h"
-#include "val/include/acs_exerciser.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_pcie_enumeration.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_memory.h"
+#include "acs_exerciser.h"
+#include "acs_smmu.h"
+#include "acs_pcie.h"
+#include "acs_pcie_enumeration.h"
+#include "acs_pcie.h"
+#include "acs_memory.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 7)
 #define TEST_RULE  "PCI_IC_11"

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_gic_support.h"
-#include "include/acs_common.h"
-#include "include/acs_memory.h"
-#include "include/val_interface.h"
-#include "include/acs_gic.h"
+#include "acs_val.h"
+#include "acs_gic_support.h"
+#include "acs_common.h"
+#include "acs_memory.h"
+#include "val_interface.h"
+#include "acs_gic.h"
 
 extern GIC_INFO_TABLE * g_gic_info_table;
 GICv2m_MSI_FRAME_INFO *g_v2m_msi_info;

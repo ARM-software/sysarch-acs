@@ -18,7 +18,7 @@
 #ifndef __PAL_UEFI_H__
 #define __PAL_UEFI_H__
 
-#include "../../include/pal_status.h"
+#include "pal_status.h"
 
 /* include ACPI specification headers */
 #include "Include/Guid/Acpi.h"

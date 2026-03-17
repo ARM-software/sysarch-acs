@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "include/bsa_app.h"
+#include "bsa_app.h"
 #include "val/include/rule_based_execution_enum.h"
 #include <getopt.h>
 #include <stdbool.h>

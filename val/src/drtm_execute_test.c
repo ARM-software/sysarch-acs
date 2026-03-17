@@ -1,7 +1,7 @@
 /** @file
  * DRTM API
  *
- * Copyright (c) 2024, 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,11 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/val_interface.h"
-#include "include/acs_common.h"
-#include "include/pal_interface.h"
-#include "include/acs_std_smc.h"
+#include "acs_val.h"
+#include "val_interface.h"
+#include "acs_common.h"
+#include "pal_interface.h"
+#include "acs_std_smc.h"
 
 /**
   @brief   This API will execute all DRTM Interface tests

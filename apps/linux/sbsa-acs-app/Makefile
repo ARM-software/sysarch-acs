@@ -15,14 +15,29 @@
  # limitations under the License.
 ##
 
+ROOT_DIR := $(abspath $(CURDIR)/../../..)
+VAL_ROOT := $(ROOT_DIR)/val
+PAL_ROOT := $(ROOT_DIR)/pal
+APP_INCLUDE_DIR := $(CURDIR)/include
+VAL_DRIVER_DIR := $(VAL_ROOT)/driver
 
 program_NAME := sbsa
-program_C_SRCS := $(wildcard *.c) ../../../val/src/rule_enum_string_map.c
+program_C_SRCS := $(wildcard *.c) $(VAL_ROOT)/src/rule_enum_string_map.c
 program_CXX_SRCS := $(wildcard *.cpp)
 program_C_OBJS := ${program_C_SRCS:.c=.o}
 program_CXX_OBJS := ${program_CXX_SRCS:.cpp=.o}
 program_OBJS := $(program_C_OBJS) $(program_CXX_OBJS)
-program_INCLUDE_DIRS := ../../../ ../../../val/include ../../../val/
+program_INCLUDE_DIRS := \
+	$(APP_INCLUDE_DIR) \
+	$(ROOT_DIR) \
+	$(VAL_ROOT) \
+	$(VAL_ROOT)/include \
+	$(PAL_ROOT)/include \
+	$(VAL_DRIVER_DIR)/gic \
+	$(VAL_DRIVER_DIR)/gic/its \
+	$(VAL_DRIVER_DIR)/gic/v2 \
+	$(VAL_DRIVER_DIR)/gic/v3 \
+	$(VAL_DRIVER_DIR)/pcie
 program_LIBRARY_DIRS :=
 program_LIBRARIES :=
 CC := $(CROSS_COMPILE)gcc

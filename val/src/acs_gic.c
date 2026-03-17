@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_gic.h"
-#include "include/acs_gic_support.h"
-#include "include/acs_common.h"
-#include "driver/gic/gic.h"
-#include "include/pal_interface.h"
+#include "acs_val.h"
+#include "acs_gic.h"
+#include "acs_gic_support.h"
+#include "acs_common.h"
+#include "gic.h"
+#include "pal_interface.h"
 
 GIC_INFO_TABLE  *g_gic_info_table;
 

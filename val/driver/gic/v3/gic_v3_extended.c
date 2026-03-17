@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_gic.h"
-#include "include/acs_gic_support.h"
-#include "include/acs_pe.h"
+#include "acs_val.h"
+#include "acs_gic.h"
+#include "acs_gic_support.h"
+#include "acs_pe.h"
 #include "gic_v3.h"
 #include "gic.h"
 #include "acs_exception.h"

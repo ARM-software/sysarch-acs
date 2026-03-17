@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_peripherals.h"
-#include "include/acs_common.h"
-#include "include/acs_pcie.h"
+#include "acs_val.h"
+#include "acs_peripherals.h"
+#include "acs_common.h"
+#include "acs_pcie.h"
 
 PERIPHERAL_INFO_TABLE  *g_peripheral_info_table;
 

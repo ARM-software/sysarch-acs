@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2020, 2022-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +17,11 @@
 #ifndef __SMMU_V3_H__
 #define __SMMU_V3_H__
 
-#include "include/acs_val.h"
-#include "include/acs_memory.h"
-#include "include/acs_iovirt.h"
-#include "include/acs_pgt.h"
-#include "include/acs_pe.h"
+#include "acs_val.h"
+#include "acs_memory.h"
+#include "acs_iovirt.h"
+#include "acs_pgt.h"
+#include "acs_pe.h"
 #include "smmu_reg.h"
 
 /* Only Baremetal requires explicit array size definition;

@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_timer.h"
-#include "val/include/acs_pe.h"
+#include "acs_val.h"
+#include "val_interface.h"
+#include "acs_timer.h"
+#include "acs_pe.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 5)
 #define TEST_RULE  "B_TIME_09"

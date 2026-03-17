@@ -15,16 +15,16 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_gic.h"
-#include "include/acs_gic_support.h"
-#include "include/acs_common.h"
-#include "include/acs_pcie.h"
-#include "include/acs_iovirt.h"
-#include "driver/gic/acs_exception.h"
-#include "driver/gic/its/acs_gic_its.h"
-#include "driver/gic/gic.h"
-#include "include/pal_interface.h"
+#include "acs_val.h"
+#include "acs_gic.h"
+#include "acs_gic_support.h"
+#include "acs_common.h"
+#include "acs_pcie.h"
+#include "acs_iovirt.h"
+#include "acs_exception.h"
+#include "acs_gic_its.h"
+#include "gic.h"
+#include "pal_interface.h"
 
 extern GIC_INFO_TABLE  *g_gic_info_table;
 extern uint32_t  g_its_init;

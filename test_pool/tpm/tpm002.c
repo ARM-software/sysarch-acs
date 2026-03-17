@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_tpm.h"
-#include "val/include/acs_mmu.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "val_interface.h"
+#include "acs_tpm.h"
+#include "acs_mmu.h"
 
 #define TEST_NUM   (ACS_TPM2_TEST_NUM_BASE  +  2)
 #define TEST_RULE  "P_L1TP_03"

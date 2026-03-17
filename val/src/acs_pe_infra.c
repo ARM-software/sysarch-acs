@@ -15,13 +15,13 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/acs_common.h"
-#include "include/acs_std_smc.h"
-#include "driver/gic/acs_exception.h"
-#include "include/val_interface.h"
-#include "include/pal_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_common.h"
+#include "acs_std_smc.h"
+#include "acs_exception.h"
+#include "val_interface.h"
+#include "pal_interface.h"
 
 PE_SMBIOS_PROCESSOR_INFO_TABLE *g_smbios_info_table;
 int32_t gPsciConduit;

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-#include "val/include/acs_val.h"
-#include "val/include/acs_gic.h"
-#include "val/driver/gic/v3/gic_v3.h"
-#include "val/include/acs_timer.h"
-#include "val/include/acs_wakeup.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_gic.h"
+#include "gic_v3.h"
+#include "acs_timer.h"
+#include "acs_wakeup.h"
+#include "val_interface.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 4)
 #define TEST_RULE  "B_TIME_08"

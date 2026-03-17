@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_pe.h"
-#include "include/acs_ras.h"
+#include "val_interface.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_pe.h"
+#include "acs_ras.h"
 
 static RAS_INFO_TABLE  *g_ras_info_table;
 static RAS2_INFO_TABLE *g_ras2_info_table;

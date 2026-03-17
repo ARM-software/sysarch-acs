@@ -17,11 +17,11 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_common.h"
-#include "include/acs_val.h"
-#include "include/acs_std_smc.h"
-#include "include/acs_memory.h"
+#include "val_interface.h"
+#include "acs_common.h"
+#include "acs_val.h"
+#include "acs_std_smc.h"
+#include "acs_memory.h"
 
 extern int32_t gPsciConduit;
 

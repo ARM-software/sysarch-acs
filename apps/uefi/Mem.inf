@@ -1,5 +1,5 @@
 ## @file
-#  Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+#  Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
 #  SPDX-License-Identifier : Apache-2.0
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,11 @@
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 0.1
   ENTRY_POINT                    = ShellCEntryLib
+  DEFINE ACS_CORE_INCLUDE_FLAGS      = -I${ACS_PATH}/val -I${ACS_PATH}/val/include -I${ACS_PATH}/pal/include
+  DEFINE ACS_GIC_INCLUDE_FLAGS       = -I${ACS_PATH}/val/driver/gic -I${ACS_PATH}/val/driver/gic/its -I${ACS_PATH}/val/driver/gic/v2 -I${ACS_PATH}/val/driver/gic/v3
+  DEFINE ACS_PCIE_INCLUDE_FLAGS      = -I${ACS_PATH}/val/driver/pcie
+  DEFINE MEM_TEST_KVM_INCLUDE_FLAGS  = -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib/arm64 -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib
+  DEFINE MEM_TEST_DEFINE_FLAGS       = -DNOSWP -DBSA_ACS -DENABLE_MEMTEST -DTARGET_UEFI
 
 #
 #  VALID_ARCHITECTURES           = AARCH64
@@ -210,4 +215,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   = -g -gdwarf-4 -I${ACS_PATH}/val -mstrict-align -march=armv8.2-a -O0 -DNOSWP -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib/arm64 -I${WORKSPACE}/ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests/lib -DBSA_ACS -DENABLE_MEMTEST -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   = -g -gdwarf-4 $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -mstrict-align -march=armv8.2-a -O0 $(MEM_TEST_KVM_INCLUDE_FLAGS) $(MEM_TEST_DEFINE_FLAGS)

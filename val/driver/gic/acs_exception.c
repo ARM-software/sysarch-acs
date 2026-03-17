@@ -17,9 +17,9 @@
 
 #include "acs_exception.h"
 #include "gic.h"
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_pe.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_pe.h"
 
 typedef void (*bsa_fp) (uint64_t, void *);
 bsa_fp g_esr_handler[4];

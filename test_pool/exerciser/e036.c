@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,16 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/acs_pgt.h"
-#include "val/include/acs_iovirt.h"
-#include "val/include/acs_pcie_enumeration.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_memory.h"
-#include "val/include/acs_exerciser.h"
-#include "val/include/acs_pcie.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_smmu.h"
+#include "acs_pgt.h"
+#include "acs_iovirt.h"
+#include "acs_pcie_enumeration.h"
+#include "acs_pcie.h"
+#include "acs_memory.h"
+#include "acs_exerciser.h"
+#include "acs_pcie.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 36)
 #define TEST_RULE  "RI_SMU_3"

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,24 +15,24 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/val_interface.h"
-#include "include/pal_interface.h"
-#include "include/acs_pcie.h"
-#include "include/acs_exerciser.h"
-#include "include/acs_memory.h"
-#include "include/acs_peripherals.h"
-#include "include/acs_smmu.h"
-#include "include/acs_timer.h"
-#include "include/acs_wd.h"
-#include "include/acs_gic_support.h"
-#include "include/acs_common.h"
-#include "include/acs_smmu.h"
-#include "include/acs_wakeup.h"
-#include "include/acs_std_smc.h"
-#include "include/acs_gic.h"
-#include "driver/gic/gic.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "val_interface.h"
+#include "pal_interface.h"
+#include "acs_pcie.h"
+#include "acs_exerciser.h"
+#include "acs_memory.h"
+#include "acs_peripherals.h"
+#include "acs_smmu.h"
+#include "acs_timer.h"
+#include "acs_wd.h"
+#include "acs_gic_support.h"
+#include "acs_common.h"
+#include "acs_smmu.h"
+#include "acs_wakeup.h"
+#include "acs_std_smc.h"
+#include "acs_gic.h"
+#include "gic.h"
 
 extern PCIE_INFO_TABLE *g_pcie_info_table;
 extern pcie_device_bdf_table *g_pcie_bdf_table;

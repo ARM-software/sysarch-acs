@@ -17,13 +17,13 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_common.h"
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/pal_interface.h"
-#include "include/acs_std_smc.h"
-#include "include/acs_memory.h"
+#include "val_interface.h"
+#include "acs_common.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "pal_interface.h"
+#include "acs_std_smc.h"
+#include "acs_memory.h"
 
 /* g_drtm_features structure is a global structure */
 DRTM_ACS_FEATURES g_drtm_features;

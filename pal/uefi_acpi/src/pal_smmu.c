@@ -16,7 +16,7 @@
 **/
 
 /* This is a place-holder file. Need to be implemented if needed in later releases */
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 /**
   @brief   This API converts physical address to IO virtual address

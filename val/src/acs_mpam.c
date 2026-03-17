@@ -15,13 +15,13 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_val.h"
-#include "include/acs_mmu.h"
-#include "include/acs_common.h"
-#include "include/acs_mpam.h"
-#include "include/acs_memory.h"
-#include "include/acs_mpam_reg.h"
+#include "val_interface.h"
+#include "acs_val.h"
+#include "acs_mmu.h"
+#include "acs_common.h"
+#include "acs_mpam.h"
+#include "acs_memory.h"
+#include "acs_mpam_reg.h"
 
 static MPAM_INFO_TABLE *g_mpam_info_table;
 static SRAT_INFO_TABLE *g_srat_info_table;

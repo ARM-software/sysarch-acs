@@ -15,8 +15,8 @@
  * limitations under the License.
  **/
 #include "smmu_v3.h"
-#include "include/acs_smmu.h"
-#include "include/val_interface.h"
+#include "acs_smmu.h"
+#include "val_interface.h"
 
 smmu_dev_t *g_smmu;
 uint32_t    g_smmu_index;

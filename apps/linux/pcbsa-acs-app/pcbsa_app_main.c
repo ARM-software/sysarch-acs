@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "include/pcbsa_app.h"
+#include "pcbsa_app.h"
 #include <getopt.h>
 
 int  g_pcbsa_level = 1;

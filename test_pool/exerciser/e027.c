@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,16 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_pcie_enumeration.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_pcie_spec.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/acs_iovirt.h"
-#include "val/include/acs_memory.h"
-#include "val/include/acs_exerciser.h"
+#include "acs_val.h"
+#include "val_interface.h"
+#include "acs_pcie_enumeration.h"
+#include "acs_pcie.h"
+#include "acs_pcie_spec.h"
+#include "acs_pe.h"
+#include "acs_smmu.h"
+#include "acs_iovirt.h"
+#include "acs_memory.h"
+#include "acs_exerciser.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 27)
 #define TEST_DESC  "DPC trig when RP-PIO unimplemented    "

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 
 
 #include "acs_gic_its.h"
-#include "include/acs_gic_support.h"
+#include "acs_gic_support.h"
 
 uint64_t ArmReadMpidr(void);
 

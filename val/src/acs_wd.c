@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_timer_support.h"
-#include "include/acs_wd.h"
-#include "include/acs_common.h"
+#include "acs_val.h"
+#include "acs_timer_support.h"
+#include "acs_wd.h"
+#include "acs_common.h"
 
 
 WD_INFO_TABLE  *g_wd_info_table;

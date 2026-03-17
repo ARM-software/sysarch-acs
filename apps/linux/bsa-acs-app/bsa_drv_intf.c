@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021, 2023, 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018,2021,2023,2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "include/bsa_drv_intf.h"
+#include "bsa_drv_intf.h"
 
 extern bool g_pcie_skip_dp_nic_ms;
 extern uint32_t g_level_filter_mode;

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021,2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
+#include "acs_val.h"
+#include "acs_pe.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  20)
 #define TEST_RULE  "B_PE_21"

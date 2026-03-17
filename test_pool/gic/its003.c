@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2021-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2021-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-#include "val/include/acs_val.h"
-#include "val/include/acs_iovirt.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_iovirt.h"
+#include "acs_pcie.h"
+#include "acs_memory.h"
 
 #define TEST_NUM   (ACS_GIC_ITS_TEST_NUM_BASE + 3)
 #define TEST_RULE  "ITS_DEV_2"

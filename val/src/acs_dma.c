@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_dma.h"
-#include "include/pal_interface.h"
-#include "include/val_interface.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_dma.h"
+#include "pal_interface.h"
+#include "val_interface.h"
 
 DMA_INFO_TABLE  *g_dma_info_table;
 

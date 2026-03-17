@@ -26,10 +26,10 @@
 #include <Protocol/HardwareInterrupt.h>
 #include <Protocol/HardwareInterrupt2.h>
 
-#include "include/pal_uefi.h"
-#include "include/bsa_pcie_enum.h"
-#include "include/pal_dt.h"
-#include "include/pal_dt_spec.h"
+#include "pal_uefi.h"
+#include "bsa_pcie_enum.h"
+#include "pal_dt.h"
+#include "pal_dt_spec.h"
 
 static char gicv3_dt_arr[][GIC_COMPATIBLE_STR_LEN] = {
     "arm,gic-v3",

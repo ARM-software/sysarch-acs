@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/val_interface.h"
-#include "include/acs_tpm.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "val_interface.h"
+#include "acs_tpm.h"
 
 
 #ifndef TARGET_LINUX

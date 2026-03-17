@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2021,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2021,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,9 @@
  * limitations under the License.
  **/
 
-#include "val/include/val_interface.h"
-#include "val/include/acs_val.h"
-#include "val/include/acs_gic.h"
+#include "val_interface.h"
+#include "acs_val.h"
+#include "acs_gic.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 4)
 #define TEST_RULE  "B_GIC_04"

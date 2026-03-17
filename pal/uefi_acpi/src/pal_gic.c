@@ -25,8 +25,8 @@
 #include <Protocol/HardwareInterrupt.h>
 #include <Protocol/HardwareInterrupt2.h>
 
-#include "include/pal_uefi.h"
-#include "include/pcie_enum.h"
+#include "pal_uefi.h"
+#include "pcie_enum.h"
 
 static EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *gMadtHdr;
 

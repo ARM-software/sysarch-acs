@@ -20,9 +20,9 @@
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
 
-#include "include/pal_uefi.h"
-#include "../include/platform_override.h"
-#include "include/pal_pmu.h"
+#include "pal_uefi.h"
+#include "platform_override.h"
+#include "pal_pmu.h"
 
 
 #define ADD_PTR(t, p, l) ((t*)((UINT8*)p + l))

@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_iovirt.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/acs_mmu.h"
-#include "val/include/acs_pcie.h"
+#include "acs_val.h"
+#include "val_interface.h"
+#include "acs_iovirt.h"
+#include "acs_smmu.h"
+#include "acs_mmu.h"
+#include "acs_pcie.h"
 
 #define TEST_NUM     (ACS_SMMU_TEST_NUM_BASE + 21)
 #define TEST_RULE    "S_L7SM_03"

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2018-2019,2021-2022,2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2018-2019,2021-2022,2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,10 +24,10 @@
 #include "Include/IndustryStandard/Acpi61.h"
 
 #include <libfdt.h>
-#include "../include/platform_override.h"
-#include "include/pal_uefi.h"
-#include "include/pal_dt.h"
-#include "include/pal_dt_spec.h"
+#include "platform_override.h"
+#include "pal_uefi.h"
+#include "pal_dt.h"
+#include "pal_dt_spec.h"
 
 
 static EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *gGtdtHdr;

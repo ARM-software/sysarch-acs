@@ -15,14 +15,14 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_peripherals.h"
-#include "include/acs_memory.h"
-#include "include/acs_common.h"
-#include "include/acs_mmu.h"
-#include "include/acs_pe.h"
-#include "include/acs_pgt.h"
-#include "include/val_interface.h"
+#include "acs_val.h"
+#include "acs_peripherals.h"
+#include "acs_memory.h"
+#include "acs_common.h"
+#include "acs_mmu.h"
+#include "acs_pe.h"
+#include "acs_pgt.h"
+#include "val_interface.h"
 
 MEMORY_INFO_TABLE  *g_memory_info_table;
 extern IOREMMAP_LIST *ioremmap_list;

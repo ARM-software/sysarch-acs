@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_common.h"
-#include "include/pal_interface.h"
-#include "include/acs_std_smc.h"
-#include "include/acs_cfg.h"
+#include "val_interface.h"
+#include "acs_common.h"
+#include "pal_interface.h"
+#include "acs_std_smc.h"
+#include "acs_cfg.h"
 
 /**
   @brief   This API will execute all MPAM Error tests

@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_gic.h"
-#include "val/include/acs_memory.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_pcie.h"
+#include "acs_gic.h"
+#include "acs_memory.h"
+#include "val_interface.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 6)
 #define TEST_RULE  "PCI_LI_01"

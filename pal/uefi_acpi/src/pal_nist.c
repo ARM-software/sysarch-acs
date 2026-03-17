@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 /**
   @brief   This API generates a 32 bit random number.

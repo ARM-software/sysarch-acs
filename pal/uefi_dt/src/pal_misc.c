@@ -23,7 +23,7 @@
 #include  <Protocol/Cpu.h>
 
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 UINT8   *gSharedMemory;
 

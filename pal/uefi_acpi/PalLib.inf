@@ -1,5 +1,5 @@
 ## @file
-# Copyright (c) 2024-2025 Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2024-2026 Arm Limited or its affiliates. All rights reserved.
 #  SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 1.0
   LIBRARY_CLASS                  = PalLib|UEFI_APPLICATION UEFI_DRIVER
+  DEFINE PAL_UEFI_ACPI_INCLUDE_FLAGS = -I${ACS_PATH}/pal/include -I${ACS_PATH}/pal/uefi_acpi/include -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
 [Sources.common]
   src/AArch64/ArmSmc.S
   src/AArch64/AcsTestInfra.S
@@ -81,4 +82,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   =  -O0 -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
+  GCC:*_*_*_CC_FLAGS   =  -O0 $(PAL_UEFI_ACPI_INCLUDE_FLAGS)

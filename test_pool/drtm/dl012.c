@@ -15,8 +15,8 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_memory.h"
 
 #define TEST_NUM   (ACS_DRTM_DL_TEST_NUM_BASE  +  12)
 #define TEST_RULE  "R45242"

@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_smmu.h"
-#include "include/acs_iovirt.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_smmu.h"
+#include "acs_iovirt.h"
 
 /**
   @brief  This API reads 32-bit data from a register of an SMMU controller

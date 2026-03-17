@@ -90,7 +90,7 @@
 #endif //TARGET_LINUX
 
 #ifdef TARGET_UEFI
-  #include "../../pal/include/platform_override.h"
+  #include "platform_override.h"
   typedef INT8    int8_t;
   typedef INT32   int32_t;
   typedef INT64   int64_t;

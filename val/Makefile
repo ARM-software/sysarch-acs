@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2016-2021, 2025, Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2016-2021, 2025-2026, Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,30 @@ export ARCH ?= arm64
 #since we have copied the files locally
 ACS_DIR ?= .
 
+PAL_ROOT          := $(ACS_DIR)/../pal
+PAL_COMMON_INC    := $(PAL_ROOT)/include
+PAL_UEFI_ACPI_INC := $(PAL_ROOT)/uefi_acpi/include
+PAL_UEFI_DT_INC   := $(PAL_ROOT)/uefi_dt/include
+
 VAL_SRC = $(ACS_DIR)/src
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR)/include -I$(PWD)/$(ACS_DIR) -DTARGET_LINUX -Wall -Werror -DCOMPILE_RB_EXE
+ccflags-y = \
+    -I$(PWD)/$(ACS_DIR)/include \
+    -I$(PWD)/$(ACS_DIR) \
+    -DTARGET_LINUX \
+    -Wall \
+    -Werror \
+    -DCOMPILE_RB_EXE
+
+ccflags-y += \
+    -I$(PWD)/$(PAL_COMMON_INC)
+
+ccflags-y += \
+    -I$(PWD)/$(ACS_DIR)/driver/gic \
+    -I$(PWD)/$(ACS_DIR)/driver/gic/its \
+    -I$(PWD)/$(ACS_DIR)/driver/gic/v2 \
+    -I$(PWD)/$(ACS_DIR)/driver/gic/v3 \
+    -I$(PWD)/$(ACS_DIR)/driver/pcie
 
 ifeq ($(ACS), bsa)
 obj-m += bsa_acs_val.o

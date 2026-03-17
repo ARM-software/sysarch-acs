@@ -29,6 +29,12 @@ list(APPEND TEST_INCLUDE
     ${ROOT_DIR}/
     ${ROOT_DIR}/val/include/
     ${ROOT_DIR}/val/src/
+    ${ROOT_DIR}/val/driver/gic/
+    ${ROOT_DIR}/val/driver/gic/v2/
+    ${ROOT_DIR}/val/driver/gic/v3/
+    ${ROOT_DIR}/val/driver/gic/its/
+    ${ROOT_DIR}/val/driver/smmu_v3/
+    ${ROOT_DIR}/val/driver/pcie/
     ${ROOT_DIR}/pal/baremetal/base/include/
     ${ROOT_DIR}/pal/baremetal/base/src/
     ${ROOT_DIR}/pal/baremetal/target/${TARGET}/include/

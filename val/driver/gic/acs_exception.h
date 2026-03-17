@@ -15,8 +15,8 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
+#include "acs_val.h"
+#include "acs_common.h"
 
 #define NUM_ARM_MAX_INTERRUPT 16384
 #define ICC_IAR1_EL1    S3_0_C12_C12_0

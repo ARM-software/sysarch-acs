@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/acs_pcie.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_smmu.h"
+#include "acs_pcie.h"
 
 #define TEST_NUM   (ACS_SMMU_TEST_NUM_BASE + 5)
 #define TEST_RULE  "B_SMMU_16"

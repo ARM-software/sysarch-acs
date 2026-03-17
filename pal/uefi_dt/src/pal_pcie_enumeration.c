@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2019,2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2019,2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@
 #include "Include/IndustryStandard/Pci22.h"
 #include <Protocol/PciIo.h>
 
-#include "include/bsa_pcie_enum.h"
-#include "include/pal_uefi.h"
+#include "bsa_pcie_enum.h"
+#include "pal_uefi.h"
 
 
 /**

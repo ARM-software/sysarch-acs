@@ -27,9 +27,9 @@
 #include "Include/IndustryStandard/Acpi61.h"
 #include "Include/IndustryStandard/SerialPortConsoleRedirectionTable.h"
 
-#include "include/pal_uefi.h"
-#include "include/pcie_enum.h"
-#include "../include/platform_override.h"
+#include "pal_uefi.h"
+#include "pcie_enum.h"
+#include "platform_override.h"
 
 #define USB_CLASSCODE   0x0C0300
 #define SATA_CLASSCODE  0x010600

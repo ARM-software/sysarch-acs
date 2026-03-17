@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_mpam.h"
-#include "include/acs_mpam_reg.h"
-#include "include/acs_memory.h"
-#include "include/val_interface.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_mpam.h"
+#include "acs_mpam_reg.h"
+#include "acs_memory.h"
+#include "val_interface.h"
 
 /**
   @brief   This API resets the MPAMF_ESR.errcode bits. This would be used to clear

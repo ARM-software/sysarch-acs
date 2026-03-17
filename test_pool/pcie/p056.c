@@ -15,8 +15,8 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "val_interface.h"
 
 #include "p056_data.h"
 

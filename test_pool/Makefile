@@ -1,5 +1,5 @@
 ## @file
- # Copyright (c) 2016-2021, 2023,2025  Arm Limited or its affiliates. All rights reserved.
+ # Copyright (c) 2016-2021, 2023,2025-2026  Arm Limited or its affiliates. All rights reserved.
  # SPDX-License-Identifier : Apache-2.0
  #
  # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,12 @@ ACS_DIR ?= .
 TEST_POOL = $(ACS_DIR)/
 $(info ACS is $(ACS))
 
+PAL_ROOT          := $(ACS_DIR)/../pal
+PAL_COMMON_INC    := $(PAL_ROOT)/include
+PAL_UEFI_ACPI_INC := $(PAL_ROOT)/uefi_acpi/include
+PAL_UEFI_DT_INC   := $(PAL_ROOT)/uefi_dt/include
+VAL_ROOT          := $(ACS_DIR)/../val
+
 ifeq ($(ACS), bsa)
     obj-m += bsa_acs_test.o
     bsa_acs_test-objs += $(TEST_POOL)/pcie/p001.o \
@@ -35,7 +41,7 @@ ifeq ($(ACS), bsa)
                      $(TEST_POOL)/pcie/p097.o \
                      $(TEST_POOL)/pcie/p105.o \
                      $(TEST_POOL)/peripherals/d004.o \
-                     $(TEST_POOL)/memory_map/m004.o 
+                     $(TEST_POOL)/memory_map/m004.o
 else  ifeq ($(ACS), sbsa)
     obj-m += sbsa_acs_test.o
     sbsa_acs_test-objs += $(TEST_POOL)/pcie/p001.o \
@@ -56,7 +62,24 @@ else ifeq ($(ACS), pcbsa)
 
 endif
 
-ccflags-y=-I$(PWD)/$(ACS_DIR)/.. -I$(PWD)/$(ACS_DIR)/val/ -I$(PWD)/$(ACS_DIR)/ -DTARGET_LINUX -Wall -Werror
+ccflags-y = \
+    -I$(PWD)/$(ACS_DIR)/.. \
+    -I$(PWD)/$(VAL_ROOT) \
+    -I$(PWD)/$(VAL_ROOT)/include \
+    -I$(PWD)/$(ACS_DIR)/ \
+    -DTARGET_LINUX \
+    -Wall \
+    -Werror
+
+ccflags-y += \
+    -I$(PWD)/$(PAL_COMMON_INC)
+
+ccflags-y += \
+    -I$(PWD)/$(VAL_ROOT)/driver/gic \
+    -I$(PWD)/$(VAL_ROOT)/driver/gic/its \
+    -I$(PWD)/$(VAL_ROOT)/driver/gic/v2 \
+    -I$(PWD)/$(VAL_ROOT)/driver/gic/v3 \
+    -I$(PWD)/$(VAL_ROOT)/driver/pcie
 
 ifeq ($(ACS), pcbsa)
 ccflags-y += -DPC_BSA

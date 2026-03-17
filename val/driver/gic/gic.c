@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
+#include "acs_val.h"
+#include "acs_pe.h"
 #include "gic_v3.h"
 #include "gic_v2.h"
-#include "../gic.h"
+#include "gic.h"
 
 /**
   @brief  Initializes the GIC

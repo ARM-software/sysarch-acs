@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include "include/rule_based_execution_enum.h"
+#include "rule_based_execution_enum.h"
 
 /* Following array provided rule string to rule enum map */
 char *rule_id_string[RULE_ID_SENTINEL] = {

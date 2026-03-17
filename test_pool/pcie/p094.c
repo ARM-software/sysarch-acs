@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_pcie.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_pcie.h"
+#include "acs_memory.h"
 
 extern bool g_pcie_skip_dp_nic_ms;
 

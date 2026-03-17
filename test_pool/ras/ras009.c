@@ -15,14 +15,14 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_common.h"
-#include "val/include/acs_pe.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_memory.h"
-#include "val/include/acs_mpam.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_ras.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_pe.h"
+#include "val_interface.h"
+#include "acs_memory.h"
+#include "acs_mpam.h"
+#include "acs_pe.h"
+#include "acs_ras.h"
 
 #define TEST_NUM   (ACS_RAS_TEST_NUM_BASE + 9)
 #define TEST_RULE  "S_L7RAS_1"

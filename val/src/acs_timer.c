@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/acs_mmu.h"
-#include "include/acs_timer_support.h"
-#include "include/acs_timer.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_mmu.h"
+#include "acs_timer_support.h"
+#include "acs_timer.h"
 
 TIMER_INFO_TABLE  *g_timer_info_table;
 

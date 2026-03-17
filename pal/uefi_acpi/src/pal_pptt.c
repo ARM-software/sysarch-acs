@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
 #include <Protocol/AcpiTable.h>
 #include <Protocol/Cpu.h>
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 UINT64 pal_get_pptt_ptr(void);
 #define ADD_PTR(t, p, l) ((t *)((UINT8 *)p + l))

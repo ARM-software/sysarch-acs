@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018, 2021, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021, 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 **/
 #include <Base.h>
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 #define  REG_COUNT_X5_X17 13
 

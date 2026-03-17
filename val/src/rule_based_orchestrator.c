@@ -15,11 +15,11 @@
  * limitations under the License.
 **/
 
-#include "include/rule_based_execution.h"
-#include "include/acs_common.h"
-#include "include/val_interface.h"
-#include "include/acs_pe.h"
-#include "include/acs_memory.h"
+#include "rule_based_execution.h"
+#include "acs_common.h"
+#include "val_interface.h"
+#include "acs_pe.h"
+#include "acs_memory.h"
 
 extern uint8_t g_current_pal;
 extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];

@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_pgt.h"
-#include "include/acs_pe.h"
-#include "include/acs_memory.h"
-#include "include/acs_mmu.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_pgt.h"
+#include "acs_pe.h"
+#include "acs_memory.h"
+#include "acs_mmu.h"
 
 #define get_min(a, b) ((a) < (b))?(a):(b)
 

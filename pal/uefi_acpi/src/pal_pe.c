@@ -25,7 +25,7 @@
 #include "Include/IndustryStandard/SmBios.h"
 #include <Protocol/Smbios.h>
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 static   EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *gMadtHdr;
 UINT8   *gSecondaryPeStack;

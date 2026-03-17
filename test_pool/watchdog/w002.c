@@ -16,11 +16,11 @@
  **/
 
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_gic.h"
-#include "val/driver/gic/v3/gic_v3.h"
-#include "val/include/acs_wd.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_gic.h"
+#include "gic_v3.h"
+#include "acs_wd.h"
+#include "val_interface.h"
 
 #define TEST_NUM   (ACS_WD_TEST_NUM_BASE + 2)
 #ifdef PC_BSA

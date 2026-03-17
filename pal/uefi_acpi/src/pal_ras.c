@@ -21,9 +21,9 @@
 #include <Library/BaseMemoryLib.h>
 #include "Include/IndustryStandard/ArmErrorSourceTable.h"
 
-#include "include/pal_uefi.h"
-#include "include/pal_ras.h"
-#include "../include/platform_override.h"
+#include "pal_uefi.h"
+#include "pal_ras.h"
+#include "platform_override.h"
 
 #define ADD_PTR(t, p, l) ((t*)((UINT8*)p + l))
 

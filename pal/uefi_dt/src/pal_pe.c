@@ -26,9 +26,9 @@
 #include "Include/IndustryStandard/SmBios.h"
 #include <Protocol/Smbios.h>
 
-#include "include/pal_uefi.h"
-#include "include/pal_dt.h"
-#include "include/pal_dt_spec.h"
+#include "pal_uefi.h"
+#include "pal_dt.h"
+#include "pal_dt_spec.h"
 
 UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;

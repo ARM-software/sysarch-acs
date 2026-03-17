@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_common.h"
-#include "include/acs_iovirt.h"
-#include "include/acs_smmu.h"
-#include "include/acs_mmu.h"
+#include "acs_val.h"
+#include "acs_common.h"
+#include "acs_iovirt.h"
+#include "acs_smmu.h"
+#include "acs_mmu.h"
 
 IOVIRT_INFO_TABLE *g_iovirt_info_table;
 uint32_t g_num_smmus;

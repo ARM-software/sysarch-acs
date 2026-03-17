@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_exerciser.h"
-#include "include/acs_pcie.h"
-#include "include/acs_smmu.h"
-#include "include/acs_iovirt.h"
-#include "include/acs_memory.h"
+#include "acs_val.h"
+#include "acs_exerciser.h"
+#include "acs_pcie.h"
+#include "acs_smmu.h"
+#include "acs_iovirt.h"
+#include "acs_memory.h"
 
 EXERCISER_INFO_TABLE g_exerciser_info_table;
 

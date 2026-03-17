@@ -18,7 +18,7 @@
 #ifndef __PAL_UEFI_H__
 #define __PAL_UEFI_H__
 
-#include "../../include/pal_status.h"
+#include "pal_status.h"
 
 extern VOID* g_acs_log_file_handle;
 extern UINT32 g_print_level;

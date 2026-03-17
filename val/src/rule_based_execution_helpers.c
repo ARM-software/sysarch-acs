@@ -15,8 +15,8 @@
  * limitations under the License.
 **/
 
-#include "include/rule_based_execution.h"
-#include "include/val_interface.h"
+#include "rule_based_execution.h"
+#include "val_interface.h"
 
 extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
 extern char *rule_id_string[RULE_ID_SENTINEL];

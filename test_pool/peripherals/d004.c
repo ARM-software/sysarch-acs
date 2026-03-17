@@ -15,11 +15,11 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_smmu.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_dma.h"
-#include "val/include/acs_peripherals.h"
+#include "acs_val.h"
+#include "acs_smmu.h"
+#include "val_interface.h"
+#include "acs_dma.h"
+#include "acs_peripherals.h"
 
 
 #define TEST_NUM   (ACS_PER_TEST_NUM_BASE + 4)

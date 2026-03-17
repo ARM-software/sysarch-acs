@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include "include/pal_uefi.h"
+#include "pal_uefi.h"
 
 /* This is a place-holder file. Need to be implemented if needed in later releases */
 

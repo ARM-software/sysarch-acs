@@ -70,6 +70,7 @@ function(acs_add_val_library)
         ${ROOT_DIR}/val/driver/gic/its/
         ${ROOT_DIR}/val/driver/gic/v2/
         ${ROOT_DIR}/val/driver/gic/v3/
+        ${ROOT_DIR}/val/driver/pcie/
         ${ROOT_DIR}/apps/baremetal/
         ${ROOT_DIR}/pal/baremetal/target/${TARGET}/include/
     )

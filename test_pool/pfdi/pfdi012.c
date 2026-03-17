@@ -15,10 +15,10 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/val_interface.h"
-#include "val/include/acs_pfdi.h"
-#include "val/include/acs_memory.h"
+#include "acs_val.h"
+#include "val_interface.h"
+#include "acs_pfdi.h"
+#include "acs_memory.h"
 #include <stdint.h>
 
 /* Test runs on UEFI Env */

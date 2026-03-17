@@ -15,13 +15,13 @@
  * limitations under the License.
  **/
 
-#include "include/val_interface.h"
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/acs_common.h"
-#include "include/acs_pmu.h"
-#include "include/acs_mmu.h"
-#include "include/acs_pmu_reg.h"
+#include "val_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_common.h"
+#include "acs_pmu.h"
+#include "acs_mmu.h"
+#include "acs_pmu_reg.h"
 
 PMU_INFO_TABLE  *g_pmu_info_table;
 

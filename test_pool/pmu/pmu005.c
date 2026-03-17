@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +15,14 @@
  * limitations under the License.
  **/
 
- #include "val/include/acs_val.h"
- #include "val/include/acs_pe.h"
- #include "val/include/acs_common.h"
- #include "val/include/acs_pmu.h"
- #include "val/include/acs_memory.h"
- #include "val/include/acs_mpam.h"
- #include "val/include/val_interface.h"
- #include "val/include/acs_pcie.h"
+ #include "acs_val.h"
+ #include "acs_pe.h"
+ #include "acs_common.h"
+ #include "acs_pmu.h"
+ #include "acs_memory.h"
+ #include "acs_mpam.h"
+ #include "val_interface.h"
+ #include "acs_pcie.h"
 
  #define BW_MON_COUNT 6
  #define LAT_MON_COUNT 4

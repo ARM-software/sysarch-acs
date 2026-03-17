@@ -15,12 +15,12 @@
  * limitations under the License.
  **/
 
-#include "include/acs_val.h"
-#include "include/acs_pe.h"
-#include "include/acs_common.h"
-#include "driver/gic/acs_exception.h"
-#include "include/pal_interface.h"
-#include "include/val_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_common.h"
+#include "acs_exception.h"
+#include "pal_interface.h"
+#include "val_interface.h"
 
 uint32_t g_override_skip;
 

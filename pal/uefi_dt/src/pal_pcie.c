@@ -31,11 +31,11 @@
 #include <Protocol/PciRootBridgeIo.h>
 
 #include <libfdt.h>
-#include "../include/platform_override.h"
-#include "include/pal_uefi.h"
-#include "include/bsa_pcie_enum.h"
-#include "include/pal_dt.h"
-#include "include/pal_dt_spec.h"
+#include "platform_override.h"
+#include "pal_uefi.h"
+#include "bsa_pcie_enum.h"
+#include "pal_dt.h"
+#include "pal_dt_spec.h"
 
 static char pci_dt_arr[][PCI_COMPATIBLE_STR_LEN] = {
        "pci-host-ecam-generic"

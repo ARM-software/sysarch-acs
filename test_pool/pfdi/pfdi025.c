@@ -15,9 +15,9 @@
  * limitations under the License.
  **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_memory.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_memory.h"
+#include "val_interface.h"
 
 #define TEST_NUM   (ACS_PFDI_TEST_NUM_BASE + 25)
 #define TEST_RULE  "R0172"

@@ -17,7 +17,7 @@
 
 /* This file holds rule lookups for various ACS specification */
 
-#include "include/rule_based_execution.h"
+#include "rule_based_execution.h"
 
 /* PC-BSA rule checklist based on Arm PC-BSA 1.0 specification */
 const pcbsa_rule_entry_t pcbsa_rule_list[] = {
