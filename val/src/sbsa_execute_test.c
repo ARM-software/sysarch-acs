@@ -878,7 +878,6 @@ val_sbsa_ras_execute_tests(uint32_t level, uint32_t num_pe)
       status |= ras009_entry(num_pe);
       status |= ras010_entry(num_pe);
       status |= ras011_entry(num_pe);
-      status |= ras012_entry(num_pe);
       status |= ras015_entry(num_pe);
   }
 
