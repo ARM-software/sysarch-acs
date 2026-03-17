@@ -161,7 +161,7 @@ val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index)
       return MPAM_INVALID_INFO;
   }
 
-  if (msc_index > g_mpam_info_table->msc_count) {
+  if (msc_index >= g_mpam_info_table->msc_count) {
       val_print(ACS_PRINT_ERR, "Invalid MSC index = 0x%lx ", msc_index);
       return 0;
   }
@@ -308,7 +308,7 @@ val_srat_get_prox_domain(uint64_t mem_range_index)
       return SRAT_INVALID_INFO;
   }
 
-  if (mem_range_index > g_srat_info_table->num_of_mem_ranges) {
+  if (mem_range_index >= g_srat_info_table->num_of_mem_ranges) {
       val_print(ACS_PRINT_WARN, "\n   Invalid index", 0);
       return SRAT_INVALID_INFO;
   }
@@ -762,6 +762,8 @@ val_mpam_memory_configure_mbwumon(uint32_t msc_index)
     data = BITFIELD_SET(MBWU_CTL_MATCH_PARTID, 1) | BITFIELD_SET(MBWU_CTL_MATCH_PMG, 1);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data);
 
+    data = 0;
+
     /* Check if MPAMF_MBWUMON_IDR supports RW bandwidth selection */
     if (BITFIELD_READ(MBWUMON_IDR_HAS_RWBW, val_mpam_mmr_read64(msc_index, REG_MPAMF_MBWUMON_IDR)))
     {
@@ -771,7 +773,7 @@ val_mpam_memory_configure_mbwumon(uint32_t msc_index)
     }
 
     /* configure monitor filter reg for default partid and default pmg */
-    data = BITFIELD_SET(MBWU_FLT_PARTID, DEFAULT_PARTID) | BITFIELD_SET(MBWU_FLT_PMG, DEFAULT_PMG);
+    data |= BITFIELD_SET(MBWU_FLT_PARTID, DEFAULT_PARTID) | BITFIELD_SET(MBWU_FLT_PMG, DEFAULT_PMG);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_FLT, data);
 
     /* reset the MBWU monitor count */
@@ -791,8 +793,12 @@ val_mpam_memory_configure_mbwumon(uint32_t msc_index)
 void
 val_mpam_memory_mbwumon_enable(uint32_t msc_index)
 {
+    uint32_t data;
+
     /* enable the monitor instance to collect information according to the configuration */
-    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, BITFIELD_SET(MBWU_CTL_EN, 1));
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+    data = BITFIELD_WRITE(data, MBWU_CTL_EN, 1);
+    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data);
 }
 
 /**
@@ -808,8 +814,12 @@ val_mpam_memory_mbwumon_enable(uint32_t msc_index)
 void
 val_mpam_memory_mbwumon_disable(uint32_t msc_index)
 {
+    uint32_t data;
+
     /* disable the monitor */
-    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, BITFIELD_SET(MBWU_CTL_EN, 0));
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+    data = BITFIELD_WRITE(data, MBWU_CTL_EN, 0);
+    val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data);
 }
 
 /**
@@ -1184,7 +1194,7 @@ val_mpam_configure_cpor(uint32_t msc_index, uint16_t partid, uint32_t cpbm_perce
 
     /* Select PARTID */
     data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure CPBM register to have a 1 in cpbm_percentage
@@ -1221,14 +1231,18 @@ void val_mpam_configure_ccap(uint32_t msc_index, uint16_t partid,
                                                  uint8_t softlim, uint32_t ccap_percentage)
 {
 
-    uint8_t num_fractional_bits;
+    uint8_t  num_fractional_bits;
     uint16_t fixed_point_fraction;
+    uint32_t data;
 
     num_fractional_bits = val_mpam_get_cmax_wd(msc_index);
     fixed_point_fraction = ((1 << num_fractional_bits) * ccap_percentage / 100) - 1;
 
     /* Select the PARTID to configure capacity partition parameters */
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure the CMAX register for the max capacity.
@@ -1658,6 +1672,7 @@ val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t data)
     val_print(ACS_PRINT_ERR,
               "\n    Invalid interface type reported for MPAM MSC index = %x", msc_index);
   }
+  val_mem_issue_dsb();
 }
 
 /**
