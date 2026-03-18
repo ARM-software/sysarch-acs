@@ -109,7 +109,7 @@ uint32_t val_exerciser_create_info_table(void)
       }
   }
   g_exerciser_info_table.num_exerciser = num_exerciser_info;
-  val_print(ACS_PRINT_TEST, "\n     PCIE_INFO: Number of exerciser cards : %4d \n",
+  val_print(ACS_PRINT_TEST, "\n     PCIE_INFO: Number of exerciser cards  %4d \n",
                                                              g_exerciser_info_table.num_exerciser);
   return 0;
 }
