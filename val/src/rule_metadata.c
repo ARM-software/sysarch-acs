@@ -879,6 +879,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 8,
         },
     /* PMU */
+        [PMU_PE_01] = {
+            .test_entry_id    = PE040_ENTRY,
+            .module_id        = PMU,
+            .rule_desc        = "Check Performance Monitors Extension",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  40,
+        },
         [PMU_PE_02] = {
             .test_entry_id    = PMU001_ENTRY,
             .module_id        = PMU,
@@ -4161,7 +4169,7 @@ RULE_ID_e sys_ras_rule_list[] = {
 /* S_PCIe_10 */
 RULE_ID_e s_pcie_10_rule_list[]   = {B_PCIe_10, B_PCIe_11, RULE_ID_SENTINEL};
 RULE_ID_e s_l7pmu_rule_list[]   = {
-                                    PMU_PE_02, PMU_PE_03, PMU_SYS_1,
+                                    PMU_PE_01, PMU_PE_02, PMU_PE_03, PMU_SYS_1,
                                     PMU_SYS_2, PMU_SYS_5, PMU_SYS_6, PMU_MEM_1,
                                     PMU_BM_1, PMU_BM_2,  PMU_EV_11, PMU_SPE,
                                     /* Not covered or Not implemented*/

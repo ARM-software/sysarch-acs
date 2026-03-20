@@ -2720,11 +2720,11 @@ The checklist provides information about:
       <td rowspan="26">L7</td>
       <td rowspan="26">S_L7PMU</td>
       <td>PMU_PE_01</td>
-      <td>Not covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>40</td>
+      <td>Check Performance Monitors Extension</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3624,6 +3624,7 @@ The checklist provides information about:
 - **RI_ Added:** RI_PWR_1
 - B_PCIe_10 and B_PCIe_11 mapped to S_PCIe_10
 - Removed Test ID 1212 (Pseudo Fault Injection Test) for rule SYS_RAS_2
+- Updated PMU_PE_01
 
 ### v25.12_SBSA_8.0.0
 - Updated checklist as per SBSA 8.0 specification.

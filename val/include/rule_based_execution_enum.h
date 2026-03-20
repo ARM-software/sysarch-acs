@@ -166,7 +166,6 @@ typedef enum {
     P_L1MM_01,
 
     /* PMU rules */
-    PMU_PE_01,
     PMU_EV_01,
     PMU_EV_02,
     PMU_EV_03,
@@ -181,6 +180,7 @@ typedef enum {
     PMU_BM_4,
     PMU_SYS_7,
     PMU_SEC_1,
+    PMU_PE_01,
     PMU_PE_02,
     PMU_PE_03,
     PMU_SYS_1,
