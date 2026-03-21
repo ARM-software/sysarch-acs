@@ -1334,7 +1334,7 @@ uint32_t val_pcie_bitfield_check(uint32_t bdf, uint64_t *bitfield_entry)
           id = bf_entry->ecap_id;
           break;
       default:
-          val_print(ACS_PRINT_ERR, "\n       Invalid reg_type : 0x%x  ", bf_entry->reg_type);
+          val_print(ACS_PRINT_ERR, "\n       Invalid reg_type  0x%x  ", bf_entry->reg_type);
           return 1;
   }
 
@@ -1358,9 +1358,9 @@ uint32_t val_pcie_bitfield_check(uint32_t bdf, uint64_t *bitfield_entry)
   /* Check if bit-field value is proper */
   if (bf_value != bf_entry->cfg_value)
   {
-      val_print(ACS_PRINT_ERR, "\n       BDF 0x%x : ", bdf);
+      val_print(ACS_PRINT_ERR, "\n       BDF 0x%x  ", bdf);
       val_print(ACS_PRINT_ERR, bf_entry->err_str1, 0);
-      val_print(ACS_PRINT_ERR, ": 0x%x", bf_value);
+      val_print(ACS_PRINT_ERR, " 0x%x", bf_value);
       val_print(ACS_PRINT_ERR, " instead of 0x%x", bf_entry->cfg_value);
       if (!val_strncmp(bf_entry->err_str1, "WARNING", WARN_STR_LEN))
           return 0;
@@ -1409,15 +1409,15 @@ uint32_t val_pcie_bitfield_check(uint32_t bdf, uint64_t *bitfield_entry)
           val_pcie_write_cfg(bdf, cap_base + reg_offset, temp_reg_value);
           break;
       default:
-          val_print(ACS_PRINT_ERR, "\n       Invalid Attribute : 0x%x  ", bf_entry->attr);
+          val_print(ACS_PRINT_ERR, "\n       Invalid Attribute  0x%x  ", bf_entry->attr);
           return 1;
   }
 
   if (reg_overwrite_value != reg_value)
   {
-      val_print(ACS_PRINT_ERR, "\n       BDF 0x%x : ", bdf);
+      val_print(ACS_PRINT_ERR, "\n       BDF 0x%x  ", bdf);
       val_print(ACS_PRINT_ERR, bf_entry->err_str2, 0);
-      val_print(ACS_PRINT_ERR, ": 0x%x",
+      val_print(ACS_PRINT_ERR, " 0x%x",
                           reg_overwrite_value >> REG_SHIFT(alignment_byte_cnt, bf_entry->start));
       val_print(ACS_PRINT_ERR, " instead of 0x%x",
                           reg_value >> REG_SHIFT(alignment_byte_cnt, bf_entry->start));
@@ -1427,7 +1427,7 @@ uint32_t val_pcie_bitfield_check(uint32_t bdf, uint64_t *bitfield_entry)
   }
 
   /* Return pass status */
-  val_print(ACS_PRINT_INFO, "\n       BDF 0x%x : PASS", bdf);
+  val_print(ACS_PRINT_INFO, "\n       BDF 0x%x  PASS", bdf);
   return 0;
 }
 

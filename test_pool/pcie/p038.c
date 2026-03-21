@@ -67,9 +67,9 @@ next_bdf:
           val_pcie_read_cfg(bdf, TYPE01_VIDR, &reg_value);
           device_id = (reg_value >> TYPE01_DIDR_SHIFT) & TYPE01_DIDR_MASK;
           vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
-          val_print(ACS_PRINT_DEBUG, "\n       BDF: 0x%x ", bdf);
-          val_print(ACS_PRINT_DEBUG, "Dev ID: 0x%x ", device_id);
-          val_print(ACS_PRINT_DEBUG, "Vendor ID: 0x%x", vendor_id);
+          val_print(ACS_PRINT_DEBUG, "\n       BDF 0x%x ", bdf);
+          val_print(ACS_PRINT_DEBUG, "Dev ID 0x%x ", device_id);
+          val_print(ACS_PRINT_DEBUG, "Vendor ID 0x%x", vendor_id);
 
           rp_ecam_base = val_pcie_get_ecam_base(bdf);
           rp_segment = PCIE_EXTRACT_BDF_SEG(bdf);

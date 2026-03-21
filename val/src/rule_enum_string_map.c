@@ -225,7 +225,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [B_SMMU_23]   = "B_SMMU_23",
     [B_SMMU_24]   = "B_SMMU_24",
     [B_SMMU_25]   = "B_SMMU_25",
-    [GPU_04]      = "GPU_04",
     [SMMU_01]     = "SMMU_01",
     [SMMU_02]     = "SMMU_02",
     [S_L3SM_01]   = "S_L3SM_01",
@@ -311,10 +310,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [B_PCIe_10]   = "B_PCIe_10",
     [B_PCIe_11]   = "B_PCIe_11",
     [S_PCIe_10]   = "S_PCIe_10",
-    [XDGKZ]       = "XDGKZ",
-    [GPU_01]      = "GPU_01",
-    [GPU_02]      = "GPU_02",
-    [GPU_03]      = "GPU_03",
     [IE_ACS_1]    = "IE_ACS_1",
     [IE_ACS_2]    = "IE_ACS_2",
     [IE_ORD_4]    = "IE_ORD_4",
@@ -461,6 +456,13 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [S_L8CXL_1]   = "S_L8CXL_1",
     [S_L3GI_02]   = "S_L3GI_02",
 
+    /* GPU rules */
+    [XDGKZ]       = "XDGKZ",
+    [GPU_01]      = "GPU_01",
+    [GPU_02]      = "GPU_02",
+    [GPU_03]      = "GPU_03",
+    [GPU_04]      = "GPU_04",
+
     /* PC-BSA identifiers */
     [P_L1_01]     = "P_L1_01",
     [P_L1PE_01]   = "P_L1PE_01",
@@ -577,4 +579,6 @@ char *module_name_string[MODULE_ID_SENTINEL] = {
     [TPM]          = "TPM",
     [POWER_WAKEUP] = "POWER_WAKEUP",
     [PFDI]         = "PFDI",
+    [RME]          = "RME",
+    [GPU]          = "GPU",
 };
