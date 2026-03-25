@@ -218,10 +218,10 @@ pal_warn_not_implemented(const CHAR8 *api_name)
   if (api_name == NULL)
     return;
 
-  acs_print(ACS_PRINT_WARN, L"\n       %a is not implemented."
-                             "\n       Please implement the PAL function in test suite or"
-                             "\n       conduct an offline review for this rule.\n",
-                            api_name);
+  pal_print("\n       %a is not implemented."
+            "\n       Please implement the PAL function in test suite or"
+            "\n       conduct an offline review for this rule.\n",
+              (UINT64)(UINTN)api_name);
 }
 
 /**
