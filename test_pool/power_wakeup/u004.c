@@ -40,7 +40,13 @@ isr_failsafe()
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_ERR, "       Received Failsafe interrupt\n", 0);
   g_failsafe_int_received = 1;
-  val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+  /* On some system the failsafe is rcvd just after test interrupt and resulting
+     in incorrect fail, to avoid this ensure set test as fail only when failsafe
+     is hit and test interrupt is not rcvd
+  */
+  if (g_wd_int_received == 0) {
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+  }
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_end_of_interrupt(intid);
 }
@@ -54,9 +60,10 @@ isr4()
   val_wd_set_ws0(wd_num, 0);
   val_print(ACS_PRINT_INFO, "       Received WS0 interrupt\n", 0);
   g_wd_int_received = 1;
-
   intid = val_wd_get_info(wd_num, WD_INFO_GSIV);
   val_gic_end_of_interrupt(intid);
+  val_timer_set_phy_el1(0);
+  val_print(ACS_PRINT_DEBUG, "       Clear Failsafe interrupt\n", 0);
 }
 
 static

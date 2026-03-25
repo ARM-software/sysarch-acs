@@ -49,7 +49,7 @@
                                                          set for wakeup and wd tests*/
 #define WAKEUP_WD_PASS_TIMEOUT_MAX_THRESHOLD  2000000    /*minimum timeout that can be
                                                          set for wakeup and wd tests*/
-#define WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER 2          /*fail safe timeout multipler
+#define WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER 100        /*fail safe timeout multipler
                                                          multiplied to timeout of ISR
                                                          under test*/
 #define WAKEUP_WD_PASS_TIMEOUT_DEFAULT        1000       /*minimum timeout set

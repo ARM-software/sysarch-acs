@@ -39,7 +39,14 @@ isr_failsafe()
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_ERR, "       Received Failsafe interrupt\n", 0);
   g_failsafe_int_rcvd = 1;
-  val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+
+  /* On some system the failsafe is rcvd just after test interrupt and resulting
+     in incorrect fail, to avoid this ensure set test as fail only when failsafe
+     is hit and test interrupt is not rcvd
+  */
+  if (g_el1vir_int_received == 0) {
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+  }
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_end_of_interrupt(intid);
 }
@@ -76,6 +83,8 @@ isr2()
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);
   val_gic_end_of_interrupt(intid);
+  val_timer_set_phy_el1(0);
+  val_print(ACS_PRINT_DEBUG, "       Clear Failsafe interrupt\n", 0);
 }
 
 static
@@ -119,6 +128,7 @@ payload2()
    * 5. Hang, if PE didn't exit WFI (FAIL)
   */
   wakeup_clear_failsafe();
+
   if (!(g_el1vir_int_received || g_failsafe_int_rcvd)) {
       val_timer_set_vir_el1(0);
       intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);

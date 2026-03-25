@@ -40,6 +40,13 @@ isr_failsafe()
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_ERR, "       Received Failsafe interrupt\n", 0);
   g_failsafe_int_rcvd = 1;
+  /* On some system the failsafe is rcvd just after test interrupt and resulting
+     in incorrect fail, to avoid this ensure set test as fail only when failsafe
+     is hit and test interrupt is not rcvd
+  */
+  if (g_timer_int_rcvd == 0) {
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+  }
   val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_end_of_interrupt(intid);
@@ -59,6 +66,8 @@ isr5()
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
   val_gic_end_of_interrupt(intid);
+  val_timer_set_phy_el1(0);
+  val_print(ACS_PRINT_DEBUG, "       Clear Failsafe interrupt\n", 0);
 }
 
 static
@@ -125,7 +134,7 @@ payload5()
           wakeup_set_failsafe();
           /* enable System timer */
           val_timer_set_system_timer((addr_t)cnt_base_n, timer_expire_val);
-	  val_power_enter_semantic(BSA_POWER_SEM_B);
+          val_power_enter_semantic(BSA_POWER_SEM_B);
 
           /* Add a delay loop after WFI called in case PE needs some time to enter WFI state
            * exit in case test or failsafe int is received
@@ -148,13 +157,13 @@ payload5()
           wakeup_clear_failsafe();
           if (!(g_timer_int_rcvd || g_failsafe_int_rcvd)) {
               intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
-	      val_gic_clear_interrupt(intid);
+              val_gic_clear_interrupt(intid);
               val_set_status(index, RESULT_SKIP(TEST_NUM, 4));
               val_print(ACS_PRINT_DEBUG,
                         "\n       PE wakeup by some other events/int or didn't enter WFI", 0);
           }
           val_print(ACS_PRINT_INFO, "\n       delay loop remainig value %d", delay_loop);
-	  return;
+          return;
 
       } else{
           val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);

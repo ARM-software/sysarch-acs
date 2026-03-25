@@ -41,12 +41,13 @@ static
 void
 isr()
 {
-
     val_wd_set_ws0(wd_num, 0);
     g_wd_int_received = 1;
     val_print(ACS_PRINT_DEBUG, "\n       Received WS0 interrupt                ", 0);
-
     val_gic_end_of_interrupt(int_id);
+
+    val_timer_set_phy_el1(0);
+    val_print(ACS_PRINT_DEBUG, "       Clear Failsafe interrupt\n", 0);
 }
 
 static
@@ -59,7 +60,14 @@ isr_failsafe()
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_ERR, "       Received Failsafe interrupt\n", 0);
   g_failsafe_int_received = 1;
-  val_set_status(index, RESULT_FAIL(TEST_NUM, 7));
+
+  /* On some system the failsafe is rcvd just after test interrupt and resulting
+     in incorrect fail, to avoid this ensure set test as fail only when failsafe
+     is hit and test interrupt is not rcvd
+  */
+  if (g_wd_int_received == 0) {
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 7));
+  }
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_end_of_interrupt(intid);
 }
@@ -152,18 +160,18 @@ payload()
           val_data_cache_ops_by_va((addr_t)&g_failsafe_int_received, INVALIDATE);
           timeout--;
         }
-        wakeup_clear_failsafe();
 
+        wakeup_clear_failsafe();
         val_wd_set_ws0(wd_num, 0);
 
-        if (g_failsafe_int_received) {
+        if (g_failsafe_int_received && (g_wd_int_received == 0)) {
           val_print(ACS_PRINT_ERR, "\n       Failsafe interrupt received, no WS0 interrupt", 0);
           val_set_status(index, RESULT_FAIL(TEST_NUM, 7));
           return;
         }
 
-        if (timeout == 0) {
-            val_print(ACS_PRINT_ERR, "\n       WS0 Interrupt not received on %d   ", int_id);
+        if ((timeout == 0) && (g_wd_int_received == 0)) {
+            val_print(ACS_PRINT_ERR, "\n       WS0 Interrupt not rcvd within timeout %d", int_id);
             val_set_status(index, RESULT_FAIL(TEST_NUM, 5));
             return;
         }
