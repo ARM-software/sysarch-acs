@@ -2126,7 +2126,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 63,
         },
         [RI_SMU_1] = {
-            .test_entry_id    = E019_ENTRY,
+            .test_entry_id    = RI_SMU_1_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check ATS Support Rule -  RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
@@ -3151,6 +3151,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P090_ENTRY] = p090_entry,
     [P092_ENTRY] = p092_entry,
     [P093_ENTRY] = p093_entry,
+    [P096_ENTRY] = p096_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,

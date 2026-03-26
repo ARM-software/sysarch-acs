@@ -154,7 +154,10 @@ payload()
            record the error on reading with address syndrome in one of
            the error records present for the current RAS node */
         status = val_ras_inject_error(err_in_params, &err_out_params);
-        if (status) {
+        if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+            warn_cnt++;
+            break;
+        } else if (status) {
             val_print(ACS_PRINT_ERR, "\n       val_ras_inject_error failed, node %d", node_index);
             fail_cnt++;
             break;
