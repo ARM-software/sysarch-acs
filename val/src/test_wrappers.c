@@ -41,6 +41,7 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
     uint32_t rule_status = TEST_STATUS_UNKNOWN;
     bool test_pass_flag = 0;
     bool test_ns_flag = 0;
+    bool test_warn_flag = 0;
 
     for (i = 0; tst_entry_list[i] != TEST_ENTRY_SENTINEL ; i++) {
         if (test_entry_func_table[tst_entry_list[i]] != NULL) {
@@ -55,6 +56,10 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
         if (entry_status == TEST_PASS) {
             test_pass_flag = 1;
         }
+        /* Track atleast one warn */
+        if (entry_status == TEST_WARN) {
+            test_warn_flag = 1;
+        }
 
         /* Update overall status for the rule */
         if ((entry_status > rule_status) || (rule_status == TEST_STATUS_UNKNOWN)) {
@@ -68,6 +73,11 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
         ((rule_status == TEST_SKIP) || (rule_status == TEST_WARN))) ||
         (test_ns_flag && (rule_status == TEST_PASS))) {
         rule_status = TEST_PART_COV;
+    }
+
+    /* If the combined result only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
+    if (test_warn_flag && (rule_status == TEST_SKIP)) {
+        rule_status = TEST_WARN;
     }
 
     return rule_status;
@@ -85,6 +95,7 @@ static uint32_t run_pcie_static_and_exerciser(TEST_ENTRY_ID_e *static_list,
 {
     uint32_t static_status = run_test_entries(static_list, num_pe);
     uint32_t exr_status    = run_test_entries(exr_list,   num_pe);
+    uint32_t rule_status;
 
     /* Report partial coverage for mixed PASS+SKIP/WARN aggregated results. */
     if (((static_status == TEST_PASS) &&
@@ -93,7 +104,15 @@ static uint32_t run_pcie_static_and_exerciser(TEST_ENTRY_ID_e *static_list,
         ((static_status == TEST_SKIP) || (static_status == TEST_WARN))))
         return TEST_PART_COV;
 
-    return max_status(static_status, exr_status);
+    /* For all other combinations, fall back to severity-based aggregation. */
+    rule_status = max_status(static_status, exr_status);
+    /* If the combined result only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
+    if (((static_status == TEST_WARN) || (exr_status == TEST_WARN)) &&
+        (rule_status == TEST_SKIP)) {
+        rule_status = TEST_WARN;
+    }
+
+    return rule_status;
 }
 
 /* B_PPI_00 */
