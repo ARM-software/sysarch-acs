@@ -538,8 +538,16 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
 
                 /* Run the base rule */
                 base_rule_id = alias_rule_map[alias_rule_map_index].base_rule_list[j];
-                base_rule_status =
-                    test_entry_func_table[rule_test_map[base_rule_id].test_entry_id](num_pe);
+                if (test_entry_func_table[rule_test_map[base_rule_id].test_entry_id] != NULL)
+                {
+                    base_rule_status =
+                        test_entry_func_table[rule_test_map[base_rule_id].test_entry_id](num_pe);
+                }
+                else
+                {
+                    val_print(ACS_PRINT_ERR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
+                    base_rule_status = TEST_FAIL;
+                }
                 /* record base rule status */
                 rule_status_map[base_rule_id] = base_rule_status;
                 if (base_rule_status == TEST_PASS)
@@ -577,9 +585,16 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
 
         } else if (rule_test_map[rule_list[i]].flag == BASE_RULE) {
             /* Base rule would have single test entry, could be wrapper too */
-            rule_test_status =
-                test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id](num_pe);
-
+           if (test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id] != NULL)
+            {
+                rule_test_status =
+                    test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id](num_pe);
+            }
+            else
+            {
+                val_print(ACS_PRINT_ERR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
+                rule_test_status = TEST_FAIL;
+            }
         }
 report_status:
         /* Record and print overall rule status */
