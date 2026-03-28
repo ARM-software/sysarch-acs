@@ -171,6 +171,8 @@ void payload(void)
 
             /* Start mem copy to cause the overflow interrupt */
             val_memcpy(src_buf, dest_buf, buf_size);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             /* PE busy polls to check the completion of interrupt service routine */
             timeout = TIMEOUT_LARGE;

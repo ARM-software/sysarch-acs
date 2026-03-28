@@ -53,8 +53,8 @@
 
 /* MPAM Release versions */
 #define MPAM_ACS_MAJOR_VER      0
-#define MPAM_ACS_MINOR_VER      5
-#define MPAM_ACS_SUBMINOR_VER   1
+#define MPAM_ACS_MINOR_VER      7
+#define MPAM_ACS_SUBMINOR_VER   0
 
 /* PFDI Release versions */
 #define PFDI_ACS_MAJOR_VER      0

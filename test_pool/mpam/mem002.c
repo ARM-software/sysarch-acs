@@ -169,6 +169,8 @@ void static payload_secondary()
     /* Generate memory bandwidth contention via PE traffic */
     while (contend_flag) {
         val_memcpy((void *)src_buf, (void *)dest_buf, buf_size);
+        /* Wait for some time before the memcpy settles and counters update */
+        val_time_delay_ms(TIMEOUT_MEDIUM);
         val_data_cache_ops_by_va((addr_t)&contend_flag, INVALIDATE);
     }
 
@@ -373,6 +375,8 @@ payload_primary(void)
                 val_print(ACS_PRINT_TEST, "\n       Start Count = 0x%llx", start_count);
                 /* perform memory operation */
                 val_memcpy((void *)src_buf, (void *)dest_buf, buf_size);
+                /* Wait for some time before the memcpy settles and counters update */
+                val_time_delay_ms(TIMEOUT_MEDIUM);
 
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
                 val_print(ACS_PRINT_TEST, "\n       End Count = 0x%llx", end_count);
@@ -428,6 +432,8 @@ payload_primary(void)
 
                 /* perform memory operation */
                 val_memcpy((void *)src_buf, (void *)dest_buf, buf_size);
+                /* Wait for some time before the memcpy settles and counters update */
+                val_time_delay_ms(TIMEOUT_MEDIUM);
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
                 val_print(ACS_PRINT_TEST, "\n       End Count = 0x%llx", end_count);
 

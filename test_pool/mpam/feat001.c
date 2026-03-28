@@ -15,11 +15,11 @@
  * limitations under the License.
 **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_mpam.h"
-#include "val/include/acs_memory.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_mpam.h"
+#include "acs_memory.h"
+#include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 25
 #define TEST_RULE  ""
@@ -47,7 +47,7 @@ Value B < Value A: confirms that the disabled PARTID was deprioritized or blocke
 If both conditions hold, the test is passed.
 */
 
-#define BUFFER_SIZE   0x6400000  /* 100 MB */
+#define BUFFER_SIZE           0x100000  /* 1MB */
 #define NUM_SCENARIOS 3
 
 static void
@@ -173,6 +173,10 @@ payload(void)
             if ((src_buf == NULL) || (dest_buf == NULL)) {
                 val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+                if (dest_buf != NULL)
+                    val_memory_free_aligned(dest_buf);
+                if (src_buf != NULL)
+                    val_memory_free_aligned(src_buf);
                 return;
             }
 
@@ -212,6 +216,8 @@ payload(void)
 
             /* Step 5: Start mem copy */
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             /* Read CSU monitor cnt - number of cache lines filled by PARTID_X at this point */
             end_count = val_mpam_read_csumon(msc_index);
@@ -230,6 +236,11 @@ payload(void)
                 test_fail++;
                 goto cleanup;
             }
+
+            /* Invalidate the caches before next scenario */
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
 
             /* Step 7: Disable PARTID_X. MPAMCFG_DIS.PARTID = PARTID_X.
                Do not set NFU. We need the PARTID later */
@@ -253,6 +264,10 @@ payload(void)
             if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+
                 val_memory_free_aligned(src_buf);
                 val_memory_free_aligned(dest_buf);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 03));
@@ -269,6 +284,8 @@ payload(void)
             };
 
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             /* Step 9 */
             end_count = val_mpam_read_csumon(msc_index);
@@ -290,6 +307,10 @@ payload(void)
                 goto cleanup;
             }
 
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
+
             /* Step 11: Enable PARTID_X and Disable PARTID_Y. H/w must remember PARTID_X config */
             status = val_mpam_msc_endis_partid(msc_index, 1, 0, partid_x);
             status |= val_mpam_msc_endis_partid(msc_index, 0, 0, partid_y);
@@ -304,6 +325,10 @@ payload(void)
             if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+
                 val_memory_free_aligned(src_buf);
                 val_memory_free_aligned(dest_buf);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
@@ -323,6 +348,8 @@ payload(void)
             };
 
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             end_count = val_mpam_read_csumon(msc_index);
 
@@ -347,6 +374,10 @@ cleanup:
             val_mpam_reg_write(MPAM2_EL2, saved_el2);
 
             /* Free the buffers to the heap manager */
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
+
             val_memory_free_aligned(src_buf);
             val_memory_free_aligned(dest_buf);
         }

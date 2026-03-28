@@ -753,13 +753,14 @@ val_mpam_memory_configure_ris_sel(uint32_t msc_index, uint32_t rsrc_index)
 
     /*configure MSMON_CFG_MON_SEL.RIS field and write MSMON_CFG_MON_SEL.MON_SEL
        field to be 0 */
-    data = BITFIELD_SET(MON_SEL_RIS, ris_index);
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MON_SEL);
+    data = BITFIELD_WRITE(data, MON_SEL_RIS, ris_index);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MON_SEL, data);
 
     /* configure MPAMCFG_PART_SEL.RIS field and write MPAMCFG_PART_SEL.
-       PARTID_SEL field to DEFAULT PARTID*/
-    data = BITFIELD_SET(PART_SEL_RIS, ris_index)
-                           | BITFIELD_SET(PART_SEL_PARTID_SEL, DEFAULT_PARTID);
+       PARTID_SEL field to input PARTID */
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    data = BITFIELD_WRITE(data, PART_SEL_RIS, ris_index);
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 }
 

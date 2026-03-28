@@ -140,6 +140,8 @@ payload(void)
       val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data32);
 
       val_memcpy(src_buf, dest_buf, buf_size);
+      /* Wait for some time before the memcpy settles and counters update */
+      val_time_delay_ms(TIMEOUT_MEDIUM);
       val_mpam_mbwu_wait_for_update(msc_index);
 
       if (!val_mpam_mbwu_is_overflow_set(msc_index)) {
@@ -159,6 +161,8 @@ payload(void)
       }
 
       val_memcpy(src_buf, dest_buf, buf_size);
+      /* Wait for some time before the memcpy settles and counters update */
+      val_time_delay_ms(TIMEOUT_MEDIUM);
       val_mpam_mbwu_wait_for_update(msc_index);
 
       freeze_post_count = val_mpam_memory_mbwumon_read_count(msc_index);
@@ -197,6 +201,8 @@ post_freeze_cleanup:
       val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data32);
 
       val_memcpy(src_buf, dest_buf, buf_size);
+      /* Wait for some time before the memcpy settles and counters update */
+      val_time_delay_ms(TIMEOUT_MEDIUM);
       val_mpam_mbwu_wait_for_update(msc_index);
 
       if (!val_mpam_mbwu_is_overflow_set(msc_index)) {
@@ -216,6 +222,8 @@ post_freeze_cleanup:
       }
 
       val_memcpy(src_buf, dest_buf, buf_size);
+      /* Wait for some time before the memcpy settles and counters update */
+      val_time_delay_ms(TIMEOUT_MEDIUM);
       val_mpam_mbwu_wait_for_update(msc_index);
 
       run_post_count = val_mpam_memory_mbwumon_read_count(msc_index);

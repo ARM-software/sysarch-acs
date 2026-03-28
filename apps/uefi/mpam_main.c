@@ -166,14 +166,15 @@ VOID
 FreeMpamAcsMem (
 )
 {
-    val_pe_free_info_table();
-    val_gic_free_info_table();
-    val_iovirt_free_info_table();
-    val_mpam_free_info_table();
-    val_hmat_free_info_table();
-    val_srat_free_info_table();
-    val_pcc_free_info_table();
     val_free_shared_mem();
+    val_mpam_free_info_table();
+    val_srat_free_info_table();
+    val_hmat_free_info_table();
+    val_pcc_free_info_table();
+    val_cache_free_info_table();
+    val_iovirt_free_info_table();
+    val_gic_free_info_table();
+    val_pe_free_info_table();
 }
 
 VOID

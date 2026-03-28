@@ -289,6 +289,8 @@ void payload(void)
 
                 /* perform memory operation */
                 val_memcpy(src_buf, dest_buf, buf_size);
+                /* Wait for some time before the memcpy settles and counters update */
+                val_time_delay_ms(TIMEOUT_MEDIUM);
 
                 while (nrdy_timeout) {
                     --nrdy_timeout;

@@ -56,6 +56,8 @@ mbwu_prepare_overflow(uint32_t msc_index, void *src_buf, void *dest_buf, uint64_
   val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, ctl);
 
   val_memcpy(src_buf, dest_buf, buf_size);
+  /* Wait for some time before the memcpy settles and counters update */
+  val_time_delay_ms(TIMEOUT_MEDIUM);
   val_mpam_mbwu_wait_for_update(msc_index);
 
   if (!val_mpam_mbwu_is_overflow_set(msc_index)) {
@@ -162,8 +164,10 @@ payload(void)
       val_mpam_memory_mbwumon_reset(msc_index);
 
 monitor_cleanup:
-      val_mem_free_at_address((uint64_t)src_buf, buf_size);
-      val_mem_free_at_address((uint64_t)dest_buf, buf_size);
+      if (dest_buf != NULL)
+        val_mem_free_at_address((uint64_t)dest_buf, buf_size);
+      if (src_buf != NULL)
+        val_mem_free_at_address((uint64_t)src_buf, buf_size);
       src_buf = NULL;
       dest_buf = NULL;
     }

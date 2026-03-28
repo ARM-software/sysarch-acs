@@ -15,12 +15,12 @@
  * limitations under the License.
 **/
 
-#include "val/include/acs_val.h"
-#include "val/include/acs_pe.h"
-#include "val/include/acs_mpam.h"
-#include "val/include/acs_mpam_reg.h"
-#include "val/include/acs_memory.h"
-#include "val/include/val_interface.h"
+#include "acs_val.h"
+#include "acs_pe.h"
+#include "acs_mpam.h"
+#include "acs_mpam_reg.h"
+#include "acs_memory.h"
+#include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 4
 #define TEST_RULE  ""
@@ -51,7 +51,7 @@
 #define CASSOC_PARTITION_100  100
 #define CASSOC_PARTITION_50   50
 #define CASSOC_PARTITION_25   25
-#define BUFFER_SIZE           0x6400000  /* 100MB */
+#define BUFFER_SIZE           0x100000  /* 1MB */
 
 static void
 payload(void)
@@ -75,6 +75,8 @@ payload(void)
     uint32_t test_skip   = 1;
     uint32_t status      = 0;
     uint32_t num_mon     = 0;
+    uint32_t page_size;
+    uint32_t num_pages;
 
     /* Check if LLC is valid */
     if (llc_idx == CACHE_TABLE_EMPTY) {
@@ -163,12 +165,18 @@ payload(void)
                 val_mpam_configure_ccap(msc_index, test_partid, 0, 100);
 
             /* Allocate memory for source and destination buffers */
-            src_buf  = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
-            dest_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
+            page_size = val_memory_page_size();
+            num_pages = (uint32_t)((BUFFER_SIZE + page_size - 1) / page_size);
+            src_buf  = (void *)val_memory_alloc_pages(num_pages);
+            dest_buf = (void *)val_memory_alloc_pages(num_pages);
 
             if ((src_buf == NULL) || (dest_buf == NULL)) {
                 val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+                if (dest_buf != NULL)
+                    val_memory_free_pages(dest_buf, num_pages);
+                if (src_buf != NULL)
+                    val_memory_free_pages(src_buf, num_pages);
                 return;
             }
 
@@ -201,6 +209,10 @@ payload(void)
             if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+
                 val_memory_free_aligned(src_buf);
                 val_memory_free_aligned(dest_buf);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
@@ -212,6 +224,8 @@ payload(void)
 
             /* Start mem copy */
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             end_count = val_mpam_read_csumon(msc_index);
             val_print(ACS_PRINT_DEBUG, "\n       End Count = 0x%lx", end_count);
@@ -220,9 +234,11 @@ payload(void)
             val_mpam_csumon_disable(msc_index);
 
             /* Read CSU MON */
-            counter[0] = end_count - start_count;
-            val_print(ACS_PRINT_DEBUG, "\n       Count Difference = 0x%lx",
-                                      end_count - start_count);
+            counter[0] = end_count;
+
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
 
             /***  Scenario 2: Buffer copy with 50% CASSOC settings  ***/
             val_print(ACS_PRINT_DEBUG, "\n       Scenario 2: 50 percent CASSOC setting", 0);
@@ -254,6 +270,10 @@ payload(void)
             if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+
                 val_memory_free_aligned(src_buf);
                 val_memory_free_aligned(dest_buf);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 03));
@@ -265,6 +285,8 @@ payload(void)
 
             /* Start mem copy */
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             end_count = val_mpam_read_csumon(msc_index);
             val_print(ACS_PRINT_DEBUG, "\n       End Count = 0x%lx", end_count);
@@ -273,9 +295,11 @@ payload(void)
             val_mpam_csumon_disable(msc_index);
 
             /* Read CSU MON */
-            counter[1] = end_count - start_count;
-            val_print(ACS_PRINT_DEBUG, "\n       Count Difference = 0x%lx",
-                                      end_count - start_count);
+            counter[1] = end_count;
+
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
 
             /***  Scenario 3: Buffer copy with 25% CASSOC settings  ***/
             val_print(ACS_PRINT_DEBUG, "\n       Scenario 3: 25 percent CASSOC setting", 0);
@@ -307,6 +331,10 @@ payload(void)
             if (status) {
                 val_print(ACS_PRINT_ERR, "\n       MPAM2_EL2 programming failed", 0);
                 /* Free the buffers to the heap manager */
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+
                 val_memory_free_aligned(src_buf);
                 val_memory_free_aligned(dest_buf);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
@@ -318,6 +346,8 @@ payload(void)
 
             /* Start mem copy */
             val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
+            /* Wait for some time before the memcpy settles and counters update */
+            val_time_delay_ms(TIMEOUT_MEDIUM);
 
             end_count = val_mpam_read_csumon(msc_index);
             val_print(ACS_PRINT_DEBUG, "\n       End Count = 0x%lx", end_count);
@@ -326,9 +356,7 @@ payload(void)
             val_mpam_csumon_disable(msc_index);
 
             /* Read CSU MON */
-            counter[2] = end_count - start_count;
-            val_print(ACS_PRINT_DEBUG, "\n       Count Difference = 0x%lx",
-                                      end_count - start_count);
+            counter[2] = end_count;
 
             /* Compare CSU mon counter across all 3 scenarios.
                As the cache associativity allocated to an MSC is restricted further,
@@ -347,8 +375,16 @@ payload(void)
             val_mpam_reg_write(MPAM2_EL2, saved_el2);
 
             /* Free the buffers to the heap manager */
-            val_memory_free_aligned(src_buf);
-            val_memory_free_aligned(dest_buf);
+            if (dest_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+                val_memory_free_pages(dest_buf, num_pages);
+            }
+            if (src_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+                val_memory_free_pages(src_buf, num_pages);
+            }
         }
     }
 

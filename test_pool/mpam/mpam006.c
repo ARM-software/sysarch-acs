@@ -255,6 +255,10 @@ payload(void)
     if ((src_buf == NULL) || (dest_buf == NULL)) {
         val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
         val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
+        if (dest_buf != NULL)
+            val_memory_free_aligned(dest_buf);
+        if (src_buf != NULL)
+            val_memory_free_aligned(src_buf);
         return;
     }
 

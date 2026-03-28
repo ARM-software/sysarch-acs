@@ -55,7 +55,7 @@ Info - During cache pressure, the system is expected to evict cache lines from t
 */
 
 #define CMIN_SCENARIOS 3
-#define BUFFER_SIZE    0x3200000   /* 50 MB */
+#define BUFFER_SIZE           0x100000  /* 1MB */
 
 static void
 payload(void)
@@ -75,12 +75,17 @@ payload(void)
     bool     is_partid_en = 1;
     void     *src_buf     = NULL;
     void     *dest_buf    = NULL;
+    uint32_t page_size;
+    uint32_t num_pages;
     volatile uint64_t nrdy_timeout = 0;
 
     uint32_t msc_index, rsrc_index, rsrc_cnt;
     uint64_t saved_el2;
     uint64_t cache_identifier;
     uint32_t counter[CMIN_SCENARIOS];
+
+    page_size = val_memory_page_size();
+    num_pages = (uint32_t)((BUFFER_SIZE + page_size - 1) / page_size);
 
     /* Check if LLC is valid */
     if (llc_index == CACHE_TABLE_EMPTY) {
@@ -150,12 +155,16 @@ payload(void)
 
             /* Step 3: Perform a memory workload for PARTID_X */
             /* Allocate memory for source and destination buffers */
-            src_buf  = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
-            dest_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, BUFFER_SIZE);
+            src_buf  = (void *)val_memory_alloc_pages(num_pages);
+            dest_buf = (void *)val_memory_alloc_pages(num_pages);
 
             if ((src_buf == NULL) || (dest_buf == NULL)) {
                 val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
                 val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+                if (dest_buf != NULL)
+                    val_memory_free_pages(dest_buf, num_pages);
+                if (src_buf != NULL)
+                    val_memory_free_pages(src_buf, num_pages);
                 return;
             }
 
@@ -194,6 +203,10 @@ payload(void)
 
             /* Disable CSU MON */
             val_mpam_csumon_disable(msc_index);
+
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
 
             /* Step 4: Program PARTID_Y with 50% CMAX settings */
             val_mpam_configure_ccap(msc_index, partid_y, SOFTLIMIT_DIS, 50);
@@ -237,6 +250,10 @@ payload(void)
             counter[0] = val_mpam_read_csumon(msc_index);
             val_print(ACS_PRINT_TEST,
                             "\n       PARTID_X Counter after PARTID_Y workload: 0x%x", counter[0]);
+
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+            val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+            val_mem_issue_dsb();
 
             /* Step 6: Disable PARTID_Y */
             val_mpam_msc_endis_partid(msc_index,
@@ -316,8 +333,16 @@ payload(void)
             val_mpam_reg_write(MPAM2_EL2, saved_el2);
 
             /* Free the buffers to the heap manager */
-            val_mem_free_at_address((uint64_t)src_buf, BUFFER_SIZE);
-            val_mem_free_at_address((uint64_t)dest_buf, BUFFER_SIZE);
+            if (dest_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+                val_memory_free_pages(dest_buf, num_pages);
+            }
+            if (src_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+                val_mem_issue_dsb();
+                val_memory_free_pages(src_buf, num_pages);
+            }
 
             /* Re-enable PARTID-Y for the next tests to behave properly */
             val_mpam_msc_endis_partid(msc_index,
@@ -347,8 +372,16 @@ cleanup:
     }
 
     /* Free the buffers to the heap manager */
-    val_mem_free_at_address((uint64_t)src_buf, BUFFER_SIZE);
-    val_mem_free_at_address((uint64_t)dest_buf, BUFFER_SIZE);
+    if (dest_buf != NULL) {
+        val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+        val_mem_issue_dsb();
+        val_memory_free_pages(dest_buf, num_pages);
+    }
+    if (src_buf != NULL) {
+        val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+        val_mem_issue_dsb();
+        val_memory_free_pages(src_buf, num_pages);
+    }
 
     /* Disable CSU Mon */
     val_mpam_csumon_disable(msc_index);

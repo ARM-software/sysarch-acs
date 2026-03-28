@@ -92,6 +92,8 @@ mbwu_prepare_overflow_intr(uint32_t msc_idx,
 
     /* Generate memory traffic to trigger the overflow */
     val_memcpy(src_buf, dest_buf, buf_size);
+    /* Wait for some time before the memcpy settles and counters update */
+    val_time_delay_ms(TIMEOUT_MEDIUM);
     val_mpam_mbwu_wait_for_update(msc_idx);
 
     /* Overflow Status is Cleared in Handler */

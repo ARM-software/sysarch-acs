@@ -50,6 +50,8 @@ static void payload(void)
     void *src_buf = 0;
     void *dest_buf = 0;
     uint64_t buf_size;
+    uint32_t page_size;
+    uint32_t num_pages;
     uint64_t mpam2_el2 = 0;
     uint64_t nrdy_timeout;
     uint32_t storage_value1;
@@ -175,16 +177,31 @@ static void payload(void)
           continue;
 
         buf_size = cache_maxsize * CACHE_PERCENTAGE / 100 ;
+        page_size = val_memory_page_size();
+        num_pages = (uint32_t)((buf_size + page_size - 1) / page_size);
 
         /*Allocate memory for source and destination buffers */
-        src_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, buf_size);
-        dest_buf = (void *)val_aligned_alloc(MEM_ALIGN_4K, buf_size);
+        src_buf = (void *)val_memory_alloc_pages(num_pages);
+        dest_buf = (void *)val_memory_alloc_pages(num_pages);
 
         val_print(ACS_PRINT_DEBUG, "\n       buf_size            = 0x%x", buf_size);
 
         if ((src_buf == NULL) || (dest_buf == NULL)) {
             val_print(ACS_PRINT_ERR, "\n       Mem allocation failed", 0);
             val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+            if (src_buf != NULL)
+                val_pe_cache_invalidate_range((uint64_t)src_buf, buf_size);
+            if (src_buf != NULL)
+                val_mem_issue_dsb();
+            if (src_buf != NULL)
+                val_memory_free_pages(src_buf, num_pages);
+            if (dest_buf != NULL)
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, buf_size);
+            if (dest_buf != NULL)
+                val_mem_issue_dsb();
+            if (dest_buf != NULL)
+                val_memory_free_pages(dest_buf, num_pages);
+            return;
         }
 
         /* Configure CSU monitors with PMG1 */
@@ -205,10 +222,16 @@ static void payload(void)
 
         /*Perform first memory transaction */
         val_memcpy(src_buf, dest_buf, buf_size);
+        /* Wait for some time before the memcpy settles and counters update */
+        val_time_delay_ms(TIMEOUT_MEDIUM);
 
         /* Read Cache storage value */
         storage_value1 = val_mpam_read_csumon(msc_index);
         val_print(ACS_PRINT_DEBUG, "\n       Storage Value 1 = 0x%x", storage_value1);
+
+        val_pe_cache_invalidate_range((uint64_t)src_buf, buf_size);
+        val_pe_cache_invalidate_range((uint64_t)dest_buf, buf_size);
+        val_mem_issue_dsb();
 
         /* Configure CSU monitors with PMG2 */
         if (val_mpam_supports_csumon(msc_index))
@@ -229,6 +252,8 @@ static void payload(void)
 
         /*Perform second memory transaction */
         val_memcpy(src_buf, dest_buf, buf_size);
+        /* Wait for some time before the memcpy settles and counters update */
+        val_time_delay_ms(TIMEOUT_MEDIUM);
 
         /* Read Cache storage value for PMG2 */
         storage_value2 = val_mpam_read_csumon(msc_index);
@@ -245,8 +270,16 @@ static void payload(void)
             val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
 
             /*Free the buffers */
-            val_memory_free_aligned(src_buf);
-            val_memory_free_aligned(dest_buf);
+            if (dest_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)dest_buf, buf_size);
+                val_mem_issue_dsb();
+                val_memory_free_pages(dest_buf, num_pages);
+            }
+            if (src_buf != NULL) {
+                val_pe_cache_invalidate_range((uint64_t)src_buf, buf_size);
+                val_mem_issue_dsb();
+                val_memory_free_pages(src_buf, num_pages);
+            }
 
             return;
         }
@@ -255,8 +288,16 @@ static void payload(void)
         val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
 
         /*Free the buffers */
-        val_memory_free_aligned(src_buf);
-        val_memory_free_aligned(dest_buf);
+        if (dest_buf != NULL) {
+            val_pe_cache_invalidate_range((uint64_t)dest_buf, buf_size);
+            val_mem_issue_dsb();
+            val_memory_free_pages(dest_buf, num_pages);
+        }
+        if (src_buf != NULL) {
+            val_pe_cache_invalidate_range((uint64_t)src_buf, buf_size);
+            val_mem_issue_dsb();
+            val_memory_free_pages(src_buf, num_pages);
+        }
       }
     }
 

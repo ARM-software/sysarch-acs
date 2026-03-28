@@ -79,6 +79,8 @@ mbwu_prepare_overflow_intr(uint32_t msc_idx,
     val_mpam_mbwu_wait_for_update(msc_idx);
 
     val_memcpy(src_buf, dest_buf, buf_size);
+    /* Wait for some time before the memcpy settles and counters update */
+    val_time_delay_ms(TIMEOUT_MEDIUM);
     val_mpam_mbwu_wait_for_update(msc_idx);
 
     /* Overflow is cleared in the handler */
