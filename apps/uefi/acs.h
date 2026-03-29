@@ -38,8 +38,8 @@
 #define PC_BSA_ACS_SUBMINOR_VER  0
 
 /* VBSA Release versions */
-#define VBSA_ACS_MAJOR_VER       0
-#define VBSA_ACS_MINOR_VER       7
+#define VBSA_ACS_MAJOR_VER       1
+#define VBSA_ACS_MINOR_VER       0
 #define VBSA_ACS_SUBMINOR_VER    0
 
 /* xBSA ACS Release versions */

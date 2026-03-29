@@ -1,6 +1,6 @@
 ## VBSA ACS Testcase checklist
 
-The VBSA ACS test checklist is based on **VBSA 1.0 specification** and **VBSA ACS 0.7.0** tag.
+The VBSA ACS test checklist is based on **VBSA 1.0 specification** and **VBSA ACS 1.0.0** tag.
 
 The checklist provides information about:
 
@@ -1204,3 +1204,6 @@ The checklist provides information about:
 ## Latest Checklist Changes
 #### v25.12_VBSA_0.7.0 - *Dec, 2025*
 - Initial VBSA ACS testcase checklist check-in.
+#### v26.03_VBSA_1.0.0 - *Mar, 2026*
+- Guidance on compliance with the V_L1SM_03 rule.
+- Adds 'related rules from other specifications' to align more accurately with the VBSA specification.

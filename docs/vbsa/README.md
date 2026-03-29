@@ -34,11 +34,11 @@ tests run through the UEFI application, with a subset executed in a Linux guest
 environment to exercise OS-visible behavior.
 
 ## Release details
-- **Code quality:** BETA
-- **Latest release version:** v0.7.0
-- **Release tag:** `v25.12_VBSA_0.7.0`
+- **Code quality:** EAC
+- **Latest release version:** v1.0.0
+- **Release tag:** `v26.03_VBSA_1.0.0`
 - **Specification coverage:** VBSA v1.0
-- **Execution levels:** Virtual platforms / pre-silicon validation
+- **Execution levels:** Virtual platforms
 - **Scope:** ACS is **not** a substitute for design verification.
 - **Test collateral:** [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md)
 - **Prebuilt binaries:** [`prebuilt_images/VBSA/v25.12_VBSA_0.7.0`](../../prebuilt_images/VBSA/v25.12_VBSA_0.7.0)
