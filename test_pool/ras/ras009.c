@@ -85,7 +85,7 @@ payload()
   /* get number of nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
   if (status || (num_node == 0)) {
-    val_print(ACS_PRINT_ERR, "\n       RAS nodes not found. Skipping...", 0);
+    val_print(ACS_PRINT_ERR, "\n       RAS nodes not found.", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
     return;
   }
@@ -93,8 +93,8 @@ payload()
   /* get number of MC nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_MC, 0, &num_mc_node);
   if (status || (num_mc_node == 0)) {
-    val_print(ACS_PRINT_ERR, "\n       RAS MC nodes not found. Skipping...", 0);
-    val_set_status(index, RESULT_SKIP(TEST_NUM, 01));
+    val_print(ACS_PRINT_ERR, "\n       RAS MC nodes not found.", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
     return;
   }
 
@@ -204,7 +204,7 @@ exception_return:
   }
 
   if (fail_cnt)
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 04));
   else if (warn_cnt)
     val_set_status(index, RESULT_WARN(TEST_NUM, 01));
   else if (test_skip)

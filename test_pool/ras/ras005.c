@@ -61,9 +61,11 @@ payload()
 
   /* Get Number of nodes with RAS Functionality */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
-  if (status) {
-    val_print(ACS_PRINT_ERR, "\n       RAS Nodes not present", 0);
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 01));
+  if (status || (num_node == 0)) {
+    val_print(ACS_PRINT_DEBUG, "\n       No RAS Nodes found in AEST table.", 0);
+    val_print(ACS_PRINT_DEBUG, "\n       The test must be considered fail if system \
+                                        components supports RAS nodes", 0);
+    val_set_status(index, RESULT_WARN(TEST_NUM, 01));
     return;
   }
 

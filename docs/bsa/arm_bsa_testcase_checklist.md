@@ -1016,12 +1016,12 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_PER_07</td>
       <td>B_PER_07</td>
-      <td>Not Covered</td>
+      <td>Rule is covered as part of B_PER_06 test</td>
       <td></td>
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
+      <td>A direct test will be added in future</td>
     </tr>
     <tr>
       <td rowspan="68">L1</td>

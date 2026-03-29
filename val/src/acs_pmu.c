@@ -686,7 +686,7 @@ test_status_t is_coresight_pmu_present(void)
                                 " if system has CoreSight PMU", 0);
         val_print(ACS_PRINT_TEST, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
                                 "in the SBSA specification", 0);
-        return TEST_SKIP;
+        return TEST_WARN;
     }
 
     /* The test uses PMU CoreSight arch register map, skip if pmu node is not cs */
@@ -697,7 +697,7 @@ test_status_t is_coresight_pmu_present(void)
         val_print(ACS_PRINT_TEST, "\n       No CoreSight PMU nodes found", 0);
         val_print(ACS_PRINT_TEST, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
                                 "in the SBSA specification", 0);
-        return TEST_SKIP;
+        return TEST_WARN;
     }
 
     return TEST_PASS;

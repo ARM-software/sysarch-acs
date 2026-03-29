@@ -44,8 +44,10 @@ static void payload(void)
   /* get number of PE nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_PE, 0, &num_pc_node);
   if (status || (num_pc_node == 0)) {
-      val_print(ACS_PRINT_ERR, "\n       RAS PE nodes not found. Skipping...", 0);
-      val_set_status(index, RESULT_SKIP(TEST_NUM, 02));
+     val_print(ACS_PRINT_DEBUG, "\n       No RAS Nodes found in AEST table.", 0);
+     val_print(ACS_PRINT_DEBUG, "\n       The test must be considered fail if PE \
+                                        supports RAS nodes", 0);
+      val_set_status(index, RESULT_WARN(TEST_NUM, 01));
       return;
   }
   /* Get Number of RAS nodes */

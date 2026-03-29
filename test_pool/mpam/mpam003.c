@@ -51,7 +51,7 @@ static void payload(void)
    /* Check if PE implements FEAT_MPAM */
     if (!((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
         (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))) {
-            val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 02));
+            val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
             return;
     }
 
@@ -61,7 +61,7 @@ static void payload(void)
     val_print(ACS_PRINT_DEBUG, "\n       MSC count = %d", msc_node_cnt);
 
     if (!msc_node_cnt) {
-        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 03));
+        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
         return;
     }
 
@@ -112,7 +112,7 @@ static void payload(void)
                 if ((addr_base == SRAT_INVALID_INFO) || (addr_len == SRAT_INVALID_INFO) ||
                     (addr_len <= 2 * BUFFER_SIZE)) { /* src and dst buffer size */
                     val_print(ACS_PRINT_ERR, "\n       No SRAT mem range info found", 0);
-                    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
+                    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
 
                     /* Restore MPAM2_EL2 settings */
                     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
@@ -125,7 +125,7 @@ static void payload(void)
 
                 if ((src_buf == NULL) || (dest_buf == NULL)) {
                     val_print(ACS_PRINT_ERR, "\n       Memory allocation of buffers failed", 0);
-                    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+                    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 04));
 
                     /* Restore MPAM2_EL2 settings */
                     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
@@ -180,9 +180,9 @@ static void payload(void)
     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
 
     if (test_fails)
-        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 04));
+        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 05));
     else if (test_skip)
-        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 04));
+        val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
     else
         val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
 
