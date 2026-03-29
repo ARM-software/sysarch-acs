@@ -41,7 +41,7 @@ environment to exercise OS-visible behavior.
 - **Execution levels:** Virtual platforms
 - **Scope:** ACS is **not** a substitute for design verification.
 - **Test collateral:** [VBSA Test Scenario Document](arm_vbsa_architecture_compliance_test_scenario.md)
-- **Prebuilt binaries:** [`prebuilt_images/VBSA/v25.12_VBSA_0.7.0`](../../prebuilt_images/VBSA/v25.12_VBSA_0.7.0)
+- **Prebuilt binaries:** [`prebuilt_images/VBSA/v26.03_VBSA_1.0.0`](../../prebuilt_images/VBSA/v26.03_VBSA_1.0.0)
 
 ### GitHub branch
 - Use the appropriate **tag** on the **main** branch for a released build.
