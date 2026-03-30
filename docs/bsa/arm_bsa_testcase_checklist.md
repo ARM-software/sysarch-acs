@@ -1,6 +1,6 @@
 ## BSA ACS Testcase checklist
 
-The BSA ACS test checklist is based on **BSA 1.2 specification** and **BSA ACS 1.2.0** tag.
+The BSA ACS test checklist is based on **BSA 1.2 specification** and **BSA ACS 1.2.1** tag.
 
 The checklist provides information about:
 

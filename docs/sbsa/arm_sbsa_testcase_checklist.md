@@ -3330,14 +3330,113 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>Version 8.0</td>
-      <td>S_L8CXL_1</td>
-      <td>S_L8CXL_1</td>
+      <td rowspan="12">Version 8.0</td>
+      <td rowspan="12">S_L8CXL_1</td>
+      <td>CXL_01</td>
+      <td>1801</td>
+      <td>Check CXL Version</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_02</td>
+      <td>1802</td>
+      <td>Check CXL Type1/2 SMMU ATS</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
+    </tr>
+    <tr>
+      <td>CXL_03</td>
+      <td>1803</td>
+      <td>Check CHBCR address map</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_04</td>
+      <td>1804</td>
+      <td>Validate CHBCR capability registers</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_05</td>
+      <td>1805</td>
+      <td>CXL root port PMReq/PMRes VDM handling</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
+    </tr>
+    <tr>
+      <td>CXL_06</td>
+      <td>1806</td>
+      <td>CXL host sink for incoming MEFN VDM</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
+    </tr>
+    <tr>
+      <td>CXL_08</td>
       <td>Not covered</td>
       <td></td>
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_09</td>
+      <td>1809</td>
+      <td>CXL.mem write transaction</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
+    </tr>
+    <tr>
+      <td>CXL_10</td>
+      <td>1810</td>
+      <td>Check PCMO for CXL persistent memory</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_11</td>
+      <td>1811</td>
+      <td>Check CXL.mem writeback and AER status</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>CXL_12</td>
+      <td>1812</td>
+      <td>Check CXL.cache coherency with exerciser</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
+    </tr>
+    <tr>
+      <td>CXL_13</td>
+      <td>1813</td>
+      <td>Check CXL Type-3 mandatory atomic features</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3527,6 +3626,7 @@ The checklist provides information about:
 - B_PCIe_10 and B_PCIe_11 mapped to S_PCIe_10
 - Removed Test ID 1212 (Pseudo Fault Injection Test) for rule SYS_RAS_2
 - Updated PMU_PE_01
+- Added CXL Rules S_L8CXL_1
 
 ### v25.12_SBSA_8.0.0
 - Updated checklist as per SBSA 8.0 specification.

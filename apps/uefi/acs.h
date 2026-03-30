@@ -25,12 +25,12 @@
 /* BSA Release versions */
 #define BSA_ACS_MAJOR_VER       1
 #define BSA_ACS_MINOR_VER       2
-#define BSA_ACS_SUBMINOR_VER    0
+#define BSA_ACS_SUBMINOR_VER    1
 
 /* SBSA Release versions */
 #define SBSA_ACS_MAJOR_VER       8
 #define SBSA_ACS_MINOR_VER       0
-#define SBSA_ACS_SUBMINOR_VER    0
+#define SBSA_ACS_SUBMINOR_VER    1
 
 /* PC BSA Release versions */
 #define PC_BSA_ACS_MAJOR_VER     1
@@ -73,7 +73,7 @@
 
 #define G_SBSA_LEVEL             4
 #define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 8
+#define SBSA_MAX_LEVEL_SUPPORTED 9
 
 #define G_PCBSA_LEVEL             1
 #define PCBSA_MIN_LEVEL_SUPPORTED 1

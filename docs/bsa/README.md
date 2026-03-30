@@ -36,13 +36,13 @@ A subset runs from Linux via a BSA ACS user-space application and its kernel mod
 Tests can also run in a bare-metal environment. Initialization of the bare-metal environment is platform-specific and out of scope for this document.
 
 ## Release details
-- **Code quality:** BETA
-- **Latest release version:** v1.2.0
-- **Release tag:** `v25.12_BSA_1.2.0`
+- **Code quality:** EAC
+- **Latest release version:** v1.2.1
+- **Release tag:** `v26.03_BSA_1.2.1`
 - **Specification coverage:** BSA v1.2
 - **Execution levels:** Pre-Silicon and Silicon.
 - **Scope:** The compliance suite is **not** a substitute for design verification.
-- **Prebuilt binaries:** [`prebuilt_images/BSA/v25.12_BSA_1.2.0`](../../prebuilt_images/BSA/v25.12_BSA_1.2.0)
+- **Prebuilt binaries:** [`prebuilt_images/BSA/v26.03_BSA_1.2.1`](../../prebuilt_images/BSA/v26.03_BSA_1.2.1)
 - **Access to logs:** Arm licensees can contact Arm through their partner managers.
 
 > **For complete coverage of PCIe capability rules**
@@ -53,6 +53,7 @@ Tests can also run in a bare-metal environment. Initialization of the bare-metal
 
 |   BSA ACS Version   |      BSA Tag ID     | BSA Spec Version |    Pre-Si Support |
 |:-------------------:|:-------------------:|:----------------:|------------------:|
+|        v1.2.1       |   v26.03_BSA_1.2.1  |   BSA v1.2       |       Yes         |
 |        v1.2.0       |   v25.12_BSA_1.2.0  |   BSA v1.2       |       Yes         |
 |        v1.1.2       |   v25.10_BSA_1.1.2  |   BSA v1.1       |       Yes         |
 |        v1.1.0       |   v25.03_REL1.1.0   |   BSA v1.1       |       Yes         |
@@ -73,7 +74,7 @@ Tests can also run in a bare-metal environment. Initialization of the bare-metal
 - To get the latest code with bug fixes and new features, use the **main** branch.
 
 #### Prebuilt release binaries
-Prebuilt images for each release, including [`v25.12_BSA_1.2.0`](../../prebuilt_images/BSA/v25.12_BSA_1.2.0), are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.
+Prebuilt images for each release, including [`v26.03_BSA_1.2.1`](../../prebuilt_images/BSA/v26.03_BSA_1.2.1), are available in the [`prebuilt_images`](../../prebuilt_images/BSA) folder of the main branch.
 
 ## Documentation and Guides
 - [Arm BSA Test Scenario Document](arm_bsa_architecture_compliance_test_scenario.pdf) — algorithms for implementable rules and notes on unimplemented rules.

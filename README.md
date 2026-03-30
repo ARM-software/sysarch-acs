@@ -59,7 +59,7 @@ Validates platform compliance with Arm BSA specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference | Complementary Tests / Dependencies    |
 |---------|--------------|-----------------|---------------------|-------------------|
-| v1.2.0  | BET          | [Bsa.efi](prebuilt_images/BSA/v25.12_BSA_1.2.0) | [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) | * Exerciser VIP needed for complete coverage of PCIe rules |
+| v1.2.1  | EAC          | [Bsa.efi](prebuilt_images/BSA/v26.03_BSA_1.2.1) | [BSA 1.2](https://developer.arm.com/documentation/den0094/e/?lang=en) | * Exerciser VIP needed for complete coverage of PCIe rules |
 
 ####  Reference for Build, Execution, and More
 Refer to the [BSA ACS README](docs/bsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
@@ -73,7 +73,7 @@ Validates platform compliance with Arm SBSA specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference | Complementary Tests / Dependencies    |
 |---------|--------------|-----------------|---------------------|-------------------|
-| v8.0.0  | BET          | [Sbsa.efi](prebuilt_images/SBSA/v25.12_SBSA_8.0.0) | [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en) | * BSA ACS needs to run for complete SBSA coverage <br> * Exerciser VIP needed for complete coverage of PCIe rules |
+| v8.0.1  | BET          | [Sbsa.efi](prebuilt_images/SBSA/v26.03_SBSA_8.0.1) | [SBSA 8.0](https://developer.arm.com/documentation/den0029/j/?lang=en) | * BSA ACS needs to run for complete SBSA coverage <br> * Exerciser VIP needed for complete coverage of PCIe rules |
 
 ####  Reference for Build, Execution, and More
 Refer to the [SBSA ACS README](docs/sbsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.

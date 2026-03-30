@@ -3710,6 +3710,12 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [CXL003_ENTRY] = cxl003_entry,
     [CXL004_ENTRY] = cxl004_entry,
     [GPU_04_ENTRY] = gpu_04_entry,
+    [CXL010_ENTRY] = cxl010_entry,
+    [CXL011_ENTRY] = cxl011_entry,
+    [CXL013_ENTRY] = cxl013_entry,
+    [E043_ENTRY] = e043_entry, // used for CXL_09.
+    [E044_ENTRY] = e044_entry, // used for CXL_05.
+    [E045_ENTRY] = e045_entry, // used for CXL_06.
 #endif /* BAREMETAL_BSA_BUILD */
     [PE037_ENTRY] = pe037_entry,
     [PE043_ENTRY] = pe043_entry,
