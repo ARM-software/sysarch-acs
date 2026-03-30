@@ -36,7 +36,7 @@ been implemented and interpreted correctly.
 - **Release tag:** `v26.03_MPAM_0.7.0`
 - **Specification coverage:** MPAM Memory System Component Specification vA.a
 - **Scope:** The compliance suite is **not** a substitute for design verification.
-- **Prebuilt binaries:** [`prebuilt_images/MPAM/v26.03_MPAM_0.7.0`](https://github.com/ARM-software/bsa-acs/tree/main/prebuilt_images/MPAM/v26.03_MPAM_0.7.0)
+- **Prebuilt binaries:** [`prebuilt_images/SYS-MPAM/v26.03_MPAM_0.7.0`](../../prebuilt_images/SYS-MPAM/v26.03_MPAM_0.7.0)
 - For details on tests implemented in this release, see the
   [SYS-MPAM Test Scenario Document](arm_mpam_architecture_compliance_test_scenario.md).
 
@@ -129,13 +129,13 @@ Save test output to a file in secondary storage. For example,
 `-f mpam.log` creates `mpam.log` with test output.
 
 ## Limitations
-- This is an Alpha-quality release with a limited number of tests based on the
-  MPAM MSC specification.
+
 - Some tests related to MSC error handling have been verified on limited
   platforms. If you encounter failures or errors during ACS runs, please raise
   an issue.
 - Memory Bandwidth Partitioning tests have been implemented but not yet
   verified on any platform.
+- Some Cache partitioning tests have not been validated on silicon-based systems. Users should treat these outcomes as preliminary and perform additional validation before relying on them for compliance.
 
 ## Feedback, contributions and support
 

@@ -87,7 +87,7 @@ Validates platform compliance with Arm MPAM system component specification.
 
 | Version | Code Quality | Prebuilt Binary | Spec Reference |
 |---------|--------------|-----------------|---------------------|
-| v0.5.0  | ALP          | [Mpam.efi](https://github.com/ARM-software/bsa-acs/tree/main/prebuilt_images/MPAM/v25.03_MPAM_0.5.0_ALP) | [MPAM system component A.a](https://developer.arm.com/documentation/ihi0099/aa/?lang=en) |
+| v0.7.0  | BET          | [Mpam.efi](prebuilt_images/SYS-MPAM/v26.03_MPAM_0.7.0/) | [MPAM system component A.a](https://developer.arm.com/documentation/ihi0099/aa/?lang=en) |
 
 ####  Reference for Build, Execution, and More
 Refer to the [MPAM ACS README](docs/mpam/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
