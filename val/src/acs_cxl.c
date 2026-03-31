@@ -346,12 +346,8 @@ void
 val_cxl_free_component_table(void)
 {
     if (g_cxl_component_table != NULL) {
-        pal_mem_free_aligned((void *)g_cxl_component_table);
+        val_memory_free_aligned((void *)g_cxl_component_table);
         g_cxl_component_table = NULL;
-    }
-    else {
-      val_print(DEBUG,
-                  "\n g_cxl_component_table pointer is already NULL");
     }
 }
 
@@ -1200,8 +1196,12 @@ val_cxl_create_info_table(uint64_t *cxl_info_table)
 void
 val_cxl_free_info_table(void)
 {
-  g_cxl_info_table = NULL;
-  val_cxl_free_component_table();
+    val_cxl_free_component_table();
+
+    if (g_cxl_info_table != NULL) {
+        val_memory_free_aligned((void *)g_cxl_info_table);
+        g_cxl_info_table = NULL;
+    }
 }
 
 /**
