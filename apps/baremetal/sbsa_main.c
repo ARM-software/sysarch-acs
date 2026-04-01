@@ -28,45 +28,55 @@ void
 freeAcsMeM()
 {
     val_pe_free_info_table();
-    if (acs_is_module_enabled(PE)          ||
-        acs_is_module_enabled(GIC)         ||
-        acs_is_module_enabled(PCIE)        ||
-        acs_is_module_enabled(MPAM)        ||
-        acs_is_module_enabled(RAS)         ||
-       acs_is_module_enabled(ETE)         ||
-       acs_is_module_enabled(PMU))
+    if (acs_is_module_enabled(PE)         ||
+      acs_is_module_enabled(GIC)          ||
+      acs_is_module_enabled(TIMER)        ||
+      acs_is_module_enabled(WATCHDOG)     ||
+      acs_is_module_enabled(PERIPHERAL)   ||
+      acs_is_module_enabled(POWER_WAKEUP) ||
+      acs_is_module_enabled(PCIE)         ||
+      acs_is_module_enabled(MPAM)         ||
+      acs_is_module_enabled(RAS)          ||
+      acs_is_module_enabled(ETE)          ||
+      acs_is_module_enabled(PMU))
        val_gic_free_info_table();
 
-    if (acs_is_module_enabled(GIC)          ||
-       acs_is_module_enabled(TIMER))
+    if (acs_is_module_enabled(TIMER)      ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(WATCHDOG)   ||
+        acs_is_module_enabled(POWER_WAKEUP))
        val_timer_free_info_table();
 
-    if (acs_is_module_enabled(WATCHDOG))
+    if (acs_is_module_enabled(WATCHDOG)   ||
+        acs_is_module_enabled(POWER_WAKEUP))
        val_wd_free_info_table();
 
     if (acs_is_module_enabled(MPAM))
-       val_cache_free_info_table();
-
-    if (acs_is_module_enabled(MPAM))
     {
+        val_cache_free_info_table();
         val_mpam_free_info_table();
         val_hmat_free_info_table();
         val_srat_free_info_table();
         val_pcc_free_info_table();
     }
 
-   if (acs_is_module_enabled(PCIE))
+    if (acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(SMMU))
        val_pcie_free_info_table();
 
-   if (acs_is_module_enabled(SMMU)   ||
-       acs_is_module_enabled(MEM_MAP) ||
+   if (acs_is_module_enabled(SMMU)         ||
+       acs_is_module_enabled(GIC)          ||
+       acs_is_module_enabled(MEM_MAP)      ||
        acs_is_module_enabled(PCIE))
        val_iovirt_free_info_table();
 
-   if (acs_is_module_enabled(PE)     ||
-       acs_is_module_enabled(PCIE)   ||
-       acs_is_module_enabled(MEM_MAP) ||
-       acs_is_module_enabled(MPAM))
+    if (acs_is_module_enabled(PE)          ||
+        acs_is_module_enabled(RAS)         ||
+        acs_is_module_enabled(PCIE)        ||
+        acs_is_module_enabled(PERIPHERAL)  ||
+        acs_is_module_enabled(MEM_MAP)     ||
+        acs_is_module_enabled(MPAM))
        val_peripheral_free_info_table();
 
    if (acs_is_module_enabled(PMU))
@@ -142,65 +152,6 @@ uint32_t apply_user_config_and_defaults(void)
 
 }
 
-void
-freeSbsaAvsMem()
-{
-  val_pe_free_info_table();
-  if (acs_is_module_enabled(PE)          ||
-      acs_is_module_enabled(GIC)         ||
-      acs_is_module_enabled(PCIE)        ||
-      acs_is_module_enabled(MPAM)        ||
-      acs_is_module_enabled(RAS)         ||
-      acs_is_module_enabled(ETE)         ||
-      acs_is_module_enabled(PMU))
-      val_gic_free_info_table();
-
-  if (acs_is_module_enabled(GIC)          ||
-      acs_is_module_enabled(TIMER))
-      val_timer_free_info_table();
-
-  if (acs_is_module_enabled(WATCHDOG))
-      val_wd_free_info_table();
-
-  if (acs_is_module_enabled(MPAM))
-      val_cache_free_info_table();
-
-  if (acs_is_module_enabled(MPAM))
-  {
-      val_mpam_free_info_table();
-      val_hmat_free_info_table();
-      val_srat_free_info_table();
-      val_pcc_free_info_table();
-  }
-
-  if (acs_is_module_enabled(PCIE))
-      val_pcie_free_info_table();
-
-  if (acs_is_module_enabled(SMMU)   ||
-      acs_is_module_enabled(MEM_MAP) ||
-      acs_is_module_enabled(PCIE))
-      val_iovirt_free_info_table();
-
-  if (acs_is_module_enabled(PE)     ||
-      acs_is_module_enabled(RAS)    ||
-      acs_is_module_enabled(PCIE)   ||
-      acs_is_module_enabled(MEM_MAP) ||
-      acs_is_module_enabled(MPAM))
-      val_peripheral_free_info_table();
-
-  if (acs_is_module_enabled(PMU))
-      val_pmu_free_info_table();
-
-  if (acs_is_module_enabled(RAS))
-  {
-      val_ras2_free_info_table();
-      val_ras_free_info_table();
-  }
-
-  val_free_shared_mem();
-
-}
-
 /***
   SBSA Compliance Suite Entry Point.
 
@@ -259,12 +210,16 @@ ShellAppMainsbsa()
     if (Status)
         return Status;
 
-    if (acs_is_module_enabled(PE)          ||
-      acs_is_module_enabled(GIC)         ||
-      acs_is_module_enabled(PCIE)        ||
-      acs_is_module_enabled(MPAM)        ||
-      acs_is_module_enabled(RAS)         ||
-      acs_is_module_enabled(ETE)         ||
+    if (acs_is_module_enabled(PE)         ||
+      acs_is_module_enabled(GIC)          ||
+      acs_is_module_enabled(TIMER)        ||
+      acs_is_module_enabled(WATCHDOG)     ||
+      acs_is_module_enabled(PERIPHERAL)   ||
+      acs_is_module_enabled(POWER_WAKEUP) ||
+      acs_is_module_enabled(PCIE)         ||
+      acs_is_module_enabled(MPAM)         ||
+      acs_is_module_enabled(RAS)          ||
+      acs_is_module_enabled(ETE)          ||
       acs_is_module_enabled(PMU))
     {
         Status = createGicInfoTable();
@@ -272,43 +227,52 @@ ShellAppMainsbsa()
             return Status;
     }
 
-    if (acs_is_module_enabled(GIC)          ||
-        acs_is_module_enabled(TIMER))
+    if (acs_is_module_enabled(TIMER)      ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(WATCHDOG)   ||
+        acs_is_module_enabled(POWER_WAKEUP))
         createTimerInfoTable();
 
-    if (acs_is_module_enabled(WATCHDOG))
+    if (acs_is_module_enabled(WATCHDOG)   ||
+        acs_is_module_enabled(POWER_WAKEUP))
         createWatchdogInfoTable();
 
     if (acs_is_module_enabled(MPAM))
-        createCacheInfoTable();
-
-    if (acs_is_module_enabled(MPAM))
     {
+        createCacheInfoTable();
         createPccInfoTable();
         createMpamInfoTable();
         createHmatInfoTable();
         createSratInfoTable();
     }
 
-    if (acs_is_module_enabled(PCIE))
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(SMMU))
         createPcieInfoTable();
 
-    if (acs_is_module_enabled(SMMU)        ||
-        acs_is_module_enabled(MEM_MAP)      ||
-        acs_is_module_enabled(PCIE))
+    if (acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(MEM_MAP)    ||
+        acs_is_module_enabled(SMMU))
         createIoVirtInfoTable();
 
-    if (acs_is_module_enabled(PE)          ||
-        acs_is_module_enabled(RAS)         ||
-        acs_is_module_enabled(PCIE)        ||
-        acs_is_module_enabled(MEM_MAP)     ||
+    if (acs_is_module_enabled(PE)         ||
+        acs_is_module_enabled(RAS)        ||
+        acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL) ||
+        acs_is_module_enabled(MEM_MAP)    ||
         acs_is_module_enabled(MPAM))
         createPeripheralInfoTable();
 
-    if (acs_is_module_enabled(PE)          ||
-        acs_is_module_enabled(SMMU)        ||
+    if (acs_is_module_enabled(PE)         ||
+        acs_is_module_enabled(SMMU)       ||
         acs_is_module_enabled(MEM_MAP))
         createMemoryInfoTable();
+
+    if (acs_is_module_enabled(PCIE)       ||
+        acs_is_module_enabled(PERIPHERAL))
+        createDmaInfoTable();
 
     if (acs_is_module_enabled(PMU))
         createPmuInfoTable();
