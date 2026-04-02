@@ -22,6 +22,12 @@ OUTPUT_FORMAT(elf64-littleaarch64)
 OUTPUT_ARCH(aarch64)
 ENTRY(acs_entry)
 
+PHDRS
+{
+    readexec PT_LOAD FLAGS(5);  /* R + X (Read + Execute) */
+    readwrite PT_LOAD FLAGS(6); /* R + W (Read + Write) */
+}
+
 MEMORY {
     RAM (rwx): ORIGIN = IMAGE_BASE, LENGTH = PLATFORM_HOST_IMAGE_SIZE
 }
@@ -38,7 +44,7 @@ SECTIONS
         *(.text*)
         . = NEXT(PAGE_SIZE);
         __TEXT_END__ = .;
-    }
+    } :readexec
 
     .rodata : {
         . = ALIGN(PAGE_SIZE);
@@ -48,7 +54,7 @@ SECTIONS
         . = NEXT(PAGE_SIZE);
         __RODATA_END__ = .;
 
-    }
+    } :readexec
 
     .data : {
         . = ALIGN(PAGE_SIZE);
@@ -62,7 +68,7 @@ SECTIONS
 
         . = NEXT(PAGE_SIZE);
         __DATA_END__ = .;
-    }
+    } :readwrite
 
     .bss (NOLOAD) : {
         . = ALIGN(PAGE_SIZE);
@@ -71,5 +77,5 @@ SECTIONS
         *(COMMON)
         . = NEXT(PAGE_SIZE);
         __BSS_END__ = .;
-    }
+    } :readwrite
 }
