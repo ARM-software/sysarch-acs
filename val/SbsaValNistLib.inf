@@ -31,7 +31,6 @@
   src/AArch64/PeTestSupport.S
   src/AArch64/Drtm.S
   src/AArch64/SystemReg.S
-  src/AArch64/generic_sysreg_support.S
   src/acs_status.c
   src/val_status.c
   src/acs_pe.c
@@ -93,4 +92,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.6-a+sve+profile
-  GCC:*_*_*_CC_FLAGS   =  $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+profile+lse $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI

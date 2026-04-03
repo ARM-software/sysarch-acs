@@ -17,7 +17,7 @@
 #ifndef VAL_STATUS_H
 #define VAL_STATUS_H
 
-#ifndef TARGET_UEFI
+#if !defined(TARGET_UEFI) && !defined(TARGET_LINUX)
 #include <stdint.h>
 #endif
 

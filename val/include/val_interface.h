@@ -26,7 +26,6 @@
 
 extern uint32_t g_print_level;
 
-
 #define ACS_STATUS_ERR       0xEDCB1234  //some impropable value?
 #define ACS_STATUS_NIST_PASS 0x1
 #define ACS_INVALID_INDEX    0xFFFFFFFF

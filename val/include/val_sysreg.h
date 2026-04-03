@@ -8,8 +8,10 @@
 #ifndef VAL_SYSREG_H
 #define VAL_SYSREG_H
 
+#ifdef TARGET_UEFI
 #include <stddef.h>
-#ifndef TARGET_UEFI
+#elif !defined(TARGET_LINUX)
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #endif
