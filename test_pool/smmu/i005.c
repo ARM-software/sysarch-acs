@@ -117,7 +117,11 @@ payload_check_sel2_and_smmu_stg2_support()
 
     /* If Secure EL2 not implemented then all SMMUs in system must support stage 2 translation */
     status = check_smmu_stg2_support();
-    val_set_status(index, TEST_STATUS(TEST_NUM1, status, 2));
+    if (status == TEST_FAIL) {
+    val_set_status(index, RESULT_FAIL(2));
+    } else {
+    val_set_status(index, RESULT_PASS);
+   }
     return;
 }
 

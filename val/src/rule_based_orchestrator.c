@@ -484,7 +484,7 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
                     test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id](num_pe);
 
                 /* If precheck fails, report alias rule status as SKIP as it wont be applicable */
-                if (precheck_status == TEST_FAIL ||  (GET_STATE(precheck_status) == TEST_FAIL)) {
+                if ((GET_STATE(precheck_status) == TEST_FAIL)) {
                     rule_test_status = RESULT_SKIP(0);
                     goto report_status;
                 }
@@ -576,7 +576,7 @@ run_tests(RULE_ID_e *rule_list, uint32_t list_size)
              }
 	    /* If the alias only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
             if (test_warn_flag && (GET_STATE(rule_test_status) == TEST_SKIP)) {
-                rule_test_status = TEST_WARNING;
+                rule_test_status = RESULT_WARNING(0);
             }
 
             /* Print end header for alias rule */

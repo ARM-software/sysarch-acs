@@ -1385,7 +1385,7 @@ val_smmu_get_info(SMMU_INFO_e type, uint32_t smmu_index)
     if (smmu_index >= g_num_smmus)
     {
         val_print(ERROR,
-                  "\n       val_smmu_get_info: invalid smmu index(%d)     ",
+                  "\n       val_smmu_get_info - invalid smmu index(%d)     ",
                   smmu_index);
         return 0;
     }

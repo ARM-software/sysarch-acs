@@ -29,15 +29,11 @@
 [Sources.common]
   src/AArch64/PeRegSysSupport.S
   src/AArch64/PeTestSupport.S
-  src/AArch64/ArchTimerSupport.S
-  src/AArch64/GicSupport.S
-  src/AArch64/MpamSupport.S
-  src/AArch64/RasSupport.S
-  src/AArch64/PmuRegSupport.S
   src/AArch64/Drtm.S
   src/AArch64/SystemReg.S
   src/AArch64/generic_sysreg_support.S
   src/acs_status.c
+  src/val_status.c
   src/acs_pe.c
   src/acs_pe_infra.c
   src/acs_gic.c
@@ -82,6 +78,7 @@
   src/sbsa_execute_test.c
   src/mpam_execute_test.c
   src/drtm_execute_test.c
+  src/val_logger.c
 
 [Packages]
   MdePkg/MdePkg.dec

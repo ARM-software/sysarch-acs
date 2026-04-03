@@ -79,8 +79,8 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
     }
 
     /* If the combined result only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
-    if (test_warn_flag && (rule_status == TEST_SKIP)) {
-        rule_status = TEST_WARNING;
+    if (test_warn_flag && (GET_STATE(rule_status) == TEST_SKIP)) {
+        rule_status = RESULT_WARNING(0);
     }
 
     return rule_status;
@@ -101,18 +101,18 @@ static uint32_t run_pcie_static_and_exerciser(TEST_ENTRY_ID_e *static_list,
     uint32_t rule_status;
 
     /* Report partial coverage for mixed PASS+SKIP/WARN aggregated results. */
-    if (((static_status == TEST_PASS) &&
-        ((exr_status == TEST_SKIP) || (exr_status == TEST_WARNING))) ||
-        ((exr_status == TEST_PASS) &&
-        ((static_status == TEST_SKIP) || (static_status == TEST_WARNING))))
-        return TEST_PARTIAL_COVERED;
+    if (((GET_STATE(static_status) == TEST_PASS) &&
+        ((GET_STATE(exr_status) == TEST_SKIP) || (GET_STATE(exr_status) == TEST_WARNING))) ||
+        ((GET_STATE(exr_status) == TEST_PASS) &&
+        ((GET_STATE(static_status) == TEST_SKIP) || (GET_STATE(static_status) == TEST_WARNING))))
+        return RESULT_PARTIAL_COVERED;
 
     /* For all other combinations, fall back to severity-based aggregation. */
     rule_status = max_status(static_status, exr_status);
     /* If the combined result only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
-    if (((static_status == TEST_WARNING) || (exr_status == TEST_WARNING)) &&
-        (rule_status == TEST_SKIP)) {
-        rule_status = TEST_WARNING;
+    if (((GET_STATE(static_status) == TEST_WARNING) || (GET_STATE(exr_status) == TEST_WARNING)) &&
+        (GET_STATE(rule_status) == TEST_SKIP)) {
+        rule_status = RESULT_WARNING(0);
     }
 
     return rule_status;
@@ -450,7 +450,7 @@ v_l1wk_02_05_entry(uint32_t num_pe)
     if (g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT) {
         val_print(INFO,
                     "\n       Skipping rule as EL1 physical timer access not supported", 0);
-        return TEST_SKIP;
+        return RESULT_SKIP(0);
     }
 
     TEST_ENTRY_ID_e tst_entry_list[] = {U001_ENTRY, U002_ENTRY, TEST_ENTRY_SENTINEL};
@@ -471,7 +471,7 @@ v_l1pp_00_entry(uint32_t num_pe)
 {
 #ifdef TARGET_LINUX
     // Test not applicable for Linux target
-    return TEST_SKIP;
+    return RESULT_SKIP(0);
 #endif
 
     TEST_ENTRY_ID_e skip_list[] = {G007_ENTRY, TEST_ENTRY_SENTINEL};

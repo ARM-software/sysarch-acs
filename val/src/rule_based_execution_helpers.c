@@ -253,7 +253,7 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
 
     val_print(INFO, "\n");
     /* Print other PAL(s) that validate this rule */
-    if (status == TEST_PAL_NOT_SUPPORTED) {
+    if (status == RESULT_PAL_NOT_SUPPORTED) {
         print_pal_validation_info(rule_enum, indent);
     }
     /* Print indent spaces */
