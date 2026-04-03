@@ -23,6 +23,19 @@ typedef unsigned long u_register_t;
 
 #define COMPILER_BARRIER() __asm__ volatile ("" ::: "memory")
 
+#ifdef isb
+#undef isb
+#endif
+#ifdef wfi
+#undef wfi
+#endif
+#ifdef wfe
+#undef wfe
+#endif
+#ifdef sev
+#undef sev
+#endif
+
 #ifndef __dead2
 #define __dead2 __attribute__((noreturn))
 #endif
@@ -106,7 +119,7 @@ static inline void write_ ## _name(u_register_t v)            \
  * TLB maintenance accessor prototypes
  ******************************************************************************/
 
-#if ERRATA_A57_813419
+#ifdef ERRATA_A57_813419
 /*
  * Define function for TLBI instruction with type specifier that implements
  * the workaround for errata 813419 of Cortex-A57.
@@ -136,7 +149,7 @@ SYSOP_TYPE_FUNC(tlbi, alle1)
 SYSOP_TYPE_FUNC(tlbi, alle1is)
 SYSOP_TYPE_FUNC(tlbi, alle2)
 SYSOP_TYPE_FUNC(tlbi, alle2is)
-#if ERRATA_A57_813419
+#ifdef ERRATA_A57_813419
 TLBIOP_ERRATA_A57_813419_TYPE_FUNC(alle3)
 TLBIOP_ERRATA_A57_813419_TYPE_FUNC(alle3is)
 #else
@@ -149,7 +162,7 @@ SYSOP_TYPE_PARAM_FUNC(tlbi, vaae1is)
 SYSOP_TYPE_PARAM_FUNC(tlbi, vaale1is)
 SYSOP_TYPE_PARAM_FUNC(tlbi, vae2is)
 SYSOP_TYPE_PARAM_FUNC(tlbi, vale2is)
-#if ERRATA_A57_813419
+#ifdef ERRATA_A57_813419
 TLBIOP_ERRATA_A57_813419_TYPE_PARAM_FUNC(vae3is)
 TLBIOP_ERRATA_A57_813419_TYPE_PARAM_FUNC(vale3is)
 #else

@@ -18,17 +18,22 @@
 #ifndef _PAL_COMMON_INTF_H_
 #define _PAL_COMMON_INTF_H_
 
+#ifdef TARGET_LINUX
+#include <linux/stdarg.h>
+#include <linux/stddef.h>
+#include <linux/types.h>
+#else
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#endif
 
 
 #define LOG_BUFFER_SIZE 8192
+#ifndef static_assert
 #define static_assert _Static_assert
+#endif
 
 void pal_uart_putc(char c);
 
 #endif /* _PAL_COMMON_INTF_H_ */
-
-
-

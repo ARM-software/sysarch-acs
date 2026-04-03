@@ -17,6 +17,7 @@
 
 export CROSS_COMPILE ?= aarch64-linux-gnu-
 export ARCH ?= arm64
+export KBUILD_MODPOST_WARN ?= 1
 
 #since we have copied the files locally
 ACS_DIR ?= .
