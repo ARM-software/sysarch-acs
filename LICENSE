@@ -202,7 +202,11 @@
 
 # Other Licenses
  - BSD-3-Clause
-      - Some source files originate from the [cca-rmm-acs](https://github.com/ARM-software/cca-rmm-acs). These files are licensed under the BSD-3-Clause which are a permissive licenses compatible with Apache License, Version 2.0. Any contributions to this code must also be made under the terms of BSD-3-Clause.
+      - Some source files originate from the
+        [cca-rmm-acs](https://github.com/ARM-software/cca-rmm-acs). These files
+        are licensed under the BSD-3-Clause which are a permissive licenses
+        compatible with Apache License, Version 2.0. Any contributions to this
+        code must also be made under the terms of BSD-3-Clause.
       - These files are:
          - val/include/val_arch.h
          - val/include/val_logger.h
