@@ -23,7 +23,7 @@
 #include "val_interface.h"
 
 uint32_t g_override_skip;
-
+static acs_test_status_counters_t g_rule_test_stats;
 /**
   @brief  This API calls PAL layer to print a formatted string
           to the output console.
@@ -166,30 +166,22 @@ val_print_test_end(uint32_t status, char8_t *string)
 void
 val_print_acs_test_status_summary(void)
 {
+  acs_test_status_counters_t *stats = acs_get_test_status();
+
   val_print(ACS_PRINT_TEST, "\n---------- ACS Summary ----------\n", 0);
   val_print(ACS_PRINT_TEST, "   Total Rules Run        : %d\n",
-            g_rule_test_stats.total_rules_run);
-  val_print(ACS_PRINT_TEST, "   Passed                 : %d\n", g_rule_test_stats.passed);
+            stats->total_rules_run);
+  val_print(ACS_PRINT_TEST, "   Passed                 : %d\n", stats->passed);
   val_print(ACS_PRINT_TEST, "   Passed (*Partial)      : %d\n",
-            g_rule_test_stats.partial_coverage);
-  val_print(ACS_PRINT_TEST, "   Warnings               : %d\n", g_rule_test_stats.warnings);
-  val_print(ACS_PRINT_TEST, "   Skipped                : %d\n", g_rule_test_stats.skipped);
-  val_print(ACS_PRINT_TEST, "   Failed                 : %d\n", g_rule_test_stats.failed);
+            stats->partial_coverage);
+  val_print(ACS_PRINT_TEST, "   Warnings               : %d\n", stats->warnings);
+  val_print(ACS_PRINT_TEST, "   Skipped                : %d\n", stats->skipped);
+  val_print(ACS_PRINT_TEST, "   Failed                 : %d\n", stats->failed);
   val_print(ACS_PRINT_TEST, "   PAL Not Supported      : %d\n",
-            g_rule_test_stats.pal_not_supported);
+            stats->pal_not_supported);
   val_print(ACS_PRINT_TEST, "   Test Not Implemented   : %d\n",
-            g_rule_test_stats.not_implemented);
+            stats->not_implemented);
   val_print(ACS_PRINT_TEST, "---------------------------------\n", 0);
-
-  /* Reset global rule/test status counters after printing summary */
-  g_rule_test_stats.total_rules_run = 0;
-  g_rule_test_stats.passed = 0;
-  g_rule_test_stats.partial_coverage = 0;
-  g_rule_test_stats.warnings = 0;
-  g_rule_test_stats.skipped = 0;
-  g_rule_test_stats.failed = 0;
-  g_rule_test_stats.pal_not_supported = 0;
-  g_rule_test_stats.not_implemented = 0;
 
 }
 
@@ -964,4 +956,38 @@ uint32_t
 val_exit_acs(void)
 {
   return pal_exit_acs();
+}
+
+/* Definition of APIs declared in acs_interface.h */
+
+/**
+  @brief  Get pointer to global ACS test status counters.
+          1. Caller       - VAL/PAL layers needing aggregated results
+          2. Prerequisite - None.
+
+  @return Pointer to the shared test status counter structure.
+ **/
+acs_test_status_counters_t *acs_get_test_status(void)
+{
+  return &g_rule_test_stats;
+}
+
+/**
+  @brief  Reset global ACS test status counters to zero.
+          1. Caller       - VAL/PAL layers before starting a run or while
+                            end of ACS
+          2. Prerequisite - None.
+
+  @return None
+ **/
+void acs_reset_test_status(void)
+{
+  g_rule_test_stats.total_rules_run   = 0;
+  g_rule_test_stats.passed            = 0;
+  g_rule_test_stats.partial_coverage  = 0;
+  g_rule_test_stats.warnings          = 0;
+  g_rule_test_stats.skipped           = 0;
+  g_rule_test_stats.failed            = 0;
+  g_rule_test_stats.not_implemented   = 0;
+  g_rule_test_stats.pal_not_supported = 0;
 }
