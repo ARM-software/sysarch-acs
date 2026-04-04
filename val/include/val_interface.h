@@ -23,6 +23,7 @@
 #include "acs_pfdi.h"
 #include "acs_cxl.h"
 #include "val_status.h"
+#include "acs_test_status.h"
 
 extern uint32_t g_print_level;
 
@@ -63,20 +64,6 @@ extern uint32_t g_print_level;
 #define EL1SKIPTRAP_PMSIDR   (1u << 0)
 #define EL1SKIPTRAP_CNTPCT   (1u << 1)
 #define EL1SKIPTRAP_DEVMEM   (1u << 2)
-
-/* Test status counters visible across ACS */
-typedef struct {
-    uint32_t total_rules_run;     /* Total rules/tests that reported a status */
-    uint32_t passed;              /* Count of TEST_PASS */
-    uint32_t partial_coverage;    /* Count of TEST_PARTIAL_COV */
-    uint32_t warnings;            /* Count of TEST_WARN */
-    uint32_t skipped;             /* Count of TEST_SKIP */
-    uint32_t failed;              /* Count of TEST_FAIL */
-    uint32_t not_implemented;     /* Count of TEST_NO_IMP */
-    uint32_t pal_not_supported;   /* Count of TEST_PAL_NS */
-} acs_test_status_counters_t;
-
-extern acs_test_status_counters_t g_rule_test_stats;
 
 /* Module init operation type enum */
 typedef enum {

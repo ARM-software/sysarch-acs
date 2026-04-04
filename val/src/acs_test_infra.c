@@ -162,16 +162,6 @@ val_print_acs_test_status_summary(void)
             g_rule_test_stats.not_implemented);
   val_print(INFO, "---------------------------------\n");
 
-  /* Reset global rule/test status counters after printing summary */
-  g_rule_test_stats.total_rules_run = 0;
-  g_rule_test_stats.passed = 0;
-  g_rule_test_stats.partial_coverage = 0;
-  g_rule_test_stats.warnings = 0;
-  g_rule_test_stats.skipped = 0;
-  g_rule_test_stats.failed = 0;
-  g_rule_test_stats.pal_not_supported = 0;
-  g_rule_test_stats.not_implemented = 0;
-
 }
 
 /**
