@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 #include "pal_interface.h"
-#include "pal_common_intf.h"
 
 int val_memory_compare(void *s1, void *s2, uint32_t len);
 

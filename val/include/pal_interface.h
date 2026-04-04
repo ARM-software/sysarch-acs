@@ -17,13 +17,14 @@
 
 #ifndef __PAL_INTERFACE_H__
 #define __PAL_INTERFACE_H__
-
 #ifdef TARGET_BAREMETAL
   #include <stdlib.h>
   #include <stdint.h>
+  #include <stdarg.h>
   #include <stddef.h>
   #include <stdbool.h>
   #include "platform_override_fvp.h"
+  #include "acs_interface.h"
 
   typedef uint64_t addr_t;
   typedef char     char8_t;
@@ -68,8 +69,12 @@
 #endif // TARGET_BAREMETAL
 
 #ifdef TARGET_LINUX
+ #include <linux/stdarg.h>
+ #include <linux/stddef.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include "acs_interface.h"
 
-  #include <linux/slab.h>
   typedef char          char8_t;
   typedef long long int addr_t;
 
@@ -90,8 +95,13 @@
 #endif //TARGET_LINUX
 
 #ifdef TARGET_UEFI
+  #include <stdarg.h>
+  #include <stdbool.h>
+  #include <stddef.h>
   #include <Base.h>
   #include "platform_override.h"
+  #include "acs_interface.h"
+
   typedef INT8    int8_t;
   typedef INT16   int16_t;
   typedef INT32   int32_t;
@@ -109,10 +119,11 @@
   typedef CHAR8   char8_t;
   typedef CHAR16  char16_t;
 
-  #if defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L
-   /* bool is a keyword  */
-  #else
-   typedef BOOLEAN bool;
+  /* Avoid redefining bool when the language or headers already provide it. */
+  #if !defined(__cplusplus) && \
+      !(defined(__STDC_VERSION__) && __STDC_VERSION__ > 201710L) && \
+      !defined(__bool_true_false_are_defined)
+    typedef BOOLEAN bool;
   #endif
 
   #define MAX_SID  32
@@ -153,8 +164,6 @@
 int32_t pal_psci_get_conduit(void);
 void pal_dump_dtb(void);
 uint32_t pal_target_is_dt(void);
-
-
 /**
   @brief  number of PEs discovered
 **/
@@ -800,6 +809,7 @@ uint32_t pal_mem_set_wb_executable(void *addr, uint32_t size);
 void     pal_print(uint64_t data);
 void     pal_uart_print(int log, const char *fmt, ...);
 void     pal_print_raw(uint64_t addr, char8_t *string, uint64_t data);
+void     pal_uart_putc(char c);
 uint32_t pal_strncmp(char8_t *str1, char8_t *str2, uint32_t len);
 void     pal_mmu_add_mmap(void);
 void    *pal_mmu_get_mmap_list(void);
@@ -1462,4 +1472,9 @@ int32_t pal_invoke_psci_fn(uint64_t function_id, uint64_t arg0,
 void pal_pfdi_verify_regs(ARM_SMC_ARGS *ArmSmcArgs, int32_t Conduit,
                      uint64_t PreSmcRegs[REG_COUNT_X5_X17],
                      uint64_t PostSmcRegs[REG_COUNT_X5_X17]);
+#endif
+
+#define LOG_BUFFER_SIZE 8192
+#ifndef static_assert
+#define static_assert _Static_assert
 #endif

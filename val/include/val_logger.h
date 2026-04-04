@@ -9,7 +9,6 @@
 #define VAL_LOG_H
 
 #include "pal_interface.h"
-#include "pal_common_intf.h"
 
 /* Verbosity enums, Lower the value, higher the verbosity */
 typedef enum {

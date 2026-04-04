@@ -10,7 +10,6 @@
 
 #include "val_arch.h"
 #include "pal_interface.h"
-#include "pal_common_intf.h"
 
 typedef unsigned long u_register_t;
 

@@ -250,6 +250,7 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
     (void)rule_enum;
     /* Only count top-level rules (indent == 0) */
     uint32_t top_level_rule = (indent == 0);
+    acs_test_status_counters_t *stats = acs_get_test_status();
 
     val_print(INFO, "\n");
     /* Print other PAL(s) that validate this rule */
@@ -269,30 +270,30 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
 
     /* Update global counters for top-level rules only */
     if (top_level_rule) {
-        g_rule_test_stats.total_rules_run++;
+        stats->total_rules_run++;
     }
 
     switch (state) {
     case TEST_PASS:
-        if (top_level_rule) g_rule_test_stats.passed++;
+        if (top_level_rule) stats->passed++;
         break;
     case TEST_PARTIAL_COVERED:
-        if (top_level_rule) g_rule_test_stats.partial_coverage++;
+        if (top_level_rule) stats->partial_coverage++;
         break;
     case TEST_WARNING:
-        if (top_level_rule) g_rule_test_stats.warnings++;
+        if (top_level_rule) stats->warnings++;
         break;
     case TEST_SKIP:
-        if (top_level_rule) g_rule_test_stats.skipped++;
+        if (top_level_rule) stats->skipped++;
         break;
     case TEST_FAIL:
-        if (top_level_rule) g_rule_test_stats.failed++;
+        if (top_level_rule) stats->failed++;
         break;
     case TEST_NOT_IMPLEMENTED:
-        if (top_level_rule) g_rule_test_stats.not_implemented++;
+        if (top_level_rule) stats->not_implemented++;
         break;
     case TEST_PAL_NOT_SUPPORTED:
-        if (top_level_rule) g_rule_test_stats.pal_not_supported++;
+        if (top_level_rule) stats->pal_not_supported++;
         break;
     default:
         val_print(INFO, "STATUS:0x%08x", status);
