@@ -54,7 +54,6 @@ uint32_t g_bsa_sw_view_mask  = 0;
  * Global counters for rule/test outcomes.
  * Updated in val/src/rule_based_execution_helpers.c::print_rule_test_status().
  */
-acs_test_status_counters_t g_rule_test_stats = {0};
 
 /* ***Note***: few globals are defined in pal/baremetal/target/../src/platform_cfg_fvp.c
    for partners to furnish */

@@ -21,6 +21,8 @@
 #include "platform_image_def.h"
 #include "platform_override_struct.h"
 #include "platform_override_fvp.h"
+#include "pal_pl011_uart.h"
+#include "acs_interface.h"
 
 /**
   Conduits for service calls (SMC vs HVC).

@@ -35,6 +35,7 @@ target_include_directories(${PAL_LIB} PRIVATE
  ${ROOT_DIR}/pal/include/
  ${ROOT_DIR}/pal/baremetal/base/include/
  ${ROOT_DIR}/pal/baremetal/base/src/AArch64/
+ ${ROOT_DIR}/val/include/
  ${ROOT_DIR}/pal/baremetal/target/${TARGET}/include/
 )
 

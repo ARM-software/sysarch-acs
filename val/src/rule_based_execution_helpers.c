@@ -250,6 +250,7 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
     (void)rule_enum;
     /* Only count top-level rules (indent == 0) */
     uint32_t top_level_rule = (indent == 0);
+    acs_test_status_counters_t *stats = acs_get_test_status();
 
     val_print(ACS_PRINT_TEST, "\n", 0);
     /* Print other PAL(s) that validate this rule */
@@ -267,37 +268,37 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
 
     /* Update global counters for top-level rules only */
     if (top_level_rule) {
-        g_rule_test_stats.total_rules_run++;
+        stats->total_rules_run++;
     }
 
     switch (status) {
     case TEST_PASS:
         val_print(ACS_PRINT_TEST, "PASSED", 0);
-        if (top_level_rule) g_rule_test_stats.passed++;
+        if (top_level_rule) stats->passed++;
         break;
     case TEST_PART_COV:
         val_print(ACS_PRINT_TEST, "PASSED(*PARTIAL)", 0);
-        if (top_level_rule) g_rule_test_stats.partial_coverage++;
+        if (top_level_rule) stats->partial_coverage++;
         break;
     case TEST_WARN:
         val_print(ACS_PRINT_TEST, "WARNING", 0);
-        if (top_level_rule) g_rule_test_stats.warnings++;
+        if (top_level_rule) stats->warnings++;
         break;
     case TEST_SKIP:
         val_print(ACS_PRINT_TEST, "SKIPPED", 0);
-        if (top_level_rule) g_rule_test_stats.skipped++;
+        if (top_level_rule) stats->skipped++;
         break;
     case TEST_FAIL:
         val_print(ACS_PRINT_TEST, "FAILED", 0);
-        if (top_level_rule) g_rule_test_stats.failed++;
+        if (top_level_rule) stats->failed++;
         break;
     case TEST_NO_IMP:
         val_print(ACS_PRINT_TEST, "NOT TESTED (TEST NOT IMPLEMENTED)", 0);
-        if (top_level_rule) g_rule_test_stats.not_implemented++;
+        if (top_level_rule) stats->not_implemented++;
         break;
     case TEST_PAL_NS:
         val_print(ACS_PRINT_TEST, "NOT TESTED (PAL NOT SUPPORTED)", 0);
-        if (top_level_rule) g_rule_test_stats.pal_not_supported++;
+        if (top_level_rule) stats->pal_not_supported++;
         break;
     default:
         val_print(ACS_PRINT_TEST, "STATUS:0x%x", status);

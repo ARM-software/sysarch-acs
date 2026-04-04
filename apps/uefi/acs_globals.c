@@ -80,4 +80,3 @@ BOOLEAN g_invalid_arg_seen = FALSE;
  * Global counters for rule/test outcomes.
  * Updated in val/src/rule_based_execution_helpers.c::print_rule_test_status().
  */
-acs_test_status_counters_t g_rule_test_stats = {0};
