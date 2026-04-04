@@ -49,7 +49,6 @@ been implemented and interpreted correctly.
 
 ## Documentation and Guides
 - [SYS-MPAM Test Scenario Document](arm_mpam_architecture_compliance_test_scenario.md)
-- [Common CLI arguments](../common/cli_args.md)
 - [Common UEFI build guide](../common/uefi_build.md)
 
 ## SYS-MPAM build steps
@@ -100,9 +99,8 @@ Runs at INFO level, skips tests 15/20/30, and saves the UART log to
 
 ## Application arguments
 
-SYS-MPAM ACS currently supports numeric test and module selectors. See the
-[Common CLI arguments](../common/cli_args.md) for shared options.
-
+SYS-MPAM ACS currently supports numeric test and module selectors. See example below:
+ 
 Shell> Mpam.efi [-v <verbosity>] [-skip <test_id>] [-t <test_id>] [-m <module_id>] [-f <filename>]
 
 #### -v
