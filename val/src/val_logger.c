@@ -5,8 +5,7 @@
  *
  */
 
-#include "include/val_logger.h"
-#include "include/pal_common_intf.h"
+#include "val_logger.h"
 
 static void val_putc(char c)
 {

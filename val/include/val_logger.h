@@ -8,15 +8,8 @@
 #ifndef VAL_LOG_H
 #define VAL_LOG_H
 
-#ifdef TARGET_UEFI
-#include <stddef.h>
-#elif !defined(TARGET_LINUX)
-#include <stdint.h>
-#include <stddef.h>
-#include <stdarg.h>
-#endif
-
 #include "pal_interface.h"
+#include "pal_common_intf.h"
 
 /* Verbosity enums, Lower the value, higher the verbosity */
 typedef enum {

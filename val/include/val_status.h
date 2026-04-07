@@ -17,8 +17,8 @@
 #ifndef VAL_STATUS_H
 #define VAL_STATUS_H
 
-#if !defined(TARGET_UEFI) && !defined(TARGET_LINUX)
-#include <stdint.h>
+#if !defined(TARGET_LINUX)
+#include <stdbool.h>
 #endif
 
 #include "pal_interface.h"

@@ -8,16 +8,9 @@
 #ifndef VAL_SYSREG_H
 #define VAL_SYSREG_H
 
-#ifdef TARGET_UEFI
-#include <stddef.h>
-#elif !defined(TARGET_LINUX)
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#endif
-
 #include "val_arch.h"
 #include "pal_interface.h"
+#include "pal_common_intf.h"
 
 typedef unsigned long u_register_t;
 
