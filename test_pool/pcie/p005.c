@@ -142,7 +142,7 @@ payload(void)
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
 
-      /* BSA -> PCI_IN_13 SBSA(iEP_RP) -> RHVZJY */
+      /* BSA -> PCI_IN_13 SBSA(iEP_RP) -> HVZJY */
       if (dp_type == RP || dp_type == iEP_RP)
       {
         /* Part 1:

@@ -1509,10 +1509,31 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = ALIAS_RULE,
         },
+        [JKZMT] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check RCiEP and RCEC PCIe requirements",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .flag             = ALIAS_RULE,
+        },
         [B_IEP_1] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check i-EP Devices",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .flag             = ALIAS_RULE,
+        },
+        [HVZJY] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check i-EP PCIe requirements",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .flag             = ALIAS_RULE,
+        },
+        [IE_CFG_3] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check i-EP configuration space requirements",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = ALIAS_RULE,
         },
@@ -3190,9 +3211,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [IE_CFG_2] = {
             .module_id        = PCIE,
         },
-        [IE_CFG_3] = {
-            .module_id        = PCIE,
-        },
         [IE_CFG_4] = {
             .module_id        = PCIE,
         },
@@ -3323,12 +3341,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .module_id        = PCIE,
         },
         [RI_ORD_3] = {
-            .module_id        = PCIE,
-        },
-        [JKZMT] = {
-            .module_id        = PCIE,
-        },
-        [HVZJY] = {
             .module_id        = PCIE,
         },
         [S_L4PCI_1] = {
@@ -4444,6 +4456,42 @@ RULE_ID_e bsa_l1_rule_list[] = {
 /* B_WD_00 */
 RULE_ID_e b_wd_00_rule_list[]     = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
                                      RULE_ID_SENTINEL};
+/* JKZMT */
+RULE_ID_e jkzmt_rule_list[] = {
+    /* BSA Section E */
+    /* E.1 - Configuration Space */
+    /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, PCI_IN_06, */
+    /* PCI_IN_08, PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12, PCI_IN_13, */
+    /* PCI_IN_17, PCI_IN_18, PCI_IN_19 */
+    PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_07,
+    PCI_IN_14, PCI_IN_15, PCI_IN_16, PCI_IN_20,
+    /* E.2 - PCIe Memory Space */
+    PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
+    /* E.3 - PCIe Device View of Memory */
+    PCI_MM_05, PCI_MM_06, PCI_MM_07,
+    /* E.4 - Message Signaled Interrupts */
+    PCI_MSI_1, PCI_MSI_2,
+    /* E.6 - Legacy Interrupts */
+    PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+    /* E.7 - System MMU and Device Assignment */
+    PCI_SM_01, PCI_SM_02,
+    /* E.8 - I/O Coherency */
+    PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
+    PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
+    /* E.9 - Legacy I/O */
+    PCI_IO_01,
+    /* E.10 - Integrated End Points */
+    PCI_IEP_1,
+    /* E.11 - Peer-to-Peer */
+    PCI_PP_01, PCI_PP_02, PCI_PP_03,
+    PCI_PP_04, PCI_PP_05,
+    /* E.12 - PASID Support */
+    PCI_PAS_1,
+    /* E.13 - PCIe Precision Time Measurement */
+    PCI_PTM_1,
+
+    RULE_ID_SENTINEL
+};
 /* B_REP_1 */
 RULE_ID_e b_rep_1_rule_list[] = {
 /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
@@ -4463,11 +4511,11 @@ RULE_ID_e b_rep_1_rule_list[] = {
 /* BSA Section F.2 - RCiEP */
     /* JKZMT, refers BSA Section E */
         /* E.1 - Configuration Space */
-        PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
-        PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
-        PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
-        PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
-        PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
+        /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, */
+        /* PCI_IN_06, PCI_IN_08, PCI_IN_09, PCI_IN_10, PCI_IN_11, */
+        /* PCI_IN_12, PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19 */
+        PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_07,
+        PCI_IN_14, PCI_IN_15, PCI_IN_16, PCI_IN_20,
         /* E.2 - PCIe Memory Space */
         PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
         /* E.3 - PCIe Device View of Memory */
@@ -4501,6 +4549,53 @@ RULE_ID_e b_rep_1_rule_list[] = {
 /* BSA Section G.1 - RCiEP Capabilities and Registers */
     RE_REG_1, RE_REG_2, RE_REG_3,
     RE_REC_1, RE_REC_2,
+
+    RULE_ID_SENTINEL
+};
+/* HVZJY */
+RULE_ID_e hvzjy_rule_list[] = {
+    /* BSA Section E */
+    /* E.1 - Configuration Space */
+    PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
+    PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
+    PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
+    PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
+    PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
+    /* E.2 - PCIe Memory Space */
+    PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
+    /* E.3 - PCIe Device View of Memory */
+    PCI_MM_05, PCI_MM_06, PCI_MM_07,
+    /* E.4 - Message Signaled Interrupts */
+    PCI_MSI_1, PCI_MSI_2,
+    /* E.6 - Legacy Interrupts */
+    PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+    /* E.7 - System MMU and Device Assignment */
+    PCI_SM_01, PCI_SM_02,
+    /* E.8 - I/O Coherency */
+    PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
+    PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
+    /* E.9 - Legacy I/O */
+    PCI_IO_01,
+    /* E.10 - Integrated End Points */
+    PCI_IEP_1,
+    /* E.11 - Peer-to-Peer */
+    PCI_PP_01, PCI_PP_02, PCI_PP_03,
+    PCI_PP_04, PCI_PP_05,
+    /* E.12 - PASID Support */
+    PCI_PAS_1,
+    /* E.13 - PCIe Precision Time Measurement */
+    PCI_PTM_1,
+
+    RULE_ID_SENTINEL
+};
+/* IE_CFG_3 */
+RULE_ID_e ie_cfg_3_rule_list[] = {
+    /* E.1 - Configuration Space */
+    PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
+    PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
+    PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
+    PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
+    PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
 
     RULE_ID_SENTINEL
 };
@@ -4553,7 +4648,7 @@ RULE_ID_e b_iep_1_rule_list[] = {
         /* E.13 - PCIe Precision Time Measurement */
         PCI_PTM_1,
     IE_CFG_1, IE_CFG_2,
-    /* IE_CFG_3, covered by HVZJY */
+    /* IE_CFG_3, covered by  (E.1 - Configuration Space) refered by HVZJY for B_IEP_1 */
     IE_CFG_4,
     IE_ORD_4,
     IE_RST_2, IE_RST_3,
@@ -4633,11 +4728,11 @@ RULE_ID_e s_l6pci_1_rule_list[] = {
         /* BSA Section F.2 - RCiEP */
         /* JKZMT, refers BSA Section E */
             /* E.1 - Configuration Space */
-            PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
-            PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
-            PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
-            PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
-            PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
+            /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, */
+            /* PCI_IN_06, PCI_IN_08, PCI_IN_09, PCI_IN_10, PCI_IN_11, */
+            /* PCI_IN_12, PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19 */
+            PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_07,
+            PCI_IN_14, PCI_IN_15, PCI_IN_16, PCI_IN_20,
             /* E.2 - PCIe Memory Space */
             PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
             /* E.3 - PCIe Device View of Memory */
@@ -4677,8 +4772,13 @@ RULE_ID_e s_l6pci_1_rule_list[] = {
 
         /* BSA Section  F.3 - I-EP */
         /* HVZJY, refers BSA Section E, but covered by JKZMT for S_L6PCI_1, omitting */
+        /* VGLFZ excludes these RCiEP/RCEC rules as part of JKZMT but required under
+           HVZJY adding those excluded rules back */
+        PCI_IN_04, PCI_IN_05, PCI_IN_06, PCI_IN_08,
+        PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
+        PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19,
         IE_CFG_1, IE_CFG_2,
-        /* IE_CFG_3, covered by HVZJY */
+        /* IE_CFG_3, covered by (E.1 - Configuration Space) refered by JKZMT for S_L6PCI_1 */
         IE_CFG_4,
         IE_ORD_4,
         IE_RST_2, IE_RST_3,
@@ -4815,12 +4915,14 @@ RULE_ID_e v_l1pr_02_rule_list[]   = {
 
                                      RULE_ID_SENTINEL};
 
-// TODO update all alias rules in xbsa specs
 const alias_rule_map_t alias_rule_map[] = {
     /* BSA alias rules */
     {B_WD_00,   b_wd_00_rule_list},
     {B_PER_08,  b_per_08_rule_list},
+    {JKZMT,     jkzmt_rule_list},
     {B_REP_1,   b_rep_1_rule_list},
+    {HVZJY,     hvzjy_rule_list},
+    {IE_CFG_3,  ie_cfg_3_rule_list},
     {B_IEP_1,   b_iep_1_rule_list},
     {B_SMMU_21, b_smmu_21_rule_list},
 
