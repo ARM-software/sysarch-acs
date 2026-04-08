@@ -141,11 +141,7 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
     MODULE_NAME_e curr_module = MODULE_UNKNOWN;
 
     /* Check for module change */
-    if (rule_test_map[rule_enum].flag == INVALID_ENTRY) {
-        curr_module = MODULE_UNKNOWN;
-    } else {
-        curr_module = rule_test_map[rule_enum].module_id;
-    }
+    curr_module = rule_test_map[rule_enum].module_id;
 
     /* Print "Running <module> tests" if module change seen.
        Don't print if MODULE_UNKNOWN was encounterd */

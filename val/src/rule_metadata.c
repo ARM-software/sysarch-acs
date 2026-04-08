@@ -2994,6 +2994,451 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_CXL_TEST_NUM_BASE  +  13,
         },
+        /* Module-only placeholders for uncovered rules. */
+        [B_PE_05] = {
+            .module_id        = PE,
+        },
+        [B_PE_16] = {
+            .module_id        = PE,
+        },
+        [S_L5PE_03] = {
+            .module_id        = PE,
+        },
+        [S_L6PE_07] = {
+            .module_id        = PE,
+        },
+        [S_L6PE_08] = {
+            .module_id        = PE,
+        },
+        [S_L7PE_08] = {
+            .module_id        = PE,
+        },
+        [S_L7PE_09] = {
+            .module_id        = PE,
+        },
+        [S_L8PE_08] = {
+            .module_id        = PE,
+        },
+        [B_PER_04] = {
+            .module_id        = PERIPHERAL,
+        },
+        [B_PER_07] = {
+            .module_id        = PERIPHERAL,
+        },
+        [B_PER_11] = {
+            .module_id        = PERIPHERAL,
+        },
+        [B_MEM_07] = {
+            .module_id        = MEM_MAP,
+        },
+        [B_MEM_08] = {
+            .module_id        = MEM_MAP,
+        },
+        [B_MEM_09] = {
+            .module_id        = MEM_MAP,
+        },
+        [PMU_EV_01] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_02] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_03] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_04] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_05] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_06] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_07] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_08] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_09] = {
+            .module_id        = PMU,
+        },
+        [PMU_EV_10] = {
+            .module_id        = PMU,
+        },
+        [PMU_BM_3] = {
+            .module_id        = PMU,
+        },
+        [PMU_BM_4] = {
+            .module_id        = PMU,
+        },
+        [PMU_SYS_7] = {
+            .module_id        = PMU,
+        },
+        [PMU_SEC_1] = {
+            .module_id        = PMU,
+        },
+        [RAS_05] = {
+            .module_id        = RAS,
+        },
+        [RAS_10] = {
+            .module_id        = RAS,
+        },
+        [RAS_12] = {
+            .module_id        = RAS,
+        },
+        [S_RAS_03] = {
+            .module_id        = RAS,
+        },
+        [S_L7RAS_2] = {
+            .module_id        = RAS,
+        },
+        [B_SMMU_07] = {
+            .module_id        = SMMU,
+        },
+        [B_SMMU_12] = {
+            .module_id        = SMMU,
+        },
+        [B_SMMU_17] = {
+            .module_id        = SMMU,
+        },
+        [B_SMMU_24] = {
+            .module_id        = SMMU,
+        },
+        [B_SMMU_25] = {
+            .module_id        = SMMU,
+        },
+        [SMMU_02] = {
+            .module_id        = SMMU,
+        },
+        [S_L3SM_01] = {
+            .module_id        = SMMU,
+        },
+        [S_L5SM_04] = {
+            .module_id        = SMMU,
+        },
+        [S_L6SM_04] = {
+            .module_id        = SMMU,
+        },
+        [P_L1SM_01] = {
+            .module_id        = SMMU,
+        },
+        [B_TIME_03] = {
+            .module_id        = TIMER,
+        },
+        [B_TIME_04] = {
+            .module_id        = TIMER,
+        },
+        [B_TIME_05] = {
+            .module_id        = TIMER,
+        },
+        [B_TIME_10] = {
+            .module_id        = TIMER,
+        },
+        [S_L5TI_01] = {
+            .module_id        = TIMER,
+        },
+        [B_WD_04] = {
+            .module_id        = WATCHDOG,
+        },
+        [B_WD_05] = {
+            .module_id        = WATCHDOG,
+        },
+        [S_L7MP_07] = {
+            .module_id        = MPAM,
+        },
+        [ETE_01] = {
+            .module_id        = ETE,
+        },
+        [B_WAK_01] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_02] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_04] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_05] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_06] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_08] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_10] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [B_WAK_11] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [P_L1NV_01] = {
+            .module_id        = NV_STORE,
+        },
+        [P_L1SE_01] = {
+            .module_id        = SECURITY,
+        },
+        [P_L1SE_02] = {
+            .module_id        = SECURITY,
+        },
+        [P_L1SE_03] = {
+            .module_id        = SECURITY,
+        },
+        [P_L1SE_04] = {
+            .module_id        = SECURITY,
+        },
+        [P_L1SE_05] = {
+            .module_id        = SECURITY,
+        },
+        [P_L1TP_02] = {
+            .module_id        = TPM,
+        },
+        [P_L1TP_04] = {
+            .module_id        = TPM,
+        },
+        [IE_BAR_1] = {
+            .module_id        = PCIE,
+        },
+        [IE_BAR_3] = {
+            .module_id        = PCIE,
+        },
+        [IE_PWR_2] = {
+            .module_id        = PCIE,
+        },
+        [IE_PWR_3] = {
+            .module_id        = PCIE,
+        },
+        [IE_RST_3] = {
+            .module_id        = PCIE,
+        },
+        [IE_CFG_1] = {
+            .module_id        = PCIE,
+        },
+        [IE_CFG_2] = {
+            .module_id        = PCIE,
+        },
+        [IE_CFG_3] = {
+            .module_id        = PCIE,
+        },
+        [IE_CFG_4] = {
+            .module_id        = PCIE,
+        },
+        [ITS_06] = {
+            .module_id        = PCIE,
+        },
+        [ITS_07] = {
+            .module_id        = PCIE,
+        },
+        [ITS_08] = {
+            .module_id        = PCIE,
+        },
+        [ITS_DEV_1] = {
+            .module_id        = PCIE,
+        },
+        [ITS_DEV_3] = {
+            .module_id        = PCIE,
+        },
+        [ITS_DEV_5] = {
+            .module_id        = PCIE,
+        },
+        [ITS_DEV_9] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_12] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_13] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_14] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_16] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_17] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IC_18] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_06] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_07] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_08] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_09] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_10] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_14] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IN_15] = {
+            .module_id        = PCIE,
+        },
+        [PCI_LI_04] = {
+            .module_id        = PCIE,
+        },
+        [PCI_MM_02] = {
+            .module_id        = PCIE,
+        },
+        [PCI_MM_06] = {
+            .module_id        = PCIE,
+        },
+        [PCI_PTM_1] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IO_01] = {
+            .module_id        = PCIE,
+        },
+        [PCI_IEP_1] = {
+            .module_id        = PCIE,
+        },
+        [PCI_PP_01] = {
+            .module_id        = PCIE,
+        },
+        [PCI_PP_06] = {
+            .module_id        = PCIE,
+        },
+        [PCI_SM_01] = {
+            .module_id        = PCIE,
+        },
+        [RE_ACS_3] = {
+            .module_id        = PCIE,
+        },
+        [RE_BAR_1] = {
+            .module_id        = PCIE,
+        },
+        [RE_BAR_3] = {
+            .module_id        = PCIE,
+        },
+        [RE_CFG_1] = {
+            .module_id        = PCIE,
+        },
+        [RE_CFG_2] = {
+            .module_id        = PCIE,
+        },
+        [RE_CFG_3] = {
+            .module_id        = PCIE,
+        },
+        [RE_PWR_2] = {
+            .module_id        = PCIE,
+        },
+        [RE_PWR_3] = {
+            .module_id        = PCIE,
+        },
+        [RE_REC_2] = {
+            .module_id        = PCIE,
+        },
+        [RI_SMU_2] = {
+            .module_id        = PCIE,
+        },
+        [RI_SMU_4] = {
+            .module_id        = PCIE,
+        },
+        [RI_CRS_1] = {
+            .module_id        = PCIE,
+        },
+        [RI_BAR_2] = {
+            .module_id        = PCIE,
+        },
+        [RI_ORD_2] = {
+            .module_id        = PCIE,
+        },
+        [RI_ORD_3] = {
+            .module_id        = PCIE,
+        },
+        [JKZMT] = {
+            .module_id        = PCIE,
+        },
+        [HVZJY] = {
+            .module_id        = PCIE,
+        },
+        [S_L4PCI_1] = {
+            .module_id        = PCIE,
+        },
+        [S_PCIe_01] = {
+            .module_id        = PCIE,
+        },
+        [S_PCIe_05] = {
+            .module_id        = PCIE,
+        },
+        [S_PCIe_06] = {
+            .module_id        = PCIE,
+        },
+        [S_PCIe_09] = {
+            .module_id        = PCIE,
+        },
+        [S_L8RME_1] = {
+            .module_id        = RME,
+        },
+        [P_L1PCI_1] = {
+            .module_id        = PCIE,
+        },
+        [CXL_08] = {
+            .module_id        = CXL,
+        },
+        [S_L7TME_1] = {
+            .module_id        = TME,
+        },
+        [S_L7TME_2] = {
+            .module_id        = TME,
+        },
+        [S_L7TME_3] = {
+            .module_id        = TME,
+        },
+        [S_L7TME_4] = {
+            .module_id        = TME,
+        },
+        [S_L7TME_5] = {
+            .module_id        = TME,
+        },
+        [GPU_01] = {
+            .module_id        = GPU,
+        },
+        [GPU_02] = {
+            .module_id        = GPU,
+        },
+        [V_L1SM_03] = {
+            .module_id        = SMMU,
+        },
+        [V_L1TM_03] = {
+            .module_id        = TIMER,
+        },
+        [V_L1WK_01] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_03] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_04] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_06] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_07] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_08] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L1WK_09] = {
+            .module_id        = POWER_WAKEUP,
+        },
+        [V_L2WD_01] = {
+            .module_id        = WATCHDOG,
+        },
     };
 
 /* Following structure maps test entry enums with entry function pointers
@@ -4324,12 +4769,12 @@ RULE_ID_e s_l8cxl_rule_list[] = {
     CXL_04,
     CXL_05,
     CXL_06,
+    CXL_08,
     CXL_09,
     CXL_10,
     CXL_11,
     CXL_12,
     CXL_13,
-
     RULE_ID_SENTINEL
 };
 

@@ -580,6 +580,7 @@ typedef enum {
     CXL_04,
     CXL_05,
     CXL_06,
+    CXL_08,
     CXL_09,
     CXL_10,
     CXL_11,
@@ -1022,6 +1023,9 @@ typedef enum {
     CXL,
     RME,
     GPU,
+    NV_STORE,
+    SECURITY,
+    TME,
     MODULE_ID_SENTINEL /* need to be in last */
 } MODULE_NAME_e;
 

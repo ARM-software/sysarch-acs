@@ -460,6 +460,7 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [CXL_04]      = "CXL_04",
     [CXL_05]      = "CXL_05",
     [CXL_06]      = "CXL_06",
+    [CXL_08]      = "CXL_08",
     [CXL_09]      = "CXL_09",
     [CXL_10]      = "CXL_10",
     [CXL_11]      = "CXL_11",
@@ -593,4 +594,7 @@ char *module_name_string[MODULE_ID_SENTINEL] = {
     [CXL]          = "CXL",
     [RME]          = "RME",
     [GPU]          = "GPU",
+    [NV_STORE]     = "NV_STORE",
+    [SECURITY]     = "SECURITY",
+    [TME]          = "TME",
 };
