@@ -23,7 +23,6 @@
 #define TEST_RULE  "GPU_03"
 #define TEST_DESC  "Switches must support ACS if P2P      "
 
-/* PCI_PP_06 is BSA recommended Rule ID */
 static
 void
 payload(void)
@@ -163,4 +162,3 @@ p093_entry(uint32_t num_pe)
 
   return status;
 }
-

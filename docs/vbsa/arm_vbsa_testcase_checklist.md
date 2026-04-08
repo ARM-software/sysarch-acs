@@ -615,8 +615,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="70">L1</td>
-      <td rowspan="70"><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1pr_02--check-virt-pcie-arch-compliance">V_L1PR_02</td>
+      <td rowspan="69">L1</td>
+      <td rowspan="69"><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1pr_02--check-virt-pcie-arch-compliance">V_L1PR_02</td>
       <td></td>
       <td></td>
       <td>Check Virt PCIe arch compliance</td>
@@ -1145,14 +1145,6 @@ The checklist provides information about:
       <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
-      <td>PCI_PP_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_PAS_1</td>
       <td>842</td>
       <td>PASID support atleast 16 bits</td>
@@ -1202,6 +1194,8 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
+
 #### v25.12_VBSA_0.7.0 - *Dec, 2025*
 - Initial VBSA ACS testcase checklist check-in.
 #### v26.03_VBSA_1.0.0 - *Mar, 2026*

@@ -359,7 +359,6 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
     - PCI_PP_03
     - PCI_PP_04
     - PCI_PP_05
-    - PCI_PP_06
 
 - E.12 - PASID Support
 

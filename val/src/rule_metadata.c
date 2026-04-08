@@ -505,20 +505,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE + 54,
         },
-        // [S_L7PE_08] = {
-        //     .test_entry_id    = CO35_ENTRY,
-        //     .module_id        = PE,
-        //     .rule_desc        = "Check for data gathering hint",
-        //     .platform_bitmask = 0,
-        //     .flag             = BASE_RULE,
-        // },
-        // [S_L7PE_09] = {
-        //     .test_entry_id    = CO36_ENTRY,
-        //     .module_id        = PE,
-        //     .rule_desc        = "Check WFE Fine tune delay feature",
-        //     .platform_bitmask = 0,
-        //     .flag             = BASE_RULE,
-        // },
         [S_L8PE_01] = {
             .test_entry_id    = PE058_ENTRY,
             .module_id        = PE,
@@ -2259,13 +2245,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_MPAM_TEST_NUM_BASE + 3,
         },
-        // [S_L7MP_07] = {
-        //     .test_entry_id    = mpam004_entry,
-        //     .module_id        = MPAM,
-        //     .rule_desc        = "Check for MBWU counter size",
-        //     .platform_bitmask = 0,
-        //     .flag             = BASE_RULE,
-        // },
         [S_L7MP_08] = {
             .test_entry_id    = MPAM005_ENTRY,
             .module_id        = MPAM,
@@ -3010,12 +2989,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L6PE_08] = {
             .module_id        = PE,
         },
-        [S_L7PE_08] = {
-            .module_id        = PE,
-        },
-        [S_L7PE_09] = {
-            .module_id        = PE,
-        },
         [S_L8PE_08] = {
             .module_id        = PE,
         },
@@ -3144,9 +3117,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         },
         [B_WD_05] = {
             .module_id        = WATCHDOG,
-        },
-        [S_L7MP_07] = {
-            .module_id        = MPAM,
         },
         [ETE_01] = {
             .module_id        = ETE,
@@ -3305,9 +3275,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .module_id        = PCIE,
         },
         [PCI_PP_01] = {
-            .module_id        = PCIE,
-        },
-        [PCI_PP_06] = {
             .module_id        = PCIE,
         },
         [PCI_SM_01] = {

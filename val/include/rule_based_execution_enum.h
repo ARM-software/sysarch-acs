@@ -88,8 +88,6 @@ typedef enum {
     S_L7PE_05,
     S_L7PE_06,
     S_L7PE_07,
-    S_L7PE_08,
-    S_L7PE_09,
     S_L8PE_01,
     S_L8PE_02,
     S_L8PE_03,
@@ -302,7 +300,6 @@ typedef enum {
     S_L7MP_03,
     S_L7MP_04,
     S_L7MP_05,
-    S_L7MP_07,
     S_L7MP_08,
 
     /* ETE */
@@ -444,7 +441,6 @@ typedef enum {
     PCI_PP_03,
     PCI_PP_04,
     PCI_PP_05,
-    PCI_PP_06,
     PCI_SM_01,
     PCI_SM_02,
     RE_ACS_1,

@@ -1886,8 +1886,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="87">FR</td>
-      <td rowspan="87">B_REP_1</td>
+      <td rowspan="86">FR</td>
+      <td rowspan="86">B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -2500,15 +2500,6 @@ The checklist provides information about:
       <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
-      <td>PCI_PP_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_PAS_1</td>
       <td>842</td>
       <td>PASID support atleast 16 bits</td>
@@ -2671,8 +2662,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="102">FR</td>
-      <td rowspan="102">B_IEP_1</td>
+      <td rowspan="101">FR</td>
+      <td rowspan="101">B_IEP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -3393,15 +3384,6 @@ The checklist provides information about:
       <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
-      <td>PCI_PP_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_PAS_1</td>
       <td>842</td>
       <td>PASID support atleast 16 bits</td>
@@ -3630,6 +3612,7 @@ The checklist provides information about:
 - **RI_ Added:** RI_PWR_1
 - Updated B_WD_02.
 - Updated checklist to be consistent with I-VGLFZ.
+- Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
 
 ### v25.12_BSA_1.2.0
 - Updated Rule Checklist as per BSA 1.2 Specification
