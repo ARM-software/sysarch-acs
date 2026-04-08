@@ -232,7 +232,7 @@ void map_gic_device_region(uint32_t gicc_count, uint32_t gicd_count,
         base_address = platform_gic_cfg.gicr_rd_base[i];
         mmap_region_list[mmap_list_curr_index].virtual_address  = base_address;
         mmap_region_list[mmap_list_curr_index].physical_address = base_address;
-        mmap_region_list[mmap_list_curr_index].length           = 0x4 * length;
+        mmap_region_list[mmap_list_curr_index].length           = PLATFORM_OVERRIDE_GICRIRD_LENGTH;
         mmap_region_list[mmap_list_curr_index].attributes       = attr;
         mmap_list_curr_index++;
     }
