@@ -34,6 +34,7 @@ UINT64  g_exception_ret_addr;
 UINT64  g_ret_addr;
 UINT32  g_timeout_pass;
 UINT32  g_timeout_fail;
+UINT32  g_timer_timeout_us;            /* Timer timeout (us) */
 
 /* Following g_build_* is retained to have compatibility with tests which use it, and used pass
    on -a selection hint to tests */

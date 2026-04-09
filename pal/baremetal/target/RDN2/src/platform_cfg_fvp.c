@@ -83,6 +83,7 @@ uint32_t g_sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC;
 
 uint32_t g_timeout_pass = PLATFORM_OVERRIDE_TIMEOUT;
 uint32_t g_timeout_fail = PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT;
+uint32_t g_timer_timeout_us = PLATFORM_OVERRIDE_TIMER_TIMEOUT; /* Timer timeout (us) */
 
 const PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg = {
     .slot_count = PLATFORM_OVERRIDE_SMBIOS_SLOT_COUNT,

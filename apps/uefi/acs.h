@@ -157,6 +157,7 @@ extern UINT64  g_exception_ret_addr;
 extern UINT64  g_ret_addr;
 extern UINT32  g_timeout_pass;
 extern UINT32  g_timeout_fail;
+extern UINT32  g_timer_timeout_us; /* Timer timeout (us) */
 extern UINT32  g_build_sbsa;
 extern UINT32  g_build_pcbsa;
 extern UINT32  g_print_mmio;

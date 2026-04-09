@@ -52,6 +52,7 @@ UINT64  g_exception_ret_addr;
 UINT64  g_ret_addr;
 UINT32  g_timeout_pass;
 UINT32  g_timeout_fail;
+UINT32  g_timer_timeout_us;
 UINT32  g_build_sbsa = 0;
 UINT32  g_build_pcbsa = 0;
 UINT32  g_print_mmio;
@@ -123,8 +124,8 @@ HelpMsg (
          "-no_crypto_ext  Pass this flag if cryptography extension not supported due to export restrictions\n"
          "-p2p    Pass this flag to indicate that PCIe Hierarchy Supports Peer-to-Peer\n"
          "-cache  Pass this flag to indicate that if the test system supports PCIe address translation cache\n"
-         "-timeout <n> \n"
-         "        Set pass timeout (in microseconds) for wakeup tests (500 us - 2 sec)\n"
+         "-timeout <microseconds> \n"
+         "        Set pass timeout (delay in microseconds) for wakeup & WD & timer tests (500us - 2sec)\n"
          "        Example: -timeout 2000 \n"
          "-os     Enable the execution of operating system tests\n"
          "-hyp    Enable the execution of hypervisor tests\n"
@@ -235,6 +236,7 @@ command_init ()
   if (CmdLineArg == NULL) {
       g_timeout_pass = WAKEUP_WD_PASS_TIMEOUT_DEFAULT;
       g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      g_timer_timeout_us = TIMER_TIMEOUT_DEFAULT;
   } else {
       /* Accept a single value; ignore any trailing delimiters */
       CHAR16 buf[64];
@@ -266,8 +268,9 @@ command_init ()
 
       g_timeout_pass = (UINT32)StrDecimalToUintn(buf);
       g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
-      if (!(g_timeout_pass >= WAKEUP_WD_PASS_TIMEOUT_THRESHOLD &&
-            g_timeout_pass <= WAKEUP_WD_PASS_TIMEOUT_MAX_THRESHOLD)) {
+      g_timer_timeout_us = g_timeout_pass;
+      if (!(g_timeout_pass >= TIMEOUT_THRESHOLD &&
+            g_timeout_pass <= TIMEOUT_MAX_THRESHOLD)) {
           Print(L"Invalid -timeout: pass timeout range should be within 500ms and 2sec\n");
           return SHELL_INVALID_PARAMETER;
       }

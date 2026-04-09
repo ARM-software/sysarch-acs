@@ -28,6 +28,7 @@ static uint32_t intid;
 static uint64_t cnt_base_n;
 static int irq_received;
 static uint32_t intid_phy;
+
 static
 void
 isr_sys_timer()
@@ -58,19 +59,21 @@ payload()
   uint64_t timer_num, timer_cnt;
   int32_t status;
 
-  uint64_t freq = val_get_counter_frequency();
   uint64_t ticks;
-
+  uint32_t pe_timeout_us;
   /* System timer */
-  ticks = freq * 1;
-  if (ticks > 0xFFFFFFFF)
-      ticks = 0xFFFFFFFF;
+  if (g_timer_timeout_us == 0) {
+      val_print(ERROR, "\n       Timer timeout is zero; configure a valid timeout");
+      val_set_status(index, RESULT_FAIL(3));
+      return;
+  }
+  ticks = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timer_timeout_us));
   sys_timer_ticks = (uint32_t)ticks;
 
   /* PE timer */
-  ticks = freq * 2;
-  if (ticks > 0xFFFFFFFF)
-      ticks = 0xFFFFFFFF;
+  pe_timeout_us = g_timer_timeout_us * 2;
+
+  ticks = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(pe_timeout_us));
   pe_timer_ticks = (uint32_t)ticks;
 
   timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
