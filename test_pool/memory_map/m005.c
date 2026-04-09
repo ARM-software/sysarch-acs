@@ -39,6 +39,7 @@ static void payload_check_s2_64kb_granule_support(void)
 {
     uint64_t data = 0;
     uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint8_t feat_gtg, tgran4_2, tgran16_2, tgran64;
 
     /* Check if EL2 is supported, if not skip the test. non-zero value in ID_AA64PFR0_EL1[11:8]
        indicate EL2 support */
@@ -50,14 +51,30 @@ static void payload_check_s2_64kb_granule_support(void)
         return;
     }
 
-    /* Check PE support for 64KB memory granule size at stage 2. ID_AA64MMFR0_EL1[39:36] == b0010
-       indicates 64KB granule supported at stage 2, and value b0000 is deprecated when EL2 is
-       implemented hence not checking ID_AA64MMFR0_EL1.TGran64 field.*/
-    data = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64MMFR0_EL1), 36, 39);
-    if (data != 0x2) {
-        val_print(ERROR, "\n       64KB granule not supported at stage 2.");
-        val_set_status(pe_index, RESULT_FAIL(01));
-        return;
+    data = val_pe_reg_read(ID_AA64MMFR0_EL1);
+    /* FEAT_GTG presence is identified directly by the stage-2 granule fields. */
+    tgran4_2  = VAL_EXTRACT_BITS(data, 40, 43);
+    tgran16_2 = VAL_EXTRACT_BITS(data, 32, 35);
+    tgran64   = VAL_EXTRACT_BITS(data, 36, 39);
+    feat_gtg = (tgran4_2 != 0x0) || (tgran16_2 != 0x0) || (tgran64 != 0x0);
+
+    /*
+     * FEAT_GTG (Armv8.5+) introduces the stage 2 granule fields [43:32].
+     * Use the feature field to decide which encoding to consume.
+     */
+    if (feat_gtg) {
+        if (tgran64 != 0x2) {
+            val_print(ERROR, "\n       64KB granule not supported at stage 2 (TGran64_2).");
+            val_set_status(pe_index, RESULT_FAIL(01));
+            return;
+        }
+    } else {
+        tgran64 = VAL_EXTRACT_BITS(data, 24, 27);
+        if (tgran64 != 0x0) {
+            val_print(ERROR, "\n       64KB granule not supported at stage 2 (TGran64).");
+            val_set_status(pe_index, RESULT_FAIL(02));
+            return;
+        }
     }
 
     val_set_status(pe_index, RESULT_PASS);
