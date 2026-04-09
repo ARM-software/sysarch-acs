@@ -400,7 +400,7 @@ The checklist provides information about:
       <td>S_L5GI_01</td>
       <td>S_L5GI_01</td>
       <td>216</td>
-      <td>Check Non GIC Interrupts</td>
+      <td>Check Non standard GICv3 implmentation</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>

@@ -367,6 +367,9 @@ val_gic_get_info(GIC_INFO_e type)
       case GIC_INFO_NUM_GICR_GICRD:
           return g_gic_info_table->header.num_gicr_rd;
 
+      case GIC_INFO_NUM_GICD:
+          return g_gic_info_table->header.num_gicd;
+
       default:
           val_print(ERROR, "\n    GIC Info - TYPE not recognized %d  ", type);
           break;
