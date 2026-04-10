@@ -72,8 +72,10 @@ calculate_vf(uint32_t seg, uint32_t bdf, uint32_t sriov_base)
   val_print(TRACE, "\n    Number of VF's is 0x%x", num_vf);
 
   vf_rid = pf_rid + first_vf_offset;
-  if (num_vf > MAX_VFS)
-     val_print(WARN, "\n    Number of VF's present is more than 256");
+  if (num_vf > MAX_VFS) {
+     val_print(WARN, "\n    Number of VF's present is more than 256. Limiting to 256 entries");
+     num_vf = MAX_VFS;
+  }
 
   for (index = 0; index < num_vf; index++)
   {
@@ -83,8 +85,6 @@ calculate_vf(uint32_t seg, uint32_t bdf, uint32_t sriov_base)
      val_print(TRACE, "\n    vf bdf is 0x%x", vf_bdf);
      skip_rid_list[index] = vf_bdf;
      vf_rid += vf_stride;
-     if (index > MAX_VFS)
-         val_print(WARN, "\n    Index value is more than 255");
   }
 }
 

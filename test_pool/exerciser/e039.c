@@ -50,7 +50,7 @@ static
 void
 payload(void)
 {
-  char *baseptr;
+  char *baseptr = NULL;
   uint32_t idx;
   uint32_t pe_index;
   uint32_t bdf;
@@ -101,6 +101,7 @@ payload(void)
 
         /* Map the mmio space to ARM normal memory in MMU page tables */
         for (idx = 0; idx < sizeof(ARM_NORMAL_MEM_ARRAY)/sizeof(ARM_NORMAL_MEM_ARRAY[0]); idx++) {
+          baseptr = NULL;
             status = val_memory_ioremap((void *)e_data.bar_space.base_addr,
                                                     512,
                                                     ARM_NORMAL_MEM_ARRAY[idx], (void **)&baseptr);
@@ -129,6 +130,7 @@ payload(void)
 
             /* Remove BAR mapping from MMU page tables */
             val_memory_unmap(baseptr);
+            baseptr = NULL;
         }
     }
   }
@@ -144,12 +146,14 @@ payload(void)
   return;
 
 test_warn_unimplemented:
-  val_memory_unmap(baseptr);
+  if (baseptr != NULL)
+      val_memory_unmap(baseptr);
   val_set_status(pe_index, RESULT_WARNING(01));
   return;
 
 test_fail:
-  val_memory_unmap(baseptr);
+  if (baseptr != NULL)
+      val_memory_unmap(baseptr);
   val_set_status(pe_index, RESULT_FAIL(03));
   return;
 

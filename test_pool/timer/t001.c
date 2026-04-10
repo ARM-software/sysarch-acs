@@ -54,7 +54,7 @@ static
 void
 payload_check_system_timer_freq()
 {
-  uint64_t counter_freq, print_freq;
+  uint64_t counter_freq, print_freq = 0;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t print_mhz = 0;
 
@@ -62,12 +62,10 @@ payload_check_system_timer_freq()
   counter_freq = val_timer_get_info(TIMER_INFO_CNTFREQ, 0);
 
   /* Convert frequency into MHz or KHz unit */
-  if (counter_freq != 0) {
-      print_freq = counter_freq/1000;
-      if (print_freq > 1000) {
-          print_freq = print_freq/1000;
-          print_mhz = 1;
-      }
+  print_freq = counter_freq/1000;
+  if (print_freq > 1000) {
+      print_freq = print_freq/1000;
+      print_mhz = 1;
   }
 
   /* Print counter frequency in DEBUG verbosity */
