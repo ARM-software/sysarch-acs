@@ -72,8 +72,11 @@ calculate_vf(uint32_t seg, uint32_t bdf, uint32_t sriov_base)
   val_print(ACS_PRINT_INFO, "\n    Number of VF's is 0x%x", num_vf);
 
   vf_rid = pf_rid + first_vf_offset;
-  if (num_vf > MAX_VFS)
-     val_print(ACS_PRINT_WARN, "\n    Number of VF's present is more than 256", 0);
+  if (num_vf > MAX_VFS) {
+     val_print(ACS_PRINT_WARN,
+               "\n    Number of VF's present is more than 256. Limiting to 256 entries", 0);
+     num_vf = MAX_VFS;
+  }
 
   for (index = 0; index < num_vf; index++)
   {
@@ -83,8 +86,6 @@ calculate_vf(uint32_t seg, uint32_t bdf, uint32_t sriov_base)
      val_print(ACS_PRINT_INFO, "\n    vf bdf is 0x%x", vf_bdf);
      skip_rid_list[index] = vf_bdf;
      vf_rid += vf_stride;
-     if (index > MAX_VFS)
-         val_print(ACS_PRINT_WARN, "\n    Index value is more than 255", 0);
   }
 }
 
@@ -269,4 +270,3 @@ p002_entry(uint32_t num_pe)
 
   return status;
 }
-
