@@ -104,20 +104,22 @@ payload()
       continue;
   }
 
-  val_print(ACS_PRINT_DEBUG,
-                  "\n       Checking ReqID-StreamID-DeviceID Association, Bdf : %x", bdf);
-  /* Check for stream_id & device_id */
-  if (curr_grp_sid_cons != (stream_id - req_id)) {
-      /* StreamID Constant Base Failure */
-      val_print(ACS_PRINT_ERR, "\n       ReqID-StreamID Association Fail for Bdf : %x", bdf);
-      test_fail++;
-  }
+  if (!test_skip) {
+      val_print(ACS_PRINT_DEBUG,
+                "\n       Checking ReqID-StreamID-DeviceID Association, Bdf : %x", bdf);
+      /* Check for stream_id & device_id */
+      if (curr_grp_sid_cons != (stream_id - req_id)) {
+          /* StreamID Constant Base Failure */
+          val_print(ACS_PRINT_ERR, "\n       ReqID-StreamID Association Fail for Bdf : %x", bdf);
+          test_fail++;
+      }
 
-  if (curr_grp_did_cons != (device_id - stream_id)) {
-      /* DeviceID Constant Base Failure */
-      val_print(ACS_PRINT_ERR,
+      if (curr_grp_did_cons != (device_id - stream_id)) {
+          /* DeviceID Constant Base Failure */
+          val_print(ACS_PRINT_ERR,
                     "\n       StreamID-DeviceID Association Fail for Bdf : %x", bdf);
-      test_fail++;
+          test_fail++;
+      }
   }
 
   if (test_skip == 1)

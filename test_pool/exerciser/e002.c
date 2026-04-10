@@ -91,7 +91,6 @@ get_target_exer_bdf(uint32_t req_rp_bdf, uint32_t *tgt_e_bdf,
 static
 uint32_t
 create_va_pa_mapping (uint64_t txn_va, uint64_t txn_pa,
-                      smmu_master_attributes_t *smmu_master,
                       pgt_descriptor_t *pgt_desc, uint32_t req_instance,
                       uint32_t req_rp_bdf, uint32_t pgt_ap)
 {
@@ -105,8 +104,6 @@ create_va_pa_mapping (uint64_t txn_va, uint64_t txn_pa,
   uint32_t status, dma_status;
   uint64_t bar_value;
   uint32_t old_val, new_val;
-
-  master = *smmu_master;
 
   val_memory_set(&master, sizeof(master), 0);
   val_memory_set(mem_desc_array, sizeof(mem_desc_array), 0);
@@ -244,7 +241,6 @@ check_redirected_req_validation (uint32_t req_instance, uint32_t req_rp_bdf, uin
   uint32_t instance;
   uint32_t num_smmus;
   uint32_t status;
-  smmu_master_attributes_t master;
   pgt_descriptor_t pgt_desc;
 
   /* Sequence 1 : No Write Permission, Trigger a DMA Write to bar address
@@ -259,7 +255,7 @@ check_redirected_req_validation (uint32_t req_instance, uint32_t req_rp_bdf, uin
 
   num_smmus = val_iovirt_get_smmu_info(SMMU_NUM_CTRL, 0);
 
-  status = create_va_pa_mapping(txn_va, bar_base, &master,
+  status = create_va_pa_mapping(txn_va, bar_base,
                                 &pgt_desc, req_instance,
                                 req_rp_bdf, PGT_STAGE1_AP_RO);
   if (status) {
@@ -286,7 +282,7 @@ check_redirected_req_validation (uint32_t req_instance, uint32_t req_rp_bdf, uin
    */
 
   /* Create VA-PA Mapping in SMMU with PGT permissions as Read Write */
-  status = create_va_pa_mapping(txn_va, bar_base, &master,
+  status = create_va_pa_mapping(txn_va, bar_base,
                                 &pgt_desc, req_instance,
                                 req_rp_bdf, PGT_STAGE1_AP_RW);
   if (status) {
