@@ -192,20 +192,24 @@ pal_mmio_write(UINT64 addr, UINT32 data)
   @return None
 **/
 VOID
-pal_print(CHAR8 *string, UINT64 data)
+pal_print(UINT64 data)
 {
-  if(g_acs_log_file_handle)
+  CHAR8 *buf = (CHAR8 *)(UINTN)data;
+
+  if (g_acs_log_file_handle)
   {
-    CHAR8 Buffer[1024];
-    UINTN BufferSize = 1;
-    EFI_STATUS Status = 0;
-    BufferSize = AsciiSPrint(Buffer, 1024, string, data);
-    AsciiPrint(Buffer);
-    Status = ShellWriteFile(g_acs_log_file_handle, &BufferSize, (VOID*)Buffer);
-    if(EFI_ERROR(Status))
+    UINTN BufferSize = AsciiStrLen(buf);
+    EFI_STATUS Status;
+
+    AsciiPrint("%a", buf);
+    Status = ShellWriteFile(g_acs_log_file_handle, &BufferSize, (VOID *)buf);
+    if (EFI_ERROR(Status))
       acs_print(ACS_PRINT_ERR, L" Error in writing to log file\n");
-  } else
-      AsciiPrint(string, data);
+  }
+  else
+  {
+    AsciiPrint("%a", buf);
+  }
 }
 
 /**
@@ -215,13 +219,18 @@ pal_print(CHAR8 *string, UINT64 data)
 VOID
 pal_warn_not_implemented(const CHAR8 *api_name)
 {
+  CHAR8 Buffer[512];
+
   if (api_name == NULL)
     return;
 
-  pal_print("\n       %a is not implemented."
-            "\n       Please implement the PAL function in test suite or"
-            "\n       conduct an offline review for this rule.\n",
-              (UINT64)(UINTN)api_name);
+  AsciiSPrint(Buffer, sizeof(Buffer),
+              "\n       %a is not implemented."
+              "\n       Please implement the PAL function in test suite or"
+              "\n       conduct an offline review for this rule.\n",
+              api_name);
+
+  pal_print((UINT64)(UINTN)Buffer);
 }
 
 /**

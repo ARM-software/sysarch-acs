@@ -21,6 +21,7 @@
 #include "platform_image_def.h"
 #include "platform_override_struct.h"
 #include "platform_override_fvp.h"
+#include "pal_pl011_uart.h"
 
 /**
   Conduits for service calls (SMC vs HVC).
@@ -868,10 +869,15 @@ static uint64_t heap_init_done = 0;
 
   @return None
 **/
+
 void
-pal_print(char *string, uint64_t data)
+pal_print(uint64_t data)
 {
-    print(ACS_PRINT_ERR, string, data);
+    char *buf = (char *)(uintptr_t)data;
+
+    while (*buf != '\0') {
+        pal_uart_putc(*buf++);
+    }
 }
 
 /**

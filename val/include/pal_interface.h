@@ -797,7 +797,7 @@ uint64_t pal_memory_get_unpopulated_addr(uint64_t *addr, uint32_t instance);
 uint32_t pal_mem_set_wb_executable(void *addr, uint32_t size);
 
 /* Common Definitions */
-void     pal_print(char8_t *string, uint64_t data);
+void     pal_print(uint64_t data);
 void     pal_uart_print(int log, const char *fmt, ...);
 void     pal_print_raw(uint64_t addr, char8_t *string, uint64_t data);
 uint32_t pal_strncmp(char8_t *str1, char8_t *str2, uint32_t len);

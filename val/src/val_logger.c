@@ -7,12 +7,22 @@
 
 #include "val_logger.h"
 
+enum { LOG_MAX_STRING_LENGTH = 90 };
+
+static bool collect_log_output;
+static char collected_log[LOG_MAX_STRING_LENGTH * 2];
+static size_t collected_log_len;
+
 static void val_putc(char c)
 {
-    pal_uart_putc(c);
+    if (collect_log_output) {
+        if (collected_log_len + 1 < sizeof(collected_log)) {
+            collected_log[collected_log_len++] = c;
+            collected_log[collected_log_len] = '\0';
+        }
+        return;
+    }
 }
-
-enum { LOG_MAX_STRING_LENGTH = 90 };
 
 /* Keep fields aligned */
 /* clang-format off */
@@ -327,10 +337,10 @@ static const char *parse_length_modifier(const char *fmt,
         if (*fmt == 'h') {
             fmt++;
             *length = length8;
-	    *mod = mod_hh;
+            *mod = mod_hh;
         } else {
             *length = length16;
-	    *mod = mod_h;
+            *mod = mod_h;
         }
         break;
     case 'l':
@@ -338,10 +348,10 @@ static const char *parse_length_modifier(const char *fmt,
         if (*fmt == 'l') {
             fmt++;
             *length = length64;
-	    *mod = mod_ll;
+            *mod = mod_ll;
         } else {
             *length = length64;
-	    *mod = mod_l;
+            *mod = mod_l;
         }
         break;
 
@@ -350,12 +360,12 @@ static const char *parse_length_modifier(const char *fmt,
     case 't':
         fmt++;
         *length = length64;
-	*mod = mod_bad;
+        *mod = mod_bad;
         break;
 
     default:
         *length = length32;
-	 *mod = mod_none;
+         *mod = mod_none;
         break;
     }
 
@@ -454,7 +464,7 @@ static uint64_t reinterpret_signed_int(enum format_length length, uint64_t value
     case length64:
         if ((int64_t)signed_value < 0) {
             flags->neg = true;
-	    if (signed_value == (int64_t)(1ULL << 63)) {
+            if (signed_value == (int64_t)(1ULL << 63)) {
             return (uint64_t)(1ULL << 63);
         }
             signed_value = -signed_value;
@@ -488,14 +498,14 @@ static int val_log(const char *fmt, va_list args)
             struct format_flags flags = {0};
             int min_width = 0;
             enum format_length length = length32;
-	    enum length_mod mod = mod_none;
+            enum length_mod mod = mod_none;
             uint64_t value;
 
             fmt++;
             fmt = parse_flags(fmt, &flags);
             fmt = parse_min_width(fmt, args, &flags, &min_width);
             fmt = parse_length_modifier(fmt, &length, &mod);
-	    if (mod == mod_bad) {
+            if (mod == mod_bad) {
                 chars_written = -1;
                 goto out;
              }
@@ -531,7 +541,7 @@ static int val_log(const char *fmt, va_list args)
             case 'd':
             case 'i': {
                 fmt++;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)(int64_t)va_arg(args, long long);
                 } else if (length == length64) {
                     value = (uint64_t)(int64_t)va_arg(args, long);
@@ -548,9 +558,9 @@ static int val_log(const char *fmt, va_list args)
 
             case 'b':
                 fmt++;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
-		 } else if (length == length64) {
+                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
                  } else {
                     value = (uint64_t)va_arg(args, unsigned int);
@@ -564,7 +574,7 @@ static int val_log(const char *fmt, va_list args)
             case 'B':
                 fmt++;
                 flags.upper = true;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
@@ -579,7 +589,7 @@ static int val_log(const char *fmt, va_list args)
 
             case 'o':
                 fmt++;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
@@ -594,7 +604,7 @@ static int val_log(const char *fmt, va_list args)
 
             case 'x':
                 fmt++;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
@@ -610,7 +620,7 @@ static int val_log(const char *fmt, va_list args)
             case 'X':
                 fmt++;
                 flags.upper = true;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
@@ -625,7 +635,7 @@ static int val_log(const char *fmt, va_list args)
 
             case 'u':
                 fmt++;
-		if (mod == mod_ll) {
+                if (mod == mod_ll) {
                     value = (uint64_t)va_arg(args, unsigned long long);
                 } else if (length == length64) {
                     value = (uint64_t)va_arg(args, unsigned long);
@@ -680,6 +690,10 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
     if (msg == NULL)
         return 0;
 
+    collect_log_output = true;
+    collected_log_len = 0;
+    collected_log[0] = '\0';
+
     /* New line => allow prefix again */
     if (lastWasNewline)
         prefixPrinted = false;
@@ -693,8 +707,12 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
     }
 
     /* If msg was only newlines */
-    if (*msg == '\0')
+    if (*msg == '\0') {
+        collect_log_output = false;
+        if (collected_log_len > 0)
+            pal_print((uint64_t)(uintptr_t)collected_log);
         return 0;
+    }
 
     /* Print prefix exactly once per logical line (supports multi-call line assembly) */
     if (!prefixPrinted) {
@@ -780,8 +798,14 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
     }
 
     va_end(args);
+
+    collect_log_output = false;
+
     if (chars_written < 0)
     return 0;
+
+    if (collected_log_len > 0)
+        pal_print((uint64_t)(uintptr_t)collected_log);
 
     return (uint32_t)chars_written;
 }
