@@ -43,20 +43,32 @@ extern uint32_t g_its_init;
 #define OPERATING_SYSTEM    0
 #define HYPERVISOR          1
 #define PLATFORM_SECURITY   2
+#define VIEW_COUNT          3
 
-#define MODULE_END          3
+/* command to reset view information */
+#define MODULE_END          VIEW_COUNT
+
+static void view_reset_info(uint32_t *view_check)
+{
+  view_check[OPERATING_SYSTEM]  = 0;
+  view_check[HYPERVISOR]        = 0;
+  view_check[PLATFORM_SECURITY] = 0;
+}
 
 void view_print_info(uint32_t view)
 {
-  static uint32_t view_check[3] = {0, 0, 0};
+  static uint32_t view_check[VIEW_COUNT] = {0, 0, 0};
+
+  if (view > MODULE_END)
+      return;
 
   if (view == MODULE_END) {
-      //memset(view_check, 0, sizeof(view_check)); //Need to include string.h
-      view_check[OPERATING_SYSTEM]  = 0;
-      view_check[HYPERVISOR]        = 0;
-      view_check[PLATFORM_SECURITY] = 0;
+      view_reset_info(view_check);
       return;
   }
+
+  if (view >= VIEW_COUNT)
+      return;
 
   if (view_check[view] == 1)
       return;

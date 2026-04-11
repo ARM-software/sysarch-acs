@@ -54,7 +54,7 @@ pal_cache_dump_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable)
     print(ACS_PRINT_INFO, "\nPE Index * %d *", i);
     print(ACS_PRINT_INFO, "\n  Level 1 Cache index(s) :");
 
-    for (j = 0; pe_entry->level_1_res[j] != DEFAULT_CACHE_IDX && j < MAX_L1_CACHE_RES; j++) {
+    for (j = 0; j < MAX_L1_CACHE_RES && pe_entry->level_1_res[j] != DEFAULT_CACHE_IDX; j++) {
       print(ACS_PRINT_INFO, " %d,", pe_entry->level_1_res[j]);
     }
     print(ACS_PRINT_INFO, "\n");

@@ -543,7 +543,14 @@ uint64_t
 val_cache_get_info(CACHE_INFO_e type, uint32_t cache_index)
 {
   CACHE_INFO_ENTRY *entry;
-  char *cache_info_type[] = {"cache_type", "cache_size", "cache_identifier", "associativity"};
+  static const char *cache_info_type[] = {
+        "cache_type",
+        "cache_size",
+        "cache_identifier",
+        "next_level_index",
+        "private_flag",
+        "associativity"
+  };
 
   if (cache_index >= g_cache_info_table->num_of_cache) {
       val_print(ERROR, "\n       invalid cache index: %d", cache_index);
@@ -579,7 +586,10 @@ val_cache_get_info(CACHE_INFO_e type, uint32_t cache_index)
 
   val_print(ERROR,
    "\n       cache %d has invalid ", cache_index);
-  val_print(ERROR, cache_info_type[type]);
+  if (type < (sizeof(cache_info_type) / sizeof(cache_info_type[0])))
+      val_print(ERROR, cache_info_type[type]);
+  else
+      val_print(ERROR, "cache_info_type");
   return INVALID_CACHE_INFO;
 }
 

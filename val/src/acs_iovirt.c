@@ -489,7 +489,7 @@ val_iovirt_get_named_comp_device_info(const char *dev_name, uint32_t identifier,
 
   while ((dev_len < MAX_NAMED_COMP_LENGTH) && (dev_name[dev_len] != '\0'))
     dev_len++;
-  if (dev_len == 0u) {
+  if ((dev_len == 0u) || (dev_len >= MAX_NAMED_COMP_LENGTH)) {
     val_print(ERROR, "\n       GET_DEVICE_ID: Invalid device name");
     return ACS_STATUS_ERR;
   }
