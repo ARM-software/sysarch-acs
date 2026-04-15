@@ -87,6 +87,7 @@
   ../../test_pool/timer/t005.c
   ../../test_pool/timer/t006.c
   ../../test_pool/timer/t008.c
+  ../../test_pool/timer/t009.c
   ../../test_pool/watchdog/w001.c
   ../../test_pool/watchdog/w002.c
   ../../test_pool/peripherals/d001.c

@@ -195,6 +195,7 @@
   ../../test_pool/gic/g016.c
   ../../test_pool/timer/t006.c
   ../../test_pool/timer/t008.c
+  ../../test_pool/timer/t009.c
   ../../test_pool/watchdog/w003.c
   ../../test_pool/smmu/i008.c
   ../../test_pool/smmu/i009.c

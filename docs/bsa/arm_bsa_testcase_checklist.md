@@ -663,11 +663,11 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_TIME_05</td>
       <td>B_TIME_05</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>501,502,503,504,505</td>
+      <td>Check sys cnt visible to PE timers</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -718,11 +718,11 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_TIME_10</td>
       <td>B_TIME_10</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>410</td>
+      <td>Check Non-secure timer frame access</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>

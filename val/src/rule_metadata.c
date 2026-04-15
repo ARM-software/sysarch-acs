@@ -1404,6 +1404,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
+        [B_TIME_05] = {
+            .test_entry_id    = B_WAK_03_07_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check sys cnt visible to PE timers",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+        },
         [B_TIME_06] = {
             .test_entry_id    = T002_ENTRY,
             .module_id        = TIMER,
@@ -1435,6 +1442,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 5,
+        },
+        [B_TIME_10] = {
+            .test_entry_id    = T009_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check Non-secure timer frame access",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 10,
         },
         [S_L5TI_01] = {
             .test_entry_id    = T006_ENTRY,
@@ -3125,12 +3140,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [B_TIME_04] = {
             .module_id        = TIMER,
         },
-        [B_TIME_05] = {
-            .module_id        = TIMER,
-        },
-        [B_TIME_10] = {
-            .module_id        = TIMER,
-        },
         [S_L8TI_01] = {
             .module_id        = TIMER,
         },
@@ -3803,6 +3812,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
     [T008_ENTRY] = t008_entry,
+    [T009_ENTRY] = t009_entry,
     [U001_ENTRY] = u001_entry, // used in wrapper.
     [U002_ENTRY] = u002_entry, // used in wrapper.
     [U003_ENTRY] = u003_entry, // used in wrapper.
@@ -3917,6 +3927,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
+    [T009_ENTRY] = t009_entry,
     [W001_ENTRY] = w001_entry,
     [W002_ENTRY] = w002_entry,
     [D001_ENTRY] = d001_entry,
@@ -4290,6 +4301,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T004_ENTRY] = t004_entry,
     [T001_ENTRY] = t001_entry,
     [T002_ENTRY] = t002_entry,
+    [T009_ENTRY] = t009_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
     [E035_ENTRY] = e035_entry,
     [E013_ENTRY] = e013_entry,
