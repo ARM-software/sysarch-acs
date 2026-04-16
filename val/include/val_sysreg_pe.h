@@ -10,6 +10,13 @@
 
 #include "val_sysreg.h"
 
+#ifndef ID_AA64ZFR1_EL1
+#define ID_AA64ZFR1_EL1 S3_0_C0_C4_6
+#endif
+#ifndef ID_AA64PFR2_EL1
+#define ID_AA64PFR2_EL1 S3_0_C0_C4_2
+#endif
+
 SYSREG_READ_FUNC(id_pfr0_el1)
 SYSREG_READ_FUNC(id_pfr1_el1)
 SYSREG_READ_FUNC(id_aa64isar0_el1)
@@ -90,6 +97,8 @@ SYSREG_READ_FUNC(pmceid0_el0)
 SYSREG_READ_FUNC(pmceid1_el0)
 
 SYSREG_READ_FUNC(id_aa64zfr0_el1)
+RENAME_SYSREG_READ_FUNC(id_aa64zfr1_el1, ID_AA64ZFR1_EL1)
+RENAME_SYSREG_READ_FUNC(id_aa64pfr2_el1, ID_AA64PFR2_EL1)
 SYSREG_READ_FUNC(brbidr0_el1)
 
 RENAME_SYSREG_READ_FUNC(id_aa64mmfr2_el1, ID_AA64MMFR2_EL1)

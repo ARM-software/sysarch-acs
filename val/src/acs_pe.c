@@ -22,6 +22,7 @@
 #include "val_interface.h"
 #include "pal_interface.h"
 #include "val_interface.h"
+#include "val_sysreg_mpam.h"
 #include "acs_std_smc.h"
 #include "acs_timer_support.h"
 
@@ -214,6 +215,16 @@ val_pe_reg_read(uint32_t reg_id)
           return read_dbgbcr15_el1();
       case ID_AA64ZFR0_EL1:
           return read_id_aa64zfr0_el1();
+      case ID_AA64ZFR1_EL1:
+          return read_id_aa64zfr1_el1();
+      case PE_MPAMIDR_EL1:
+          return read_mpamidr_el1();
+      case CNTFRQ_EL0:
+          return read_cntfrq_el0();
+      case ID_AA64SMFR0_EL1:
+          return read_id_aa64smfr0_el1();
+      case ID_AA64PFR2_EL1:
+          return read_id_aa64pfr2_el1();
       case BRBIDR0_EL1:
           return read_brbidr0_el1();
       case TRBIDR_EL1:
