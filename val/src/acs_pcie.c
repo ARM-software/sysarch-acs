@@ -78,7 +78,7 @@ val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
   }
 
   if (ecam_base == 0) {
-      val_print(ERROR, "\n       PCIe_CFG_RD ECAM Base is zero %.8x", bdf);
+      val_print(ERROR, "\n       PCIe_CFG_RD ECAM Base is zero %08x", bdf);
       return PCIE_NO_MAPPING;
   }
 
@@ -154,7 +154,7 @@ val_pcie_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data)
   }
 
   if (ecam_base == 0) {
-      val_print(ERROR, "\n       PCIe_CFG_WR ECAM Base is zero %.8x", bdf);
+      val_print(ERROR, "\n       PCIe_CFG_WR ECAM Base is zero %08x", bdf);
       return;
   }
 

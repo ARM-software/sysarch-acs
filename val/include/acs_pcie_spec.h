@@ -140,6 +140,7 @@
 #define BAR_VALUE_PREFETCH_MASK   0x8
 #define BAR_VALUE_IO_MASK         0x1
 #define BAR_REG(bar_reg_value)    ((bar_reg_value >> 2) & 0x1)
+#define BAR_MEM(bar_reg_value)    ((bar_reg_value & 0xF) >> 3)
 
 #define TYPE0_MAX_BARS  6
 #define TYPE1_MAX_BARS  2

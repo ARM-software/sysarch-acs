@@ -774,6 +774,7 @@ uint32_t dl012_entry(uint32_t num_pe);
 #define SIZE_1K    1024ULL
 #define SIZE_16K   4 * SIZE_4K
 #define SIZE_1M    SIZE_1K * SIZE_1K
+#define SIZE_32M   32 * SIZE_1M
 #define SIZE_1G    SIZE_1M * SIZE_1K
 
 #define SOFTLIMIT_DIS 0x0

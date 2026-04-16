@@ -65,7 +65,6 @@ payload(void)
   uint32_t test_skip = 1;
   uint32_t test_warn = 1;
   uint32_t test_fail = 0;
-  uint32_t test_abort = 0;
   uint64_t offset;
   uint64_t base;
   pcie_device_bdf_table *bdf_tbl_ptr;
@@ -106,20 +105,31 @@ next_bdf:
               continue;
           }
 
+      val_print(DEBUG, "\n   BDF under check %08x", bdf);
+      val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
+      val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
+      base_cc = reg_value >> TYPE01_BCC_SHIFT;
+
+      if (acs_policy_get_pcie_skip_dp_nic_ms() &&
+          ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
+          || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
+          val_print(DEBUG, "\n       Skipping BDF 0x%x", bdf);
+          tbl_index++;
+          goto next_bdf;
+      }
+
       /* Configure the max BAR offset */
       dev_type = val_pcie_get_device_type(bdf);
-      if (dev_type == 0)
+      if (dev_type == 1)
           max_bar_offset = BAR_TYPE_0_MAX_OFFSET;
       else
           max_bar_offset = BAR_TYPE_1_MAX_OFFSET;
 
       offset = BAR0_OFFSET;
 
-      val_print(DEBUG, "\n   BDF under check %.6x", bdf);
-
       while (offset <= max_bar_offset) {
           val_pcie_read_cfg(bdf, offset, &bar_value);
-          val_print(DEBUG, "\n       The BAR value of bdf %.6x", bdf);
+          val_print(DEBUG, "\n       The BAR value at offset %x", offset);
           val_print(DEBUG, " is %x ", bar_value);
           base = 0;
 
@@ -127,27 +137,14 @@ next_bdf:
           {
               /** This BAR is not implemented **/
               val_print(DEBUG, "\n       BAR is not implemented for BDF 0x%x", bdf);
-              tbl_index++;
-              goto next_bdf;
+              goto next_bar;
           }
 
           /* Skip for IO address space */
           if (bar_value & 0x1) {
               val_print(DEBUG, "\n       BAR is used for IO address space request");
               val_print(DEBUG, " for BDF 0x%x", bdf);
-              tbl_index++;
-              goto next_bdf;
-          }
-
-          val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
-          val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
-          base_cc = reg_value >> TYPE01_BCC_SHIFT;
-          if (acs_policy_get_pcie_skip_dp_nic_ms() &&
-              ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
-              || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
-              val_print(DEBUG, "\n       Skipping BDF as  0x%x", bdf);
-              tbl_index++;
-              goto next_bdf;
+              goto next_bar;
           }
 
           if (BAR_REG(bar_value) == BAR_64_BIT)
@@ -172,7 +169,7 @@ next_bdf:
               /* Restore the original BAR value */
               val_pcie_write_cfg(bdf, offset + 4, bar_value_1);
               val_pcie_write_cfg(bdf, offset, bar_value);
-              base = (base << 32) | bar_value;
+              base = (base << 32) | (bar_value & BAR_MASK);
           }
 
           else {
@@ -189,10 +186,11 @@ next_bdf:
 
               /* Restore the original BAR value */
               val_pcie_write_cfg(bdf, offset, bar_value);
-              base = bar_value;
+              base = bar_value & BAR_MASK;
           }
 
           val_print(DEBUG, "\n       BAR size is %x", bar_size);
+          val_print(DEBUG, "\n       BAR base is 0x%llx", base);
 
           /* Check if bar supports the remap size */
           if (bar_size < 1024) {
@@ -216,11 +214,11 @@ next_bdf:
 
           /* Handle unimplemented PAL -> Report WARN */
           if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-            test_abort = 1;
-            break;
+            goto test_status;
           }
           else if (status) {
-            val_print(ERROR, "\n       Failed in  ioremap with status %x", status);
+            val_print(ERROR,
+                  "\n       pal_memory_ioremap failed, status: 0x%x", status);
             test_fail++;
             val_set_status(index, RESULT_FAIL(test_fail));
             goto next_bar;
@@ -255,21 +253,18 @@ next_bar:
           if (msa_en)
               val_pcie_disable_msa(bdf);
       }
-
-      if (test_abort == 1)
-         break;
   }
 
-  if (test_warn) {
-    val_set_status(index, RESULT_WARNING(0));
-    return;
-  } else if (test_skip)
+test_status:
+  if (test_skip)
       val_set_status(index, RESULT_SKIP(1));
-  else if (test_fail)
+  else if (test_warn) {
+    val_set_status(index, RESULT_WARNING(1));
+  } else if (test_fail)
       val_set_status(index, RESULT_FAIL(test_fail));
   else
       val_set_status(index, RESULT_PASS);
-
+  return;
 }
 
 uint32_t

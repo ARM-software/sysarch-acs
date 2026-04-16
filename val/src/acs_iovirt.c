@@ -296,7 +296,7 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 
     smmu_ver = val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, i);
     val_print(INFO,
-            " SMMU_INFO: SMMU index %.2d ", i);
+            " SMMU_INFO: SMMU index %02d ", i);
     val_print(INFO, "version     :    v%d", smmu_ver);
 
     if (smmu_ver == 3) {
