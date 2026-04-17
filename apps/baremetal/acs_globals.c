@@ -38,8 +38,6 @@ uint64_t  g_stack_pointer;
 uint64_t  g_exception_ret_addr;
 uint64_t  g_ret_addr;
 
-uint32_t  g_sbsa_level;
-uint32_t  g_execute_nist;
 uint64_t  g_el3_param_magic = 0;
 uint64_t  g_el3_param_addr  = 0;
 

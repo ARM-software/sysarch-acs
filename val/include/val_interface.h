@@ -638,7 +638,7 @@ uint32_t val_sbsa_ras_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_sbsa_nist_execute_tests(uint32_t level, uint32_t num_pe);
 
 uint32_t val_bsa_execute_tests(uint32_t *g_sw_view);
-uint32_t val_sbsa_execute_tests(uint32_t g_sbsa_level);
+uint32_t val_sbsa_execute_tests(uint32_t level);
 
 /* TPM2 API */
 
@@ -654,7 +654,7 @@ uint64_t val_tpm2_get_info(TPM2_INFO_e info_type);
 uint64_t val_tpm2_get_version(void);
 
 /* PC-BSA Related API's */
-uint32_t val_pcbsa_execute_tests(uint32_t g_pcbsa_level);
+uint32_t val_pcbsa_execute_tests(uint32_t level);
 uint32_t val_pcbsa_pe_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_pcbsa_gic_execute_tests(uint32_t level, uint32_t num_pe);
 uint32_t val_pcbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe);

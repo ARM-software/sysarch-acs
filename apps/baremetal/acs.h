@@ -103,8 +103,6 @@ extern uint32_t g_timeout_pass;
 extern uint32_t g_timeout_fail;
 
 /* Globals from apps/baremetal/acs_globals.c */
-extern RULE_ID_e *g_rule_tests;
-extern uint32_t  g_rule_tests_num;
 extern RULE_ID_e *g_rule_list;
 extern RULE_ID_e *g_skip_rule_list;
 extern uint32_t  *g_execute_modules;

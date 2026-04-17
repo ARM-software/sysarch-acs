@@ -387,30 +387,30 @@ val_pcbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
 #ifndef TARGET_LINUX
 
 uint32_t
-val_pcbsa_execute_tests(uint32_t g_pcbsa_level)
+val_pcbsa_execute_tests(uint32_t level)
 {
 
   uint32_t Status;
   /***         Starting PE tests                     ***/
-  Status = val_pcbsa_pe_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status = val_pcbsa_pe_execute_tests(level, val_pe_get_num());
 
   /***         Starting Memory tests                ***/
-  Status |= val_pcbsa_memory_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_memory_execute_tests(level, val_pe_get_num());
 
   /***         Starting GIC tests                    ***/
-  Status |= val_pcbsa_gic_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_gic_execute_tests(level, val_pe_get_num());
 
   /***         Starting SMMU tests                   ***/
-  Status |= val_pcbsa_smmu_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_smmu_execute_tests(level, val_pe_get_num());
 
   /***         Starting PCIe tests                   ***/
-  Status |= val_pcbsa_pcie_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_pcie_execute_tests(level, val_pe_get_num());
 
   /***         Starting Watchdog tests               ***/
-  Status |= val_pcbsa_wd_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_wd_execute_tests(level, val_pe_get_num());
 
   /***         Starting TPM2 tests               ***/
-  Status |= val_pcbsa_tpm2_execute_tests(g_pcbsa_level, val_pe_get_num());
+  Status |= val_pcbsa_tpm2_execute_tests(level, val_pe_get_num());
 
   return Status;
 

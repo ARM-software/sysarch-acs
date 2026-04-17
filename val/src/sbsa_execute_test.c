@@ -983,47 +983,47 @@ val_sbsa_nist_execute_tests(uint32_t level, uint32_t num_pe)
 
 
 uint32_t
-val_sbsa_execute_tests(uint32_t g_sbsa_level)
+val_sbsa_execute_tests(uint32_t level)
 {
 
   uint32_t Status;
   uint32_t num_pe = val_pe_get_num();
 
   /***         Starting PE tests                     ***/
-  Status = val_sbsa_pe_execute_tests(g_sbsa_level, num_pe);
+  Status = val_sbsa_pe_execute_tests(level, num_pe);
 
   /***         Starting Memory tests                 ***/
-  Status |= val_sbsa_memory_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_memory_execute_tests(level, num_pe);
 
   /***         Starting GIC tests                    ***/
-  Status |= val_sbsa_gic_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_gic_execute_tests(level, num_pe);
 
   /***         Starting SMMU tests                   ***/
-  Status |= val_sbsa_smmu_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_smmu_execute_tests(level, num_pe);
 
   /***         Starting Timer tests               ***/
-  Status |= val_sbsa_timer_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_timer_execute_tests(level, num_pe);
 
   /***         Starting Watchdog tests               ***/
-  Status |= val_sbsa_wd_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_wd_execute_tests(level, num_pe);
 
   /***         Starting PCIe tests                   ***/
-  Status |= val_sbsa_pcie_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_pcie_execute_tests(level, num_pe);
 
   /***         Starting Exerciser tests              ***/
-  Status |= val_sbsa_exerciser_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_exerciser_execute_tests(level, num_pe);
 
   /***         Starting MPAM tests                   ***/
-  Status |= val_sbsa_mpam_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_mpam_execute_tests(level, num_pe);
 
   /***         Starting PMU tests                    ***/
-  Status |= val_sbsa_pmu_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_pmu_execute_tests(level, num_pe);
 
   /***         Starting RAS tests                    ***/
-  Status |= val_sbsa_ras_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_ras_execute_tests(level, num_pe);
 
   /***         Starting ETE tests                    ***/
-  Status |= val_sbsa_ete_execute_tests(g_sbsa_level, num_pe);
+  Status |= val_sbsa_ete_execute_tests(level, num_pe);
 
   return Status;
 
