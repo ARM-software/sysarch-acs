@@ -157,14 +157,10 @@ fi
 
 if [ "$1" == "mem_test" ]; then
     git checkout ShellPkg/ShellPkg.dsc
+    git checkout BaseTools/Scripts/GccBase.lds
+    git checkout ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.c
     git apply ShellPkg/Application/sysarch-acs/mem_test/patches/mem_test_edk2.patch
-    cd ShellPkg/Application/sysarch-acs
-    git apply mem_test/patches/cxl_revert.patch
-    cd ../../../
     build -a AARCH64 -t GCCNOLTO -n 1 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/sysarch-acs/apps/uefi/Mem.inf
-    cd ShellPkg/Application/sysarch-acs
-    git checkout pal/ val/
-    cd ../../../
     return 0;
 fi
 

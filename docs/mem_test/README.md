@@ -18,19 +18,18 @@ might lead to unpredictable behavior in concurrent programs.
 1. Setup edk2 build directory
 >          git clone https://github.com/tianocore/edk2.git
 >          cd edk2
->          git checkout 836942fbadb629050b866a8052e6af755bcdf623
+>          git checkout edk2-stable202511
 >          git clone https://github.com/tianocore/edk2-libc.git
 >          git submodule update --init --recursive
 
-2. Download source files and apply edk2 patch
+2. Download source files
 >          git clone https://github.com/ARM-software/sysarch-acs.git ShellPkg/Application/sysarch-acs
 >          git clone https://github.com/relokin/kvm-unit-tests.git ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests
 >          git -C ShellPkg/Application/sysarch-acs/mem_test/kvm-unit-tests checkout target-efi-bsa
->          git apply ShellPkg/Application/sysarch-acs/mem_test/patches/mem_test_edk2.patch
 
 3. Build bsa-acs UEFI app <br>
-Note :  Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
->          export GCCNOLTO_AARCH64_PREFIX=<path to CC>arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+Note :  Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+>          export GCCNOLTO_AARCH64_PREFIX=<path to CC>arm-gnu-toolchain-14.3.Rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 >          export PACKAGES_PATH=`pwd`/edk2-libc
 >          source edksetup.sh
 >          make -C BaseTools/Source/C

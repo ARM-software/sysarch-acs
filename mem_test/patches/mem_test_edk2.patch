@@ -1,17 +1,17 @@
 diff --git a/BaseTools/Scripts/GccBase.lds b/BaseTools/Scripts/GccBase.lds
-index 9f27e83bb0..79e8c9f023 100644
+index 3d2a97ddeb..c9e35af0c1 100644
 --- a/BaseTools/Scripts/GccBase.lds
 +++ b/BaseTools/Scripts/GccBase.lds
-@@ -21,6 +21,7 @@ SECTIONS {
+@@ -27,6 +27,7 @@ SECTIONS {
    . = PECOFF_HEADER_SIZE;
  
    .text : ALIGN(CONSTANT(COMMONPAGESIZE)) {
 +    _textbsa = .;
+     KEEP(*(.entry))
      *(.text .text.* .stub .gnu.linkonce.t.*)
      *(.rodata .rodata.* .gnu.linkonce.r.*)
-     *(.got .got.*)
 diff --git a/ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.c b/ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.c
-index 17e48443ac..a2b3adefdf 100644
+index 17e48443ac..ddf56f0cd6 100644
 --- a/ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.c
 +++ b/ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.c
 @@ -16,6 +16,9 @@
@@ -30,29 +30,29 @@ index 17e48443ac..a2b3adefdf 100644
  
 +  mySystemTable = SystemTable;
 +  myImageHandle = ImageHandle;
-+
++ 
    Status = SystemTable->BootServices->OpenProtocol (
                                          ImageHandle,
                                          &gEfiShellParametersProtocolGuid,
 diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
-index 5303a68959..7ccbce272b 100644
+index 94d95de0eb..4a70e2857a 100644
 --- a/ShellPkg/ShellPkg.dsc
 +++ b/ShellPkg/ShellPkg.dsc
-@@ -27,6 +27,9 @@
-   UefiDriverEntryPoint|MdePkg/Library/UefiDriverEntryPoint/UefiDriverEntryPoint.inf
-   UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
-   DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLibOptionalDevicePathProtocol.inf
+@@ -23,6 +23,9 @@
+ !include MdePkg/MdeLibs.dsc.inc
+ 
+ [LibraryClasses.common]
 +  ValLib|ShellPkg/Application/sysarch-acs/val/ValLib.inf
 +  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/PalLib.inf
 +  LibCFlat|ShellPkg/Application/sysarch-acs/mem_test/LibCFlat.inf
- !if $(TARGET) == RELEASE
-   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
- !else
-@@ -97,6 +100,7 @@
-   ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
-   ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
-   ShellPkg/Library/UefiShellNetwork2CommandsLib/UefiShellNetwork2CommandsLib.inf
+   UefiApplicationEntryPoint|MdePkg/Library/UefiApplicationEntryPoint/UefiApplicationEntryPoint.inf
+   UefiDriverEntryPoint|MdePkg/Library/UefiDriverEntryPoint/UefiDriverEntryPoint.inf
+   UefiBootServicesTableLib|MdePkg/Library/UefiBootServicesTableLib/UefiBootServicesTableLib.inf
+@@ -79,6 +82,7 @@
+   # Build all the libraries when building this package.
+   # This helps developers test changes and how they affect the package.
+   #
 +  ShellPkg/Application/sysarch-acs/apps/uefi/Mem.inf
- 
-   ShellPkg/Application/Shell/Shell.inf {
-     <PcdsFixedAtBuild>
+   ShellPkg/Library/UefiShellLib/UefiShellLib.inf
+   ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.inf
+   ShellPkg/Library/UefiShellCommandLib/UefiShellCommandLib.inf
