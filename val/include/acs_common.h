@@ -15,14 +15,12 @@
  * limitations under the License.
  **/
 
-
-/** This file is common to all test cases and Val layer of the Suite */
-#include "val_logger.h"
-
-#include "val_status.h"
-
 #ifndef __ACS_COMMON_H__
 #define __ACS_COMMON_H__
+
+/* This file is common to all the test-cases and VAL of the suite. */
+#include "val_logger.h"
+#include "val_status.h"
 
 #define G_SW_OS    0
 #define G_SW_HYP   1
