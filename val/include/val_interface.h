@@ -35,12 +35,15 @@ extern uint32_t g_print_level;
 #define ACS_STATUS_PASS    STATUS_SUCCESS
 #define ACS_STATUS_SKIP    STATUS_SKIP
 #define ACS_STATUS_UNKNOWN STATUS_UNKNOWN
-
+/*Note: val_print can be overriden in platform_override_fvp.h, to
+enable implementation specific prints in PAL*/
+#ifndef val_print
 #define val_print(level, ...)                     \
     do {                                          \
         if ((level) >= g_print_level)             \
             val_printf((level), __VA_ARGS__);     \
     } while (0)
+#endif
 
 #define ACS_STATUS_PAL_NOT_IMPLEMENTED 0x4B1D  /* PAL reports feature/API not implemented */
 #ifndef NOT_IMPLEMENTED
