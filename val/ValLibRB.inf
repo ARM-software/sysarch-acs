@@ -44,6 +44,7 @@
   src/acs_pgt.c
   src/acs_mmu.c
   src/acs_smmu.c
+  src/acs_dma.c
   src/acs_test_infra.c
   src/acs_timer_infra.c
   src/acs_timer.c

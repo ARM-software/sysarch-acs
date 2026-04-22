@@ -1107,7 +1107,7 @@ The checklist provides information about:
       <td>PCI_MM_07</td>
       <td>905</td>
       <td>No extra address translation</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>

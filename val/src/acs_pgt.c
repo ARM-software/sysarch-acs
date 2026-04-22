@@ -724,8 +724,11 @@ uint64_t val_pgt_get_attributes(pgt_descriptor_t pgt_desc, uint64_t virtual_addr
     while (1) {
         index = (virtual_address >> bits_remaining) & ((0x1u << bits_at_this_level) - 1);
         tt_base_virt = (uint64_t*)val_memory_phys_to_virt(tt_base_phys);
-        val64 = tt_base_virt[index];
 
+        if (!tt_base_virt)
+            return 1;
+
+        val64 = tt_base_virt[index];
         val_print(PGT_DEBUG_LEVEL,
                   "\n       val_pgt_get_attributes: this_level = %d     ",
                   this_level);

@@ -56,6 +56,7 @@ uint32_t val_smmu_disable(uint32_t smmu_index);
 uint64_t val_smmu_pa2iova(uint32_t smmu_index, uint64_t pa, uint64_t *dram_buf_iova);
 uint32_t val_smmu_init(void);
 uint64_t val_smmu_map(smmu_master_attributes_t master, pgt_descriptor_t pgt_desc);
+uint32_t val_smmu_is_iova_mapped(uint32_t smmu_index, uint32_t streamid, uint64_t iova);
 uint32_t val_smmu_config_ste_dcp(smmu_master_attributes_t master, uint32_t value);
 
 uint32_t i001_entry(uint32_t num_pe);

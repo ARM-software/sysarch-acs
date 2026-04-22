@@ -352,6 +352,7 @@ typedef enum {
 typedef enum {
   SMMU_CAPABLE     = 1,
   SMMU_CHECK_DEVICE_IOVA,
+  SMMU_CHECK_STREAM_IOVA,
   SMMU_START_MONITOR_DEV,
   SMMU_STOP_MONITOR_DEV,
   SMMU_CREATE_MAP,
@@ -361,6 +362,12 @@ typedef enum {
   SMMU_GET_ATTR,
   SMMU_SET_ATTR,
 }SMMU_OPS_e;
+
+typedef struct {
+  uint32_t smmu_index;
+  uint32_t streamid;
+  uint64_t iova;
+} smmu_stream_iova_check_t;
 
 typedef enum {
   NUM_PCIE_RC = 1,

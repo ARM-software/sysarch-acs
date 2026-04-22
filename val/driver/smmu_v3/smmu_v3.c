@@ -17,6 +17,7 @@
 #include "smmu_v3.h"
 #include "acs_smmu.h"
 #include "val_interface.h"
+#include "acs_pgt.h"
 
 smmu_dev_t *g_smmu;
 uint32_t    g_smmu_index;
@@ -1278,6 +1279,64 @@ void val_smmu_unmap(smmu_master_attributes_t master_attr)
     smmu_cdtab_free(master);
     smmu_tlbi_cfgi(master->smmu);
     val_memory_set(master, sizeof(smmu_master_t), 0);
+}
+
+/**
+  @brief   Check if an IOVA is mapped for a given SMMU stream (stage 1 only)
+          Utility wrapper used by tests to validate that the programmed stage-1 tables
+          accept the IOVA for the master’s stream before issuing DMA.
+  @param   smmu_index - SMMU controller index
+  @param   streamid   - Stream ID associated with the master
+  @param   iova       - IOVA to validate
+  @return  0 if mapped, non-zero otherwise
+**/
+uint32_t
+val_smmu_is_iova_mapped(uint32_t smmu_index, uint32_t streamid, uint64_t iova)
+{
+    smmu_master_t *master;
+    pgt_descriptor_t pgt_desc;
+    uint64_t attr;
+    uint64_t tcr_raw;
+    uint8_t tg_ttbr0[3] = {12 /*4KB*/, 16 /*64KB*/, 14 /*16KB*/};
+
+    if (g_smmu == NULL)
+        return 1;
+
+    if (smmu_index >= g_num_smmus)
+        return 1;
+
+    master = smmu_master_at(streamid);
+    if (master == NULL || master->smmu == NULL)
+        return 1;
+
+    if (master->smmu != &g_smmu[smmu_index])
+        return 1;
+
+    if (master->stage != SMMU_STAGE_S1)
+        return 1;
+
+    val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
+    pgt_desc.pgt_base = master->stage1_config.cd.ttbr;
+    pgt_desc.mair = master->stage1_config.cd.mair;
+    pgt_desc.stage = PGT_STAGE1;
+
+    tcr_raw = master->stage1_config.cd.tcr;
+
+    pgt_desc.tcr.ps = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_IPS, tcr_raw);
+    pgt_desc.tcr.tg = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_TG0, tcr_raw);
+    if (pgt_desc.tcr.tg > 2)
+        return 1;
+    pgt_desc.tcr.tg_size_log2 = tg_ttbr0[pgt_desc.tcr.tg];
+    pgt_desc.tcr.sh = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_SH0, tcr_raw);
+    pgt_desc.tcr.orgn = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_ORGN0, tcr_raw);
+    pgt_desc.tcr.irgn = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_IRGN0, tcr_raw);
+    pgt_desc.tcr.tsz = (uint32_t)BITFIELD_GET(CDTAB_CD_0_TCR_T0SZ, tcr_raw);
+    pgt_desc.tcr.sl = 0;
+
+    if (val_pgt_get_attributes(pgt_desc, iova, &attr))
+        return 1;
+
+    return 0;
 }
 
 static uint32_t smmu_init(smmu_dev_t *smmu)
