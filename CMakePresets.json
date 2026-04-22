@@ -7,8 +7,10 @@
             "hidden": true,
             "generator": "Unix Makefiles",
             "cacheVariables": {
+                "ACS_CREATE_WRAPPER_TARGETS": false,
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake",
                 "CMAKE_OSX_ARCHITECTURES": "",
+                "CROSS_COMPILE": "$env{CROSS_COMPILE}",
                 "TARGET": "RDN2"
             }
         },
@@ -44,7 +46,9 @@
             "displayName": "Configure: aarch64-none-elf (for make acs_all)",
             "binaryDir": "${sourceDir}/build",
             "inherits": ["baremetal"],
-            "cacheVariables": {}
+            "cacheVariables": {
+                "ACS_CREATE_WRAPPER_TARGETS": true
+            }
         }
     ],
     "buildPresets": [
@@ -65,4 +69,3 @@
         }
     ]
 }
-

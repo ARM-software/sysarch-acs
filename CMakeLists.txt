@@ -33,6 +33,11 @@ set(BUILD ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "Setting build directory to
 # Set global compile list variable
 set(COMPILE_LIST "")
 
+if(NOT DEFINED ACS_CREATE_WRAPPER_TARGETS)
+    set(ACS_CREATE_WRAPPER_TARGETS OFF CACHE BOOL
+        "Generate wrapper targets (bsa/sbsa/pc_bsa/acs_all) that configure child build trees.")
+endif()
+
 #### Include cmake support module ###
 include(${ROOT_DIR}/tools/cmake/toolchain/utils.cmake)
 include(${ROOT_DIR}/tools/cmake/toolchain/default.cmake)
@@ -138,6 +143,26 @@ list(APPEND CLEAN_LIST
 
 # Optional forwarding of ACS_ENABLED_MODULE_LIST to inner configure
 set(DEFAULT_OVERRIDE_ARGS "")
+if(DEFINED CROSS_COMPILE AND NOT "${CROSS_COMPILE}" STREQUAL "")
+    message(STATUS "[ACS] : CROSS_COMPILE (top-level) = ${CROSS_COMPILE}")
+    list(APPEND DEFAULT_OVERRIDE_ARGS -DCROSS_COMPILE=${CROSS_COMPILE})
+endif()
+
+if(DEFINED CC AND NOT "${CC}" STREQUAL "")
+    message(STATUS "[ACS] : CC (top-level) = ${CC}")
+    list(APPEND DEFAULT_OVERRIDE_ARGS -DCC=${CC})
+endif()
+
+if(DEFINED ARM_ARCH_MAJOR)
+    message(STATUS "[ACS] : ARM_ARCH_MAJOR (top-level) = ${ARM_ARCH_MAJOR}")
+    list(APPEND DEFAULT_OVERRIDE_ARGS -DARM_ARCH_MAJOR=${ARM_ARCH_MAJOR})
+endif()
+
+if(DEFINED ARM_ARCH_MINOR)
+    message(STATUS "[ACS] : ARM_ARCH_MINOR (top-level) = ${ARM_ARCH_MINOR}")
+    list(APPEND DEFAULT_OVERRIDE_ARGS -DARM_ARCH_MINOR=${ARM_ARCH_MINOR})
+endif()
+
 if(DEFINED ACS_ENABLED_MODULE_LIST)
     message(STATUS "[ACS] : ACS_ENABLED_MODULE_LIST (top-level) = ${ACS_ENABLED_MODULE_LIST}")
     list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_ENABLED_MODULE_LIST=${ACS_ENABLED_MODULE_LIST})
@@ -180,24 +205,30 @@ else()
     set(_acs_toolchain_arg "-DCMAKE_TOOLCHAIN_FILE=${ROOT_DIR}/tools/cmake/toolchain/arm-none-elf-toolchain.cmake")
 endif()
 
-# Generate per-ACS custom targets and an aggregate target
-foreach(_acs IN LISTS ACS_LIST)
-    add_custom_target(${_acs}
-        COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DTARGET_SIMULATION=${TARGET_SIMULATION} ${DEFAULT_OVERRIDE_ARGS}
-        -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
-    )
-endforeach()
-
-add_custom_target(acs_all
-    DEPENDS ${ACS_LIST}
-)
-
 message(STATUS "[ACS] : ACS is set to ${ACS}, and TARGET to ${TARGET} based on configuration")
 message(STATUS "[ACS] : You can change overide target using -DTARGET=<value>")
 message(STATUS "[ACS] : Supported values for TARGET: ${TARGET_LIST}")
 message(STATUS "[ACS] : Example - cmake --preset bsa -DTARGET=RDV3")
 message(STATUS "[ACS] : Check available presets by - `cmake --list-presets`")
 message(STATUS "[ACS] : To build using cmake - `cmake --build --preset bsa`")
-message(STATUS "[ACS] : To build using make - `cmake --preset acs_all; cd build; make bsa` (to build all baremetal acs - `make acs_all`)")
-add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
+
+if(ACS_CREATE_WRAPPER_TARGETS)
+    # Wrapper builds exist only to drive child per-ACS build trees.
+    # Force wrappers off in children to avoid recursive nested build dirs.
+    foreach(_acs IN LISTS ACS_LIST)
+        add_custom_target(${_acs}
+            COMMAND ${CMAKE_COMMAND} -DACS=${_acs} -DTARGET=${TARGET} -DTARGET_SIMULATION=${TARGET_SIMULATION}
+            -DACS_CREATE_WRAPPER_TARGETS=OFF ${DEFAULT_OVERRIDE_ARGS}
+            -DCMAKE_OSX_ARCHITECTURES= ${_acs_toolchain_arg} -S ${CMAKE_SOURCE_DIR} -B ${CMAKE_BINARY_DIR}/${_acs}_build
+            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/${_acs}_build
+        )
+    endforeach()
+
+    add_custom_target(acs_all
+        DEPENDS ${ACS_LIST}
+    )
+
+    message(STATUS "[ACS] : To build using make - `cmake --preset acs_all; cd build; make bsa` (to build all baremetal acs - `make acs_all`)")
+else()
+    add_subdirectory(${ROOT_DIR}/tools/cmake/infra)
+endif()
