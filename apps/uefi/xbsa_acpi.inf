@@ -280,6 +280,7 @@
   ../../test_pool/exerciser/e043.c
   ../../test_pool/exerciser/e044.c
   ../../test_pool/exerciser/e045.c
+  ../../test_pool/exerciser/e046.c
   ../../test_pool/pmu/pmu001.c
   ../../test_pool/pmu/pmu002.c
   ../../test_pool/pmu/pmu003.c

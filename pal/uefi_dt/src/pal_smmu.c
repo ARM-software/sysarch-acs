@@ -39,3 +39,36 @@ pal_smmu_pa2iova(
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;
 }
+
+/**
+  @brief   Begin monitoring DMA IOVAs for a device port
+**/
+VOID
+pal_smmu_device_start_monitor_iova(VOID *port)
+{
+  (void)port;
+  pal_warn_not_implemented(__func__);
+}
+
+/**
+  @brief   Stop monitoring DMA IOVAs for a device port
+**/
+VOID
+pal_smmu_device_stop_monitor_iova(VOID *port)
+{
+  (void)port;
+  pal_warn_not_implemented(__func__);
+}
+
+/**
+  @brief   Check if a DMA address is present in the SMMU IOVA table
+  @return  PAL_STATUS_NOT_IMPLEMENTED to signal lack of support on UEFI PAL
+**/
+UINT32
+pal_smmu_check_device_iova(VOID *port, UINT64 dma_addr)
+{
+  (void)port;
+  (void)dma_addr;
+  pal_warn_not_implemented(__func__);
+  return PAL_STATUS_NOT_IMPLEMENTED;
+}

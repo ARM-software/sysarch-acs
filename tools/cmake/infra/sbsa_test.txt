@@ -132,6 +132,7 @@ e041.c
 e043.c
 e044.c
 e045.c
+e046.c
 pmu001.c
 pmu002.c
 pmu003.c

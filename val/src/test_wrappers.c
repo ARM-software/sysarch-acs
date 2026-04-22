@@ -346,6 +346,18 @@ pci_mm_03_entry(uint32_t num_pe)
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
 }
 
+/* PCI_MM_07 */
+uint32_t
+pci_mm_07_entry(uint32_t num_pe)
+{
+#ifdef TARGET_LINUX
+    TEST_ENTRY_ID_e t_list[] = { P105_ENTRY, TEST_ENTRY_SENTINEL };
+#else
+    TEST_ENTRY_ID_e t_list[] = { E046_ENTRY, TEST_ENTRY_SENTINEL };
+#endif
+    return run_test_entries(t_list, num_pe);
+}
+
 /* RI_SMU_1 */
 uint32_t
 ri_smu_1_entry(uint32_t num_pe)

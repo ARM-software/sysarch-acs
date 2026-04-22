@@ -19,6 +19,8 @@
 #include "acs_common.h"
 #include "acs_smmu.h"
 #include "acs_iovirt.h"
+#include "acs_dma.h"
+#include "val_interface.h"
 
 /**
   @brief  This API reads 32-bit data from a register of an SMMU controller
@@ -123,6 +125,20 @@ val_smmu_check_device_iova(uint32_t ctrl_index, addr_t dma_addr)
 }
 
 /**
+  @brief   Check if input IOVA is mapped for the given SMMU/streamid combination
+  @param   param - smmu_index, streamid and iova to be checked
+  @return  0 if mapped, non-zero on failure/not mapped
+**/
+static uint32_t
+val_smmu_check_stream_iova(smmu_stream_iova_check_t *param)
+{
+  if (param == NULL)
+      return ACS_STATUS_ERR;
+
+  return val_smmu_is_iova_mapped(param->smmu_index, param->streamid, param->iova);
+}
+
+/**
   @brief  To implement the requested operation for SMMU.
 
   @param  ops  Desired Operation
@@ -145,6 +161,10 @@ val_smmu_ops(SMMU_OPS_e ops, void *param1, void *param2)
 
       case SMMU_CHECK_DEVICE_IOVA:
           return val_smmu_check_device_iova(*(uint32_t *)param1, *(addr_t *)param2);
+          break;
+
+      case SMMU_CHECK_STREAM_IOVA:
+          return val_smmu_check_stream_iova((smmu_stream_iova_check_t *)param1);
           break;
 
       default:
