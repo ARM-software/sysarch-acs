@@ -67,8 +67,8 @@ uint32_t  g_el1skiptrap_mask = 0;
 uint32_t g_crypto_support    = TRUE;
 
 /* The Baremetal app supports three filtering modes
-    LVL_FILTER_MAX,    run rules with level <= g_level_value
-    LVL_FILTER_ONLY,   run rules with level == g_level_value
+    LVL_FILTER_MAX,    run rules with level <= selected level
+    LVL_FILTER_ONLY,   run rules with level == selected level
     LVL_FILTER_FR      run rules with level <= *_LEVEL_FR
 */
 uint32_t g_level_filter_mode = LVL_FILTER_MAX; /* Default set to LVL_FILTER_MAX */

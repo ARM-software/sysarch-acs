@@ -120,24 +120,27 @@ freeAcsMem()
 }
 
 static UINT32
-apply_cli_defaults(VOID)
+apply_cli_defaults(acs_run_request_t *ctx)
 {
-    /* Standalone BSA UEFI app, set g_arch_selection to BSA if -r empty */
-    if (g_rule_count == 0) {
-        g_arch_selection = ARCH_BSA;
+    if (ctx == NULL)
+        return ACS_STATUS_FAIL;
+
+    /* Standalone BSA UEFI app defaults to BSA if no explicit rules were selected. */
+    if (ctx->rule_count == 0) {
+        ctx->arch_selection = ARCH_BSA;
     }
 
     /* Set Default level for the run if level filtering CLI options (-l, -only or -fr) is
        not passed and set filter mode to LVL_FILTER_MAX for filter_rule_list_by_cli logic to work
        */
-    if (g_level_filter_mode == LVL_FILTER_NONE) {
-        g_level_value = BSA_LEVEL_1;
-        g_level_filter_mode = LVL_FILTER_MAX;
+    if (ctx->level_filter_mode == LVL_FILTER_NONE) {
+        ctx->level_value = BSA_LEVEL_1;
+        ctx->level_filter_mode = LVL_FILTER_MAX;
     }
 
     /* Check sanity of value of level */
-    if (g_level_value >= BSA_LEVEL_SENTINEL) {
-        val_print(ERROR, "\nInvalid level value passed (%d), ", g_level_value);
+    if (ctx->level_value >= BSA_LEVEL_SENTINEL) {
+        val_print(ERROR, "\nInvalid level value passed (%d), ", ctx->level_value);
         val_print(ERROR, "value should be less than %d.", BSA_LEVEL_SENTINEL);
         return ACS_STATUS_FAIL;
     }
@@ -150,8 +153,11 @@ execute_tests()
 {
     VOID               *branch_label;
     UINT32             Status = 0;
+    acs_run_request_t  *ctx;
 
-    Status = apply_cli_defaults();
+    ctx = acs_get_run_request_mut();
+
+    Status = apply_cli_defaults(ctx);
     if (Status != ACS_STATUS_PASS) {
         goto exit_acs;
     }
@@ -161,8 +167,8 @@ execute_tests()
     val_print(INFO, "%d.", BSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", BSA_ACS_SUBMINOR_VER);
 
-    val_print(INFO, LEVEL_PRINT_FORMAT(g_level_value, g_level_filter_mode,
-              BSA_LEVEL_FR), g_level_value);
+    val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
+              BSA_LEVEL_FR), ctx->level_value);
 
     val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
     val_print(INFO, "\n Creating Platform Information Tables\n");
@@ -195,17 +201,17 @@ execute_tests()
 
     FlushImage();
 
-    if ((g_rule_count > 0 && g_rule_list != NULL) || (g_arch_selection != ARCH_NONE)) {
+    if ((ctx->rule_count > 0 && ctx->rule_list != NULL) || (ctx->arch_selection != ARCH_NONE)) {
         /* Merge arch rules if any, then apply CLI filters (-skip, -m, -skipmodule) */
-        g_rule_count = filter_rule_list_by_cli(&g_rule_list, g_rule_count);
-        if (g_rule_count == 0 || g_rule_list == NULL)
+        filter_rule_list_by_cli(ctx);
+        if (ctx->rule_count == 0 || ctx->rule_list == NULL)
             goto exit_acs;
 
         /* Print rule selections */
         print_selection_summary();
 
         /* Run rule based test orchestrator */
-        run_tests(g_rule_list, g_rule_count);
+        run_tests(ctx);
     }
 
 print_test_status:
@@ -216,6 +222,7 @@ print_test_status:
 exit_acs:
 
     freeAcsMem();
+    acs_release_run_request(ctx);
 
     if (g_dtb_log_file_handle) {
         ShellCloseFile(&g_dtb_log_file_handle);

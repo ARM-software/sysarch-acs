@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,18 @@ ShellAppMain (
 
   init_status = command_init();
   if (init_status != 0) {
-    /* Invalid CLI/HelpMsg/Errors, do not run tests */
+    /*
+     * command_init() may have already populated shared run-request storage
+     * before it decides to stop execution. Release any owned request data and
+     * close shared log handles before returning from the shell entry point.
+     */
+    acs_release_run_request(acs_get_run_request_mut());
+    if (g_dtb_log_file_handle) {
+      ShellCloseFile(&g_dtb_log_file_handle);
+    }
+    if (g_acs_log_file_handle) {
+      ShellCloseFile(&g_acs_log_file_handle);
+    }
     return SHELL_INVALID_PARAMETER;
   }
 

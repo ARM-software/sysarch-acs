@@ -1098,8 +1098,8 @@ typedef enum {
 /* Level filter mode for CLI selection */
 typedef enum {
     LVL_FILTER_NONE = 0,
-    LVL_FILTER_MAX,   /* keep rules with level <= g_level_value */
-    LVL_FILTER_ONLY,  /* keep rules with level == g_level_value */
+    LVL_FILTER_MAX,   /* keep rules with level <= selected level */
+    LVL_FILTER_ONLY,  /* keep rules with level == selected level */
     LVL_FILTER_FR     /* keep rules with level <= *_LEVEL_FR */
 } LEVEL_FILTER_MODE_e;
 

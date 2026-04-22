@@ -19,7 +19,7 @@
 #define __RULE_BASED_EXE_H__
 
 #include "acs_val.h"
-#include "acs_common.h"
+#include "acs_run_request.h"
 #include "val_interface.h"
 #include "rule_based_execution_enum.h"
 
@@ -94,9 +94,6 @@ void     print_pal_validation_info(uint32_t rule_enum, uint32_t indent);
 
 /* ---------------------------- Externs ---------------------------- */
 extern uint32_t rule_status_map[RULE_ID_SENTINEL];
-extern RULE_ID_e *g_skip_rule_list;
-extern uint32_t   g_skip_rule_count;
-extern uint32_t   g_arch_selection;
 
 /* Rule lookup tables (defined in rule_lookup.c) */
 extern const bsa_rule_entry_t bsa_rule_list[];
@@ -105,14 +102,8 @@ extern const pcbsa_rule_entry_t pcbsa_rule_list[];
 extern const vbsa_rule_entry_t vbsa_rule_list[];
 extern const pfdi_rule_entry_t pfdi_rule_list[];
 
-/* Global selections configured by the app */
-extern uint32_t g_level_filter_mode;  /* LEVEL_FILTER_MODE_e */
-extern uint32_t g_level_value;        /* numeric value interpreted per-arch */
-/* BSA-only software view selector bitmask; 0 means no filtering */
-extern uint32_t g_bsa_sw_view_mask; /* bit (1<<SW_OS | 1<<SW_HYP | 1<<SW_PS) */
-
 /* ------------------------------------ VAL APIs ------------------------------------------------*/
-uint32_t filter_rule_list_by_cli(RULE_ID_e **rule_list, uint32_t list_size);
-void run_tests(RULE_ID_e *rule_list, uint32_t list_size);
+uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx);
+void run_tests(const acs_run_request_t *ctx);
 
 #endif /* __RULE_BASED_EXE_H__ */

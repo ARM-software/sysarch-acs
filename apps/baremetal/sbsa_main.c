@@ -25,7 +25,7 @@
 #include "acs.h"
 
 void
-freeAcsMeM()
+freeAcsMeM(void)
 {
     val_pe_free_info_table();
     if (acs_is_module_enabled(PE)         ||
@@ -41,13 +41,13 @@ freeAcsMeM()
       acs_is_module_enabled(PMU))
        val_gic_free_info_table();
 
-    if (acs_is_module_enabled(TIMER)      ||
-        acs_is_module_enabled(GIC)        ||
-        acs_is_module_enabled(WATCHDOG)   ||
+    if (acs_is_module_enabled(TIMER)       ||
+        acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(WATCHDOG)    ||
         acs_is_module_enabled(POWER_WAKEUP))
        val_timer_free_info_table();
 
-    if (acs_is_module_enabled(WATCHDOG)   ||
+    if (acs_is_module_enabled(WATCHDOG)    ||
         acs_is_module_enabled(POWER_WAKEUP))
        val_wd_free_info_table();
 
@@ -93,45 +93,36 @@ freeAcsMeM()
 
 /* This routine will furnish global variables with user defined config and set any
    default values for the ACS */
-uint32_t apply_user_config_and_defaults(void)
+uint32_t apply_user_config_and_defaults(acs_run_request_t *ctx)
 {
+    if (ctx == NULL)
+        return ACS_STATUS_FAIL;
+
+    acs_load_run_request_defaults(ctx);
+
     /* Set user defined compliance level to be run for
        as defined pal/baremetal/target/../include/platform_override_fvp.h  */
-    g_level_value  = PLATFORM_OVERRIDE_SBSA_LEVEL;
+    ctx->level_value = PLATFORM_OVERRIDE_SBSA_LEVEL;
     g_print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
-
-    /* Set user defined configuration from pal/baremetal/target/../src/platform_cfg_fvp.c*/
-    if (g_rule_count) {
-        g_rule_list = g_rule_list_arr;
-    }
-    if (g_skip_rule_count) {
-        g_skip_rule_list = g_skip_rule_list_arr;
-    }
-    if (g_num_modules) {
-        g_execute_modules = g_execute_modules_arr;
-    }
-    if (g_num_skip_modules) {
-        g_skip_modules = g_skip_modules_arr;
-    }
 
     /* Set default values for g_print_mmio */
     g_print_mmio = 0;
 
     /* If selected rule count is zero, default to SBSA */
-    if (g_rule_count == 0) {
-        /* Standalone SBSA Baremetal app, set g_arch_selection to SBSA */
-        g_arch_selection = ARCH_SBSA;
+    if (ctx->rule_count == 0) {
+        /* Standalone SBSA Baremetal app, default the run request to SBSA */
+        ctx->arch_selection = ARCH_SBSA;
     }
 
     /* Check sanity of value of level if not valid default to extremes */
-    if (g_level_value < SBSA_LEVEL_3) {
-        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", g_level_value);
+    if (ctx->level_value < SBSA_LEVEL_3) {
+        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
         val_print(g_print_level, "\nSetting SBSA level to %d\n", SBSA_LEVEL_3);
-        g_level_value = SBSA_LEVEL_3;
-    } else if (g_level_value >= SBSA_LEVEL_SENTINEL) {
-        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", g_level_value);
+        ctx->level_value = SBSA_LEVEL_3;
+    } else if (ctx->level_value >= SBSA_LEVEL_SENTINEL) {
+        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
         val_print(g_print_level, "\nSetting SBSA level FR", SBSA_LEVEL_FR);
-        g_level_value = SBSA_LEVEL_FR;
+        ctx->level_value = SBSA_LEVEL_FR;
     }
 
     /* Check sanity of print level, default accordingly */
@@ -165,8 +156,12 @@ ShellAppMainsbsa()
 {
     uint32_t             Status = ACS_STATUS_SKIP;
     void                 *branch_label;
+    acs_run_request_t    *ctx;
 
-    Status = apply_user_config_and_defaults();
+    acs_reset_run_request();
+    ctx = acs_get_run_request_mut();
+
+    Status = apply_user_config_and_defaults(ctx);
     if (Status != ACS_STATUS_PASS) {
         val_print(ERROR, "\napply_user_config_and_defaults() failed, Exiting...\n");
         goto exit_acs;
@@ -175,23 +170,23 @@ ShellAppMainsbsa()
 
 #if ACS_ENABLE_MMU
   /* Create MMU page tables before enabling the MMU at EL2 */
-  if (val_setup_mmu())
+  if (val_setup_mmu()) {
+      acs_release_run_request(ctx);
       return ACS_STATUS_FAIL;
+  }
 
   /* Enable Stage-1 MMU */
-  if (val_enable_mmu())
+  if (val_enable_mmu()) {
+      acs_release_run_request(ctx);
       return ACS_STATUS_FAIL;
+  }
 #else
   val_print(INFO, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n");
 #endif
-    /* apply any compile-time test/module overrides before
-    *  we look at g_num_modules and build masks.
-    */
-    acs_apply_compile_params();
-    /* apply any EL3-supplied test/module overrides before
-    *  we look at g_rule_list/g_skip_rule_list/g_num_modules and build masks.
-    */
-    acs_apply_el3_params();
+    /* Apply any compile-time test/module overrides before we consume the run request. */
+    acs_apply_compile_params(ctx);
+    /* Apply any EL3-supplied selection overrides before we consume the run request. */
+    acs_apply_el3_params(ctx);
 
     val_print(INFO, "\n\n SBSA Architecture Compliance Suite\n");
     val_print(INFO, "    Version %d.", SBSA_ACS_MAJOR_VER);
@@ -199,16 +194,18 @@ ShellAppMainsbsa()
     val_print(INFO, "%d\n", SBSA_ACS_SUBMINOR_VER);
 
 
-    val_print(INFO, LEVEL_PRINT_FORMAT(g_level_value, g_level_filter_mode,
-                SBSA_LEVEL_FR), g_level_value);
+    val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
+                SBSA_LEVEL_FR), ctx->level_value);
 
     val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
 
     val_print(INFO, " Creating Platform Information Tables\n");
 
     Status = createPeInfoTable();
-    if (Status)
+    if (Status) {
+        acs_release_run_request(ctx);
         return Status;
+    }
 
     if (acs_is_module_enabled(PE)         ||
       acs_is_module_enabled(GIC)          ||
@@ -223,8 +220,10 @@ ShellAppMainsbsa()
       acs_is_module_enabled(PMU))
     {
         Status = createGicInfoTable();
-        if (Status)
+        if (Status) {
+            acs_release_run_request(ctx);
             return Status;
+        }
     }
 
     if (acs_is_module_enabled(TIMER)      ||
@@ -295,18 +294,20 @@ ShellAppMainsbsa()
     val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
     val_pe_initialize_default_exception_handler(val_pe_default_esr);
 
-    if ((g_rule_count > 0 && g_rule_list != NULL) || (g_arch_selection != ARCH_NONE)) {
+    if ((ctx->rule_count > 0 && ctx->rule_list != NULL) || (ctx->arch_selection != ARCH_NONE)) {
             /* Merge arch rules if any, then apply CLI filters (-skip, -m, -skipmodule) */
-            g_rule_count = filter_rule_list_by_cli(&g_rule_list, g_rule_count);
-            if (g_rule_count == 0 || g_rule_list == NULL) {
+            filter_rule_list_by_cli(ctx);
+            if (ctx->rule_count == 0 || ctx->rule_list == NULL) {
                 val_print(ERROR, "\nRule list empty, nothing to execute, Exiting...\n");
+                acs_release_run_request(ctx);
                 return -1;
             }
 
             /* Run rule based test orchestrator */
-            run_tests(g_rule_list, g_rule_count);
+            run_tests(ctx);
     } else {
         val_print(ERROR, "\nInvalid rule list or arch selected, Exiting...\n");
+        acs_release_run_request(ctx);
         return -1;
     }
 
@@ -315,6 +316,8 @@ print_test_status:
     val_print(INFO, "\n      *** SBSA tests complete. Reset the system. ***\n\n");
 exit_acs:
     freeAcsMeM();
+    /* Release any request-owned CLI/EL3 selection lists before leaving ACS. */
+    acs_release_run_request(ctx);
 
     val_pe_context_restore(AA64WriteSp(g_stack_pointer));
     return val_exit_acs();

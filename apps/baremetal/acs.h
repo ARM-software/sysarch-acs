@@ -103,10 +103,6 @@ extern uint32_t g_timeout_pass;
 extern uint32_t g_timeout_fail;
 
 /* Globals from apps/baremetal/acs_globals.c */
-extern RULE_ID_e *g_rule_list;
-extern RULE_ID_e *g_skip_rule_list;
-extern uint32_t  *g_execute_modules;
-extern uint32_t  *g_skip_modules;
 extern uint32_t  g_pcie_cache_present;
 extern uint32_t  g_el1physkip;
 extern uint32_t  g_pcie_p2p;
@@ -125,9 +121,6 @@ extern bool      g_pcie_skip_dp_nic_ms;
 extern uint32_t  g_build_sbsa;
 extern uint32_t  g_build_pcbsa;
 extern uint32_t  g_its_init;
-extern uint32_t  g_arch_selection;
-extern uint32_t  g_level_value;
-extern uint32_t  g_bsa_sw_view_mask;
 
 /* Function declarations */
 uint32_t createPeInfoTable(void);
@@ -193,4 +186,3 @@ void     createCxlInfoTable(void);
 #endif
 
 #endif /* __BSA_AVS_LEVEL_H__ */
-

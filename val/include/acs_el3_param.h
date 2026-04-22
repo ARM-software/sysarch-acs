@@ -76,9 +76,4 @@ typedef struct {
   uint64_t reserved :11;
 } acs_el3_params;
 
-void acs_apply_el3_params(void);
-bool acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value);
-bool acs_is_module_enabled(uint32_t module_base);
-void acs_apply_compile_params(void);
 #endif /* ACS_EL3_PARAM_H */
-

@@ -67,19 +67,22 @@ freePfdiAcsMem(void)
 }
 
 static UINT32
-apply_cli_defaults(void)
+apply_cli_defaults(acs_run_request_t *ctx)
 {
-  if (g_rule_count == 0) {
-      g_arch_selection = ARCH_PFDI;
+  if (ctx == NULL)
+      return ACS_STATUS_FAIL;
+
+  if (ctx->rule_count == 0) {
+      ctx->arch_selection = ARCH_PFDI;
   }
 
-  if (g_level_filter_mode == LVL_FILTER_NONE) {
-      g_level_filter_mode = LVL_FILTER_MAX;
-      g_level_value = PFDI_LEVEL_1;
+  if (ctx->level_filter_mode == LVL_FILTER_NONE) {
+      ctx->level_filter_mode = LVL_FILTER_MAX;
+      ctx->level_value = PFDI_LEVEL_1;
   }
 
-  if (g_level_value >= PFDI_LEVEL_SENTINEL) {
-      val_print(ERROR, "\nInvalid level value passed (%d), ", g_level_value);
+  if (ctx->level_value >= PFDI_LEVEL_SENTINEL) {
+      val_print(ERROR, "\nInvalid level value passed (%d), ", ctx->level_value);
       val_print(ERROR, "value should be less than %d.", PFDI_LEVEL_SENTINEL);
       return ACS_STATUS_FAIL;
   }
@@ -91,8 +94,11 @@ UINT32
 execute_tests()
 {
   UINT32 Status;
+  acs_run_request_t *ctx;
 
-  Status = apply_cli_defaults();
+  ctx = acs_get_run_request_mut();
+
+  Status = apply_cli_defaults(ctx);
   if (Status != ACS_STATUS_PASS) {
       goto exit_close;
   }
@@ -123,13 +129,13 @@ execute_tests()
       goto exit_summary;
   }
 
-  if ((g_rule_count > 0 && g_rule_list != NULL) || (g_arch_selection != ARCH_NONE)) {
-      g_rule_count = filter_rule_list_by_cli(&g_rule_list, g_rule_count);
-      if (g_rule_count == 0 || g_rule_list == NULL)
+  if ((ctx->rule_count > 0 && ctx->rule_list != NULL) || (ctx->arch_selection != ARCH_NONE)) {
+      filter_rule_list_by_cli(ctx);
+      if (ctx->rule_count == 0 || ctx->rule_list == NULL)
           goto exit_summary;
 
       print_selection_summary();
-      run_tests(g_rule_list, g_rule_count);
+      run_tests(ctx);
   } else {
     val_print(INFO, "\nNo rules selected for execution.\n");
   }
@@ -139,6 +145,7 @@ exit_summary:
   val_print(ERROR, "\n      *** PFDI tests complete. *** \n\n");
 
 exit_close:
+  acs_release_run_request(ctx);
   freePfdiAcsMem();
 
   if (g_acs_log_file_handle) {

@@ -35,9 +35,11 @@ const uint32_t acs_build_module_count =
 bool
 acs_is_module_enabled(uint32_t module_base)
 {
+    const acs_run_request_t *ctx = acs_get_run_request();
+
     /* Runtime / EL3 / CLI override has highest priority */
-    if (g_num_modules) {
-        return acs_list_contains(g_execute_modules, g_num_modules, module_base);
+    if (ctx->num_modules) {
+        return acs_list_contains(ctx->execute_modules, ctx->num_modules, module_base);
     }
     /* No overrides: enable everything */
     (void)module_base;
@@ -61,9 +63,53 @@ acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
 }
 
 void
-acs_apply_el3_params(void)
+acs_load_run_request_defaults(acs_run_request_t *ctx)
+{
+  if (ctx == NULL)
+      return;
+
+  ctx->rule_list = NULL;
+  ctx->rule_count = 0;
+  ctx->skip_rule_list = NULL;
+  ctx->skip_rule_count = 0;
+  ctx->execute_modules = NULL;
+  ctx->num_modules = 0;
+  ctx->skip_modules = NULL;
+  ctx->num_skip_modules = 0;
+  ctx->arch_selection = ARCH_NONE;
+  ctx->level_filter_mode = g_level_filter_mode;
+  ctx->level_value = 0;
+  ctx->bsa_sw_view_mask = 0;
+  ctx->rule_list_owned = false;
+  ctx->skip_rule_list_owned = false;
+  ctx->execute_modules_owned = false;
+  ctx->skip_modules_owned = false;
+
+  if (g_rule_count) {
+      ctx->rule_list = g_rule_list_arr;
+      ctx->rule_count = g_rule_count;
+  }
+  if (g_skip_rule_count) {
+      ctx->skip_rule_list = g_skip_rule_list_arr;
+      ctx->skip_rule_count = g_skip_rule_count;
+  }
+  if (g_num_modules) {
+      ctx->execute_modules = g_execute_modules_arr;
+      ctx->num_modules = g_num_modules;
+  }
+  if (g_num_skip_modules) {
+      ctx->skip_modules = g_skip_modules_arr;
+      ctx->num_skip_modules = g_num_skip_modules;
+  }
+}
+
+void
+acs_apply_el3_params(acs_run_request_t *ctx)
 {
   acs_el3_params *params;
+
+  if (ctx == NULL)
+    return;
 
   /* If magic doesn't match, ignore X20 completely */
   if (g_el3_param_magic != ACS_EL3_PARAM_MAGIC)
@@ -91,46 +137,50 @@ acs_apply_el3_params(void)
 
   /* Override tests if provided */
   if (params->rule_array_addr && params->rule_array_count) {
-    g_rule_list  = (uint32_t *)(uintptr_t)params->rule_array_addr;
-    g_rule_count  = (uint32_t)params->rule_array_count;
-    g_arch_selection = ARCH_NONE;
+    ctx->rule_list = (RULE_ID_e *)(uintptr_t)params->rule_array_addr;
+    ctx->rule_count = (uint32_t)params->rule_array_count;
+    ctx->rule_list_owned = false;
+    ctx->arch_selection = ARCH_NONE;
   }
 
   /* Override modules if provided */
   if (params->module_array_addr && params->module_array_count) {
-    g_execute_modules = (uint32_t *)(uintptr_t)params->module_array_addr;
-    g_num_modules     = (uint32_t)params->module_array_count;
+    ctx->execute_modules = (uint32_t *)(uintptr_t)params->module_array_addr;
+    ctx->num_modules = (uint32_t)params->module_array_count;
+    ctx->execute_modules_owned = false;
   }
 
   /* Override skip list if provided */
   if ((params->version >= 0x2) && params->skip_rule_array_addr
      && params->skip_rule_array_count)
   {
-    g_skip_rule_list   = (RULE_ID_e *)(uintptr_t)params->skip_rule_array_addr;
-    g_skip_rule_count  = (uint32_t)params->skip_rule_array_count;
+    ctx->skip_rule_list = (RULE_ID_e *)(uintptr_t)params->skip_rule_array_addr;
+    ctx->skip_rule_count = (uint32_t)params->skip_rule_array_count;
+    ctx->skip_rule_list_owned = false;
   }
 
   if ((params->version >= 0x3))
   {
     if (params->skip_module_array_addr && params->skip_module_array_count) {
-      g_skip_modules      = (uint32_t *)(uintptr_t)params->skip_module_array_addr;
-      g_num_skip_modules  = (uint32_t)params->skip_module_array_count;
+      ctx->skip_modules = (uint32_t *)(uintptr_t)params->skip_module_array_addr;
+      ctx->num_skip_modules = (uint32_t)params->skip_module_array_count;
+      ctx->skip_modules_owned = false;
     }
 
-    /* global parameter override by el3 parameter*/
+    /* Override shared runtime knobs and context filter settings from EL3 parameters. */
     g_pcie_p2p            = params->p2p;
     g_pcie_skip_dp_nic_ms = params->skip_dp_nic_ms;
     g_print_mmio          = params->mmio;
     g_crypto_support      = params->no_crypto_ext;
     g_el1skiptrap_mask    = params->el1skiptrap_mask;
-    g_bsa_sw_view_mask    = params->software_view_filter;
+    ctx->bsa_sw_view_mask = params->software_view_filter;
     g_pcie_cache_present  = params->cache;
     g_sys_last_lvl_cache  = params->sys_cache;
-    g_level_value         = params->level;
+    ctx->level_value = params->level;
 
     if (params->level_selection >= LVL_FILTER_NONE &&
        params->level_selection <= LVL_FILTER_FR)
-      g_level_filter_mode   = params->level_selection;
+      ctx->level_filter_mode = params->level_selection;
     else
       val_print(WARN,
                 "Override skipped for level filter mode  %d\n", params->level_selection);
@@ -155,11 +205,15 @@ acs_apply_el3_params(void)
 }
 
 void
-acs_apply_compile_params(void)
+acs_apply_compile_params(acs_run_request_t *ctx)
 {
+  if (ctx == NULL)
+      return;
+
 #if ACS_HAS_ENABLED_MODULE_LIST
-  g_execute_modules = acs_build_module_array;
-  g_num_modules = acs_build_module_count;
+  ctx->execute_modules = acs_build_module_array;
+  ctx->num_modules = acs_build_module_count;
+  ctx->execute_modules_owned = false;
 #endif
 
 #ifdef ACS_VERBOSE_LEVEL

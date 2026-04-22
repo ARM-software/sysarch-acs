@@ -137,34 +137,35 @@ At boot, ACS:
 
 1. Saves X19 and X20 into globals (``g_el3_param_magic``, ``g_el3_param_addr``)
    in ``BsaBootEntry.S``.
-2. In ``ShellAppMainbsa()``/``ShellAppMainsbsa()``, calls a helper
+2. In ``ShellAppMainbsa()``/``ShellAppMainsbsa()``, initializes an
+   ``acs_run_request_t`` from platform defaults and then calls a helper
    (``acs_apply_el3_params()``) which:
    * Checks that ``g_el3_param_magic == ACS_EL3_PARAM_MAGIC``.
    * Checks that the parameter structure address is non-zero.
    * Checks that ``version`` is acceptable.
    * If valid:
-     - Overrides ``g_rule_list`` / ``g_rule_count`` if test override is given.
-     - Overrides ``g_execute_modules`` / ``g_num_modules`` if module override is given.
-     - Overrides ``g_skip_rule_list`` / ``g_skip_rule_count`` if a skip list is given.
-     - Overrides ``g_skip_modules`` / ``g_num_skip_modules`` if a skip module overide is given.
+     - Overrides ``ctx->rule_list`` / ``ctx->rule_count`` if a test override is given.
+     - Overrides ``ctx->execute_modules`` / ``ctx->num_modules`` if a module override is given.
+     - Overrides ``ctx->skip_rule_list`` / ``ctx->skip_rule_count`` if a skip list is given.
+     - Overrides ``ctx->skip_modules`` / ``ctx->num_skip_modules`` if a skip module override is given.
 
-       **global parameter override by el3 parameter**
+       **shared runtime and filter overrides from EL3 parameters**
 
       - overrides ``g_pcie_p2p            `` if p2p is set
       - overrides ``g_pcie_skip_dp_nic_ms `` if pcie skip is set
       - overrides ``g_print_level         `` if print level is set
-      - overrides ``g_wakeup_timeout      `` if wakeup timeout is set
+      - overrides timeout-related globals if wakeup timeout is set
       - overrides ``g_print_mmio          `` if print mmio is set
       - overrides ``g_crypto_support      `` if crypto support is set
-      - overrides ``g_bsa_sw_view_mask    `` if software view mask is set
+      - overrides ``ctx->bsa_sw_view_mask `` if software view mask is set
       - overrides ``g_pcie_cache_present  `` if pcie cache is set
       - overrides ``g_sys_last_lvl_cache  `` if system level cache is set
-      - overrides ``g_level_filter_mode   `` if level filter mode is set
-      - overrides ``g_level_value         `` if level value is set
-3. Uses the (possibly overridden) ``g_execute_modules`` / ``g_num_modules`` to
-   compute ``g_enabled_modules``, and then:
+      - overrides ``ctx->level_filter_mode`` if level filter mode is set
+      - overrides ``ctx->level_value      `` if level value is set
+3. Uses the (possibly overridden) ``ctx->execute_modules`` / ``ctx->num_modules`` to
+   decide which modules and rule filters apply, and then:
    * Creates only the required information tables.
-   * Executes only the enabled modules.
+   * Executes only the selected rules/modules.
 
 If X19 does not contain ``ACS_EL3_PARAM_MAGIC`` or the structure is invalid,
 ACS falls back to its usual behavior (no EL3 override).

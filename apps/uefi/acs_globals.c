@@ -45,10 +45,6 @@ UINT32  g_print_mmio;
 UINT32  g_curr_module;
 UINT32  g_enable_module;
 UINT32  g_crypto_support = TRUE;
-UINT32  *g_execute_modules;
-UINT32  g_num_modules = 0;
-UINT32  *g_skip_modules;
-UINT32  g_num_skip_modules = 0;
 UINT32  g_sys_last_lvl_cache;
 
 /* Bitmask of EL1 register accesses to skip (workarounds for EL1 traps)
@@ -58,20 +54,6 @@ UINT32  g_el1skiptrap_mask = 0;
 /* File handles */
 SHELL_FILE_HANDLE g_acs_log_file_handle;
 SHELL_FILE_HANDLE g_dtb_log_file_handle;
-
-/* Storage for parsed rule IDs from -r */
-RULE_ID_e *g_rule_list = NULL;
-UINT32     g_rule_count = 0;
-
-/* Storage for parsed skip rule IDs from -skip */
-RULE_ID_e *g_skip_rule_list = NULL;
-UINT32     g_skip_rule_count = 0;
-
-/* Rule-based execution: arch and filtering selections (-a, -l/-only/-fr, -hyp/-os/-ps) */
-uint32_t g_arch_selection    = ARCH_NONE;
-uint32_t g_level_filter_mode = LVL_FILTER_NONE;
-uint32_t g_level_value       = 0;
-uint32_t g_bsa_sw_view_mask  = 0;
 
 /* Set when invalid rule/module token encountered during CLI parsing */
 BOOLEAN g_invalid_arg_seen = FALSE;

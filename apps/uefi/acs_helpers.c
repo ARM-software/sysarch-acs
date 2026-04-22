@@ -396,8 +396,6 @@ command_init (void)
     UINTN               extra;
     UINTN               alloc;
     UINT32              max_tokens;
-    EFI_STATUS          EStatus;
-    EFI_STATUS          est;
     EFI_STATUS          RS;
     CHAR16             *Combined;
     UINTN               CombinedLen;
@@ -410,6 +408,10 @@ command_init (void)
     CHAR16              wtoken[64];
     CHAR16             *seg;
     CHAR16              last;
+    acs_run_request_t  *ctx;
+
+    ctx = acs_get_run_request_mut();
+    acs_release_run_request(ctx);
 
     /* Process Command Line arguments */
     Status = ShellInitialize();
@@ -434,17 +436,17 @@ command_init (void)
         }
         /* Record arch selection for orchestrator to expand */
         if (w_ascii_streq_caseins(ArchArg, L"bsa"))
-            g_arch_selection = ARCH_BSA;
+            ctx->arch_selection = ARCH_BSA;
         else if (w_ascii_streq_caseins(ArchArg, L"sbsa")) {
-            g_arch_selection = ARCH_SBSA;
+            ctx->arch_selection = ARCH_SBSA;
             g_build_sbsa = 1;
         }
         else if (w_ascii_streq_caseins(ArchArg, L"pcbsa")) {
-            g_arch_selection = ARCH_PCBSA;
+            ctx->arch_selection = ARCH_PCBSA;
             g_build_pcbsa = 1;
         }
         else if (w_ascii_streq_caseins(ArchArg, L"vbsa")) {
-            g_arch_selection = ARCH_VBSA;
+            ctx->arch_selection = ARCH_VBSA;
         }
     }
 
@@ -462,31 +464,31 @@ command_init (void)
             Print(L"Invalid parameter passed for -l\n");
             return SHELL_INVALID_PARAMETER;
         }
-        g_level_filter_mode = LVL_FILTER_MAX;
-        g_level_value = (UINT32)StrDecimalToUintn(CmdLineArg);
+        ctx->level_filter_mode = LVL_FILTER_MAX;
+        ctx->level_value = (UINT32)StrDecimalToUintn(CmdLineArg);
     } else if (has_only) {
         CmdLineArg = ShellCommandLineGetValue(ParamPackage, L"-only");
         if (CmdLineArg == NULL) {
             Print(L"Invalid parameter passed for -only\n");
             return SHELL_INVALID_PARAMETER;
         }
-        g_level_filter_mode = LVL_FILTER_ONLY;
-        g_level_value = (UINT32)StrDecimalToUintn(CmdLineArg);
+        ctx->level_filter_mode = LVL_FILTER_ONLY;
+        ctx->level_value = (UINT32)StrDecimalToUintn(CmdLineArg);
     } else if (has_fr) {
-        g_level_filter_mode = LVL_FILTER_FR;
-        g_level_value = 0;
+        ctx->level_filter_mode = LVL_FILTER_FR;
+        ctx->level_value = 0;
     } else {
-        g_level_filter_mode = LVL_FILTER_NONE; /* will set default later if -a selected */
+        ctx->level_filter_mode = LVL_FILTER_NONE; /* will set default later if -a selected */
     }
 
     /* Parse software view flags (BSA only). They can be combined. */
     has_hyp = ShellCommandLineGetFlag(ParamPackage, L"-hyp");
     has_os  = ShellCommandLineGetFlag(ParamPackage, L"-os");
     has_ps  = ShellCommandLineGetFlag(ParamPackage, L"-ps");
-    g_bsa_sw_view_mask = 0;
-    if (has_hyp) g_bsa_sw_view_mask |= (1u << SW_HYP);
-    if (has_os)  g_bsa_sw_view_mask |= (1u << SW_OS);
-    if (has_ps)  g_bsa_sw_view_mask |= (1u << SW_PS);
+    ctx->bsa_sw_view_mask = 0;
+    if (has_hyp) ctx->bsa_sw_view_mask |= (1u << SW_HYP);
+    if (has_os)  ctx->bsa_sw_view_mask |= (1u << SW_OS);
+    if (has_ps)  ctx->bsa_sw_view_mask |= (1u << SW_PS);
 
     /* Parse -skip CLI */
     if (ShellCommandLineGetFlag (ParamPackage, L"-skip")) {
@@ -504,16 +506,16 @@ command_init (void)
             for (k = 0; k < len; k++) if (CmdLineArg[k] == L',') max_tokens++;
 
             if (max_tokens > 0) {
-                EStatus = gBS->AllocatePool(EfiBootServicesData,
-                                                                    max_tokens * sizeof(RULE_ID_e),
-                                                                    (VOID **)&g_skip_rule_list);
-                if (EFI_ERROR(EStatus)) {
+                ctx->skip_rule_list =
+                    (RULE_ID_e *)val_memory_alloc(max_tokens * sizeof(RULE_ID_e));
+                if (ctx->skip_rule_list == NULL) {
                     Print(L"Allocate memory for -skip failed\n", 0);
                     return ACS_STATUS_ERR;
                 }
+                ctx->skip_rule_list_owned = true;
             }
 
-            g_skip_rule_count = 0;
+            ctx->skip_rule_count = 0;
             start = 0;
             while (start < len) {
                 end = start;
@@ -532,8 +534,8 @@ command_init (void)
                     wtoken[tlen] = L'\0';
                     map_and_add_rule_token(
                         wtoken,
-                        g_skip_rule_list,
-                        &g_skip_rule_count,
+                        ctx->skip_rule_list,
+                        &ctx->skip_rule_count,
                         max_tokens
                     );
                 }
@@ -763,18 +765,25 @@ command_init (void)
             /* Count tokens and allocate list */
             max_tokens = count_rule_tokens_in_text(wtext, wlen);
             if (max_tokens > 0) {
-                g_rule_list = (RULE_ID_e *)val_memory_alloc(max_tokens * sizeof(RULE_ID_e));
-                if (g_rule_list == NULL) {
+                ctx->rule_list = (RULE_ID_e *)val_memory_alloc(max_tokens * sizeof(RULE_ID_e));
+                if (ctx->rule_list == NULL) {
                     Print(L"Allocate memory for -r failed\n");
                     gBS->FreePool(wtext);
                     if (Combined) gBS->FreePool(Combined);
                     return ACS_STATUS_ERR;
                 }
+                ctx->rule_list_owned = true;
             }
 
-            g_rule_count = 0;
+            ctx->rule_count = 0;
             g_invalid_arg_seen = FALSE;
-            parse_rules_text_into_list(wtext, wlen, g_rule_list, &g_rule_count, max_tokens);
+            parse_rules_text_into_list(
+                wtext,
+                wlen,
+                ctx->rule_list,
+                &ctx->rule_count,
+                max_tokens
+            );
             gBS->FreePool(wtext);
             if (g_invalid_arg_seen) {
                 if (Combined) gBS->FreePool(Combined);
@@ -791,15 +800,16 @@ command_init (void)
                         max_tokens++;
                 }
                 if (max_tokens > 0) {
-                    g_rule_list = (RULE_ID_e *)val_memory_alloc(max_tokens * sizeof(RULE_ID_e));
-                    if (g_rule_list == NULL) {
+                    ctx->rule_list = (RULE_ID_e *)val_memory_alloc(max_tokens * sizeof(RULE_ID_e));
+                    if (ctx->rule_list == NULL) {
                         Print(L"Allocate memory for -r failed\n");
                         if (Combined) gBS->FreePool(Combined);
                         return ACS_STATUS_ERR;
                     }
+                    ctx->rule_list_owned = true;
                 }
                 start = 0;
-                g_rule_count = 0;
+                ctx->rule_count = 0;
                 g_invalid_arg_seen = FALSE;
                 while (start < len) {
                     end = start;
@@ -823,7 +833,12 @@ command_init (void)
                             tlen = (sizeof(wtoken)/sizeof(wtoken[0])) - 1;
                         for (ti = 0; ti < tlen; ti++) wtoken[ti] = CmdLineArg[start + ti];
                         wtoken[tlen] = L'\0';
-                        map_and_add_rule_token(wtoken, g_rule_list, &g_rule_count, max_tokens);
+                        map_and_add_rule_token(
+                            wtoken,
+                            ctx->rule_list,
+                            &ctx->rule_count,
+                            max_tokens
+                        );
                     }
                     start = (end < len) ? end + 1 : end;
                 }
@@ -853,16 +868,15 @@ command_init (void)
                         CmdLineArg[k] == L'\r')
                     max_tokens++;
             }
-            est = gBS->AllocatePool(EfiBootServicesData,
-                                                        max_tokens * sizeof(UINT32),
-                                                        (VOID **) &g_execute_modules);
-            if (EFI_ERROR(est)) {
+            ctx->execute_modules = (UINT32 *)val_memory_alloc(max_tokens * sizeof(UINT32));
+            if (ctx->execute_modules == NULL) {
                 Print(L"Allocate memory for -m failed\n", 0);
                 return ACS_STATUS_ERR;
             }
+            ctx->execute_modules_owned = true;
 
             /* Parse CSV of module names */
-            g_num_modules = 0;
+            ctx->num_modules = 0;
             start = 0;
             g_invalid_arg_seen = FALSE;
             while (start < mlen) {
@@ -887,7 +901,7 @@ command_init (void)
                         tlen = (sizeof(wtoken)/sizeof(wtoken[0])) - 1;
                     for (ti = 0; ti < tlen; ti++) wtoken[ti] = CmdLineArg[start + ti];
                     wtoken[tlen] = L'\0';
-                    map_and_add_module_token(wtoken, g_execute_modules, &g_num_modules,
+                    map_and_add_module_token(wtoken, ctx->execute_modules, &ctx->num_modules,
                                              max_tokens);
                 }
                 start = (end < mlen) ? end + 1 : end;
@@ -896,7 +910,7 @@ command_init (void)
                 return SHELL_INVALID_PARAMETER;
             }
 
-            if (g_num_modules == 0) {
+            if (ctx->num_modules == 0) {
                 Print(L"No valid modules parsed from -m\n", 0);
             }
         }
@@ -918,15 +932,14 @@ command_init (void)
                         CmdLineArg[k] == L'\r')
                     max_tokens++;
             }
-            est = gBS->AllocatePool(EfiBootServicesData,
-                                                        max_tokens * sizeof(UINT32),
-                                                        (VOID **) &g_skip_modules);
-            if (EFI_ERROR(est)) {
+            ctx->skip_modules = (UINT32 *)val_memory_alloc(max_tokens * sizeof(UINT32));
+            if (ctx->skip_modules == NULL) {
                 Print(L"Allocate memory for -skipmodule failed\n", 0);
                 return ACS_STATUS_ERR;
             }
+            ctx->skip_modules_owned = true;
 
-            g_num_skip_modules = 0;
+            ctx->num_skip_modules = 0;
             start = 0;
             g_invalid_arg_seen = FALSE;
             while (start < mlen) {
@@ -951,7 +964,7 @@ command_init (void)
                         tlen = (sizeof(wtoken)/sizeof(wtoken[0])) - 1;
                     for (ti = 0; ti < tlen; ti++) wtoken[ti] = CmdLineArg[start + ti];
                     wtoken[tlen] = L'\0';
-                    map_and_add_module_token(wtoken, g_skip_modules, &g_num_skip_modules,
+                    map_and_add_module_token(wtoken, ctx->skip_modules, &ctx->num_skip_modules,
                                              max_tokens);
                 }
                 start = (end < mlen) ? end + 1 : end;
@@ -960,7 +973,7 @@ command_init (void)
                 return SHELL_INVALID_PARAMETER;
             }
 
-            if (g_num_skip_modules == 0) {
+            if (ctx->num_skip_modules == 0) {
                 Print(L"No valid modules parsed from -skipmodule\n", 0);
             }
         }
@@ -1043,62 +1056,67 @@ command_init (void)
 void
 print_selection_summary(void)
 {
+    const acs_run_request_t *ctx = acs_get_run_request();
     UINT32 i;
     RULE_ID_e rid;
     UINT32 mid;
+
+    if (ctx == NULL)
+        return;
+
     val_print(INFO, "\nSelected rules: ");
-    for (i = 0; i < g_rule_count; i++) {
-        rid = g_rule_list[i];
+    for (i = 0; i < ctx->rule_count; i++) {
+        rid = ctx->rule_list[i];
         if (rid < RULE_ID_SENTINEL && rule_id_string[rid] != NULL) {
             val_print(INFO, (char8_t *)rule_id_string[rid]);
         } else {
             val_print(INFO, "<INVALID>");
         }
-        if (i + 1 < g_rule_count)
+        if (i + 1 < ctx->rule_count)
             val_print(INFO, ",");
     }
     val_print(INFO, "\n");
 
-    if (g_skip_rule_count > 0 && g_skip_rule_list != NULL) {
+    if (ctx->skip_rule_count > 0 && ctx->skip_rule_list != NULL) {
         val_print(INFO, "Skipped rules (-skip): ");
-        for (i = 0; i < g_skip_rule_count; i++) {
-            rid = g_skip_rule_list[i];
+        for (i = 0; i < ctx->skip_rule_count; i++) {
+            rid = ctx->skip_rule_list[i];
             if (rid < RULE_ID_SENTINEL && rule_id_string[rid] != NULL) {
                 val_print(INFO, (char8_t *)rule_id_string[rid]);
             } else {
                 val_print(INFO, "<INVALID>");
             }
-            if (i + 1 < g_skip_rule_count)
+            if (i + 1 < ctx->skip_rule_count)
                 val_print(INFO, ",");
         }
         val_print(INFO, "\n");
     }
 
-    if (g_num_modules > 0 && g_execute_modules != NULL) {
+    if (ctx->num_modules > 0 && ctx->execute_modules != NULL) {
         val_print(INFO, "Selected modules (-m): ");
-        for (i = 0; i < g_num_modules; i++) {
-            mid = g_execute_modules[i];
+        for (i = 0; i < ctx->num_modules; i++) {
+            mid = ctx->execute_modules[i];
             if (mid < MODULE_ID_SENTINEL && module_name_string[mid] != NULL) {
                 val_print(INFO, (char8_t *)module_name_string[mid]);
             } else {
                 val_print(INFO, "<INVALID>");
             }
-            if (i + 1 < g_num_modules)
+            if (i + 1 < ctx->num_modules)
                 val_print(INFO, ",");
         }
         val_print(INFO, "\n");
     }
 
-    if (g_num_skip_modules > 0 && g_skip_modules != NULL) {
+    if (ctx->num_skip_modules > 0 && ctx->skip_modules != NULL) {
         val_print(INFO, "Skipped modules (-skipmodule): ");
-        for (i = 0; i < g_num_skip_modules; i++) {
-            mid = g_skip_modules[i];
+        for (i = 0; i < ctx->num_skip_modules; i++) {
+            mid = ctx->skip_modules[i];
             if (mid < MODULE_ID_SENTINEL && module_name_string[mid] != NULL) {
                 val_print(INFO, (char8_t *)module_name_string[mid]);
             } else {
                 val_print(INFO, "<INVALID>");
             }
-            if (i + 1 < g_num_skip_modules)
+            if (i + 1 < ctx->num_skip_modules)
                 val_print(INFO, ",");
         }
         val_print(INFO, "\n");

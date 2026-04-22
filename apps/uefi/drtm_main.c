@@ -49,6 +49,7 @@ UINT32  g_num_modules = 0;
 UINT32  g_acs_tests_total;
 
 SHELL_FILE_HANDLE g_acs_log_file_handle;
+SHELL_FILE_HANDLE g_dtb_log_file_handle;
 
 VOID
 HelpMsg (
