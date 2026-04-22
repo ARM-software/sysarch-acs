@@ -451,14 +451,23 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>L5</td>
-      <td>S_L5SM_04</td>
-      <td>S_L5SM_04</td>
-      <td>Not Covered</td>
+      <td rowspan="2">L5</td>
+      <td rowspan="2">S_L5SM_04</td>
+      <td>B_SMMU_09</td>
+      <td>310</td>
+      <td>Check S-EL2 &amp; SMMU Stage1 support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+    </tr>
+    <tr>
+      <td>B_SMMU_20</td>
+      <td>311</td>
+      <td>Check S-EL2 &amp; SMMU Stage2 Support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -589,11 +598,11 @@ The checklist provides information about:
       <td>L6</td>
       <td>S_L6PE_08</td>
       <td>S_L6PE_08</td>
-      <td>Not covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>37</td>
+      <td>Check SPE if implemented</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -608,14 +617,59 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>L6</td>
-      <td>S_L6SM_04</td>
-      <td>S_L6SM_04</td>
-      <td>Not covered</td>
+      <td rowspan="6">L6</td>
+      <td rowspan="6">S_L6SM_04</td>
+      <td>B_SMMU_03</td>
+      <td>316</td>
+      <td>Check SMMU Large VA Support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
+    </tr>
+    </tr>
+     <td>B_SMMU_04</td>
+      <td>317</td>
+      <td>Check TLB Range Invalidation</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>B_SMMU_05</td>
+      <td>330</td>
+      <td>Check DVM capabilities</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>B_SMMU_13</td>
+      <td>318</td>
+      <td>Check SMMU 16 Bit ASID Support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>B_SMMU_14</td>
+      <td>319</td>
+      <td>Check SMMU Endianess Support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>B_SMMU_23</td>
+      <td>315</td>
+      <td>Check SMMU 16 Bit VMID Support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3621,6 +3675,9 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
+
+### v26.03_SBSA_8.0.1
 - **FR Added:** LVQBC, KBRZG
 - **RI_ Added:** RI_PWR_1
 - B_PCIe_10 and B_PCIe_11 mapped to S_PCIe_10

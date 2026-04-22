@@ -465,6 +465,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE  +  48,
         },
+        [S_L6PE_08] = {
+            .test_entry_id    = PE037_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check SPE if implemented",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  37,
+        },
         [S_L7PE_02] = {
             .test_entry_id    = PE049_ENTRY,
             .module_id        = PE,
@@ -1317,6 +1325,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 12,
         },
+        [S_L5SM_04] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = SMMU,
+            .rule_desc        = "S-EL2 & SMMU Stage1 and Stage2 support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
         [S_L6SM_02] = {
             .test_entry_id    = I013_ENTRY,
             .module_id        = SMMU,
@@ -1332,6 +1347,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 14,
+        },
+        [S_L6SM_04] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = SMMU,
+            .rule_desc        = "Check SMMU large VA/TLB/DVM ASID VMID",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
         },
         [S_L7SM_01] = {
             .test_entry_id    = I022_ENTRY,
@@ -3007,9 +3029,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L6PE_07] = {
             .module_id        = PE,
         },
-        [S_L6PE_08] = {
-            .module_id        = PE,
-        },
         [S_L8PE_08] = {
             .module_id        = PE,
         },
@@ -3107,12 +3126,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .module_id        = SMMU,
         },
         [S_L3SM_01] = {
-            .module_id        = SMMU,
-        },
-        [S_L5SM_04] = {
-            .module_id        = SMMU,
-        },
-        [S_L6SM_04] = {
             .module_id        = SMMU,
         },
         [P_L1SM_01] = {
@@ -4845,6 +4858,13 @@ RULE_ID_e s_l8cxl_rule_list[] = {
     RULE_ID_SENTINEL
 };
 
+/* S_L5SM_04 */
+RULE_ID_e s_l5sm_04_rule_list[]   = {B_SMMU_09, B_SMMU_20, RULE_ID_SENTINEL};
+
+/* S_L6SM_04 */
+RULE_ID_e s_l6sm_04_rule_list[]   = {B_SMMU_03, B_SMMU_04, B_SMMU_05, B_SMMU_13,
+                                     B_SMMU_14, B_SMMU_23, RULE_ID_SENTINEL};
+
 /* PCBSA alias lists */
 /* P_L2WD_01 */
 RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
@@ -4939,6 +4959,8 @@ const alias_rule_map_t alias_rule_map[] = {
     {LVQBC,     lvqbc_rule_list},
     {S_L8CXL_1, s_l8cxl_rule_list},
     {XDGKZ,     xdgkz_rule_list},
+    {S_L5SM_04, s_l5sm_04_rule_list},
+    {S_L6SM_04, s_l6sm_04_rule_list},
 
     /* PCBSA alias rules */
     {P_L1_01,   bsa_l1_rule_list},
