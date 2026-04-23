@@ -22,10 +22,6 @@
 #define TEST_RULE  "B_TIME_01"
 #define TEST_DESC  "Check for Generic System Counter      "
 
-#define TEST_NUM1   (ACS_TIMER_TEST_NUM_BASE + 7)
-#define TEST_RULE1  "B_TIME_02"
-#define TEST_DESC1  "Check System Counter Frequency        "
-
 /* This test checks for presence of Generic System Counter */
 static
 void
@@ -49,46 +45,6 @@ payload_check_system_counter_presence()
   }
 }
 
-/* This test checks if Generic System Counter frequency is greater than 10Mhz */
-static
-void
-payload_check_system_timer_freq()
-{
-  uint64_t counter_freq, print_freq = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint32_t print_mhz = 0;
-
-  /* Read CNTFRQ_EL0 register for counter frequency */
-  counter_freq = val_timer_get_info(TIMER_INFO_CNTFREQ, 0);
-
-  /* Convert frequency into MHz or KHz unit */
-  print_freq = counter_freq/1000;
-  if (print_freq > 1000) {
-      print_freq = print_freq/1000;
-      print_mhz = 1;
-  }
-
-  /* Print counter frequency in DEBUG verbosity */
-  if (print_mhz)
-      val_print(DEBUG, "\n       Counter frequency is %ld MHz", print_freq);
-  else
-      val_print(DEBUG, "\n       Counter frequency is %ld KHz", print_freq);
-
-  /* Check if Generic system counter frequency is greater than 10MHz */
-  if (counter_freq > 10*1000*1000) {
-      val_set_status(index, RESULT_PASS);
-      return;
-  }
-
-  /* If 10Mhz check fails, print frequency in ERROR verbosity */
-  if (print_mhz)
-      val_print(ERROR, "\n       Counter frequency is %ld MHz", print_freq);
-  else
-      val_print(ERROR, "\n       Counter frequency is %ld KHz", print_freq);
-
-  val_set_status(index, RESULT_FAIL(1));
-}
-
 uint32_t
 t001_entry(uint32_t num_pe)
 {
@@ -106,27 +62,6 @@ t001_entry(uint32_t num_pe)
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
   val_report_status(0, ACS_END(TEST_NUM), NULL);
-
-  return status;
-}
-
-uint32_t
-t007_entry(uint32_t num_pe)
-{
-
-  uint32_t status = ACS_STATUS_FAIL;
-
-  num_pe = 1;  //This Timer test is run on single processor
-
-  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(TEST_NUM1, TEST_DESC1, num_pe);
-  if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM1, num_pe, payload_check_system_timer_freq, 0);
-
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM1, num_pe, TEST_RULE1);
-
-  val_report_status(0, ACS_END(TEST_NUM1), NULL);
 
   return status;
 }

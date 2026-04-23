@@ -1404,14 +1404,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
-        [B_TIME_02] = {
-            .test_entry_id    = T007_ENTRY,
-            .module_id        = TIMER,
-            .rule_desc        = "Check System Counter Frequency",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
-        },
         [B_TIME_06] = {
             .test_entry_id    = T002_ENTRY,
             .module_id        = TIMER,
@@ -1443,14 +1435,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 5,
-        },
-        [S_L8TI_01] = {
-            .test_entry_id    = T006_ENTRY,
-            .module_id        = TIMER,
-            .rule_desc        = "Check Minimum Counter Frequency 50MHz",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_TIMER_TEST_NUM_BASE + 6,
         },
     /* WATCHDOG */
         [B_WD_00] = {
@@ -2611,14 +2595,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
-        [V_L1TM_02] = {
-            .test_entry_id    = T007_ENTRY,
-            .module_id        = TIMER,
-            .rule_desc        = "Check Virt and Phy counter min freq",
-            .platform_bitmask = PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
-        },
+
         [V_L1TM_04] = {
             .test_entry_id    = T008_ENTRY,
             .module_id        = TIMER,
@@ -3131,6 +3108,9 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [P_L1SM_01] = {
             .module_id        = SMMU,
         },
+        [B_TIME_02] = {
+            .module_id        = TIMER,
+        },
         [B_TIME_03] = {
             .module_id        = TIMER,
         },
@@ -3144,6 +3124,12 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .module_id        = TIMER,
         },
         [S_L5TI_01] = {
+            .module_id        = TIMER,
+        },
+        [S_L8TI_01] = {
+            .module_id        = TIMER,
+        },
+        [V_L1TM_02] = {
             .module_id        = TIMER,
         },
         [B_WD_04] = {
@@ -3809,8 +3795,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
-    [T006_ENTRY] = t006_entry,
-    [T007_ENTRY] = t007_entry,
     [T008_ENTRY] = t008_entry,
     [U001_ENTRY] = u001_entry, // used in wrapper.
     [U002_ENTRY] = u002_entry, // used in wrapper.
@@ -3926,7 +3910,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
-    [T007_ENTRY] = t007_entry,
     [W001_ENTRY] = w001_entry,
     [W002_ENTRY] = w002_entry,
     [D001_ENTRY] = d001_entry,
@@ -4063,7 +4046,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE065_ENTRY] = pe065_entry,
     [M005_ENTRY] = m005_entry,
     [M008_ENTRY] = m008_entry,
-    [T006_ENTRY] = t006_entry,
     [ETE008_ENTRY] = ete008_entry,
     [ETE007_ENTRY] = ete007_entry,
     [ETE002_ENTRY] = ete002_entry,
@@ -4299,7 +4281,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T001_ENTRY] = t001_entry,
-    [T007_ENTRY] = t007_entry,
     [T002_ENTRY] = t002_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
     [E035_ENTRY] = e035_entry,

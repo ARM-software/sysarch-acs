@@ -630,11 +630,11 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_TIME_02</td>
       <td>B_TIME_02</td>
-      <td>407</td>
-      <td>Check System Counter Frequency</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>

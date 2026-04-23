@@ -3266,11 +3266,11 @@ The checklist provides information about:
       <td>Version 8.0</td>
       <td>S_L8TI_01</td>
       <td>S_L8TI_01</td>
-      <td>406</td>
-      <td>Check Minimum Counter Frequency 50MHz</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>

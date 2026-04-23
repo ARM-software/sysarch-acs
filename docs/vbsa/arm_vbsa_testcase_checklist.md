@@ -347,10 +347,10 @@ The checklist provides information about:
       <td>L1</td>
       <td><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1tm_02--check-virt-and-phy-counter-min-freq">V_L1TM_02</td>
       <td></td>
-      <td>402</td>
-      <td>Check Virt and Phy counter min freq</td>
-      <td>✅</td>
-      <td>❌</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td>Related rules from other specifications: B_TIME_02 (BSA)</td>
     </tr>
     <tr>

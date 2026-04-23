@@ -352,7 +352,6 @@ val_bsa_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           status |= t003_entry(num_pe);
           status |= t004_entry(num_pe);
           status |= t005_entry(num_pe);
-          status |= t007_entry(num_pe);
       }
   }
 

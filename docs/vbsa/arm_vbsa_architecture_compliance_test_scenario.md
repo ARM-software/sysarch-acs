@@ -176,8 +176,7 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
 ### V_L1TM_02 — Check Virt and Phy counter min freq
 **Rationale**: Virtual Counter (CNTVCT_EL0) = Physical counter (CNTPCT_EL0) - Virtual offset (CNTVOFF_EL2). As the offset is a constant provided by the hypervisor, the virtual counter advances at the same effective frequency as the physical counter.
 
-**Scenario**: Execute the same test used to validate B_TIME_02, which verifies physical counter runs at atleast 10MHz.
-- see section 2.6 in [BSA ACS Scenario Document](../bsa/arm_bsa_architecture_compliance_test_scenario.pdf#page18&search=B_TIME_02)
+**Rationale for not implementing** - The base frequency should be obtained from the CNTFID registers, which are implemented in Secure space. At present, ACS does not provide a mechanism for accessing Secure registers from Non-secure (NS) space.
 
 ---
 

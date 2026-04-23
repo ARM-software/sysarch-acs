@@ -192,7 +192,6 @@
   ../../test_pool/gic/g014.c
   ../../test_pool/gic/g015.c
   ../../test_pool/gic/g016.c
-  ../../test_pool/timer/t006.c
   ../../test_pool/timer/t008.c
   ../../test_pool/watchdog/w003.c
   ../../test_pool/smmu/i008.c
