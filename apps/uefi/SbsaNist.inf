@@ -109,6 +109,7 @@
   ../../test_pool/pcie/p011.c
   ../../test_pool/pcie/p037.c
   ../../test_pool/pcie/p038.c
+  ../../test_pool/pcie/p045.c
   ../../test_pool/pcie/p046.c
   ../../test_pool/pcie/p048.c
   ../../test_pool/pcie/p049.c
@@ -147,9 +148,11 @@
   ../../test_pool/pcie/p090.c
   ../../test_pool/pcie/p092.c
   ../../test_pool/pcie/p093.c
+  ../../test_pool/pcie/p094.c
   ../../test_pool/exerciser/e003.c
   ../../test_pool/exerciser/e007.c
   ../../test_pool/exerciser/e008.c
+  ../../test_pool/exerciser/e016.c
   ../../test_pool/exerciser/e017.c
   ../../test_pool/exerciser/e019.c
   ../../test_pool/exerciser/e020.c
@@ -164,6 +167,7 @@
   ../../test_pool/exerciser/e029.c
   ../../test_pool/exerciser/e030.c
   ../../test_pool/exerciser/e036.c
+  ../../test_pool/exerciser/e039.c
   ../../test_pool/exerciser/e040.c
   ../../test_pool/exerciser/e041.c
   ../../test_pool/exerciser/e043.c

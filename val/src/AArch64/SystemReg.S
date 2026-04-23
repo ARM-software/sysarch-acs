@@ -94,6 +94,42 @@ val_read_current_el:
     mrs     x0, CurrentEL
     ret
 
+    /* ------------------------------------------
+     * EL-aware stage-1 TLBI by VA, inner shareable
+     * x0 = VA argument encoded per TG
+     * ------------------------------------------
+     */
+    .global tlbi_stage1_vaeis
+tlbi_stage1_vaeis:
+    mrs     x1, CurrentEL
+    ubfx    x1, x1, #2, #2        /* extract EL[1:0] */
+    cmp     x1, #2
+    b.eq    tlbi_stage1_vae2is
+    tlbi    vae1is, x0
+    ret
+tlbi_stage1_vae2is:
+    tlbi    vae2is, x0
+    ret
+
+    /* Stage-2 TLBI helper */
+    .global tlbi_stage2_ipas2e1is
+tlbi_stage2_ipas2e1is:
+    tlbi    ipas2e1is, x0
+    ret
+
+    /* Ensure page table writes are visible before TLBI */
+    .global tlbi_sync_before
+tlbi_sync_before:
+    dsb     ishst
+    ret
+
+    /* Synchronize completion of TLBI */
+    .global tlbi_sync_after
+tlbi_sync_after:
+    dsb     ish
+    isb
+    ret
+
     .global val_dataCacheCleanInvalidateVA
 val_dataCacheCleanInvalidateVA:
     dc  civac, x0

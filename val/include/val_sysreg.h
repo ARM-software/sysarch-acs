@@ -162,6 +162,12 @@ SYSOP_TYPE_PARAM_FUNC(tlbi, vae3is)
 SYSOP_TYPE_PARAM_FUNC(tlbi, vale3is)
 #endif
 
+/* EL-aware stage-1 VA invalidation (helper in SystemReg.S) */
+void tlbi_stage1_vaeis(uint64_t v);
+void tlbi_stage2_ipas2e1is(uint64_t v);
+void tlbi_sync_before(void);
+void tlbi_sync_after(void);
+
 /*******************************************************************************
  * Cache maintenance accessor prototypes
  ******************************************************************************/
