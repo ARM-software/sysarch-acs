@@ -881,7 +881,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = M007_ENTRY,
             .module_id        = MEM_MAP,
             .rule_desc        = "Check NS non-64b DMA devices are behind SMMU",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
             .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 7,
         },
@@ -3818,6 +3818,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [CXL010_ENTRY] = cxl010_entry,
     [CXL011_ENTRY] = cxl011_entry,
     [CXL013_ENTRY] = cxl013_entry,
+    [M007_ENTRY] = m007_entry,
 /* The following test entries are excluded from compilation for the BSA DT UEFI App, as they are
    not required for the BSA DT build. These tests invoke VAL APIs, which in turn call PAL APIs,
    and PAL_DT lacks a few necessary implementations.*/

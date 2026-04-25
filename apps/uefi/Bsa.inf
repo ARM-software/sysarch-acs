@@ -96,6 +96,7 @@
   ../../test_pool/memory_map/m001.c
   ../../test_pool/memory_map/m002.c
   ../../test_pool/memory_map/m003.c
+  ../../test_pool/memory_map/m004.c
   ../../test_pool/power_wakeup/u001.c
   ../../test_pool/power_wakeup/u002.c
   ../../test_pool/power_wakeup/u003.c

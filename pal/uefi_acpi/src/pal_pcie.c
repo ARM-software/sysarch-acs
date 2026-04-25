@@ -618,5 +618,71 @@ pal_pcie_is_device_behind_smmu(UINT32 seg, UINT32 bus, UINT32 dev, UINT32 fn)
 UINT32
 pal_pcie_is_devicedma_64bit(UINT32 seg, UINT32 bus, UINT32 dev, UINT32 fn)
 {
-  return 0;
+  EFI_STATUS           Status;
+  EFI_PCI_IO_PROTOCOL *Pci;
+  EFI_HANDLE          *HandleBuffer;
+  UINTN                HandleCount;
+  UINTN                Seg, Bus, Dev, Func;
+  UINT32               Index;
+  UINT64               Supported;
+  UINT64               Current;
+  INT8                 Is64Bit = 0;
+
+  Status = gBS->LocateHandleBuffer(ByProtocol, &gEfiPciIoProtocolGuid, NULL,
+                                   &HandleCount, &HandleBuffer);
+  if (EFI_ERROR(Status)) {
+    pal_print_msg(ACS_PRINT_ERR, " No PCI devices found in the system\n");
+    return 0;
+  }
+
+  for (Index = 0; Index < HandleCount; Index++) {
+    Status = gBS->HandleProtocol(HandleBuffer[Index], &gEfiPciIoProtocolGuid, (VOID **)&Pci);
+    if (EFI_ERROR(Status))
+      continue;
+
+    Pci->GetLocation(Pci, &Seg, &Bus, &Dev, &Func);
+    if (Seg != seg || Bus != bus || Dev != dev || Func != fn)
+      continue;
+
+    Status = Pci->Attributes(Pci, EfiPciIoAttributeOperationSupported, 0, &Supported);
+    if (!EFI_ERROR(Status) && (Supported & EFI_PCI_IO_ATTRIBUTE_DUAL_ADDRESS_CYCLE)) {
+
+      /* Prefer reporting only if DAC is actually enabled */
+      Status = Pci->Attributes(Pci, EfiPciIoAttributeOperationGet, 0, &Current);
+      if (!EFI_ERROR(Status) && (Current & EFI_PCI_IO_ATTRIBUTE_DUAL_ADDRESS_CYCLE)) {
+        Is64Bit = 1;
+      } else {
+        /*
+         * Try enabling DAC to see if firmware/platform allows it.
+         * Do not treat failure as fatal; we simply report lack of 64-bit DMA.
+         */
+        Status = Pci->Attributes(Pci, EfiPciIoAttributeOperationEnable,
+                                 EFI_PCI_IO_ATTRIBUTE_DUAL_ADDRESS_CYCLE, NULL);
+        if (!EFI_ERROR(Status)) {
+          Status = Pci->Attributes(Pci, EfiPciIoAttributeOperationGet, 0, &Current);
+          if (!EFI_ERROR(Status) && (Current & EFI_PCI_IO_ATTRIBUTE_DUAL_ADDRESS_CYCLE))
+            Is64Bit = 1;
+        }
+      }
+    }
+
+    break;
+  }
+  pal_mem_free(HandleBuffer);
+  return Is64Bit;
+}
+
+/**
+    @brief  Placeholder for UEFI
+
+    @param   seg        PCI segment number
+    @param   bus        PCI bus address
+    @param   dev        PCI device address
+    @param   fn         PCI function number
+
+    @retval Return 1
+**/
+UINT32 pal_pcie_device_driver_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn)
+{
+  return 1;
 }

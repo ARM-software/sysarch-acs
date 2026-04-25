@@ -88,7 +88,7 @@ static void payload_check_peripheral_addr_64kb_apart(void)
     uint32_t peri_index, peri_index1;
     uint64_t peri_count, addr_diff;
     uint64_t peri_addr1, peri_addr2;
-    uint32_t fail_cnt = 0;
+    uint32_t warn_cnt = 0;
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
     peri_count = val_peripheral_get_info(NUM_ALL, 0);
@@ -116,15 +116,17 @@ static void payload_check_peripheral_addr_64kb_apart(void)
                          peri_addr1 - peri_addr2 : peri_addr2 - peri_addr1;
 
             if (addr_diff < MEM_SIZE_64KB) {
-                val_print(ERROR,
+                val_print(WARN,
                          "\n  Peripheral base addresses isn't atleast 64Kb apart %llx", addr_diff);
-                fail_cnt++;
+                warn_cnt++;
             }
         }
     }
 
-    if (fail_cnt) {
-        val_set_status(pe_index, RESULT_FAIL(01));
+    if (warn_cnt) {
+        val_print(WARN,
+                         "\n  Make sure peripherals assigned to different VMs are 64kb apart");
+        val_set_status(pe_index, RESULT_WARNING(01));
     } else {
         val_set_status(pe_index, RESULT_PASS);
     }

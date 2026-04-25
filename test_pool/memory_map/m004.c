@@ -126,6 +126,8 @@ payload_check_if_non_dma_dev_behind_smmu (void)
 {
   uint32_t i, fail_cnt = 0;
   bool test_run = 0;
+  uint32_t bdf;
+  uint32_t smmu_index;
   uint32_t index = val_pe_get_index_mpid (val_pe_get_mpid());
   pcie_bdf_list_t *pcie_peripherals_bdf_list = val_pcie_get_pcie_peripheral_bdf_list();
 
@@ -136,19 +138,20 @@ payload_check_if_non_dma_dev_behind_smmu (void)
       val_set_status(index, RESULT_WARNING(1));
       return;
   }
-
   /* Check if a device is capable of accessing non secure address */
   for (i = 0; i < pcie_peripherals_bdf_list->count; i++) {
       /* Test is valid for devices which can't DMA and fail if such
         device not behind a SMMU */
       if (!(val_pcie_is_devicedma_64bit(pcie_peripherals_bdf_list->dev_bdfs[i]))) {
+          bdf = pcie_peripherals_bdf_list->dev_bdfs[i];
           /* Flag if test is run, since check is conditional on availability of
             non DMA devices */
           test_run = 1;
           /* Mark has fail if non DMA device not behind SMMU */
-          if (!(val_pcie_is_device_behind_smmu(pcie_peripherals_bdf_list->dev_bdfs[i]))) {
-              val_print(DEBUG, "\n       Failed for BDF = 0x%x",
-                        pcie_peripherals_bdf_list->dev_bdfs[i]);
+          smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(bdf),
+                                                    PCIE_CREATE_BDF_PACKED(bdf));
+          if (smmu_index == ACS_INVALID_INDEX) {
+              val_print(DEBUG, "\n       Failed for BDF = 0x%x", bdf);
               fail_cnt++;
           }
       }

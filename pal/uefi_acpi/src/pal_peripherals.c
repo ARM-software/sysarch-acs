@@ -24,7 +24,9 @@
 #include <Library/DxeServicesTableLib.h>
 
 #include <Protocol/AcpiTable.h>
+#include <Protocol/PciIo.h>
 #include "Include/IndustryStandard/Acpi61.h"
+#include "Include/IndustryStandard/Pci22.h"
 #include "Include/IndustryStandard/SerialPortConsoleRedirectionTable.h"
 
 #include "pal_uefi.h"
@@ -40,6 +42,144 @@
 UINT32 spcr_baudrate_id[] = {0, 0, 0, 9600, 19200, 0, 57600, 115200};
 UINT64
 pal_get_spcr_ptr();
+
+STATIC
+BOOLEAN
+pal_peripheral_is_duplicate(PERIPHERAL_INFO_BLOCK *start,
+                            PERIPHERAL_INFO_BLOCK *current,
+                            UINT32 bdf)
+{
+  PERIPHERAL_INFO_BLOCK *iter = start;
+
+  while (iter < current) {
+    if ((iter->bdf == bdf) && (bdf != 0))
+      return TRUE;
+    iter++;
+  }
+
+  return FALSE;
+}
+
+STATIC
+UINT64
+pal_peripheral_get_bar_value(UINT32 *bar, UINT32 bar_index, UINT32 max_bars)
+{
+  UINT64 bar_value;
+
+  if (bar_index >= max_bars)
+    return 0;
+
+  bar_value = bar[bar_index];
+
+  if ((((bar_value) >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64) {
+    if ((bar_index + 1) < max_bars) {
+      bar_value = bar[bar_index + 1];
+      bar_value = (bar_value << 32) | bar[bar_index];
+    }
+  }
+
+  return bar_value;
+}
+
+STATIC
+VOID
+pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
+                           PERIPHERAL_INFO_BLOCK **per_info)
+{
+  EFI_STATUS            Status;
+  EFI_PCI_IO_PROTOCOL   *Pci;
+  EFI_HANDLE            *HandleBuffer;
+  UINTN                 HandleCount;
+  UINTN                 Index;
+  UINTN                 Seg, Bus, Dev, Func;
+  UINT32                bar_index;
+  UINT32                bar_count;
+  UINT32                DeviceBdf;
+  UINT32                *bars;
+  UINT32                class_code;
+  PCI_TYPE_GENERIC      PciHeader;
+  PERIPHERAL_INFO_BLOCK *info = *per_info;
+  PERIPHERAL_INFO_BLOCK *start = peripheralInfoTable->info;
+
+  Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL,
+                                    &HandleCount, &HandleBuffer);
+  if (EFI_ERROR (Status)) {
+    pal_print_msg(ACS_PRINT_ERR, "  No PCI devices found while populating peripheral table\n");
+    return;
+  }
+
+  for (Index = 0; Index < HandleCount; Index++) {
+    Status = gBS->HandleProtocol (HandleBuffer[Index], &gEfiPciIoProtocolGuid, (VOID **)&Pci);
+    if (EFI_ERROR (Status))
+      continue;
+
+    Status = Pci->GetLocation (Pci, &Seg, &Bus, &Dev, &Func);
+    if (EFI_ERROR (Status))
+      continue;
+
+    DeviceBdf = (UINT32)PCIE_CREATE_BDF(Seg, Bus, Dev, Func);
+
+    if (pal_peripheral_is_duplicate(start, info, DeviceBdf))
+      continue;
+
+    Status = Pci->Pci.Read (Pci, EfiPciIoWidthUint32, 0,
+                            sizeof (PciHeader)/sizeof (UINT32), &PciHeader);
+    if (EFI_ERROR (Status))
+      continue;
+
+    /* We only want endpoint functions (header type = device) */
+    if ((PciHeader.Device.Hdr.HeaderType & HEADER_LAYOUT_CODE) != HEADER_TYPE_DEVICE)
+      continue;
+
+    /* Skip bridges and cardbus controllers, we only want endpoint functions */
+    if (IS_PCI_BRIDGE(&(PciHeader.Bridge)) || IS_CARDBUS_BRIDGE(&(PciHeader.Bridge)))
+      continue;
+
+    bars = PciHeader.Device.Device.Bar;
+    bar_count = TYPE0_MAX_BARS;
+    class_code = ((PciHeader.Device.Hdr.ClassCode[2] << 16) |
+                  (PciHeader.Device.Hdr.ClassCode[1] << 8)  |
+                  PciHeader.Device.Hdr.ClassCode[0]);
+
+    /* Skip all bridge class devices (host bridge, PCI-PCI bridge, etc.) */
+    if ((class_code >> 16) == 0x06)
+      continue;
+
+    info->type = PERIPHERAL_TYPE_OTHER;
+    info->bdf = DeviceBdf;
+    info->platform_type = PLATFORM_TYPE_ACPI;
+    info->base0 = 0;
+    info->base1 = 0;
+    info->width = 0;
+    info->irq = 0;
+    info->flags = 0;
+    info->msi = 0;
+    info->msix = 0;
+    info->max_pasids = 0;
+    info->baud_rate = 0;
+    info->interface_type = 0;
+
+    for (bar_index = 0; bar_index < bar_count; bar_index++) {
+      UINT64 bar_value = pal_peripheral_get_bar_value(bars, bar_index, bar_count);
+
+      if (bar_value != 0) {
+        if (info->base0 == 0)
+          info->base0 = bar_value;
+        else if (info->base1 == 0)
+          info->base1 = bar_value;
+      }
+
+      if ((((bars[bar_index]) >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
+        bar_index++;
+    }
+
+    peripheralInfoTable->header.num_all++;
+    info++;
+  }
+
+  pal_mem_free(HandleBuffer);
+  *per_info = info;
+}
 
 /**
   @brief  This API fills in the PERIPHERAL_INFO_TABLE with information about peripherals
@@ -164,6 +304,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
     per_info++;
   }
 
+  pal_peripheral_add_all_pci(peripheralInfoTable, &per_info);
   per_info->type = 0xFF; //indicate end of table
 
 }
