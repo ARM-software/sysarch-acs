@@ -159,7 +159,7 @@ call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
 }
 
 int
-call_update_skip_list(unsigned int api_num, int *p_skip_test_num)
+call_update_skip_list(unsigned int api_num, uint32_t *p_skip_test_num)
 {
     FILE             *fd = NULL;
     pcbsa_drv_parms_t test_params;
@@ -213,4 +213,3 @@ int read_from_proc_pcbsa_msg(void)
   fclose(fd);
   return 0;
 }
-

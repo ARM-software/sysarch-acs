@@ -74,6 +74,3 @@
 
 /*Max timeout set for systimer*/
 #define PLATFORM_OVERRIDE_SYS_TIMEOUT_MAX      0xFFFFFFFF
-
-extern UINT32 g_pcie_p2p;
-extern UINT32 g_pcie_cache_present;

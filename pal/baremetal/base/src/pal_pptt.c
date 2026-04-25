@@ -141,6 +141,6 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
 
   pal_cache_store_pe_res(CacheTable, PeTable);
 
-  if (g_print_level <= ACS_PRINT_INFO)
+  if (acs_policy_get_print_level() <= ACS_PRINT_INFO)
       pal_cache_dump_info_table(CacheTable, PeTable);
 }

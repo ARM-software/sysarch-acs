@@ -147,25 +147,14 @@ uint32_t command_init(void);
 /* TODO remove #if once all ACS app using this header moves to rule based infra.*/
 #ifndef EXCLUDE_RBX
 /* Extern declarations */
-extern UINT32  g_pcie_p2p;
-extern UINT32  g_pcie_cache_present;
-extern bool    g_pcie_skip_dp_nic_ms;
-extern UINT32  g_print_level;
 extern UINT32  g_num_skip;
 extern UINT64  g_stack_pointer;
 extern UINT64  g_exception_ret_addr;
 extern UINT64  g_ret_addr;
-extern UINT32  g_timeout_pass;
-extern UINT32  g_timeout_fail;
-extern UINT32  g_timer_timeout_us; /* Timer timeout (us) */
 extern UINT32  g_build_sbsa;
 extern UINT32  g_build_pcbsa;
-extern UINT32  g_print_mmio;
 extern UINT32  g_curr_module;
 extern UINT32  g_enable_module;
-extern UINT32  g_crypto_support;
-extern UINT32  g_sys_last_lvl_cache;
-extern UINT32  g_el1skiptrap_mask;
 extern SHELL_FILE_HANDLE g_acs_log_file_handle;
 extern SHELL_FILE_HANDLE g_dtb_log_file_handle;
 extern BOOLEAN    g_invalid_arg_seen;

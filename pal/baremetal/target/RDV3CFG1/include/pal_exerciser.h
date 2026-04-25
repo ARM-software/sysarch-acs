@@ -18,9 +18,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "acs_execution_policy.h"
 #include "platform_override_fvp.h"
 
-extern uint32_t g_print_level;
 #define ACS_PRINT_ERR   5      /* Only Errors. Use this to trim output to key info */
 #define ACS_PRINT_WARN  4      /* Only warnings & errors. Use this to trim output to key info */
 #define ACS_PRINT_TEST  3      /* Test description and result descriptions. THIS is DEFAULT */
@@ -37,7 +37,7 @@ void pal_uart_print(int log, const char *fmt, ...);
 void *mem_alloc(size_t alignment, size_t size);
 #define print(verbose, string, ...) \
     do { \
-        if ((verbose) >= g_print_level) \
+        if ((verbose) >= acs_policy_get_print_level()) \
             pal_uart_print((verbose), (string), ##__VA_ARGS__); \
     } while (0)
 #else
@@ -45,7 +45,7 @@ void *mem_alloc(size_t alignment, size_t size);
 
 #define print(verbose, string, ...) \
     do { \
-        if ((verbose) >= g_print_level) \
+        if ((verbose) >= acs_policy_get_print_level()) \
             Print(L##string, ##__VA_ARGS__); \
     } while (0)
 #endif

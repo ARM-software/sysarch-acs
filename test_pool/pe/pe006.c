@@ -29,7 +29,7 @@ payload()
   uint64_t data = 0;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  if (!g_crypto_support) {
+  if (!acs_policy_get_crypto_support()) {
         val_print_primary_pe(DEBUG, "\n       Crypto extension not supported",
                                                                                       0, index);
         val_set_status(index, RESULT_SKIP(1));

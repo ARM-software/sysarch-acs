@@ -108,7 +108,7 @@ execute_tests()
   val_print(INFO, "%d.", PFDI_ACS_MINOR_VER);
   val_print(INFO, "%d\n", PFDI_ACS_SUBMINOR_VER);
 
-  val_print(INFO, "\n Starting tests with print level : %2d\n\n", g_print_level);
+  val_print(INFO, "\n Starting tests with print level : %2d\n\n", acs_policy_get_print_level());
   val_print(INFO, "\n Creating Platform Information Tables\n");
 
   Status = createPeInfoTable();

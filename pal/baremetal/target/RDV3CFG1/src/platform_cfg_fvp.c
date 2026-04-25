@@ -56,16 +56,6 @@ uint32_t  g_num_modules = sizeof(g_execute_modules_arr)/sizeof(g_execute_modules
 uint32_t  g_skip_modules_arr[] = {};
 uint32_t  g_num_skip_modules = sizeof(g_skip_modules_arr)/sizeof(g_skip_modules_arr[0]);
 
-/* Bitmask of EL1 register accesses to skip. For example:
-   g_el1skiptrap_mask = EL1SKIPTRAP_CNTPCT; */
-uint32_t  g_el1skiptrap_mask = 0;
-
-/* B_PE_06 and S_L5PE_05 rules are conditional implementation based on export restrictions
-   In case due to export restrictions, cryptography algorithm support is not present, set
-   g_crypto_support to FALSE (Default value is TRUE)
-*/
-uint32_t g_crypto_support    = TRUE;
-
 /* The Baremetal app supports three filtering modes
     LVL_FILTER_MAX,    run rules with level <= selected level
     LVL_FILTER_ONLY,   run rules with level == selected level
@@ -73,17 +63,32 @@ uint32_t g_crypto_support    = TRUE;
 */
 uint32_t g_level_filter_mode = LVL_FILTER_MAX; /* Default set to LVL_FILTER_MAX */
 
-/* Specify SLC cache type
-    System Last-Level cache valid values
-    0 - Unknown
-    1 - PPTT PE-side LLC
-    2 - HMAT mem-side LLC
-*/
-uint32_t g_sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC;
+/*
+ * Platform execution-policy defaults overlaid on top of the generic runtime
+ * policy reset.
+ *
+ * sys_last_lvl_cache valid values:
+ *   0 - Unknown
+ *   1 - PPTT PE-side LLC
+ *   2 - HMAT mem-side LLC
+ *
+ * el1skiptrap_mask is a bitmask composed from EL1SKIPTRAP_* flags when a
+ * platform needs specific EL1 register accesses skipped.
+ */
+static const acs_execution_policy_t g_platform_execution_policy = {
+    .timeout_pass = PLATFORM_OVERRIDE_TIMEOUT,
+    .timeout_fail = PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT,
+    .timer_timeout_us = PLATFORM_OVERRIDE_TIMER_TIMEOUT,
+    .crypto_support = TRUE,
+    .sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC,
+    .el1skiptrap_mask = 0,
+};
 
-uint32_t g_timeout_pass = PLATFORM_OVERRIDE_TIMEOUT;
-uint32_t g_timeout_fail = PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT;
-uint32_t g_timer_timeout_us = PLATFORM_OVERRIDE_TIMER_TIMEOUT; /* Timer timeout (us) */
+const acs_execution_policy_t *
+acs_get_platform_execution_policy_defaults(void)
+{
+    return &g_platform_execution_policy;
+}
 
 const PE_SMBIOS_PROCESSOR_INFO_TABLE platform_smbios_cfg = {
     .slot_count = PLATFORM_OVERRIDE_SMBIOS_SLOT_COUNT,

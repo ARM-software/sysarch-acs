@@ -25,8 +25,6 @@
 #define TEST_DESC "Wake from EL1 PHY Timer Int           "
 
 static uint32_t g_el1phy_int_received;
-extern uint32_t g_timeout_pass;
-
 static
 void
 isr1()
@@ -49,7 +47,8 @@ payload1()
   uint32_t intid;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t delay_loop = MAX_SPIN_LOOPS;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_pass));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_pass()));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   if (val_gic_install_isr(intid, isr1)) {
@@ -96,7 +95,7 @@ u001_entry(uint32_t num_pe)
 
   num_pe = 1;  //This Timer test is run on single processor
 
-  if (!(g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)) {
+  if (!(acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_CNTPCT)) {
       val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
       status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 

@@ -18,7 +18,8 @@
 #ifndef __ACS_CFG_H__
 #define __ACS_CFG_H__
 
-extern uint32_t g_print_level;
+#include "acs_execution_policy.h"
+
 extern uint32_t g_execute_secure;
 extern uint32_t *g_skip_test_num;
 extern uint32_t g_num_skip;
@@ -41,12 +42,8 @@ extern uint32_t g_num_modules;
 extern uint32_t g_build_sbsa;
 extern uint32_t g_build_pcbsa;
 extern uint32_t g_curr_module;
-extern uint32_t g_sys_last_lvl_cache;
-extern uint32_t g_crypto_support;
 extern uint32_t g_drtm_acs_dlme[];
 extern uint64_t g_drtm_acs_dlme_size;
-extern uint32_t g_el1skiptrap_mask;
-extern uint32_t g_timer_timeout_us;
 
 
 #endif

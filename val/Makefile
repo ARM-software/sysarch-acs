@@ -57,6 +57,7 @@ bsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o  $(VAL_SRC)/acs_pe_infra.o \
     $(VAL_SRC)/acs_iovirt.o $(VAL_SRC)/bsa_execute_test.o\
     $(VAL_SRC)/val_status.o $(VAL_SRC)/val_logger.o $(VAL_SRC)/val_libc.o \
+    $(VAL_SRC)/acs_execution_policy.o \
     $(VAL_SRC)/acs_run_request.o \
     $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o $(VAL_SRC)/../driver/pcie/pcie.o \
     $(VAL_SRC)/rule_based_execution_helpers.o \
@@ -73,6 +74,7 @@ sbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o $(VAL_SRC)/acs_pe_infra.o \
     $(VAL_SRC)/acs_iovirt.o $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o \
     $(VAL_SRC)/val_status.o $(VAL_SRC)/val_logger.o $(VAL_SRC)/val_libc.o \
+    $(VAL_SRC)/acs_execution_policy.o \
     $(VAL_SRC)/acs_run_request.o \
     $(VAL_SRC)/sbsa_execute_test.o $(VAL_SRC)/../driver/pcie/pcie.o \
     $(VAL_SRC)/rule_based_execution_helpers.o \
@@ -88,6 +90,7 @@ pcbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o $(VAL_SRC)/acs_pe_infra.o \
     $(VAL_SRC)/acs_iovirt.o    $(VAL_SRC)/../driver/smmu_v3/smmu_v3.o \
     $(VAL_SRC)/val_status.o $(VAL_SRC)/val_logger.o $(VAL_SRC)/val_libc.o \
+    $(VAL_SRC)/acs_execution_policy.o \
     $(VAL_SRC)/pc_bsa_execute_test.o $(VAL_SRC)/../driver/pcie/pcie.o
 endif
 

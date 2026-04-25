@@ -21,10 +21,6 @@
 #include "acs.h"
 
 /* Global Variables */
-bool      g_pcie_skip_dp_nic_ms = 0;
-uint32_t  g_pcie_p2p;
-uint32_t  g_print_level;
-uint32_t  g_print_mmio;
 uint32_t  g_curr_module;
 uint32_t  g_enable_module;
 uint32_t  g_acs_tests_total;
@@ -33,7 +29,6 @@ uint32_t  g_acs_tests_fail;
 uint32_t  g_build_sbsa = 0;
 uint32_t  g_build_pcbsa = 0;
 uint32_t  g_its_init = 0;
-uint32_t  g_pcie_cache_present;
 uint64_t  g_stack_pointer;
 uint64_t  g_exception_ret_addr;
 uint64_t  g_ret_addr;

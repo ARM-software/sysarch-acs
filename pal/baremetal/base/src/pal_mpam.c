@@ -164,7 +164,7 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
       curr_entry = MPAM_NEXT_MSC(curr_entry);
   }
 
-  if (g_print_level <= ACS_PRINT_INFO)
+  if (acs_policy_get_print_level() <= ACS_PRINT_INFO)
       pal_mpam_dump_table(MpamTable);
 }
 
@@ -236,6 +236,6 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
       Ptr++;
   }
 
-  if (g_print_level <= ACS_PRINT_INFO)
+  if (acs_policy_get_print_level() <= ACS_PRINT_INFO)
       pal_srat_dump_table(SratTable);
 }

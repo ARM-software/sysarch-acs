@@ -151,17 +151,18 @@ At boot, ACS:
 
        **shared runtime and filter overrides from EL3 parameters**
 
-      - overrides ``g_pcie_p2p            `` if p2p is set
-      - overrides ``g_pcie_skip_dp_nic_ms `` if pcie skip is set
-      - overrides ``g_print_level         `` if print level is set
-      - overrides timeout-related globals if wakeup timeout is set
-      - overrides ``g_print_mmio          `` if print mmio is set
-      - overrides ``g_crypto_support      `` if crypto support is set
-      - overrides ``ctx->bsa_sw_view_mask `` if software view mask is set
-      - overrides ``g_pcie_cache_present  `` if pcie cache is set
-      - overrides ``g_sys_last_lvl_cache  `` if system level cache is set
+      - overrides ``policy->pcie_p2p`` if p2p is set
+      - overrides ``policy->pcie_skip_dp_nic_ms`` if PCIe skip is set
+      - overrides ``policy->print_level`` if print level is set
+      - overrides ``policy->timeout_pass`` / ``policy->timeout_fail`` /
+        ``policy->timer_timeout_us`` if wakeup timeout is set
+      - overrides ``policy->print_mmio`` if print MMIO is set
+      - clears ``policy->crypto_support`` if the ``no_crypto_ext`` EL3 flag is set
+      - overrides ``ctx->bsa_sw_view_mask`` if software view mask is set
+      - overrides ``policy->pcie_cache_present`` if PCIe cache is set
+      - overrides ``policy->sys_last_lvl_cache`` if system level cache is set
       - overrides ``ctx->level_filter_mode`` if level filter mode is set
-      - overrides ``ctx->level_value      `` if level value is set
+      - overrides ``ctx->level_value`` if level value is set
 3. Uses the (possibly overridden) ``ctx->execute_modules`` / ``ctx->num_modules`` to
    decide which modules and rule filters apply, and then:
    * Creates only the required information tables.

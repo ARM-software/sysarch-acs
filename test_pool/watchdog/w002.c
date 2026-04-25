@@ -34,9 +34,6 @@ static uint32_t int_id;
 static uint64_t wd_num;
 static volatile uint32_t g_failsafe_int_received;
 static volatile uint32_t g_wd_int_received;
-extern uint32_t g_timeout_pass;
-extern uint32_t g_timeout_fail;
-
 static
 void
 isr()
@@ -78,7 +75,8 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_fail()));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
@@ -99,7 +97,7 @@ payload()
 
     uint32_t status, ns_wdg = 0;
     uint64_t timeout;
-    uint64_t timer_expire_ticks = val_get_timeout_to_ticks(g_timeout_pass);
+    uint64_t timer_expire_ticks = val_get_timeout_to_ticks(acs_policy_get_timeout_pass());
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
     wd_num = val_wd_get_info(0, WD_INFO_COUNT);
 
@@ -155,7 +153,7 @@ payload()
         }
         wakeup_set_failsafe();
 
-        timeout = val_get_timeout_to_ticks(g_timeout_fail);
+        timeout = val_get_timeout_to_ticks(acs_policy_get_timeout_fail());
         while (timeout && (g_wd_int_received == 0) && (g_failsafe_int_received == 0)) {
           val_data_cache_ops_by_va((addr_t)&g_wd_int_received, INVALIDATE);
           val_data_cache_ops_by_va((addr_t)&g_failsafe_int_received, INVALIDATE);

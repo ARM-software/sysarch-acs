@@ -22,10 +22,9 @@
 #include "acs_drtm.h"
 #include "acs_pfdi.h"
 #include "acs_cxl.h"
+#include "acs_execution_policy.h"
 #include "val_status.h"
 #include "val_libc.h"
-
-extern uint32_t g_print_level;
 
 #define ACS_STATUS_ERR       0xEDCB1234  //some impropable value?
 #define ACS_STATUS_NIST_PASS 0x1
@@ -40,7 +39,7 @@ enable implementation specific prints in PAL*/
 #ifndef val_print
 #define val_print(level, ...)                     \
     do {                                          \
-        if ((level) >= g_print_level)             \
+        if ((level) >= acs_policy_get_print_level()) \
             val_printf((level), __VA_ARGS__);     \
     } while (0)
 #endif

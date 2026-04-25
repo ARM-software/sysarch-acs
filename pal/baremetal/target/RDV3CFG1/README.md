@@ -43,7 +43,7 @@ Follow the build steps mentioned in [README](../../README.md) with the TARGET pa
 
 ## Known Limitations
 
-**Note:** To run PCIe MSE tests on RDV3-Cfg1 FVP, add `-C pcie_group_0.pcie0.ur_rao_wi=1` to `run_model.sh` so UR handling is enabled and the tests do not trigger an EL3 exception. If PCIe MSE tests still fail, set `g_pcie_skip_dp_nic_ms=1` in `apps/baremetal/acs_globals.c` locally.
+**Note:** To run PCIe MSE tests on RDV3-Cfg1 FVP, add `-C pcie_group_0.pcie0.ur_rao_wi=1` to `run_model.sh` so UR handling is enabled and the tests do not trigger an EL3 exception. If PCIe MSE tests still fail, set `.pcie_skip_dp_nic_ms = true` in `g_platform_execution_policy` in `pal/baremetal/target/RDV3CFG1/src/platform_cfg_fvp.c` locally.
 
 -----------------
 

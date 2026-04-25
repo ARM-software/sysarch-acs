@@ -22,7 +22,7 @@
   #include <stdint.h>
   #include <stdarg.h>
   #include <stddef.h>
-  #include <stdbool.h>
+  #include "acs_stdbool.h"
   #include "platform_override_fvp.h"
   #include "acs_interface.h"
 
@@ -96,35 +96,16 @@
 
 #ifdef TARGET_UEFI
   #include <stdarg.h>
-  #include <stdbool.h>
   #include <stddef.h>
-  #include <Base.h>
+  #include "acs_stdbool.h"
+  #include "acs_stdint.h"
   #include "platform_override.h"
   #include "acs_interface.h"
 
-  typedef INT8    int8_t;
-  typedef INT16   int16_t;
-  typedef INT32   int32_t;
-  typedef INT64   int64_t;
-  typedef UINT8   uint8_t;
-  typedef UINT16  uint16_t;
-  typedef UINT32  uint32_t;
-  typedef UINT64  uint64_t;
   typedef UINT64  addr_t;
   typedef UINT64  dma_addr_t;
-  typedef UINTN  uintptr_t;
-  typedef INTN   intptr_t;
-  typedef INT64  intmax_t;
-  typedef UINT64 uintmax_t;
   typedef CHAR8   char8_t;
   typedef CHAR16  char16_t;
-
-  /* Avoid redefining bool when the language or headers already provide it. */
-  #if !defined(__cplusplus) && \
-      !(defined(__STDC_VERSION__) && __STDC_VERSION__ > 201710L) && \
-      !defined(__bool_true_false_are_defined)
-    typedef BOOLEAN bool;
-  #endif
 
   #define MAX_SID  32
   #define MMU_PGT_IAS    48

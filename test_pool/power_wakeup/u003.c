@@ -26,9 +26,6 @@
 
 static uint32_t g_el2phy_int_rcvd;
 static uint32_t g_failsafe_int_rcvd;
-extern uint32_t g_timeout_pass;
-extern uint32_t g_timeout_fail;
-
 static
 void
 isr_failsafe()
@@ -74,7 +71,8 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_fail()));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
@@ -95,7 +93,8 @@ payload3()
   uint32_t intid;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t delay_loop = MAX_SPIN_LOOPS;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_pass));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_pass()));
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL2_INTID, 0);
   if (val_gic_install_isr(intid, isr3)) {

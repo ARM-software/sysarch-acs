@@ -75,20 +75,21 @@ freeAcsMem(void)
 /* This routine will furnish global variables with user defined config and set any
    default values for the ACS */
 static uint32_t
-apply_user_config_and_defaults(acs_run_request_t *ctx)
+apply_user_config_and_defaults(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 {
-    if (ctx == NULL)
+    if (ctx == NULL || policy == NULL)
         return ACS_STATUS_FAIL;
 
     acs_load_run_request_defaults(ctx);
+    acs_load_execution_policy_defaults(policy);
 
     /* Set user defined compliance level to be run for
        as defined pal/baremetal/target/../include/platform_override_fvp.h  */
     ctx->level_value = PLATFORM_OVERRIDE_PCBSA_LEVEL;
-    g_print_level  = PLATFORM_OVERRIDE_PRINT_LEVEL;
+    policy->print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
 
-    /* Set default values for g_print_mmio */
-    g_print_mmio = 0;
+    /* Disable MMIO trace prints by default for standalone baremetal runs. */
+    policy->print_mmio = 0;
 
     /* If selected rule count is zero, default to PCBSA */
     if (ctx->rule_count == 0) {
@@ -98,24 +99,24 @@ apply_user_config_and_defaults(acs_run_request_t *ctx)
 
     /* Check sanity of value of level if not valid default to extremes */
     if (ctx->level_value < PCBSA_LEVEL_1) {
-        val_print(g_print_level, "\nPCBSA Level %d is not supported.\n", ctx->level_value);
-        val_print(g_print_level, "\nSetting PCBSA level to %d\n", PCBSA_LEVEL_1);
+        val_print(policy->print_level, "\nPCBSA Level %d is not supported.\n", ctx->level_value);
+        val_print(policy->print_level, "\nSetting PCBSA level to %d\n", PCBSA_LEVEL_1);
         ctx->level_value = PCBSA_LEVEL_1;
     } else if (ctx->level_value >= PCBSA_LEVEL_SENTINEL) {
-        val_print(g_print_level, "\nPCBSA Level %d is not supported.\n", ctx->level_value);
-        val_print(g_print_level, "\nSetting PCBSA level to %d\n", PCBSA_LEVEL_1);
+        val_print(policy->print_level, "\nPCBSA Level %d is not supported.\n", ctx->level_value);
+        val_print(policy->print_level, "\nSetting PCBSA level to %d\n", PCBSA_LEVEL_1);
         ctx->level_value = PCBSA_LEVEL_1;
     }
 
     /* Check sanity of print level, default accordingly */
-    if (g_print_level < TRACE) {
-        val_print(ERROR, "\nPrint Level %d is not supported.\n", g_print_level);
+    if (policy->print_level < TRACE) {
+        val_print(ERROR, "\nPrint Level %d is not supported.\n", policy->print_level);
         val_print(ERROR, "\nSetting Print level to %d\n", TRACE);
-        g_print_level = TRACE;
-    } else if (g_print_level > ERROR) {
-        val_print(ERROR, "\nPrint Level %d is not supported.\n", g_print_level);
+        policy->print_level = TRACE;
+    } else if (policy->print_level > ERROR) {
+        val_print(ERROR, "\nPrint Level %d is not supported.\n", policy->print_level);
         val_print(ERROR, "\nSetting Print level to %d\n", ERROR);
-        g_print_level = ERROR;
+        policy->print_level = ERROR;
     }
 
     return ACS_STATUS_PASS;
@@ -135,20 +136,22 @@ ShellAppMainpcbsa(void)
     uint32_t Status;
     void     *branch_label;
     acs_run_request_t *ctx;
+    acs_execution_policy_t *policy;
 
     acs_reset_run_request();
     ctx = acs_get_run_request_mut();
+    policy = acs_get_execution_policy_mut();
 
-    Status = apply_user_config_and_defaults(ctx);
+    Status = apply_user_config_and_defaults(ctx, policy);
     if (Status != ACS_STATUS_PASS) {
         val_print(ERROR, "\napply_user_config_and_defaults() failed, Exiting...\n");
         goto exit_acs;
     }
 
     /* Apply any compile-time test/module overrides before we consume the run request. */
-    acs_apply_compile_params(ctx);
+    acs_apply_compile_params(ctx, policy);
     /* Apply any EL3-supplied selection overrides before we consume the run request. */
-    acs_apply_el3_params(ctx);
+    acs_apply_el3_params(ctx, policy);
 
 #if ACS_ENABLE_MMU
     val_print(INFO, " Enabling MMU\n");
@@ -176,7 +179,7 @@ ShellAppMainpcbsa(void)
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
                 PCBSA_LEVEL_FR), ctx->level_value);
 
-    val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
+    val_print(INFO, "(Print level is %2d)\n\n", policy->print_level);
 
     val_print(INFO, " Creating Platform Information Tables\n");
 

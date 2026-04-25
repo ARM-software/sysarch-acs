@@ -23,7 +23,7 @@
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 1.0
   LIBRARY_CLASS                  = PalLib|UEFI_APPLICATION UEFI_DRIVER
-  DEFINE PAL_UEFI_ACPI_INCLUDE_FLAGS = -I${ACS_PATH}/pal/include -I${ACS_PATH}/pal/uefi_acpi/include -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
+  DEFINE PAL_UEFI_ACPI_INCLUDE_FLAGS = -I${ACS_PATH}/pal/include -I${ACS_PATH}/pal/uefi_acpi/include -I${ACS_PATH}/pal/baremetal/target/RDN2/include/ -I${ACS_PATH}/val/include
 [Sources.common]
   src/AArch64/ArmSmc.S
   src/AArch64/AcsTestInfra.S

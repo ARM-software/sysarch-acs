@@ -21,7 +21,6 @@
 #include "pal_common_support.h"
 #include "pal_pl011_uart.h"
 
-extern uint32_t  g_print_level;
 extern void* g_sbsa_log_file_handle;
 uint8_t   *gSharedMemory;
 
@@ -49,7 +48,7 @@ pal_mmio_read8(uint64_t addr)
   uint8_t data;
 
   data = (*(volatile uint8_t *)addr);
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_read8 Address = %llx  Data = %lx\n", addr, data);
 
   return data;
@@ -69,7 +68,7 @@ pal_mmio_read16(uint64_t addr)
   uint16_t data;
 
   data = (*(volatile uint16_t *)addr);
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_read16 Address = %llx  Data = %lx\n", addr, data);
 
   return data;
@@ -89,7 +88,7 @@ pal_mmio_read64(uint64_t addr)
   uint64_t data;
 
   data = (*(volatile uint64_t *)addr);
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_read64 Address = %llx  Data = %llx\n", addr, data);
 
   return data;
@@ -110,7 +109,7 @@ pal_mmio_read(uint64_t addr)
   uint32_t data;
 
   data = (*(volatile uint32_t *)addr);
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_read Address = %8x  Data = %x\n", addr, data);
 
   return data;
@@ -129,7 +128,7 @@ pal_mmio_read(uint64_t addr)
 void
 pal_mmio_write8(uint64_t addr, uint8_t data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_write8 Address = %llx  Data = %lx\n", addr, data);
 
   *(volatile uint8_t *)addr = data;
@@ -147,7 +146,7 @@ pal_mmio_write8(uint64_t addr, uint8_t data)
 void
 pal_mmio_write16(uint64_t addr, uint16_t data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_write16 Address = %llx  Data = %lx\n", addr, data);
 
   *(volatile uint16_t *)addr = data;
@@ -165,7 +164,7 @@ pal_mmio_write16(uint64_t addr, uint16_t data)
 void
 pal_mmio_write64(uint64_t addr, uint64_t data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_write64 Address = %llx  Data = %llx\n", addr, data);
 
   *(volatile uint64_t *)addr = data;
@@ -184,7 +183,7 @@ void
 pal_mmio_write(uint64_t addr, uint32_t data)
 {
 
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       print(ACS_PRINT_INFO, " pal_mmio_write Address = %8x  Data = %x\n", addr, data);
 
     *(volatile uint32_t *)addr = data;

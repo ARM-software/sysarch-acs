@@ -39,7 +39,7 @@ UINT8   *gSharedMemory;
 VOID
 pal_mmio_write8(UINT64 addr, UINT8 data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_write8 Address = %llx  Data = %lx\n", addr, data);
 
   *(volatile UINT8 *)addr = data;
@@ -57,7 +57,7 @@ pal_mmio_write8(UINT64 addr, UINT8 data)
 VOID
 pal_mmio_write16(UINT64 addr, UINT16 data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_write16 Address = %llx  Data = %lx\n", addr, data);
 
   *(volatile UINT16 *)addr = data;
@@ -75,7 +75,7 @@ pal_mmio_write16(UINT64 addr, UINT16 data)
 VOID
 pal_mmio_write64(UINT64 addr, UINT64 data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_write64 Address = %llx  Data = %llx\n", addr, data);
 
   *(volatile UINT64 *)addr = data;
@@ -96,7 +96,7 @@ pal_mmio_read8(UINT64 addr)
 
   data = (*(volatile UINT8 *)addr);
 
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_read8 Address = %lx  Data = %lx\n", addr, data);
 
   return data;
@@ -117,7 +117,7 @@ pal_mmio_read16(UINT64 addr)
 
   data = (*(volatile UINT16 *)addr);
 
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_read16 Address = %lx  Data = %lx\n", addr, data);
 
   return data;
@@ -138,7 +138,7 @@ pal_mmio_read64(UINT64 addr)
 
   data = (*(volatile UINT64 *)addr);
 
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_read64 Address = %lx  Data = %lx\n", addr, data);
 
   return data;
@@ -159,7 +159,7 @@ pal_mmio_read(UINT64 addr)
 
   data = (*(volatile UINT32 *)addr);
 
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_read Address = %lx  Data = %x\n", addr, data);
 
   return data;
@@ -177,7 +177,7 @@ pal_mmio_read(UINT64 addr)
 VOID
 pal_mmio_write(UINT64 addr, UINT32 data)
 {
-  if (g_print_mmio || (g_curr_module & g_enable_module))
+  if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       acs_print(ACS_PRINT_INFO, L" pal_mmio_write Address = %llx  Data = %x\n", addr, data);
 
   *(volatile UINT32 *)addr = data;

@@ -23,13 +23,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include "pal_status.h"
+#include "pal_execution_policy.h"
 #include "platform_override_fvp.h"
 
 typedef uintptr_t addr_t;
 typedef char     char8_t;
 
-extern uint32_t g_print_level;
-extern uint32_t g_print_mmio;
 extern uint32_t g_curr_module;
 extern uint32_t g_enable_module;
 
@@ -69,8 +68,11 @@ void *pal_aligned_alloc( uint32_t alignment, uint32_t size );
 void pal_uart_print(int log, const char *fmt, ...);
 void *mem_alloc(size_t alignment, size_t size);
 void pal_warn_not_implemented(const char *api_name);
-#define print(verbose, string, ...)  if(verbose >= g_print_level) \
-                                                   pal_uart_print(verbose, string, ##__VA_ARGS__)
+#define print(verbose, string, ...) \
+    do { \
+        if ((verbose) >= acs_policy_get_print_level()) \
+            pal_uart_print((verbose), (string), ##__VA_ARGS__); \
+    } while (0)
 
 #define PCIE_CREATE_BDF(Seg, Bus, Dev, Func) ((Seg << 24) | (Bus << 16) | (Dev << 8) | Func)
 

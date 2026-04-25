@@ -24,8 +24,6 @@
 #define TEST_RULE  "PCI_SM_02"
 #define TEST_DESC  "Check Function level reset            "
 
-extern bool g_pcie_skip_dp_nic_ms;
-
 static
 uint32_t is_flr_failed(uint32_t bdf)
 {
@@ -94,7 +92,7 @@ payload(void)
        * init can get corrupted when FLR is done */
       val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
       base_cc = reg_value >> TYPE01_BCC_SHIFT;
-      if (g_pcie_skip_dp_nic_ms &&
+      if (acs_policy_get_pcie_skip_dp_nic_ms() &&
           ((base_cc == UNCLAS_CC) || (base_cc == MAS_CC)
           || (base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC)))
       {

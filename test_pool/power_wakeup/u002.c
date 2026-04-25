@@ -26,9 +26,6 @@
 
 static uint32_t g_el1vir_int_received;
 static uint32_t g_failsafe_int_rcvd;
-extern uint32_t g_timeout_pass;
-extern uint32_t g_timeout_fail;
-
 static
 void
 isr_failsafe()
@@ -57,7 +54,8 @@ void
 wakeup_set_failsafe()
 {
   uint32_t intid;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_fail));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_fail()));
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid, isr_failsafe);
   val_timer_set_phy_el1(timer_expire_val);
@@ -95,7 +93,8 @@ payload2()
   uint32_t intid;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t delay_loop = MAX_SPIN_LOOPS;
-  uint32_t timer_expire_val = CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(g_timeout_pass));
+  uint32_t timer_expire_val =
+      CEIL_TO_MAX_SYS_TIMEOUT(val_get_timeout_to_ticks(acs_policy_get_timeout_pass()));
 
   intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);
   if (val_gic_install_isr(intid, isr2)) {
@@ -149,7 +148,7 @@ u002_entry(uint32_t num_pe)
 
   num_pe = 1;  //This Timer test is run on single processor
 
-  if (!(g_el1skiptrap_mask & EL1SKIPTRAP_CNTPCT)) {
+  if (!(acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_CNTPCT)) {
       val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
       status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 

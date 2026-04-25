@@ -20,8 +20,6 @@
 #include "val_interface.h"
 #include "acs_pcie.h"
 
-extern bool g_pcie_skip_dp_nic_ms;
-
 static const
 test_config_t test_entries[] = {
     { ACS_PCIE_TEST_NUM_BASE + 58, "Check MSE, CapPtr & BIST: RCiEP, RCEC ", "RE_REG_1"},
@@ -92,7 +90,7 @@ get_dsf_bdf(uint32_t rp_bdf, uint32_t *target_bdf)
           val_pcie_read_cfg(dev_bdf, TYPE01_RIDR, &reg_value);
           val_print(DEBUG, "\n       Downstream class code is 0x%x", reg_value);
           base_cc = reg_value >> TYPE01_BCC_SHIFT;
-          if (g_pcie_skip_dp_nic_ms &&
+          if (acs_policy_get_pcie_skip_dp_nic_ms() &&
               ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
               || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
               val_print(DEBUG, "\n       Skipping downstream BDF 0x%x", dev_bdf);
@@ -200,7 +198,7 @@ payload(void *arg)
           val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
           val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
           base_cc = reg_value >> TYPE01_BCC_SHIFT;
-          if (g_pcie_skip_dp_nic_ms &&
+          if (acs_policy_get_pcie_skip_dp_nic_ms() &&
               ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
               || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
               val_print(DEBUG, "\n       Skipping for BDF 0x%x", bdf);

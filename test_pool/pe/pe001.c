@@ -105,7 +105,7 @@ return_reg_value(uint32_t reg, uint8_t dependency)
 
   /* Skip specific EL1 register reads if requested via -el1skiptrap */
   if (reg == PMSIDR_EL1) {
-      if (g_el1skiptrap_mask & EL1SKIPTRAP_PMSIDR) {
+      if (acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_PMSIDR) {
           return 0;
       }
   }

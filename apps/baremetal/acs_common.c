@@ -18,6 +18,7 @@
 #include "acs.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include "pal/baremetal/base/include/pal_execution_policy.h"
 #include "val/include/val_interface.h"
 #include "val/include/acs_el3_param.h"
 #include "val/include/rule_based_execution_enum.h"
@@ -63,6 +64,57 @@ acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
 }
 
 void
+acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
+{
+  const acs_execution_policy_t *defaults;
+  const acs_execution_policy_t *platform_defaults;
+
+  if (policy == NULL)
+      return;
+
+  acs_reset_execution_policy();
+  defaults = acs_get_execution_policy();
+  /*
+   * Baremetal entry paths currently pass the shared execution-policy singleton,
+   * so acs_reset_execution_policy() has already seeded `policy` with the base
+   * defaults. Keep support for detached policy objects without needlessly
+   * self-assigning the singleton fields here.
+   */
+  if (policy != defaults) {
+      policy->pcie_p2p = defaults->pcie_p2p;
+      policy->pcie_cache_present = defaults->pcie_cache_present;
+      policy->pcie_skip_dp_nic_ms = defaults->pcie_skip_dp_nic_ms;
+      policy->print_level = defaults->print_level;
+      policy->print_mmio = defaults->print_mmio;
+      policy->timeout_pass = defaults->timeout_pass;
+      policy->timeout_fail = defaults->timeout_fail;
+      policy->timer_timeout_us = defaults->timer_timeout_us;
+      policy->crypto_support = defaults->crypto_support;
+      policy->sys_last_lvl_cache = defaults->sys_last_lvl_cache;
+      policy->el1skiptrap_mask = defaults->el1skiptrap_mask;
+  }
+
+  platform_defaults = acs_get_platform_execution_policy_defaults();
+  if (platform_defaults == NULL)
+      return;
+
+  /* Overlay baremetal platform-specific defaults on top of the generic reset defaults. */
+  policy->pcie_p2p = platform_defaults->pcie_p2p;
+  policy->pcie_cache_present = platform_defaults->pcie_cache_present;
+  policy->pcie_skip_dp_nic_ms = platform_defaults->pcie_skip_dp_nic_ms;
+  policy->crypto_support = platform_defaults->crypto_support;
+  policy->sys_last_lvl_cache = platform_defaults->sys_last_lvl_cache;
+  policy->el1skiptrap_mask = platform_defaults->el1skiptrap_mask;
+
+  if (platform_defaults->timeout_pass != 0u)
+      policy->timeout_pass = platform_defaults->timeout_pass;
+  if (platform_defaults->timeout_fail != 0u)
+      policy->timeout_fail = platform_defaults->timeout_fail;
+  if (platform_defaults->timer_timeout_us != 0u)
+      policy->timer_timeout_us = platform_defaults->timer_timeout_us;
+}
+
+void
 acs_load_run_request_defaults(acs_run_request_t *ctx)
 {
   if (ctx == NULL)
@@ -104,11 +156,11 @@ acs_load_run_request_defaults(acs_run_request_t *ctx)
 }
 
 void
-acs_apply_el3_params(acs_run_request_t *ctx)
+acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 {
   acs_el3_params *params;
 
-  if (ctx == NULL)
+  if (ctx == NULL || policy == NULL)
     return;
 
   /* If magic doesn't match, ignore X20 completely */
@@ -168,14 +220,14 @@ acs_apply_el3_params(acs_run_request_t *ctx)
     }
 
     /* Override shared runtime knobs and context filter settings from EL3 parameters. */
-    g_pcie_p2p            = params->p2p;
-    g_pcie_skip_dp_nic_ms = params->skip_dp_nic_ms;
-    g_print_mmio          = params->mmio;
-    g_crypto_support      = params->no_crypto_ext;
-    g_el1skiptrap_mask    = params->el1skiptrap_mask;
+    policy->pcie_p2p            = params->p2p;
+    policy->pcie_skip_dp_nic_ms = params->skip_dp_nic_ms;
+    policy->print_mmio          = params->mmio;
+    policy->crypto_support      = params->no_crypto_ext ? 0u : 1u;
+    policy->el1skiptrap_mask    = params->el1skiptrap_mask;
     ctx->bsa_sw_view_mask = params->software_view_filter;
-    g_pcie_cache_present  = params->cache;
-    g_sys_last_lvl_cache  = params->sys_cache;
+    policy->pcie_cache_present  = params->cache;
+    policy->sys_last_lvl_cache  = params->sys_cache;
     ctx->level_value = params->level;
 
     if (params->level_selection >= LVL_FILTER_NONE &&
@@ -186,7 +238,7 @@ acs_apply_el3_params(acs_run_request_t *ctx)
                 "Override skipped for level filter mode  %d\n", params->level_selection);
 
     if (params->verbose >= TRACE && params->verbose <= FATAL)
-      g_print_level         = params->verbose;
+      policy->print_level = params->verbose;
     else
       val_print(WARN,
                 "Override skipped for verbose  %d\n", params->verbose);
@@ -194,9 +246,10 @@ acs_apply_el3_params(acs_run_request_t *ctx)
     if (params->timeout >= TIMEOUT_THRESHOLD
        && params->timeout <= TIMEOUT_MAX_THRESHOLD)
     {
-      g_timeout_pass        = params->timeout;
-      g_timer_timeout_us    = params->timeout;
-      g_timeout_fail        = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      policy->timeout_pass = params->timeout;
+      policy->timer_timeout_us = params->timeout;
+      policy->timeout_fail =
+          policy->timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
     }
     else
       val_print(WARN,
@@ -205,9 +258,9 @@ acs_apply_el3_params(acs_run_request_t *ctx)
 }
 
 void
-acs_apply_compile_params(acs_run_request_t *ctx)
+acs_apply_compile_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 {
-  if (ctx == NULL)
+  if (ctx == NULL || policy == NULL)
       return;
 
 #if ACS_HAS_ENABLED_MODULE_LIST
@@ -220,12 +273,12 @@ acs_apply_compile_params(acs_run_request_t *ctx)
   /*
    * Allow compile-time override of the default print verbosity.
    */
-  g_print_level = ACS_VERBOSE_LEVEL;
+  policy->print_level = ACS_VERBOSE_LEVEL;
 
-  if (g_print_level < TRACE)
-    g_print_level = TRACE;
-  else if (g_print_level > FATAL)
-    g_print_level = FATAL;
+  if (policy->print_level < TRACE)
+    policy->print_level = TRACE;
+  else if (policy->print_level > FATAL)
+    policy->print_level = FATAL;
 #endif
 
   return;

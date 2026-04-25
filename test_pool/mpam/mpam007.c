@@ -187,15 +187,17 @@ static void payload(void)
     /* if both PPTT LLC and mem-side cache MSCs found, read user input to
        know which should be considered as Last level System Cache */
     if (pptt_llc_msc_found && mem_llc_msc_found) {
-        if (g_sys_last_lvl_cache == SLC_TYPE_UNKNOWN) {
+        if (acs_policy_get_sys_last_lvl_cache() == SLC_TYPE_UNKNOWN) {
             val_print(ERROR, "\n       PPTT and memside LLC MSC found, Please provide"
                       "System Last-Level cache info via -slc cmdline option \n");
             val_set_status(index, RESULT_FAIL(03));
             return;
-        } else if (g_sys_last_lvl_cache == SLC_TYPE_PPTT_CACHE && pptt_llc_cpor_supported) {
+        } else if (acs_policy_get_sys_last_lvl_cache() == SLC_TYPE_PPTT_CACHE &&
+                   pptt_llc_cpor_supported) {
             val_set_status(index, RESULT_PASS);
             return;
-        } else if (g_sys_last_lvl_cache == SLC_TYPE_MEMSIDE_CACHE && memside_llc_cpor_supported) {
+        } else if (acs_policy_get_sys_last_lvl_cache() == SLC_TYPE_MEMSIDE_CACHE &&
+                   memside_llc_cpor_supported) {
             val_set_status(index, RESULT_PASS);
             return;
         } else {

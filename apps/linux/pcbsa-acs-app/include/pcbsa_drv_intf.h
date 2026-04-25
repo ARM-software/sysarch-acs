@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,10 @@
  * limitations under the License.
  **/
 
-
 #ifndef __SBSA_DRV_INTF_H__
 #define __SBSA_DRV_INTF_H__
+
+#include <stdint.h>
 
 
 /* API NUMBERS to COMMUNICATE with DRIVER */
@@ -36,17 +37,17 @@
 /* Function Prototypes */
 
 int
-call_drv_init_test_env();
+call_drv_init_test_env(unsigned int print_level);
 
 int
-call_drv_clean_test_env();
+call_drv_clean_test_env(void);
 
 int
 call_drv_execute_test(unsigned int test_num, unsigned int num_pe,
   unsigned int level, unsigned int print_level, unsigned long int test_input);
 
 int
-call_update_skip_list(unsigned int api_num, int *p_skip_test_num);
+call_update_skip_list(unsigned int api_num, uint32_t *p_skip_test_num);
 
 int call_drv_wait_for_completion(void);
 

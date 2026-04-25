@@ -19,8 +19,6 @@
 #include "acs_pcie.h"
 #include "acs_memory.h"
 
-extern bool g_pcie_skip_dp_nic_ms;
-
 /* Test runs on Linux and BM Env */
 static const
 test_config_t test_entries[] = {
@@ -144,7 +142,7 @@ next_bdf:
           val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
           val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
           base_cc = reg_value >> TYPE01_BCC_SHIFT;
-          if (g_pcie_skip_dp_nic_ms &&
+          if (acs_policy_get_pcie_skip_dp_nic_ms() &&
               ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
               || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
               val_print(DEBUG, "\n       Skipping BDF as  0x%x", bdf);

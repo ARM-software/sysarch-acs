@@ -30,7 +30,6 @@
 
 extern VOID* g_acs_log_file_handle;
 
-UINT32  g_print_level;
 UINT32  g_acs_tests_pass;
 UINT32  g_acs_tests_fail;
 UINT32  *g_skip_test_num;
@@ -39,7 +38,6 @@ UINT64  g_stack_pointer;
 UINT64  g_exception_ret_addr;
 UINT64  g_ret_addr;
 UINT32  g_wakeup_timeout;
-UINT32  g_print_mmio;
 UINT32  g_curr_module;
 UINT32  g_enable_module;
 UINT32  *g_execute_tests;
@@ -103,6 +101,10 @@ command_init ()
   UINT32             Status;
   UINT32             i;
   UINT32             ReadVerbosity;
+  acs_execution_policy_t *policy;
+
+  acs_reset_execution_policy();
+  policy = acs_get_execution_policy_mut();
 
   //
   // Process Command Line arguments
@@ -150,16 +152,16 @@ command_init ()
     // Options with Values
   CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-v");
   if (CmdLineArg == NULL) {
-    g_print_level = 3;
+    policy->print_level = 3;
   } else {
     ReadVerbosity = StrDecimalToUintn(CmdLineArg);
     while (ReadVerbosity/10) {
       g_enable_module |= (1 << ReadVerbosity%10);
       ReadVerbosity /= 10;
     }
-    g_print_level = ReadVerbosity;
-    if (g_print_level > 5) {
-      g_print_level = 3;
+    policy->print_level = ReadVerbosity;
+    if (policy->print_level > 5) {
+      policy->print_level = 3;
     }
   }
 
@@ -306,7 +308,7 @@ execute_tests()
   val_print(INFO, "\n          Version %d.", DRTM_ACS_MAJOR_VER);
   val_print(INFO, "%d\n", DRTM_ACS_MINOR_VER);
 
-  val_print(INFO, "\n Starting tests with print level : %2d\n\n", g_print_level);
+  val_print(INFO, "\n Starting tests with print level : %2d\n\n", acs_policy_get_print_level());
   val_print(INFO, "\n Creating Platform Information Tables\n");
 
   Status = createPeInfoTable();

@@ -351,7 +351,7 @@ pal_pcie_p2p_support()
    * PCIe support for peer to peer
    * transactions is platform implementation specific
   */
-  if (g_pcie_p2p)
+  if (acs_policy_get_pcie_p2p())
       return 0;
   else {
       pal_warn_not_implemented(__func__);
@@ -486,7 +486,7 @@ pal_pcie_is_cache_present (
   UINT32 Fn
   )
 {
-  if (g_pcie_cache_present)
+  if (acs_policy_get_pcie_cache_present())
       return 1;
   else {
       pal_warn_not_implemented(__func__);

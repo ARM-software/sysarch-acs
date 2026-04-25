@@ -96,6 +96,6 @@ void pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
       }
   }
 
-  if (g_print_level <= ACS_PRINT_INFO)
+  if (acs_policy_get_print_level() <= ACS_PRINT_INFO)
       pal_hmat_dump_info_table(HmatTable);
 }

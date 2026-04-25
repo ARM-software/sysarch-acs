@@ -437,7 +437,7 @@ payload_check_arm_generic_uart_interrupt()
               }
 
               uart_enable_txintr();
-              val_print_raw(l_uart_base, g_print_level,
+              val_print_raw(l_uart_base, acs_policy_get_print_level(),
                             "\n       Test Message                          ", 0);
 
               while ((--timeout > 0) && (IS_RESULT_PENDING(val_get_status(index)))) {

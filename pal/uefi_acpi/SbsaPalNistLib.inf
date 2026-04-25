@@ -22,7 +22,7 @@
   MODULE_TYPE                    = UEFI_APPLICATION
   VERSION_STRING                 = 1.0
   LIBRARY_CLASS                  = SbsaPalNistLib|UEFI_APPLICATION UEFI_DRIVER
-  DEFINE PAL_NIST_INCLUDE_FLAGS     = -I${ACS_PATH}/pal/include -I${ACS_PATH}/pal/uefi_acpi/include -I${ACS_PATH}/pal/baremetal/target/RDN2/include/
+  DEFINE PAL_NIST_INCLUDE_FLAGS     = -I${ACS_PATH}/pal/include -I${ACS_PATH}/pal/uefi_acpi/include -I${ACS_PATH}/pal/baremetal/target/RDN2/include/ -I${ACS_PATH}/val/include
 
 [Sources.common]
   src/AArch64/ArmSmc.S
@@ -86,4 +86,3 @@
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
   GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+profile+lse $(PAL_NIST_INCLUDE_FLAGS)
-

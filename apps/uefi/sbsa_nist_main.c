@@ -28,14 +28,9 @@
 
 #include "acs.h"
 
-UINT32  g_pcie_p2p;
-UINT32  g_pcie_cache_present;
-bool    g_pcie_skip_dp_nic_ms = 0;
 UINT32  g_sbsa_level;
 UINT32  g_sbsa_only_level = 0;
-UINT32  g_print_level;
 UINT32  g_execute_nist;
-UINT32  g_print_mmio = FALSE;
 UINT32  g_curr_module = 0;
 UINT32  g_enable_module = 0;
 UINT32  *g_skip_test_num;
@@ -47,19 +42,11 @@ UINT32  g_num_modules = 0;
 UINT32  g_acs_tests_total;
 UINT32  g_acs_tests_pass;
 UINT32  g_acs_tests_fail;
-UINT32  g_crypto_support = TRUE;
 UINT64  g_stack_pointer;
 UINT64  g_exception_ret_addr;
 UINT64  g_ret_addr;
-UINT32  g_timeout_pass;
-UINT32  g_timeout_fail;
-UINT32  g_timer_timeout_us;
 UINT32 g_its_init = 0;
-UINT32  g_sys_last_lvl_cache;
 SHELL_FILE_HANDLE g_acs_log_file_handle;
-/* Bitmask of EL1 register accesses to skip in environments where those
-   specific reads are expected to trap. */
-UINT32  g_el1skiptrap_mask = 0;
 UINT32  g_build_sbsa = TRUE;
 
 #define SBSA_LEVEL_PRINT_FORMAT(level, only) ((level > SBSA_MAX_LEVEL_SUPPORTED) ? \
@@ -399,6 +386,10 @@ command_init ()
   UINT32             Status;
   UINT32             i;
   UINT32             ReadVerbosity;
+  acs_execution_policy_t *policy;
+
+  acs_reset_execution_policy();
+  policy = acs_get_execution_policy_mut();
 
   //
   // Process Command Line arguments
@@ -446,9 +437,10 @@ command_init ()
   /* Parse -timeout */
   CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-timeout");
   if (CmdLineArg == NULL) {
-      g_timeout_pass = WAKEUP_WD_PASS_TIMEOUT_DEFAULT;
-      g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
-      g_timer_timeout_us = TIMER_TIMEOUT_DEFAULT;
+      policy->timeout_pass = WAKEUP_WD_PASS_TIMEOUT_DEFAULT;
+      policy->timeout_fail =
+          policy->timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      policy->timer_timeout_us = TIMER_TIMEOUT_DEFAULT;
   } else {
       /* Accept a single value; ignore any trailing delimiters */
       CHAR16 buf[64];
@@ -478,38 +470,40 @@ command_init ()
           i--;
       }
 
-      g_timeout_pass = (UINT32)StrDecimalToUintn(buf);
-      g_timeout_fail = g_timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
-      g_timer_timeout_us = g_timeout_pass;
-      if (!(g_timeout_pass >= TIMEOUT_THRESHOLD &&
-            g_timeout_pass <= TIMEOUT_MAX_THRESHOLD)) {
+      policy->timeout_pass = (UINT32)StrDecimalToUintn(buf);
+      policy->timeout_fail =
+          policy->timeout_pass * WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER;
+      policy->timer_timeout_us = policy->timeout_pass;
+      if (!(policy->timeout_pass >= TIMEOUT_THRESHOLD &&
+            policy->timeout_pass <= TIMEOUT_MAX_THRESHOLD)) {
           Print(L"Invalid -timeout: pass timeout range should be within 500ms and 2sec\n");
           return SHELL_INVALID_PARAMETER;
       }
 
-      Print(L"Timeouts (us): PASS=%d, FAIL=%d\n", g_timeout_pass, g_timeout_fail);
+      Print(L"Timeouts (us): PASS=%d, FAIL=%d\n",
+            policy->timeout_pass, policy->timeout_fail);
   }
 
     // Options with Values
   CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-v");
   if (CmdLineArg == NULL) {
-    g_print_level = G_PRINT_LEVEL;
+    policy->print_level = G_PRINT_LEVEL;
   } else {
     ReadVerbosity = StrDecimalToUintn(CmdLineArg);
     while (ReadVerbosity/10) {
       g_enable_module |= (1 << ReadVerbosity%10);
       ReadVerbosity /= 10;
     }
-    g_print_level = ReadVerbosity;
-    if (g_print_level > 5) {
-      g_print_level = G_PRINT_LEVEL;
+    policy->print_level = ReadVerbosity;
+    if (policy->print_level > 5) {
+      policy->print_level = G_PRINT_LEVEL;
     }
   }
 
   if (ShellCommandLineGetFlag (ParamPackage, L"-mmio")) {
-    g_print_mmio = TRUE;
+    policy->print_mmio = TRUE;
   } else {
-    g_print_mmio = FALSE;
+    policy->print_mmio = FALSE;
   }
 
   g_sbsa_level = G_SBSA_LEVEL;
@@ -639,21 +633,21 @@ command_init ()
   }
 
   if (ShellCommandLineGetFlag (ParamPackage, L"-skip-dp-nic-ms")) {
-    g_pcie_skip_dp_nic_ms = TRUE;
+    policy->pcie_skip_dp_nic_ms = TRUE;
   } else {
-    g_pcie_skip_dp_nic_ms = FALSE;
+    policy->pcie_skip_dp_nic_ms = FALSE;
   }
 
   if (ShellCommandLineGetFlag (ParamPackage, L"-p2p")) {
-    g_pcie_p2p = TRUE;
+    policy->pcie_p2p = TRUE;
   } else {
-    g_pcie_p2p = FALSE;
+    policy->pcie_p2p = FALSE;
   }
 
   if (ShellCommandLineGetFlag (ParamPackage, L"-cache")) {
-    g_pcie_cache_present = TRUE;
+    policy->pcie_cache_present = TRUE;
   } else {
-    g_pcie_cache_present = FALSE;
+    policy->pcie_cache_present = FALSE;
   }
 
   // Options with Flags
@@ -695,11 +689,11 @@ command_init ()
         token[tlen] = L'\0';
 
         if (w_ascii_streq_caseins(token, L"pmsidr")) {
-          g_el1skiptrap_mask |= EL1SKIPTRAP_PMSIDR;
+          policy->el1skiptrap_mask |= EL1SKIPTRAP_PMSIDR;
         } else if (w_ascii_streq_caseins(token, L"cntpct")) {
-          g_el1skiptrap_mask |= EL1SKIPTRAP_CNTPCT;
+          policy->el1skiptrap_mask |= EL1SKIPTRAP_CNTPCT;
         } else if (w_ascii_streq_caseins(token, L"devmem")) {
-          g_el1skiptrap_mask |= EL1SKIPTRAP_DEVMEM;
+          policy->el1skiptrap_mask |= EL1SKIPTRAP_DEVMEM;
         } else {
           Print(L"Invalid -el1skiptrap token: %s\n", token);
           HelpMsg();
@@ -738,7 +732,7 @@ execute_tests()
   if (g_sbsa_only_level)
     g_sbsa_level = 0;
 
-  val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
+  val_print(INFO, "(Print level is %2d)\n\n", acs_policy_get_print_level());
   val_print(INFO, "\n Creating Platform Information Tables\n");
 
 

@@ -158,7 +158,7 @@ execute_tests()
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
               VBSA_LEVEL_FR), ctx->level_value);
 
-    val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
+    val_print(INFO, "(Print level is %2d)\n\n", acs_policy_get_print_level());
     val_print(INFO, "\n Creating Platform Information Tables\n");
 
     Status = createPeInfoTable();

@@ -58,7 +58,7 @@ payload()
   val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
   val_set_status(index, RESULT_SKIP(1));
 
-  if (g_el1skiptrap_mask & EL1SKIPTRAP_DEVMEM) {
+  if (acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_DEVMEM) {
       val_print(DEBUG,
                 "\n       Skipping device memory access due to -el1skiptrap devmem");
       goto normal_mem_test;

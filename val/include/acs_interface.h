@@ -18,22 +18,18 @@
 #ifndef __ACS_INTERFACE_H__
 #define __ACS_INTERFACE_H__
 
-#ifdef TARGET_UEFI
-typedef UINT32 acs_uint32_t;
-#else
-typedef uint32_t acs_uint32_t;
-#endif
+#include "acs_stdint.h"
 
 /* Test status counters visible across ACS */
 typedef struct {
-    acs_uint32_t total_rules_run;     /* Total rules/tests that reported a status */
-    acs_uint32_t passed;              /* Count of TEST_PASS */
-    acs_uint32_t partial_coverage;    /* Count of TEST_PARTIAL_COV */
-    acs_uint32_t warnings;            /* Count of TEST_WARN */
-    acs_uint32_t skipped;             /* Count of TEST_SKIP */
-    acs_uint32_t failed;              /* Count of TEST_FAIL */
-    acs_uint32_t not_implemented;     /* Count of TEST_NO_IMP */
-    acs_uint32_t pal_not_supported;   /* Count of TEST_PAL_NS */
+    uint32_t total_rules_run;     /* Total rules/tests that reported a status */
+    uint32_t passed;              /* Count of TEST_PASS */
+    uint32_t partial_coverage;    /* Count of TEST_PARTIAL_COV */
+    uint32_t warnings;            /* Count of TEST_WARN */
+    uint32_t skipped;             /* Count of TEST_SKIP */
+    uint32_t failed;              /* Count of TEST_FAIL */
+    uint32_t not_implemented;     /* Count of TEST_NO_IMP */
+    uint32_t pal_not_supported;   /* Count of TEST_PAL_NS */
 } acs_test_status_counters_t;
 
 acs_test_status_counters_t *acs_get_test_status(void);

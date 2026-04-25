@@ -98,17 +98,9 @@ extern uint32_t g_num_modules;
 extern uint32_t g_skip_modules_arr[];
 extern uint32_t g_num_skip_modules;
 extern uint32_t g_level_filter_mode;
-extern uint32_t g_sys_last_lvl_cache;
-extern uint32_t g_timeout_pass;
-extern uint32_t g_timeout_fail;
 
-/* Globals from apps/baremetal/acs_globals.c */
-extern uint32_t  g_pcie_cache_present;
+/* Remaining baremetal execution globals from apps/baremetal/acs_globals.c */
 extern uint32_t  g_el1physkip;
-extern uint32_t  g_pcie_p2p;
-extern uint32_t  g_crypto_support;
-extern uint32_t  g_print_level;
-extern uint32_t  g_print_mmio;
 extern uint32_t  g_curr_module;
 extern uint32_t  g_enable_module;
 extern uint32_t  g_acs_tests_total;
@@ -117,7 +109,6 @@ extern uint32_t  g_acs_tests_fail;
 extern uint64_t  g_stack_pointer;
 extern uint64_t  g_exception_ret_addr;
 extern uint64_t  g_ret_addr;
-extern bool      g_pcie_skip_dp_nic_ms;
 extern uint32_t  g_build_sbsa;
 extern uint32_t  g_build_pcbsa;
 extern uint32_t  g_its_init;

@@ -93,20 +93,21 @@ freeAcsMeM(void)
 
 /* This routine will furnish global variables with user defined config and set any
    default values for the ACS */
-uint32_t apply_user_config_and_defaults(acs_run_request_t *ctx)
+uint32_t apply_user_config_and_defaults(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 {
-    if (ctx == NULL)
+    if (ctx == NULL || policy == NULL)
         return ACS_STATUS_FAIL;
 
     acs_load_run_request_defaults(ctx);
+    acs_load_execution_policy_defaults(policy);
 
     /* Set user defined compliance level to be run for
        as defined pal/baremetal/target/../include/platform_override_fvp.h  */
     ctx->level_value = PLATFORM_OVERRIDE_SBSA_LEVEL;
-    g_print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
+    policy->print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
 
-    /* Set default values for g_print_mmio */
-    g_print_mmio = 0;
+    /* Disable MMIO trace prints by default for standalone baremetal runs. */
+    policy->print_mmio = 0;
 
     /* If selected rule count is zero, default to SBSA */
     if (ctx->rule_count == 0) {
@@ -116,24 +117,24 @@ uint32_t apply_user_config_and_defaults(acs_run_request_t *ctx)
 
     /* Check sanity of value of level if not valid default to extremes */
     if (ctx->level_value < SBSA_LEVEL_3) {
-        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
-        val_print(g_print_level, "\nSetting SBSA level to %d\n", SBSA_LEVEL_3);
+        val_print(policy->print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
+        val_print(policy->print_level, "\nSetting SBSA level to %d\n", SBSA_LEVEL_3);
         ctx->level_value = SBSA_LEVEL_3;
     } else if (ctx->level_value >= SBSA_LEVEL_SENTINEL) {
-        val_print(g_print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
-        val_print(g_print_level, "\nSetting SBSA level FR", SBSA_LEVEL_FR);
+        val_print(policy->print_level, "\nSBSA Level %d is not supported.\n", ctx->level_value);
+        val_print(policy->print_level, "\nSetting SBSA level FR", SBSA_LEVEL_FR);
         ctx->level_value = SBSA_LEVEL_FR;
     }
 
     /* Check sanity of print level, default accordingly */
-    if (g_print_level < TRACE) {
-        val_print(ERROR, "\nPrint Level %d is not supported.\n", g_print_level);
+    if (policy->print_level < TRACE) {
+        val_print(ERROR, "\nPrint Level %d is not supported.\n", policy->print_level);
         val_print(ERROR, "\nSetting Print level to %d\n", TRACE);
-        g_print_level = TRACE;
-    } else if (g_print_level > ERROR) {
-        val_print(ERROR, "\nPrint Level %d is not supported.\n", g_print_level);
+        policy->print_level = TRACE;
+    } else if (policy->print_level > ERROR) {
+        val_print(ERROR, "\nPrint Level %d is not supported.\n", policy->print_level);
         val_print(ERROR, "\nSetting Print level to %d\n", ERROR);
-        g_print_level = ERROR;
+        policy->print_level = ERROR;
     }
 
     /* Set g_build_sbsa hint for test */
@@ -157,11 +158,13 @@ ShellAppMainsbsa()
     uint32_t             Status = ACS_STATUS_SKIP;
     void                 *branch_label;
     acs_run_request_t    *ctx;
+    acs_execution_policy_t *policy;
 
     acs_reset_run_request();
     ctx = acs_get_run_request_mut();
+    policy = acs_get_execution_policy_mut();
 
-    Status = apply_user_config_and_defaults(ctx);
+    Status = apply_user_config_and_defaults(ctx, policy);
     if (Status != ACS_STATUS_PASS) {
         val_print(ERROR, "\napply_user_config_and_defaults() failed, Exiting...\n");
         goto exit_acs;
@@ -184,9 +187,9 @@ ShellAppMainsbsa()
   val_print(INFO, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n");
 #endif
     /* Apply any compile-time test/module overrides before we consume the run request. */
-    acs_apply_compile_params(ctx);
+    acs_apply_compile_params(ctx, policy);
     /* Apply any EL3-supplied selection overrides before we consume the run request. */
-    acs_apply_el3_params(ctx);
+    acs_apply_el3_params(ctx, policy);
 
     val_print(INFO, "\n\n SBSA Architecture Compliance Suite\n");
     val_print(INFO, "    Version %d.", SBSA_ACS_MAJOR_VER);
@@ -197,7 +200,7 @@ ShellAppMainsbsa()
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
                 SBSA_LEVEL_FR), ctx->level_value);
 
-    val_print(INFO, "(Print level is %2d)\n\n", g_print_level);
+    val_print(INFO, "(Print level is %2d)\n\n", policy->print_level);
 
     val_print(INFO, " Creating Platform Information Tables\n");
 
