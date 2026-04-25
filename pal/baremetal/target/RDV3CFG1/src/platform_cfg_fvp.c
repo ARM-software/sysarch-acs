@@ -16,6 +16,7 @@
 **/
 
 #include "pal_common_support.h"
+#include "pal_run_request.h"
 #include "platform_override_struct.h"
 #include "rule_based_execution_enum.h"
 
@@ -23,45 +24,54 @@
    as well as run compliance against subset of rules.
 
    Partner fill-in guide :
-   - g_rule_list_arr: Explicit list of rule IDs (RULE_ID_e) to execute. Leave empty for default
-     rule checklist.
+   - platform_rule_list_arr: Explicit list of rule IDs (RULE_ID_e) to execute. Leave empty for
+       the default rule checklist.
        Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
        Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-   - g_skip_rule_list_arr: Rules (RULE_ID_e) to skip.
-       These take precedence over selections via g_rule_list_arr or module filters.
+   - platform_skip_rule_list_arr: Rules (RULE_ID_e) to skip.
+       These take precedence over selections via platform_rule_list_arr or module filters.
        Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
        Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-   - g_execute_modules_arr: Modules to include (values from MODULE_NAME_e: PE, GIC, SMMU,
+   - platform_execute_modules_arr: Modules to include (values from MODULE_NAME_e: PE, GIC, SMMU,
        TIMER, PERIPHERAL, RAS, WATCHDOG, PCIE, MPAM, ETE, TPM, etc.). If non-empty, only
        rules belonging to these modules will run.
        Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
-   - g_skip_modules_arr: Modules (MODULE_NAME_e) to exclude from execution.
+   - platform_skip_modules_arr: Modules (MODULE_NAME_e) to exclude from execution.
+
+   - g_platform_run_request_defaults.level_filter_mode: Default baremetal level filtering mode.
 
    Notes:
    - Counts are auto-derived via sizeof; no sentinel terminators are required.
    - If both include and skip specify the same module/rule, skip wins.
 */
-RULE_ID_e g_rule_list_arr[] = {} ;
-uint32_t  g_rule_count = sizeof(g_rule_list_arr)/sizeof(g_rule_list_arr[0]);
+static RULE_ID_e platform_rule_list_arr[] = {};
+static RULE_ID_e platform_skip_rule_list_arr[] = {};
+static uint32_t platform_execute_modules_arr[] = {};
+static uint32_t platform_skip_modules_arr[] = {};
 
-RULE_ID_e g_skip_rule_list_arr[] = {};
-uint32_t g_skip_rule_count = sizeof(g_skip_rule_list_arr)/sizeof(g_skip_rule_list_arr[0]);
+static const acs_platform_run_request_defaults_t g_platform_run_request_defaults = {
+    .rule_list = platform_rule_list_arr,
+    .rule_count = sizeof(platform_rule_list_arr) / sizeof(platform_rule_list_arr[0]),
+    .skip_rule_list = platform_skip_rule_list_arr,
+    .skip_rule_count = sizeof(platform_skip_rule_list_arr) /
+        sizeof(platform_skip_rule_list_arr[0]),
+    .execute_modules = platform_execute_modules_arr,
+    .num_modules = sizeof(platform_execute_modules_arr) /
+        sizeof(platform_execute_modules_arr[0]),
+    .skip_modules = platform_skip_modules_arr,
+    .num_skip_modules = sizeof(platform_skip_modules_arr) /
+        sizeof(platform_skip_modules_arr[0]),
+    .level_filter_mode = LVL_FILTER_MAX,
+};
 
-uint32_t  g_execute_modules_arr[] = {};
-uint32_t  g_num_modules = sizeof(g_execute_modules_arr)/sizeof(g_execute_modules_arr[0]);
-
-uint32_t  g_skip_modules_arr[] = {};
-uint32_t  g_num_skip_modules = sizeof(g_skip_modules_arr)/sizeof(g_skip_modules_arr[0]);
-
-/* The Baremetal app supports three filtering modes
-    LVL_FILTER_MAX,    run rules with level <= selected level
-    LVL_FILTER_ONLY,   run rules with level == selected level
-    LVL_FILTER_FR      run rules with level <= *_LEVEL_FR
-*/
-uint32_t g_level_filter_mode = LVL_FILTER_MAX; /* Default set to LVL_FILTER_MAX */
+const acs_platform_run_request_defaults_t *
+acs_get_platform_run_request_defaults(void)
+{
+    return &g_platform_run_request_defaults;
+}
 
 /*
  * Platform execution-policy defaults overlaid on top of the generic runtime

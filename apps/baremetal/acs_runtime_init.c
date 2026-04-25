@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "pal/baremetal/base/include/pal_execution_policy.h"
+#include "pal/baremetal/base/include/pal_run_request.h"
 #include "val/include/val_interface.h"
 #include "val/include/acs_el3_param.h"
 #include "val/include/rule_based_execution_enum.h"
@@ -33,21 +34,7 @@ const uint32_t acs_build_module_count =
     sizeof(acs_build_module_array) / sizeof(acs_build_module_array[0]);
 #endif
 
-bool
-acs_is_module_enabled(uint32_t module_base)
-{
-    const acs_run_request_t *ctx = acs_get_run_request();
-
-    /* Runtime / EL3 / CLI override has highest priority */
-    if (ctx->num_modules) {
-        return acs_list_contains(ctx->execute_modules, ctx->num_modules, module_base);
-    }
-    /* No overrides: enable everything */
-    (void)module_base;
-    return true;
-}
-
-bool
+static bool
 acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
 {
   uint32_t i;
@@ -61,6 +48,20 @@ acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
   }
 
   return false;
+}
+
+bool
+acs_is_module_enabled(uint32_t module_base)
+{
+    const acs_run_request_t *ctx = acs_get_run_request();
+
+    /* Runtime / EL3 / CLI override has highest priority */
+    if (ctx->num_modules) {
+        return acs_list_contains(ctx->execute_modules, ctx->num_modules, module_base);
+    }
+    /* No overrides: enable everything */
+    (void)module_base;
+    return true;
 }
 
 void
@@ -117,9 +118,15 @@ acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
 void
 acs_load_run_request_defaults(acs_run_request_t *ctx)
 {
+  const acs_platform_run_request_defaults_t *platform_defaults;
+
   if (ctx == NULL)
       return;
 
+  /*
+   * Seed the detached/shared request directly to keep the baremetal path
+   * freestanding and avoid aggregate-copy codegen pulling in memcpy().
+   */
   ctx->rule_list = NULL;
   ctx->rule_count = 0;
   ctx->skip_rule_list = NULL;
@@ -129,7 +136,7 @@ acs_load_run_request_defaults(acs_run_request_t *ctx)
   ctx->skip_modules = NULL;
   ctx->num_skip_modules = 0;
   ctx->arch_selection = ARCH_NONE;
-  ctx->level_filter_mode = g_level_filter_mode;
+  ctx->level_filter_mode = LVL_FILTER_NONE;
   ctx->level_value = 0;
   ctx->bsa_sw_view_mask = 0;
   ctx->rule_list_owned = false;
@@ -137,21 +144,27 @@ acs_load_run_request_defaults(acs_run_request_t *ctx)
   ctx->execute_modules_owned = false;
   ctx->skip_modules_owned = false;
 
-  if (g_rule_count) {
-      ctx->rule_list = g_rule_list_arr;
-      ctx->rule_count = g_rule_count;
+  platform_defaults = acs_get_platform_run_request_defaults();
+  if (platform_defaults == NULL)
+      return;
+
+  ctx->level_filter_mode = platform_defaults->level_filter_mode;
+
+  if (platform_defaults->rule_count != 0u) {
+      ctx->rule_list = platform_defaults->rule_list;
+      ctx->rule_count = platform_defaults->rule_count;
   }
-  if (g_skip_rule_count) {
-      ctx->skip_rule_list = g_skip_rule_list_arr;
-      ctx->skip_rule_count = g_skip_rule_count;
+  if (platform_defaults->skip_rule_count != 0u) {
+      ctx->skip_rule_list = platform_defaults->skip_rule_list;
+      ctx->skip_rule_count = platform_defaults->skip_rule_count;
   }
-  if (g_num_modules) {
-      ctx->execute_modules = g_execute_modules_arr;
-      ctx->num_modules = g_num_modules;
+  if (platform_defaults->num_modules != 0u) {
+      ctx->execute_modules = platform_defaults->execute_modules;
+      ctx->num_modules = platform_defaults->num_modules;
   }
-  if (g_num_skip_modules) {
-      ctx->skip_modules = g_skip_modules_arr;
-      ctx->num_skip_modules = g_num_skip_modules;
+  if (platform_defaults->num_skip_modules != 0u) {
+      ctx->skip_modules = platform_defaults->skip_modules;
+      ctx->num_skip_modules = platform_defaults->num_skip_modules;
   }
 }
 

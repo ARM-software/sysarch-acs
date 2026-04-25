@@ -81,23 +81,13 @@
    gating C code when included by .S files */
 #ifndef __ASSEMBLER__
 #include "val/include/rule_based_execution.h"
+#include "acs_runtime_init.h"
 
 #define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
     ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
     "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
     ((filter_mode == LVL_FILTER_ONLY) ? \
     "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
-
-/* Extern declarations for globals from platform_cfg_fvp.c */
-extern RULE_ID_e g_rule_list_arr[];
-extern uint32_t  g_rule_count;
-extern RULE_ID_e g_skip_rule_list_arr[];
-extern uint32_t  g_skip_rule_count;
-extern uint32_t g_execute_modules_arr[];
-extern uint32_t g_num_modules;
-extern uint32_t g_skip_modules_arr[];
-extern uint32_t g_num_skip_modules;
-extern uint32_t g_level_filter_mode;
 
 /* Remaining baremetal execution globals from apps/baremetal/acs_globals.c */
 extern uint32_t  g_el1physkip;
