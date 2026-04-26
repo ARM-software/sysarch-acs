@@ -38,7 +38,7 @@ execute_tests_pcie(int num_pe, int level, unsigned int print_level)
 
     int status;
     call_update_skip_list(SBSA_UPDATE_SKIP_LIST, g_skip_test_num);
-    call_drv_execute_test(SBSA_PCIE_EXECUTE_TEST, num_pe, level, print_level, 0);
+    call_drv_execute_test(SBSA_PCIE_EXECUTE_TEST, num_pe, level, print_level, 0, 0, 0);
     status  = call_drv_wait_for_completion();
     return status;
 }
@@ -49,7 +49,7 @@ execute_tests_exerciser(int num_pe, int level, unsigned int print_level)
 
     int status;
     call_update_skip_list(SBSA_UPDATE_SKIP_LIST, g_skip_test_num);
-    call_drv_execute_test(SBSA_EXERCISER_EXECUTE_TEST, num_pe, level, print_level, 0);
+    call_drv_execute_test(SBSA_EXERCISER_EXECUTE_TEST, num_pe, level, print_level, 0, 0, 0);
     status  = call_drv_wait_for_completion();
     return status;
 }

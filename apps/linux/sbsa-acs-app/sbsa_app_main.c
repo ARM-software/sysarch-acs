@@ -37,20 +37,13 @@
 /* Global extern for rule ID string map (defined in val/src/rule_enum_string_map.c) */
 extern char *rule_id_string[RULE_ID_SENTINEL];
 
-/* Global variables for app */
-int  g_print_level = 3;
-bool g_pcie_skip_dp_nic_ms = 0;
-uint32_t g_level_filter_mode = LVL_FILTER_MAX;  /* LEVEL_FILTER_MODE_e */
-uint32_t g_level_value = SBSA_LEVEL_3;          /* Default SBSA level */
-
 /* Legacy numeric skip support kept inert for compatibility with other files */
 unsigned int  *g_skip_test_num;
-unsigned int  g_num_skip = 3;
 unsigned int  g_sw_view[3] = {1, 1, 1}; //Operating System, Hypervisor, Platform Security
 
 /* New rule-based skip list parsed from -skip */
 static RULE_ID_e g_skip_rule_buf[RULE_ID_LIST_MAX];
-unsigned int g_skip_rule_count = 0;
+static unsigned int g_skip_rule_count;
 
 /*  Helpers for rule parsing  */
 static int sizeof_char_ptr(const char *tok)
@@ -98,9 +91,9 @@ static void skip_list_append(RULE_ID_e rid)
 
 
 int
-initialize_test_environment(unsigned int print_level)
+initialize_test_environment(unsigned int print_level, bool pcie_skip_dp_nic_ms)
 {
-    return call_drv_init_test_env(print_level);
+    return call_drv_init_test_env(print_level, pcie_skip_dp_nic_ms);
 }
 
 void
@@ -128,10 +121,14 @@ void print_help(){
 int
 main (int argc, char **argv)
 {
-
     int   c = 0;
     char *endptr;
     int   status;
+    unsigned int print_level = 3;
+    bool pcie_skip_dp_nic_ms = false;
+    uint32_t level_filter_mode = LVL_FILTER_MAX;  /* LEVEL_FILTER_MODE_e */
+    uint32_t level_value = SBSA_LEVEL_3;          /* Default SBSA level */
+    const unsigned int num_skip = 3;
     struct option long_opt[] =
     {
       {"skip", required_argument, NULL, 'n'},
@@ -144,7 +141,7 @@ main (int argc, char **argv)
     };
 
     /* Keep legacy array allocated and zeroed to avoid NULL deref in call_update_skip_list */
-    g_skip_test_num = (unsigned int *) calloc(g_num_skip, sizeof(unsigned int));
+    g_skip_test_num = (unsigned int *) calloc(num_skip, sizeof(unsigned int));
 
     /* Process Command Line arguments */
     while ((c = getopt_long(argc, argv, "hfr:v:l:oc", long_opt, NULL)) != -1)
@@ -152,19 +149,19 @@ main (int argc, char **argv)
        switch (c)
        {
        case 'v':
-         g_print_level = strtol(optarg, &endptr, 10);
+         print_level = strtol(optarg, &endptr, 10);
          break;
        case 'l':
-         g_level_value =  strtol(optarg, &endptr, 10);
-         g_level_filter_mode = LVL_FILTER_MAX;
+         level_value =  strtol(optarg, &endptr, 10);
+         level_filter_mode = LVL_FILTER_MAX;
          break;
        case 'o':
-         g_level_value =  strtol(optarg, &endptr, 10);
-         g_level_filter_mode = LVL_FILTER_ONLY;
+         level_value =  strtol(optarg, &endptr, 10);
+         level_filter_mode = LVL_FILTER_ONLY;
          break;
        case 'f':
-         g_level_filter_mode = LVL_FILTER_FR;
-         g_level_value = 0;
+         level_filter_mode = LVL_FILTER_FR;
+         level_value = 0;
          break;
        case 'r':
        {
@@ -203,7 +200,7 @@ main (int argc, char **argv)
          return 1;
          break;
        case 'c':
-         g_pcie_skip_dp_nic_ms = 1;
+         pcie_skip_dp_nic_ms = true;
          break;
        case 'n': /* --skip: parse comma-separated RULE IDs */
        {
@@ -248,19 +245,19 @@ main (int argc, char **argv)
     printf("                        Version %d.%d.%d\n", SBSA_APP_VERSION_MAJOR,
             SBSA_APP_VERSION_MINOR, SBSA_APP_VERSION_SUBMINOR);
 
-    printf(LEVEL_PRINT_FORMAT(g_level_value, g_level_filter_mode, SBSA_LEVEL_FR), g_level_value);
+    printf(LEVEL_PRINT_FORMAT(level_value, level_filter_mode, SBSA_LEVEL_FR), level_value);
 
-    printf("(Print level is %2d)\n\n", g_print_level);
+    printf("(Print level is %2d)\n\n", print_level);
 
     printf(" Gathering system information....\n");
-    status = initialize_test_environment(g_print_level);
+    status = initialize_test_environment(print_level, pcie_skip_dp_nic_ms);
     if (status) {
         printf("Cannot initialize test environment. Exiting....\n");
         return 0;
     }
 
     /* Trigger rule-based run */
-    call_drv_execute_test(RUN_TESTS, 0, 0, g_print_level, 0);
+    call_drv_execute_test(RUN_TESTS, 0, 0, print_level, 0, level_filter_mode, level_value);
     (void)call_drv_wait_for_completion();
 
     printf("\n                    *** SBSA tests complete ***\n\n");

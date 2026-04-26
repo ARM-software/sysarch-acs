@@ -24,16 +24,7 @@
 #include "pcbsa_app.h"
 #include <getopt.h>
 
-int  g_pcbsa_level = 1;
-int  g_pcbsa_only_level = 0;
-int  g_print_level = 3;
-unsigned int g_num_skip = 3;
 unsigned int *g_skip_test_num;
-unsigned long int  g_exception_ret_addr;
-unsigned int g_print_mmio;
-unsigned int g_curr_module;
-unsigned int g_enable_module;
-
 #define PC_BSA_LEVEL_PRINT_FORMAT(level, only) ((level > PCBSA_MAX_LEVEL_SUPPORTED) ? \
     ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
     ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
@@ -74,6 +65,10 @@ int main(int argc, char **argv)
     int   c = 0, i = 0;
     char *endptr, *pt;
     int   status;
+    int pcbsa_level = 1;
+    int pcbsa_only_level = 0;
+    unsigned int print_level = 3;
+    const unsigned int num_skip = 3;
 
     struct option long_opt[] = {
       {"skip", required_argument, NULL, 'n'},
@@ -83,7 +78,7 @@ int main(int argc, char **argv)
       {NULL, 0, NULL, 0}
     };
 
-    g_skip_test_num = (unsigned int *) malloc(g_num_skip * sizeof(unsigned int));
+    g_skip_test_num = (unsigned int *) malloc(num_skip * sizeof(unsigned int));
 
     /* Process Command Line arguments */
     while ((c = getopt_long(argc, argv, "hrv:l:oe:", long_opt, NULL)) != -1)
@@ -91,16 +86,16 @@ int main(int argc, char **argv)
        switch (c)
        {
        case 'v':
-         g_print_level = strtol(optarg, &endptr, 10);
+         print_level = strtol(optarg, &endptr, 10);
          break;
        case 'l':
-         g_pcbsa_level = strtol(optarg, &endptr, 10);
+         pcbsa_level = strtol(optarg, &endptr, 10);
          break;
        case 'o':
-         g_pcbsa_only_level = 1;
+         pcbsa_only_level = 1;
          break;
        case 'r':
-         g_pcbsa_level = 8;
+         pcbsa_level = 8;
          break;
        case 'h':
          print_help();
@@ -108,7 +103,7 @@ int main(int argc, char **argv)
          break;
        case 'n':/*SKIP tests */
          pt = strtok(optarg, ",");
-         while ((pt != NULL) && (i < g_num_skip)) {
+         while ((pt != NULL) && (i < num_skip)) {
            int a = atoi(pt);
 
            g_skip_test_num[i++] = a;
@@ -134,22 +129,22 @@ int main(int argc, char **argv)
             PC_BSA_APP_VERSION_MINOR, PC_BSA_APP_VERSION_SUBMINOR);
 
 
-    printf(PC_BSA_LEVEL_PRINT_FORMAT(g_pcbsa_level, g_pcbsa_only_level),
-                                   (g_pcbsa_level > PCBSA_MAX_LEVEL_SUPPORTED) ? 0 : g_pcbsa_level);
+    printf(PC_BSA_LEVEL_PRINT_FORMAT(pcbsa_level, pcbsa_only_level),
+                                   (pcbsa_level > PCBSA_MAX_LEVEL_SUPPORTED) ? 0 : pcbsa_level);
 
-    printf("(Print level is %2d)\n\n", g_print_level);
+    printf("(Print level is %2d)\n\n", print_level);
 
-    if (g_pcbsa_only_level)
-        g_pcbsa_only_level = g_pcbsa_level;
+    if (pcbsa_only_level)
+        pcbsa_only_level = pcbsa_level;
 
     printf(" Gathering system information....\n");
-    status = initialize_test_environment(g_print_level);
+    status = initialize_test_environment(print_level);
     if (status) {
         printf("Cannot initialize test environment. Exiting....\n");
         return 0;
     }
 
-    execute_tests_pcie(1, g_pcbsa_level, g_print_level);
+    execute_tests_pcie(1, pcbsa_level, print_level);
 
     printf("\n  ** For complete PCBSA test coverage, it is necessary to run the BSA test **\n");
     printf("\n                    *** PC BSA tests complete ***\n\n");

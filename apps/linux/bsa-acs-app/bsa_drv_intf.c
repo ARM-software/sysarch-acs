@@ -25,10 +25,6 @@
 #include <unistd.h>
 #include "bsa_drv_intf.h"
 
-extern bool g_pcie_skip_dp_nic_ms;
-extern uint32_t g_level_filter_mode;
-extern uint32_t g_level_value;
-
 typedef
 struct __BSA_DRV_PARMS__
 {
@@ -86,7 +82,7 @@ call_drv_wait_for_completion()
 
 
 int
-call_drv_init_test_env(unsigned int print_level)
+call_drv_init_test_env(unsigned int print_level, bool pcie_skip_dp_nic_ms)
 {
     FILE             *fd = NULL;
     bsa_drv_parms_t test_params;
@@ -101,7 +97,7 @@ call_drv_init_test_env(unsigned int print_level)
 
     test_params.api_num  = BSA_CREATE_INFO_TABLES;
     test_params.arg1     = print_level;
-    test_params.arg2     = g_pcie_skip_dp_nic_ms;
+    test_params.arg2     = pcie_skip_dp_nic_ms;
 
     fwrite(&test_params,1,sizeof(test_params),fd);
 
@@ -140,7 +136,8 @@ call_drv_clean_test_env()
 
 int
 call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
-  unsigned int print_level, unsigned long int test_input)
+  unsigned int print_level, unsigned long int test_input,
+  uint32_t level_filter_mode, uint32_t level_value)
 {
     FILE             *fd = NULL;
     bsa_drv_parms_t test_params;
@@ -161,8 +158,8 @@ call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
 
     if (api_num == RUN_TESTS) {
         /* Pass desired level and filter mode to driver */
-        test_params.level    = g_level_value;
-        test_params.arg0     = g_level_filter_mode;
+        test_params.level    = level_value;
+        test_params.arg0     = level_filter_mode;
         test_params.arg1     = print_level;
     }
 
