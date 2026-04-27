@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2023-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2023-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 #define __PAL_PCIE_ENUM_H__
 
 #include <stdio.h>
-#include <stdint.h>
+#include "acs_stdint.h"
 
 
 /* Header Offset and Type*/

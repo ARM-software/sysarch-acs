@@ -19,7 +19,7 @@
 #ifndef PAL_STATUS_H_
 #define PAL_STATUS_H_
 
-#include <stdint.h>
+#include "acs_stdint.h"
 
 typedef enum pal_status {
   PAL_STATUS_SUCCESS                = 0x00000000u,

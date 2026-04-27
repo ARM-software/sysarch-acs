@@ -17,15 +17,10 @@
 **/
 
 #include <stdio.h>
-#include <stdint.h>
+#include "acs_stdint.h"
 #include "acs_execution_policy.h"
+#include "pal_print.h"
 #include "platform_override_fvp.h"
-
-#define ACS_PRINT_ERR   5      /* Only Errors. use this to de-clutter the terminal and focus only on specifics */
-#define ACS_PRINT_WARN  4      /* Only warnings & errors. use this to de-clutter the terminal and focus only on specifics */
-#define ACS_PRINT_TEST  3      /* Test description and result descriptions. THIS is DEFAULT */
-#define ACS_PRINT_DEBUG 2      /* For Debug statements. contains register dumps etc */
-#define ACS_PRINT_INFO  1      /* Print all statements. Do not use unless really needed */
 
 #define PCIE_SUCCESS            0x00000000  /* Operation completed successfully */
 #define PCIE_NO_MAPPING         0x10000001  /* A mapping to a Function does not exist */
@@ -33,22 +28,11 @@
 #define PCIE_UNKNOWN_RESPONSE   0xFFFFFFFF  /* Function not found or UR response from completer */
 
 #ifdef TARGET_BAREMETAL
-void pal_uart_print(int log, const char *fmt, ...);
 void *mem_alloc(size_t alignment, size_t size);
-#define print(verbose, string, ...) \
-    do { \
-        if ((verbose) >= acs_policy_get_print_level()) \
-            pal_uart_print((verbose), (string), ##__VA_ARGS__); \
-    } while (0)
-#else
-#include <Library/UefiLib.h>
+#endif
 
 #define print(verbose, string, ...) \
-    do { \
-        if ((verbose) >= acs_policy_get_print_level()) \
-            Print(L##string, ##__VA_ARGS__); \
-    } while (0)
-#endif
+    PAL_PRINT_LITERAL((verbose), string, ##__VA_ARGS__)
 
 #define PCIE_CREATE_BDF(Seg, Bus, Dev, Func) ((Seg << 24) | (Bus << 16) | (Dev << 8) | Func)
 #define PCIE_EXTRACT_BDF_SEG(bdf)  ((bdf >> 24) & 0xFF)

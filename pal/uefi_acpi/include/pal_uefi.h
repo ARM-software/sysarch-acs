@@ -19,7 +19,7 @@
 #define __PAL_UEFI_H__
 
 #include "pal_status.h"
-#include "acs_execution_policy.h"
+#include "pal_print.h"
 
 /* include ACPI specification headers */
 #include "Include/Guid/Acpi.h"
@@ -36,12 +36,6 @@ extern VOID* g_acs_log_file_handle;
 extern UINT32 g_curr_module;
 extern UINT32 g_enable_module;
 VOID pal_warn_not_implemented(const CHAR8 *api_name);
-
-#define ACS_PRINT_ERR   5      /* Only Errors. use this to de-clutter the terminal and focus only on specifics */
-#define ACS_PRINT_WARN  4      /* Only warnings & errors. use this to de-clutter the terminal and focus only on specifics */
-#define ACS_PRINT_TEST  3      /* Test description and result descriptions. THIS is DEFAULT */
-#define ACS_PRINT_DEBUG 2      /* For Debug statements. contains register dumps etc */
-#define ACS_PRINT_INFO  1      /* Print all statements. Do not use unless really needed */
 
 #define PCIE_SUCCESS            0x00000000  /* Operation completed successfully */
 #define PCIE_NO_MAPPING         0x10000001  /* A mapping to a Function does not exist */
@@ -91,10 +85,7 @@ typedef struct {
 } ARM_SMC_ARGS;
 
 #define acs_print(verbose, string, ...) \
-    do { \
-        if ((verbose) >= acs_policy_get_print_level()) \
-            Print((string), ##__VA_ARGS__); \
-    } while (0)
+    PAL_PRINT_FORMAT((verbose), (string), ##__VA_ARGS__)
 
 /**
   Conduits for service calls (SMC vs HVC).

@@ -18,7 +18,7 @@
 #ifndef __PAL_RUN_REQUEST_H__
 #define __PAL_RUN_REQUEST_H__
 
-#include <stdint.h>
+#include "acs_stdint.h"
 
 #include "rule_based_execution_enum.h"
 

@@ -16,7 +16,7 @@
 **/
 
 #include <stdio.h>
-#include <stdint.h>
+#include "acs_stdint.h"
 #include "platform_override_fvp.h"
 
 #define MAX_CS_COMP_LENGTH 256

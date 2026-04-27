@@ -85,4 +85,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
-  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+profile+lse $(PAL_NIST_INCLUDE_FLAGS)
+  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+profile+lse $(PAL_NIST_INCLUDE_FLAGS) -DTARGET_UEFI

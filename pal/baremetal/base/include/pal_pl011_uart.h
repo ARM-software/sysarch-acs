@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include <stdint.h>
+#include "acs_stdint.h"
 #include "platform_override_fvp.h"
 
 #ifndef _PAL_UART_PL011_H_

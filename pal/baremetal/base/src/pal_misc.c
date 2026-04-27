@@ -15,7 +15,7 @@
  * limitations under the License.
 **/
 
-#include <stdint.h>
+#include "acs_stdint.h"
 #include <stdarg.h>
 #include "pal_pcie_enum.h"
 #include "pal_common_support.h"
