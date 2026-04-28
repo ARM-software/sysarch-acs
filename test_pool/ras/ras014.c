@@ -42,6 +42,13 @@ static void payload(void)
 
   /* Get Number of RAS nodes */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
+  if (status || (num_node == 0)) {
+    val_print(DEBUG, "\n       No RAS Nodes found in AEST table.");
+    val_print(DEBUG, "\n       The test must be considered fail if system \
+                                        components supports RAS nodes");
+    val_set_status(index, RESULT_WARNING(01));
+    return;
+  }
 
   for (node_index = 0; node_index < num_node; node_index++) {
 
