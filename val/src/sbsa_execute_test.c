@@ -239,9 +239,8 @@ uint32_t
 val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe)
 {
   uint32_t status = ACS_STATUS_PASS, i;
-  (void) num_pe;
 
-  if (!(((level > 7) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 8)))
+  if (!(((level > 4) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 5)))
       return ACS_STATUS_SKIP;
 
   for (i = 0; i < g_num_skip; i++) {
@@ -260,6 +259,9 @@ val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe)
 
   val_print_test_start("Timer");
   g_curr_module = 1 << TIMER_MODULE;
+
+  if (((level > 4) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 5))
+      status |= t006_entry(num_pe);
 
   val_print_test_end(status, "Timer");
 

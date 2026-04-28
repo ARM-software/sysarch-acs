@@ -474,11 +474,11 @@ The checklist provides information about:
       <td>L5</td>
       <td>S_L5TI_01</td>
       <td>S_L5TI_01</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>406</td>
+      <td>Check OS visible counter reports 1GHz</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>

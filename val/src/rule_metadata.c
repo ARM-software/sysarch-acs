@@ -1436,6 +1436,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 5,
         },
+        [S_L5TI_01] = {
+            .test_entry_id    = T006_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check OS visible counter reports 1GHz",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 6,
+        },
     /* WATCHDOG */
         [B_WD_00] = {
             .test_entry_id    = NULL_ENTRY,
@@ -3123,9 +3131,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [B_TIME_10] = {
             .module_id        = TIMER,
         },
-        [S_L5TI_01] = {
-            .module_id        = TIMER,
-        },
         [S_L8TI_01] = {
             .module_id        = TIMER,
         },
@@ -3552,6 +3557,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [CXL_11_ENTRY]     = cxl_11_entry,
     [CXL_12_ENTRY]     = cxl_12_entry,
     [CXL_13_ENTRY]     = cxl013_entry,
+    [T006_ENTRY] = t006_entry,
     [G013_ENTRY] = g013_entry,
     [G014_ENTRY] = g014_entry,
     [G015_ENTRY] = g015_entry,
@@ -4006,6 +4012,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #else
 /* Drop compiling entries not required for Bare Metal BSA compliance */
 #ifndef BAREMETAL_BSA_BUILD
+    [T006_ENTRY] = t006_entry,
     [G012_ENTRY] = g012_entry,
     [G013_ENTRY] = g013_entry,
     [G016_ENTRY] = g016_entry,

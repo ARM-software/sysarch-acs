@@ -862,6 +862,12 @@ val_time_delay_ms(uint64_t timer_ms)
   return pal_time_delay_ms(timer_ms);
 }
 
+uint64_t
+val_get_platform_time_us(void)
+{
+  return pal_get_platform_time_us();
+}
+
 /**
    Calls pal API to dump dtb
 

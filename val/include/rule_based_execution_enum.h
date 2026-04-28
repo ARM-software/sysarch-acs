@@ -763,6 +763,7 @@ typedef enum {
     T003_ENTRY,
     T004_ENTRY,
     T005_ENTRY,
+    T006_ENTRY,
     T008_ENTRY,
     W001_ENTRY,
     W002_ENTRY,

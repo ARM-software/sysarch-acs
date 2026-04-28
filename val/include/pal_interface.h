@@ -126,6 +126,7 @@
 /* The following are common across all platform unless guarded explicitly */
 
 #define ONE_MILLISECOND 1000
+#define PAL_TIME_US_INVALID (~0ULL)
 
 #define PCIE_SUCCESS            0x00000000  /* Operation completed successfully */
 #define PCIE_NO_MAPPING         0x10000001  /* A mapping to a Function does not exist */
@@ -805,6 +806,7 @@ void    *pal_mem_virt_to_phys(void *va);
 void    *pal_mem_phys_to_virt(uint64_t pa);
 
 uint64_t pal_time_delay_ms(uint64_t time_ms);
+uint64_t pal_get_platform_time_us(void);
 void     pal_mem_allocate_shared(uint32_t num_pe, uint32_t sizeofentry);
 void     pal_mem_free_shared(void);
 uint64_t pal_mem_get_shared_addr(void);

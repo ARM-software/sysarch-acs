@@ -111,6 +111,7 @@ void val_print_acs_test_status_summary(void);
 
 uint32_t execute_tests(void);
 uint64_t val_time_delay_ms(uint64_t time_ms);
+uint64_t val_get_platform_time_us(void);
 
 /* VAL PE APIs */
 typedef enum {
