@@ -31,9 +31,6 @@
 void *mem_alloc(size_t alignment, size_t size);
 #endif
 
-#define print(verbose, string, ...) \
-    PAL_PRINT_LITERAL((verbose), string, ##__VA_ARGS__)
-
 #define PCIE_CREATE_BDF(Seg, Bus, Dev, Func) ((Seg << 24) | (Bus << 16) | (Dev << 8) | Func)
 #define PCIE_EXTRACT_BDF_SEG(bdf)  ((bdf >> 24) & 0xFF)
 #define PCIE_EXTRACT_BDF_BUS(bdf)  ((bdf >> 16) & 0xFF)

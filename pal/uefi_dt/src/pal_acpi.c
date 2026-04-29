@@ -90,7 +90,8 @@ pal_get_madt_ptr()
 
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
-      acs_print(ACS_PRINT_INFO, L" XSDT not found\n");
+      pal_print_msg(ACS_PRINT_INFO,
+                    " XSDT not found\n");
       return 0;
   }
 
@@ -124,7 +125,8 @@ pal_get_gtdt_ptr()
 
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
-      acs_print(ACS_PRINT_INFO, L" XSDT not found\n");
+      pal_print_msg(ACS_PRINT_INFO,
+                    " XSDT not found\n");
       return 0;
   }
 
@@ -157,7 +159,8 @@ pal_get_mcfg_ptr()
 
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
-      acs_print(ACS_PRINT_INFO, L" XSDT not found\n");
+      pal_print_msg(ACS_PRINT_INFO,
+                    " XSDT not found\n");
       return 0;
   }
 
@@ -222,7 +225,8 @@ pal_get_iort_ptr()
 
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
-      acs_print(ACS_PRINT_INFO, L" XSDT not found\n");
+      pal_print_msg(ACS_PRINT_INFO,
+                    " XSDT not found\n");
       return 0;
   }
 

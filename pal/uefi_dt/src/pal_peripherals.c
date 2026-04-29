@@ -88,7 +88,8 @@ pal_peripheral_usb_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTab
 
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
-      acs_print(ACS_PRINT_ERR, L" dt_ptr is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " dt_ptr is NULL\n");
       return;
   }
 
@@ -100,25 +101,37 @@ pal_peripheral_usb_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTab
       /* Search for USB nodes*/
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, usb_dt_compatible[i]);
       if (offset < 0) {
-          acs_print(ACS_PRINT_DEBUG, L"  USB compatible value not found for index:%d\n", i);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  USB compatible value not found for index:%d\n",
+                        i);
           continue; /* Search for next compatible item*/
       }
 
       /* Get Address_cell & Size_cell length to parse reg property of timer*/
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
-      acs_print(ACS_PRINT_DEBUG, L"  Parent Node offset %d\n", offset);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  Parent Node offset %d\n",
+                    offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  size cell %d\n", size_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  size cell %d\n",
+                    size_cell);
       if (size_cell < 0) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid size cell :%d\n", size_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid size cell :%d\n",
+                        size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  addr cell %d\n", addr_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  addr cell %d\n",
+                    addr_cell);
       if (addr_cell < 1 || addr_cell > 2) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid address cell : %d\n", addr_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid address cell : %d\n",
+                        addr_cell);
           return;
       }
       while (offset != -FDT_ERR_NOTFOUND) {
@@ -128,7 +141,10 @@ pal_peripheral_usb_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTab
           /* Get reg property to update base */
           Preg = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY REG offset %x, Error %d\n", offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY REG offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
@@ -136,15 +152,21 @@ pal_peripheral_usb_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTab
           Pintr = (UINT32 *)
                     fdt_getprop_namelen((void *)dt_ptr, offset, "interrupts", 10, &prop_len);
           if ((prop_len < 0) || (Pintr == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY interrupts offset %x, Error %d\n",
-                        offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY interrupts offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
           interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, offset);
-          acs_print(ACS_PRINT_DEBUG, L"  interrupt_cell  %d\n", interrupt_cell);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  interrupt_cell  %d\n",
+                        interrupt_cell);
           if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
-              acs_print(ACS_PRINT_ERR, L"  Invalid interrupt cell : %d\n", interrupt_cell);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  Invalid interrupt cell : %d\n",
+                            interrupt_cell);
               return;
           }
 
@@ -208,7 +230,8 @@ pal_peripheral_sata_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
 
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
-      acs_print(ACS_PRINT_ERR, L" dt_ptr is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " dt_ptr is NULL\n");
       return;
   }
 
@@ -221,25 +244,37 @@ pal_peripheral_sata_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
       /* Search for sata node*/
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, sata_dt_compatible[i]);
       if (offset < 0) {
-          acs_print(ACS_PRINT_DEBUG, L"  SATA compatible value not found for index:%d\n", i);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  SATA compatible value not found for index:%d\n",
+                        i);
           continue; /* Search for next compatible item*/
       }
 
       /* Get Address_cell & Size_cell length to parse reg property of timer*/
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
-      acs_print(ACS_PRINT_DEBUG, L"  Parent Node offset %d\n", offset);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  Parent Node offset %d\n",
+                    offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  size cell %d\n", size_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  size cell %d\n",
+                    size_cell);
       if (size_cell < 0) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid size cell :%d\n", size_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid size cell :%d\n",
+                        size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  addr cell %d\n", addr_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  addr cell %d\n",
+                    addr_cell);
       if (addr_cell < 1 || addr_cell > 2) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid address cell : %d\n", addr_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid address cell : %d\n",
+                        addr_cell);
           return;
       }
       while (offset != -FDT_ERR_NOTFOUND) {
@@ -249,7 +284,10 @@ pal_peripheral_sata_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
           /* Get reg property to update base */
           Preg = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY REG offset %x, Error %d\n", offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY REG offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
@@ -257,15 +295,21 @@ pal_peripheral_sata_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
           Pintr = (UINT32 *)
                     fdt_getprop_namelen((void *)dt_ptr, offset, "interrupts", 10, &prop_len);
           if ((prop_len < 0) || (Pintr == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY interrupts offset %x, Error %d\n",
-                        offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY interrupts offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
           interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, offset);
-          acs_print(ACS_PRINT_DEBUG, L"  interrupt_cell  %d\n", interrupt_cell);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  interrupt_cell  %d\n",
+                        interrupt_cell);
           if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
-              acs_print(ACS_PRINT_ERR, L" Invalid interrupt cell : %d\n", interrupt_cell);
+              pal_print_msg(ACS_PRINT_ERR,
+                            " Invalid interrupt cell : %d\n",
+                            interrupt_cell);
               return;
           }
 
@@ -332,7 +376,8 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
 
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
-      acs_print(ACS_PRINT_ERR, L" dt_ptr is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " dt_ptr is NULL\n");
       return;
   }
 
@@ -346,25 +391,37 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
       /* Search for uart nodes*/
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, uart_dt_compatible[i]);
       if (offset < 0) {
-          acs_print(ACS_PRINT_DEBUG, L"  UART compatible value not found for index:%d\n", i);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  UART compatible value not found for index:%d\n",
+                        i);
           continue; /* Search for next compatible item*/
       }
 
       /* Get Address_cell & Size_cell length to parse reg property of uart*/
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
-      acs_print(ACS_PRINT_DEBUG, L"  Parent Node offset %d\n", offset);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  Parent Node offset %d\n",
+                    offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  size cell %d\n", size_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  size cell %d\n",
+                    size_cell);
       if (size_cell < 0) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid size cell :%d\n", size_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid size cell :%d\n",
+                        size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  addr cell %d\n", addr_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  addr cell %d\n",
+                    addr_cell);
       if (addr_cell < 1 || addr_cell > 2) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid address cell : %d\n", addr_cell);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid address cell : %d\n",
+                        addr_cell);
           return;
       }
       while (offset != -FDT_ERR_NOTFOUND) {
@@ -373,9 +430,12 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
              Status fields either not present or if present should not be disabled */
           Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
           if ((prop_len > 0) && (Pstatus != NULL)) {
-              acs_print(ACS_PRINT_DEBUG, L"  Status field length %d\n", prop_len);
+              pal_print_msg(ACS_PRINT_DEBUG,
+                            "  Status field length %d\n",
+                            prop_len);
               if (pal_strncmp(Pstatus, "disabled", 9) == 0) {
-                  acs_print(ACS_PRINT_DEBUG, L"  UART access is secure\n");
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  UART access is secure\n");
                   offset = fdt_node_offset_by_compatible((const void *)dt_ptr, offset,
                                                           uart_dt_compatible[i]);
                   continue;
@@ -385,7 +445,10 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
           /* Get reg property to update base */
           Preg = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY REG offset %x, Error %d\n", offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY REG offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
@@ -412,15 +475,19 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
           while (range_node_left > 0) {
               Pranges = (UINT32 *)
                   fdt_getprop_namelen((void *)dt_ptr, range_parent_offset, "ranges", 6, &prop_len);
-              acs_print(ACS_PRINT_DEBUG, L"  Parent ranges length %d\n", prop_len);
+              pal_print_msg(ACS_PRINT_DEBUG,
+                            "  Parent ranges length %d\n",
+                            prop_len);
               if ((prop_len < 0) || (Pranges == NULL)) {
-                  acs_print(ACS_PRINT_DEBUG, L"  No ranges is present\n");
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  No ranges is present\n");
                   range_node_left = 0;
                   break;
               }
               range_node_left--;
               if ((Pranges != NULL) && (prop_len == 0)) {// Empty ranges
-                  acs_print(ACS_PRINT_DEBUG, L"  Empty ranges is present\n");
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  Empty ranges is present\n");
                   range_parent_offset = fdt_parent_offset((const void *) dt_ptr,
                                                                              range_parent_offset);
               } else {
@@ -431,9 +498,15 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
                   parent_addr_cell = fdt_address_cells((const void *) dt_ptr, range_parent_offset);
                   child_size_cell = fdt_size_cells((const void *) dt_ptr, range_node_offset);
 
-                  acs_print(ACS_PRINT_DEBUG, L"  child addr cell %d\n", child_addr_cell);
-                  acs_print(ACS_PRINT_DEBUG, L"  parent addr cell %d\n", parent_addr_cell);
-                  acs_print(ACS_PRINT_DEBUG, L"  child size cell %d\n", child_size_cell);
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  child addr cell %d\n",
+                                child_addr_cell);
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  parent addr cell %d\n",
+                                parent_addr_cell);
+                  pal_print_msg(ACS_PRINT_DEBUG,
+                                "  child size cell %d\n",
+                                child_size_cell);
                   if ((child_addr_cell < 1 || child_addr_cell > 2) ||
                      (parent_addr_cell < 1 || parent_addr_cell > 2) || (child_size_cell < 0))
                       return;
@@ -444,26 +517,39 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
                       if (parent_addr_cell == 2)
                           range_node_addr = (range_node_addr << 32) |
                                                 fdt32_to_cpu(Pranges[range_index++]);
-                      acs_print(ACS_PRINT_DEBUG, L"  range node addr %lx\n", range_node_addr);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  range node addr %lx\n",
+                                    range_node_addr);
                       continue;
                   }
                   while (range_index < (prop_len / 4)) {
-                      acs_print(ACS_PRINT_DEBUG, L"  range_index %d\n", range_index);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  range_index %d\n",
+                                    range_index);
                       temp_child_addr = fdt32_to_cpu(Pranges[range_index++]);
                       if (child_addr_cell == 2)
                           temp_child_addr = (temp_child_addr << 32) |
                                                     fdt32_to_cpu(Pranges[range_index++]);
-                      acs_print(ACS_PRINT_DEBUG, L"  temp node addr %lx\n", temp_child_addr);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  temp node addr %lx\n",
+                                    temp_child_addr);
                       if (temp_child_addr == range_node_addr) {
                           parent_offset_addr = fdt32_to_cpu(Pranges[range_index++]);
-                      acs_print(ACS_PRINT_DEBUG, L"  parent offset addr %lx\n", parent_offset_addr);
-                      acs_print(ACS_PRINT_DEBUG, L"  range index %d\n", range_index);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  parent offset addr %lx\n",
+                                    parent_offset_addr);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  range index %d\n",
+                                    range_index);
                           if (parent_addr_cell == 2) {
                               parent_offset_addr = (parent_offset_addr << 32) |
                                                             fdt32_to_cpu(Pranges[range_index++]);
-                      acs_print(ACS_PRINT_DEBUG, L"  2 parent offset addr %lx\n",
-                                                                              parent_offset_addr);
-                      acs_print(ACS_PRINT_DEBUG, L"  2 range index %d\n", range_index);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  2 parent offset addr %lx\n",
+                                    parent_offset_addr);
+                      pal_print_msg(ACS_PRINT_DEBUG,
+                                    "  2 range index %d\n",
+                                    range_index);
                           }
                           break;
                       }
@@ -473,22 +559,30 @@ pal_peripheral_uart_create_info_table_dt(PERIPHERAL_INFO_TABLE *peripheralInfoTa
               }
           }
 
-         acs_print(ACS_PRINT_DEBUG, L"  parent offset addr  %lx\n", parent_offset_addr);
+         pal_print_msg(ACS_PRINT_DEBUG,
+                       "  parent offset addr  %lx\n",
+                       parent_offset_addr);
          per_info->base0 += parent_offset_addr;
 
           /* Get interrupts property from frame */
           Pintr = (UINT32 *)
                     fdt_getprop_namelen((void *)dt_ptr, offset, "interrupts", 10, &prop_len);
           if ((prop_len < 0) || (Pintr == NULL)) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY interrupts offset %x, Error %d\n",
-                        offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY interrupts offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
           interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, offset);
-          acs_print(ACS_PRINT_DEBUG, L"  interrupt_cell  %d\n", interrupt_cell);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  interrupt_cell  %d\n",
+                        interrupt_cell);
           if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
-              acs_print(ACS_PRINT_ERR, L"  Invalid interrupt cell : %d\n", interrupt_cell);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  Invalid interrupt cell : %d\n",
+                            interrupt_cell);
               return;
           }
 
@@ -539,8 +633,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   EFI_ACPI_SERIAL_PORT_CONSOLE_REDIRECTION_TABLE *spcr = NULL;
 
   if (peripheralInfoTable == NULL) {
-    acs_print(ACS_PRINT_ERR,
-              L" Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
     return;
   }
 
@@ -566,7 +660,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
-          acs_print(ACS_PRINT_INFO, L"  Found a USB controller %4x\n", per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Found a USB controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -594,7 +690,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
-          acs_print(ACS_PRINT_INFO, L"  Found a SATA controller %4x\n", per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Found a SATA controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_sata++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -738,7 +836,8 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
   UINT32                Index, i = 0;
 
   if (memoryInfoTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Input Memory Table Pointer is NULL. Cannot create Memory INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input Memory Table Pointer is NULL. Cannot create Memory INFO\n");
     return;
   }
 
@@ -764,9 +863,12 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
   if (!EFI_ERROR (Status)) {
     MemoryMapPtr = MemoryMap;
     for (Index = 0; Index < (MemoryMapSize / DescriptorSize); Index++) {
-          acs_print(ACS_PRINT_INFO, L"  Reserved region of type %d [0x%lX, 0x%lX]\n",
-            MemoryMapPtr->Type, (UINTN)MemoryMapPtr->PhysicalStart,
-            (UINTN)(MemoryMapPtr->PhysicalStart + MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE));
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Reserved region of type %d [0x%lX, 0x%lX]\n",
+                        MemoryMapPtr->Type,
+                        (UINTN)MemoryMapPtr->PhysicalStart,
+                        (UINTN)(MemoryMapPtr->PhysicalStart +
+                                MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE));
       if (IsUefiMemory ((EFI_MEMORY_TYPE)MemoryMapPtr->Type)) {
         memoryInfoTable->info[i].type      = MEMORY_TYPE_RESERVED;
       } else {
@@ -785,7 +887,9 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
       memoryInfoTable->info[i].size      = (MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE);
       i++;
       if (i >= MEM_INFO_TBL_MAX_ENTRY) {
-        acs_print(ACS_PRINT_DEBUG, L"  Memory Info tbl limit exceeded, Skipping remaining\n", 0);
+        pal_print_msg(ACS_PRINT_DEBUG,
+                      "  Memory Info tbl limit exceeded, Skipping remaining\n",
+                      0);
         break;
       }
 
@@ -864,7 +968,9 @@ pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance)
         if (*addr == 0)
           continue;
 
-        acs_print(ACS_PRINT_INFO,L"  Unpopulated region with base address 0x%lX found\n", *addr);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  Unpopulated region with base address 0x%lX found\n",
+                      *addr);
         return EFI_SUCCESS;
       }
 

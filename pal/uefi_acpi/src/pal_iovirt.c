@@ -64,39 +64,55 @@ dump_block(IOVIRT_BLOCK *block) {
   NODE_DATA_MAP *map = &block->data_map[0];
   switch(block->type) {
       case IOVIRT_NODE_ITS_GROUP:
-      acs_print(ACS_PRINT_INFO, L"  ITS Group Num ITS: %d\n",
-                                                        block->data.its_count);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  ITS Group Num ITS: %d\n",
+                    block->data.its_count);
       for(i = 0; i < block->data.its_count; i++)
-          acs_print(ACS_PRINT_INFO, L"  ITS ID: %d\n", (*map).id[i]);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  ITS ID: %d\n",
+                        (*map).id[i]);
       return;
       case IOVIRT_NODE_NAMED_COMPONENT:
-      acs_print(ACS_PRINT_INFO,
-                 L" Named Component:\n Device Name:%a", block->data.named_comp.name);
-      acs_print(ACS_PRINT_INFO, L"\n CCA Attribute: 0x%lx\n", block->data.named_comp.cca);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " Named Component:\n Device Name:%a",
+                    block->data.named_comp.name);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n CCA Attribute: 0x%lx\n",
+                    block->data.named_comp.cca);
       break;
       case IOVIRT_NODE_PCI_ROOT_COMPLEX:
-      acs_print(ACS_PRINT_INFO, L"  Root Complex  Segment Num:%d\n",
-                                                      block->data.rc.segment);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  Root Complex  Segment Num:%d\n",
+                    block->data.rc.segment);
       break;
       case IOVIRT_NODE_SMMU:
       case IOVIRT_NODE_SMMU_V3:
-      acs_print(ACS_PRINT_INFO, L"  SMMU: Major Rev:%d Base Address:0x%llx\n",
-                 block->data.smmu.arch_major_rev, block->data.smmu.base);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  SMMU: Major Rev:%d Base Address:0x%llx\n",
+                    block->data.smmu.arch_major_rev,
+                    block->data.smmu.base);
       break;
       case IOVIRT_NODE_PMCG:
-      acs_print(ACS_PRINT_INFO, L"  PMCG: Base:0x%x Overflow GSIV:0x%x"
-                               " Node Reference:0x%x\n", block->data.pmcg.base,
-                block->data.pmcg.overflow_gsiv, block->data.pmcg.node_ref);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  PMCG: Base:0x%x Overflow GSIV:0x%x Node Reference:0x%x\n",
+                    block->data.pmcg.base,
+                    block->data.pmcg.overflow_gsiv,
+                    block->data.pmcg.node_ref);
       break;
   }
-  acs_print(ACS_PRINT_INFO, L"  Number of ID Mappings:%d\n", block->num_data_map);
+  pal_print_msg(ACS_PRINT_INFO,
+                "  Number of ID Mappings:%d\n",
+                block->num_data_map);
   for(i = 0; i < block->num_data_map; i++, map++) {
-      acs_print(ACS_PRINT_INFO, L"  input_base:0x%x id_count:0x%x\n"
-                                "  output_base:0x%x output ref:0x%x\n",
-            (*map).map.input_base, (*map).map.id_count,
-            (*map).map.output_base, (*map).map.output_ref);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  input_base:0x%x id_count:0x%x output_base:0x%x output ref:0x%x\n",
+                    (*map).map.input_base,
+                    (*map).map.id_count,
+                    (*map).map.output_base,
+                    (*map).map.output_ref);
   }
-  acs_print(ACS_PRINT_INFO, L"\n");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\n");
 }
 
 /**
@@ -131,7 +147,9 @@ dump_iort_table(IOVIRT_INFO_TABLE *iovirt)
 {
   UINT32 i;
   IOVIRT_BLOCK *block = &iovirt->blocks[0];
-  acs_print(ACS_PRINT_INFO, L"  Number of IOVIRT blocks = %d\n", iovirt->num_blocks);
+  pal_print_msg(ACS_PRINT_INFO,
+                "  Number of IOVIRT blocks = %d\n",
+                iovirt->num_blocks);
   for(i = 0; i < iovirt->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
     dump_block(block);
 }
@@ -190,14 +208,22 @@ check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
             if(tmp->type == IOVIRT_NODE_ITS_GROUP) {
                key_block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
                block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
-               acs_print(ACS_PRINT_INFO, L"\n Overlapping device ids %x-%x and %x-%x\n",
-                          key_start, key_end, start, end);
+               pal_print_msg(ACS_PRINT_INFO,
+                             "\n Overlapping device ids %x-%x and %x-%x\n",
+                             key_start,
+                             key_end,
+                             start,
+                             end);
             }
             else {
                key_block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
                block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
-               acs_print(ACS_PRINT_INFO, L"\n Overlapping stream ids %x-%x and %x-%x\n",
-                          key_start, key_end, start, end);
+               pal_print_msg(ACS_PRINT_INFO,
+                             "\n Overlapping stream ids %x-%x and %x-%x\n",
+                             key_start,
+                             key_end,
+                             start,
+                             end);
             }
           }
         }
@@ -261,7 +287,10 @@ iort_add_block(IORT_TABLE *iort, IORT_NODE *iort_node, IOVIRT_INFO_TABLE *IoVirt
   NODE_DATA *data = &((*block)->data);
   VOID *node_data = &(iort_node->node_data[0]);
 
-  acs_print(ACS_PRINT_INFO, L"  IORT node offset:%x, type: %d\n", (UINT8*)iort_node - (UINT8*)iort, iort_node->type);
+  pal_print_msg(ACS_PRINT_INFO,
+                "  IORT node offset:%x, type: %d\n",
+                (UINT8 *)iort_node - (UINT8 *)iort,
+                iort_node->type);
 
   SetMem(data, sizeof(NODE_DATA), 0);
 
@@ -324,7 +353,8 @@ iort_add_block(IORT_TABLE *iort, IORT_NODE *iort_node, IOVIRT_INFO_TABLE *IoVirt
       count = &IoVirtTable->num_pmcgs;
       break;
     default:
-       acs_print(ACS_PRINT_ERR, L" Invalid IORT node type\n");
+       pal_print_msg(ACS_PRINT_ERR,
+                     " Invalid IORT node type\n");
        return (UINT32) -1;
   }
 
@@ -451,7 +481,8 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
   /* Create iovirt block for each IORT node*/
   for (i = 0; i < iort->node_count; i++) {
     if (iort_node >= iort_end) {
-      acs_print(ACS_PRINT_ERR, L" Bad IORT table\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Bad IORT table\n");
       return;
     }
     iort_add_block(iort, iort_node, IoVirtTable, &next_block);
@@ -544,8 +575,9 @@ pal_iovirt_get_rc_smmu_base (
   }
 
   if (!mapping_found) {
-      acs_print(ACS_PRINT_ERR,
-               L"\n       RID to Stream ID/Dev ID map not found ", 0);
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\n       RID to Stream ID/Dev ID map not found ",
+                    0);
       return 0xFFFFFFFF;
   }
 
@@ -559,8 +591,9 @@ pal_iovirt_get_rc_smmu_base (
           if (sid >= (*map).map.input_base && sid <= ((*map).map.input_base +
                                                     (*map).map.id_count))
           {
-              acs_print(ACS_PRINT_DEBUG, L"\n       RC block->data.smmu."
-                                "base: %llx    ", block->data.smmu.base);
+              pal_print_msg(ACS_PRINT_DEBUG,
+                            "\n       RC block->data.smmu.base: %llx    ",
+                            block->data.smmu.base);
               return block->data.smmu.base;
           }
       }
@@ -569,6 +602,8 @@ pal_iovirt_get_rc_smmu_base (
   /* The Root Complex represented by rc_seg_num
    * is not behind any SMMU. Return NULL pointer
    */
-  acs_print(ACS_PRINT_DEBUG, L" No SMMU found behind the RootComplex with seg :%x", RcSegmentNum);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " No SMMU found behind the RootComplex with seg :%x",
+                RcSegmentNum);
   return 0;
 }

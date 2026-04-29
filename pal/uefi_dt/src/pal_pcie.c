@@ -65,7 +65,8 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
   gMcfgHdr = (EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_BASE_ADDRESS_TABLE_HEADER *) pal_get_mcfg_ptr();
 
   if (gMcfgHdr == NULL) {
-      acs_print(ACS_PRINT_WARN, L" ACPI - MCFG Table not found. Setting ECAM Base to 0.\n");
+      pal_print_msg(ACS_PRINT_WARN,
+                    " ACPI - MCFG Table not found. Setting ECAM Base to 0.\n");
       return 0x0;
   }
 
@@ -78,7 +79,9 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
   {
       if ((bus >= Entry->StartBusNumber) && (bus <= Entry->EndBusNumber) &&
           (seg == Entry->PciSegmentGroupNumber)) {
-          acs_print(ACS_PRINT_INFO, L" ECAM base address is %llx\n", Entry->BaseAddress);
+          pal_print_msg(ACS_PRINT_INFO,
+                        " ECAM base address is %llx\n",
+                        Entry->BaseAddress);
           return Entry->BaseAddress;
       }
 
@@ -87,7 +90,9 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
       sizeof(EFI_ACPI_MEMORY_MAPPED_ENHANCED_CONFIGURATION_SPACE_BASE_ADDRESS_ALLOCATION_STRUCTURE);
   }
 
-  acs_print(ACS_PRINT_ERR, L" ECAM base address for bdf 0x%x is 0\n", bdf);
+  pal_print_msg(ACS_PRINT_ERR,
+                " ECAM base address for bdf 0x%x is 0\n",
+                bdf);
   return 0;
 }
 
@@ -108,7 +113,8 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
   UINT32 i = 0;
 
   if (PcieTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Input PCIe Table Pointer is NULL. Cannot create PCIe INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input PCIe Table Pointer is NULL. Cannot create PCIe INFO\n");
     return;
   }
 
@@ -170,7 +176,8 @@ pal_pcie_io_read_cfg(UINT32 Bdf, UINT32 offset, UINT32 *data)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No PCI devices found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No PCI devices found in the system\n");
     return PCIE_NO_MAPPING;
   }
 
@@ -222,7 +229,8 @@ pal_pcie_io_write_cfg(UINT32 Bdf, UINT32 offset, UINT32 data)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No PCI devices found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No PCI devices found in the system\n");
     return;
   }
 
@@ -267,7 +275,8 @@ pal_pcie_bar_mem_read(UINT32 Bdf, UINT64 address, UINT32 *data)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciRootBridgeIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No Root Bridge found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No Root Bridge found in the system\n");
     return PCIE_NO_MAPPING;
   }
 
@@ -315,7 +324,8 @@ pal_pcie_bar_mem_write(UINT32 Bdf, UINT64 address, UINT32 data)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciRootBridgeIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No Root Bridge found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No Root Bridge found in the system\n");
     return PCIE_NO_MAPPING;
   }
 
@@ -356,8 +366,10 @@ pal_pcie_p2p_support()
       return 0;
   else {
       pal_warn_not_implemented(__func__);
-      acs_print(ACS_PRINT_WARN, L"\n       Test is applicable only if the system supports P2P."
-                                 "\n       Pass command line option '-p2p' when running.");
+      pal_print_msg(ACS_PRINT_WARN,
+                    "\n       Test is applicable only if the system supports P2P.");
+      pal_print_msg(ACS_PRINT_WARN,
+                    "\n       Pass command line option '-p2p' when running.");
       return PAL_STATUS_NOT_IMPLEMENTED;
   }
 }
@@ -566,7 +578,8 @@ pal_pcie_create_info_table_dt(PCIE_INFO_TABLE *PcieTable)
 
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
-    acs_print(ACS_PRINT_ERR, L" dt_ptr is NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " dt_ptr is NULL\n");
     return;
   }
 
@@ -575,24 +588,34 @@ pal_pcie_create_info_table_dt(PCIE_INFO_TABLE *PcieTable)
   for (i = 0; i < sizeof(pci_dt_arr)/PCI_COMPATIBLE_STR_LEN ; i++) {
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, pci_dt_arr[i]);
       if (offset < 0) {
-          acs_print(ACS_PRINT_DEBUG, L"  PCI node offset not found %d\n", offset);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "  PCI node offset not found %d\n",
+                        offset);
           continue; /* Search for next compatible node*/
       }
 
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
-      acs_print(ACS_PRINT_DEBUG, L"  NODE pcie offset %d\n", offset);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  NODE pcie offset %d\n",
+                    offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  NODE pcie size cell %d\n", size_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  NODE pcie size cell %d\n",
+                    size_cell);
       if (size_cell < 0) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid size cell\n");
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid size cell\n");
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
-      acs_print(ACS_PRINT_DEBUG, L"  NODE pcie addr cell %d\n", addr_cell);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "  NODE pcie addr cell %d\n",
+                    addr_cell);
       if (addr_cell <= 0 || addr_cell > 2) {
-          acs_print(ACS_PRINT_ERR, L"  Invalid address cell\n");
+          pal_print_msg(ACS_PRINT_ERR,
+                        "  Invalid address cell\n");
           return;
       }
 
@@ -601,7 +624,10 @@ pal_pcie_create_info_table_dt(PCIE_INFO_TABLE *PcieTable)
 
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((Preg_val == NULL) || prop_len < 0) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY reg offset %x, Error %d\n", offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY reg offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
 
@@ -613,7 +639,10 @@ pal_pcie_create_info_table_dt(PCIE_INFO_TABLE *PcieTable)
           Pbus_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "bus-range", 9,
                                                                 &prop_len);
           if ((Pbus_val == NULL) || prop_len < 0) {
-              acs_print(ACS_PRINT_ERR, L"  PROPERTY reg offset %x, Error %d\n", offset, prop_len);
+              pal_print_msg(ACS_PRINT_ERR,
+                            "  PROPERTY reg offset %x, Error %d\n",
+                            offset,
+                            prop_len);
               return;
           }
           PcieTable->block[PcieTable->num_entries].segment_num = 0;

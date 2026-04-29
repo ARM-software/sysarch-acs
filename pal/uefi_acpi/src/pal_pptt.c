@@ -47,27 +47,50 @@ pal_cache_dump_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable)
 
   /*Iterate cache info table and print cache info entries*/
   for (i = 0 ; i < CacheTable->num_of_cache ; i++) {
-    acs_print(ACS_PRINT_INFO, L"\nCache info * Index %d *", i);
-    acs_print(ACS_PRINT_INFO, L"\n  Offset:                  0x%llx", curr_entry->my_offset);
-    acs_print(ACS_PRINT_INFO, L"\n  Type:                    0x%llx", curr_entry->cache_type);
-    acs_print(ACS_PRINT_INFO, L"\n  Cache ID:                0x%llx", curr_entry->cache_id);
-    acs_print(ACS_PRINT_INFO, L"\n  Size:                    0x%llx", curr_entry->size);
-    acs_print(ACS_PRINT_INFO, L"\n  Next level index:        %d", curr_entry->next_level_index);
-    acs_print(ACS_PRINT_INFO, L"\n  Private flag:            0x%llx", curr_entry->is_private);
-    acs_print(ACS_PRINT_INFO, L"\n  Associativity:           0x%llx\n", curr_entry->associativity);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nCache info * Index %d *",
+                  i);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Offset:                  0x%llx",
+                  curr_entry->my_offset);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Type:                    0x%llx",
+                  curr_entry->cache_type);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Cache ID:                0x%llx",
+                  curr_entry->cache_id);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Size:                    0x%llx",
+                  curr_entry->size);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Next level index:        %d",
+                  curr_entry->next_level_index);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Private flag:            0x%llx",
+                  curr_entry->is_private);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Associativity:           0x%llx\n",
+                  curr_entry->associativity);
     curr_entry++;
   }
 
-  acs_print(ACS_PRINT_INFO, L"\nPE level one cache index info");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\nPE level one cache index info");
   /*Iterate PE info table and print level one cache index info*/
   for (i = 0 ; i < PeTable->header.num_of_pe; i++) {
-    acs_print(ACS_PRINT_INFO, L"\nPE Index * %d *", i);
-    acs_print(ACS_PRINT_INFO, L"\n  Level 1 Cache index(s) :");
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nPE Index * %d *",
+                  i);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Level 1 Cache index(s) :");
 
     for (j = 0; j < MAX_L1_CACHE_RES && pe_entry->level_1_res[j] != DEFAULT_CACHE_IDX; j++) {
-      acs_print(ACS_PRINT_INFO, L" %d,", pe_entry->level_1_res[j]);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " %d,",
+                    pe_entry->level_1_res[j]);
     }
-    acs_print(ACS_PRINT_INFO, L"\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n");
     pe_entry++;
   }
 }
@@ -161,8 +184,9 @@ pal_cache_store_pe_res(PE_INFO_TABLE *PeTable, UINT32 acpi_uid,
     }
   }
   else
-    acs_print(ACS_PRINT_ERR,
-      L"\n  The input resource index is greater than supported value %d", MAX_L1_CACHE_RES);
+    pal_print_msg(ACS_PRINT_ERR,
+                  "\n  The input resource index is greater than supported value %d",
+                  MAX_L1_CACHE_RES);
 }
 
 
@@ -187,7 +211,8 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
   UINT32 next_index;
 
   if (CacheTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Unable to create cache info table, input pointer is NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Unable to create cache info table, input pointer is NULL\n");
     return;
   }
 
@@ -196,13 +221,16 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
 
   PpttHdr = (EFI_ACPI_6_4_PROCESSOR_PROPERTIES_TOPOLOGY_TABLE_HEADER *) pal_get_pptt_ptr();
   if (PpttHdr == NULL) {
-    acs_print(ACS_PRINT_ERR, L" PPTT Table not found\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " PPTT Table not found\n");
     return;
   }
   else {
     TableLength = PpttHdr->Header.Length;
-    acs_print(ACS_PRINT_INFO, L"PPTT table found at 0x%llx with length 0x%x\n",
-               PpttHdr, TableLength);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "PPTT table found at 0x%llx with length 0x%x\n",
+                  PpttHdr,
+                  TableLength);
   }
 
 /* Pointer to first PPTT structure in PPTT ACPI table */

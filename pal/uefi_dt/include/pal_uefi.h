@@ -73,9 +73,6 @@ typedef struct {
   UINT64   Arg7;
 } ARM_SMC_ARGS;
 
-#define acs_print(verbose, string, ...) \
-    PAL_PRINT_FORMAT((verbose), (string), ##__VA_ARGS__)
-
 /**
   Conduits for service calls (SMC vs HVC).
 **/

@@ -455,8 +455,10 @@ pal_acpi_parse_aml_for_device(CONST UINT8 *aml,
         SetMem(dev_name, sizeof(dev_name), 0);
         pal_acpi_copy_name_seg(dev_name, sizeof(dev_name), stack[depth].name_seg);
         if (record_fn != NULL) {
-          acs_print(ACS_PRINT_INFO, L" DSDT MSC: UID=0x%x Device=%a\n",
-                    stack[depth].uid, dev_name);
+          pal_print_msg(ACS_PRINT_INFO,
+                        " DSDT MSC: UID=0x%x Device=%a\n",
+                        stack[depth].uid,
+                        dev_name);
           record_fn(record_ctx, stack[depth].uid, dev_name);
         }
         msc_count++;
@@ -616,8 +618,10 @@ pal_acpi_parse_aml_for_device(CONST UINT8 *aml,
       SetMem(dev_name, sizeof(dev_name), 0);
       pal_acpi_copy_name_seg(dev_name, sizeof(dev_name), stack[depth].name_seg);
       if (record_fn != NULL) {
-        acs_print(ACS_PRINT_INFO, L" DSDT MSC: UID=0x%x Device=%a\n",
-                  stack[depth].uid, dev_name);
+        pal_print_msg(ACS_PRINT_INFO,
+                      " DSDT MSC: UID=0x%x Device=%a\n",
+                      stack[depth].uid,
+                      dev_name);
         record_fn(record_ctx, stack[depth].uid, dev_name);
       }
       msc_count++;

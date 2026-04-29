@@ -44,22 +44,32 @@ pal_mpam_dump_table(MPAM_INFO_TABLE *MpamTable)
   curr_entry = &(MpamTable->msc_node[0]);
 
   for (i = 0; i < MpamTable->msc_count; i++) {
-      print(ACS_PRINT_INFO, "\nMSC node Index      :%d ", i);
-      print(ACS_PRINT_INFO, "\nMSC base addr       :%llx ",
-                                        curr_entry->msc_base_addr);
-      print(ACS_PRINT_INFO, "\nMSC resource count  :%lx ",
-                                        curr_entry->rsrc_count);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC node Index      :%d ",
+                    i);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC base addr       :%llx ",
+                    curr_entry->msc_base_addr);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC resource count  :%lx ",
+                    curr_entry->rsrc_count);
 
       for (j = 0; j < curr_entry->rsrc_count; j++) {
-          print(ACS_PRINT_INFO, "\nRESOURCE index  :%d ", j);
-          print(ACS_PRINT_INFO, "\nRIS index       :%d ",
-                               curr_entry->rsrc_node[j].ris_index);
-          print(ACS_PRINT_INFO, "\nlocator type    :%08X ",
-                            curr_entry->rsrc_node[j].locator_type);
-          print(ACS_PRINT_INFO, "\ndescriptor1     :%llx ",
-                             curr_entry->rsrc_node[j].descriptor1);
-          print(ACS_PRINT_INFO, "\ndescriptor2     :%llx ",
-                             curr_entry->rsrc_node[j].descriptor2);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nRESOURCE index  :%d ",
+                        j);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nRIS index       :%d ",
+                        curr_entry->rsrc_node[j].ris_index);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nlocator type    :%08X ",
+                        curr_entry->rsrc_node[j].locator_type);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\ndescriptor1     :%llx ",
+                        curr_entry->rsrc_node[j].descriptor1);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\ndescriptor2     :%llx ",
+                        curr_entry->rsrc_node[j].descriptor2);
       }
       curr_entry = MPAM_NEXT_MSC(curr_entry);
   }
@@ -85,18 +95,23 @@ pal_srat_dump_table(SRAT_INFO_TABLE *SratTable)
   for (i = 0; i < SratTable->num_of_srat_entries; i++) {
       curr_entry = &(SratTable->srat_info[i]);
       if (curr_entry->node_type == SRAT_NODE_MEM_AFF) {
-          print(ACS_PRINT_INFO, "\n       SRAT mem prox domain :%x ",
-                                              curr_entry->node_data.mem_aff.prox_domain);
-          print(ACS_PRINT_INFO, "\n       SRAT mem addr_base :%llx ",
-                                                curr_entry->node_data.mem_aff.addr_base);
-          print(ACS_PRINT_INFO, "\n       SRAT mem addr_len :%llx ",
-                                                      curr_entry->node_data.mem_aff.addr_len);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem prox domain :%x ",
+                        curr_entry->node_data.mem_aff.prox_domain);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem addr_base :%llx ",
+                        curr_entry->node_data.mem_aff.addr_base);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem addr_len :%llx ",
+                        curr_entry->node_data.mem_aff.addr_len);
       }
       else if (curr_entry->node_type == SRAT_NODE_GICC_AFF) {
-          print(ACS_PRINT_INFO, "\n       SRAT Gicc prox domain :%x ",
-                                              curr_entry->node_data.gicc_aff.prox_domain);
-          print(ACS_PRINT_INFO, "\n       SRAT Gicc processor uid :%x ",
-                                                   curr_entry->node_data.gicc_aff.proc_uid);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT Gicc prox domain :%x ",
+                        curr_entry->node_data.gicc_aff.prox_domain);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT Gicc processor uid :%x ",
+                        curr_entry->node_data.gicc_aff.proc_uid);
       }
   }
 }
@@ -118,7 +133,8 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
   MPAM_MSC_NODE *curr_entry;
 
   if (MpamTable == NULL) {
-      print(ACS_PRINT_ERR, " Input MPAM Table Pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Input MPAM Table Pointer is NULL\n");
       return;
   }
 
@@ -179,7 +195,8 @@ uint32_t
 pal_mpam_parse_dsdt_info(MPAM_INFO_TABLE *MpamTable)
 {
   if (MpamTable == NULL) {
-      print(ACS_PRINT_ERR, " Input MPAM Table Pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Input MPAM Table Pointer is NULL\n");
       return 0;
   }
   return 0;
@@ -199,7 +216,8 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
   uint32_t Index, mem_index = 0, gicc_index = 0;
 
   if (SratTable == NULL) {
-      print(ACS_PRINT_ERR, " Input SRAT Table Pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Input SRAT Table Pointer is NULL\n");
       return;
   }
 

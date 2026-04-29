@@ -63,8 +63,9 @@ pal_iovirt_get_rc_smmu_base (
   }
 
   if (!mapping_found) {
-      print(ACS_PRINT_ERR,
-               "\n       RID to Stream ID/Dev ID map not found ", 0);
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\n       RID to Stream ID/Dev ID map not found ",
+                    0);
       return 0xFFFFFFFF;
 
 }
@@ -79,8 +80,9 @@ pal_iovirt_get_rc_smmu_base (
           if(sid >= (*map).map.input_base && sid <= ((*map).map.input_base +
                                                     (*map).map.id_count))
           {
-              print(ACS_PRINT_DEBUG,
-                         "\n       find RC block->data.smmu.base : %llx", block->data.smmu.base);
+              pal_print_msg(ACS_PRINT_DEBUG,
+                            "\n       find RC block->data.smmu.base : %llx",
+                            block->data.smmu.base);
               return block->data.smmu.base;
           }
       }
@@ -89,8 +91,9 @@ pal_iovirt_get_rc_smmu_base (
   /* The Root Complex represented by rc_seg_num
    * is not behind any SMMU. Return NULL pointer
    */
-  print(ACS_PRINT_DEBUG,
-             " No SMMU found behind the RootComplex with segment :%x", RcSegmentNum);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " No SMMU found behind the RootComplex with segment :%x",
+                RcSegmentNum);
   return 0;
 }
 
@@ -124,39 +127,55 @@ dump_block(IOVIRT_BLOCK *block) {
   NODE_DATA_MAP *map = &(block->data_map[0]);
   switch(block->type) {
       case IOVIRT_NODE_ITS_GROUP:
-      print(ACS_PRINT_INFO, "\n ITS Group: Num ITS:%d\n", (*map).id[0]);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n ITS Group: Num ITS:%d\n",
+                    (*map).id[0]);
       for(i = 0; i < block->data.its_count; i++)
-          print(ACS_PRINT_INFO, "  ITS ID : %d\n", (*map).id[i]);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  ITS ID : %d\n",
+                        (*map).id[i]);
       return;
       case IOVIRT_NODE_NAMED_COMPONENT:
-      print(ACS_PRINT_INFO,
-                 " Named Component:\n Device Name:%s", block->data.named_comp.name);
-      print(ACS_PRINT_INFO, "\n CCA Attribute: 0x%lx\n", block->data.named_comp.cca);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " Named Component:\n Device Name:%s",
+                    block->data.named_comp.name);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n CCA Attribute: 0x%lx\n",
+                    block->data.named_comp.cca);
       break;
       case IOVIRT_NODE_PCI_ROOT_COMPLEX:
-      print(ACS_PRINT_INFO,
-                 " Root Complex: PCI segment number:%d\n", block->data.rc.segment);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " Root Complex: PCI segment number:%d\n",
+                    block->data.rc.segment);
       break;
       case IOVIRT_NODE_SMMU:
       case IOVIRT_NODE_SMMU_V3:
-      print(ACS_PRINT_INFO, " SMMU: Major Rev:%d Base Address:0x%llx\n",
-                 block->data.smmu.arch_major_rev, block->data.smmu.base);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " SMMU: Major Rev:%d Base Address:0x%llx\n",
+                    block->data.smmu.arch_major_rev,
+                    block->data.smmu.base);
       break;
       case IOVIRT_NODE_PMCG:
-      print(ACS_PRINT_INFO,
-                 " PMCG: Base:0x%x\n Overflow GSIV:0x%x Node Reference:0x%x\n",
-                 block->data.pmcg.base, block->data.pmcg.overflow_gsiv, block->data.pmcg.node_ref);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " PMCG: Base:0x%x\n Overflow GSIV:0x%x Node Reference:0x%x\n",
+                    block->data.pmcg.base,
+                    block->data.pmcg.overflow_gsiv,
+                    block->data.pmcg.node_ref);
       break;
   }
-  print(ACS_PRINT_INFO,
-             " Number of ID Mappings:%d\n", block->num_data_map);
+  pal_print_msg(ACS_PRINT_INFO,
+                " Number of ID Mappings:%d\n",
+                block->num_data_map);
   for(i = 0; i < block->num_data_map; i++, map++) {
-      print(ACS_PRINT_INFO,
-                 "  input_base:0x%x id_count:0x%x\n  output_base:0x%x output ref:0x%x\n",
-            (*map).map.input_base, (*map).map.id_count,
-            (*map).map.output_base, (*map).map.output_ref);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "  input_base:0x%x id_count:0x%x\n  output_base:0x%x output ref:0x%x\n",
+                    (*map).map.input_base,
+                    (*map).map.id_count,
+                    (*map).map.output_base,
+                    (*map).map.output_ref);
   }
-  print(ACS_PRINT_INFO, "\n");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\n");
 }
 
 void
@@ -248,7 +267,8 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
              p++;
              break;
           default:
-             print(ACS_PRINT_ERR, "Invalid IORT node type\n");
+             pal_print_msg(ACS_PRINT_ERR,
+                           "Invalid IORT node type\n");
              return;
      }
      node[i] = (uint8_t*)(block) - (uint8_t*)IoVirtTable;
@@ -288,7 +308,9 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
   }
 
   block = &(IoVirtTable->blocks[0]);
-  print(ACS_PRINT_DEBUG, " Number of IOVIRT blocks = %d\n", IoVirtTable->num_blocks);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " Number of IOVIRT blocks = %d\n",
+                IoVirtTable->num_blocks);
 
   if (acs_policy_get_print_level() <= ACS_PRINT_INFO) {
       for (i = 0; i < IoVirtTable->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))

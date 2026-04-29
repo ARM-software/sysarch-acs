@@ -47,17 +47,28 @@ pal_pmu_dump_info_table(PMU_INFO_TABLE *PmuTable)
   }
 
   for (i = 0; i < PmuTable->pmu_count; i++) {
-      acs_print(ACS_PRINT_INFO, L"\nPMU info Index      :%d ", i);
-      acs_print(ACS_PRINT_INFO, L"\nPMU node type       :%02X ", PmuTable->info[i].type);
-      acs_print(ACS_PRINT_INFO, L"\nDual page extension :%d ",
-                 PmuTable->info[i].dual_page_extension);
-      acs_print(ACS_PRINT_INFO, L"\nBase Address 0      :%llX ", PmuTable->info[i].base0);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPMU info Index      :%d ",
+                    i);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPMU node type       :%02X ",
+                    PmuTable->info[i].type);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nDual page extension :%d ",
+                    PmuTable->info[i].dual_page_extension);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nBase Address 0      :%llX ",
+                    PmuTable->info[i].base0);
       if(PmuTable->info[i].dual_page_extension)
-          acs_print(ACS_PRINT_INFO, L"\nBase Address 1      :%llX ", PmuTable->info[i].base1);
-      acs_print(ACS_PRINT_INFO, L"\nPrimary Instance    :%llX ",
-                 PmuTable->info[i].primary_instance);
-      acs_print(ACS_PRINT_INFO, L"\nSecondary Instance  :%08X ",
-                 PmuTable->info[i].secondary_instance);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nBase Address 1      :%llX ",
+                        PmuTable->info[i].base1);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPrimary Instance    :%llX ",
+                    PmuTable->info[i].primary_instance);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nSecondary Instance  :%08X ",
+                    PmuTable->info[i].secondary_instance);
 
   }
 }
@@ -77,7 +88,8 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
   APMT_NODE *apmt_node, *apmt_end;
 
   if (PmuTable == NULL) {
-      acs_print(ACS_PRINT_ERR, L"\n Input PMU Table Pointer is NULL");
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\n Input PMU Table Pointer is NULL");
       return;
   }
 
@@ -86,7 +98,8 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
 
   apmt = (APMT_TABLE *)pal_get_apmt_ptr();
   if (apmt == NULL) {
-      acs_print(ACS_PRINT_DEBUG, L" APMT table not found\n");
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " APMT table not found\n");
       return;
   }
 
@@ -104,8 +117,9 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
       PmuTable->info[PmuTable->pmu_count].secondary_instance = apmt_node->secondary_instance;
       PmuTable->pmu_count++;
       if (PmuTable->pmu_count >= MAX_NUM_OF_PMU_SUPPORTED) {
-          acs_print(ACS_PRINT_WARN, L"\n Number of PMUs greater than %d",
-                     MAX_NUM_OF_PMU_SUPPORTED);
+          pal_print_msg(ACS_PRINT_WARN,
+                        "\n Number of PMUs greater than %d",
+                        MAX_NUM_OF_PMU_SUPPORTED);
           break;
       }
       apmt_node = ADD_PTR(APMT_NODE, apmt_node, apmt_node->length);

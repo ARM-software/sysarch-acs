@@ -99,7 +99,9 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
 
   SmbiosTable->slot_count = platform_smbios_cfg.slot_count;
   if (SmbiosTable->slot_count == 0) {
-    print(ACS_PRINT_ERR, "SMBIOS Table Not Found\n", 0);
+    pal_print_msg(ACS_PRINT_ERR,
+                  "SMBIOS Table Not Found\n",
+                  0);
     return;
   }
 
@@ -137,7 +139,9 @@ PalAllocateSecondaryStack(uint64_t mpidr)
   {
       gSecondaryPeStack = pal_aligned_alloc(MEM_ALIGN_4K, NumPe * SIZE_STACK_SECONDARY_PE);
       if (gSecondaryPeStack == NULL){
-          print(ACS_PRINT_ERR, "FATAL - Allocation for Secondary stack failed\n", 0);
+          pal_print_msg(ACS_PRINT_ERR,
+                        "FATAL - Allocation for Secondary stack failed\n",
+                        0);
       }
       pal_pe_data_cache_ops_by_va((uint64_t)&gSecondaryPeStack, CLEAN_AND_INVALIDATE);
   }
@@ -177,12 +181,24 @@ PalCaptureMmuConfig(void)
     gMmuConfig.sctlr = read_sctlr_el1();
   }
 
-  print(ACS_PRINT_INFO,  "  MMU Config captured at EL%d\n", gMmuConfig.current_el);
-  print(ACS_PRINT_DEBUG, "    TTBR0: 0x%lx\n", gMmuConfig.ttbr0);
-  print(ACS_PRINT_DEBUG, "    TTBR1: 0x%lx\n", gMmuConfig.ttbr1);
-  print(ACS_PRINT_DEBUG, "    TCR:   0x%lx\n", gMmuConfig.tcr);
-  print(ACS_PRINT_DEBUG, "    MAIR:  0x%lx\n", gMmuConfig.mair);
-  print(ACS_PRINT_DEBUG, "    SCTLR: 0x%lx\n", gMmuConfig.sctlr);
+  pal_print_msg(ACS_PRINT_INFO,
+                "  MMU Config captured at EL%d\n",
+                gMmuConfig.current_el);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                "    TTBR0: 0x%lx\n",
+                gMmuConfig.ttbr0);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                "    TTBR1: 0x%lx\n",
+                gMmuConfig.ttbr1);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                "    TCR:   0x%lx\n",
+                gMmuConfig.tcr);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                "    MAIR:  0x%lx\n",
+                gMmuConfig.mair);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                "    SCTLR: 0x%lx\n",
+                gMmuConfig.sctlr);
 
   /* Clean cache to ensure secondary PEs see the config */
   pal_pe_data_cache_ops_by_va((uint64_t)&gMmuConfig, CLEAN_AND_INVALIDATE);

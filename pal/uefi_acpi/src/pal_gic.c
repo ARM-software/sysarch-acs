@@ -56,7 +56,8 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
   UINT32                         is_gicr_present = 0;
 
   if (GicTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Input GIC Table Pointer is NULL. Cannot create GIC INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input GIC Table Pointer is NULL. Cannot create GIC INFO\n");
     return;
   }
 
@@ -73,9 +74,13 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
 
   if (gMadtHdr != NULL) {
     TableLength =  gMadtHdr->Header.Length;
-    acs_print(ACS_PRINT_INFO, L"  MADT is at %x and length is %x\n", gMadtHdr, TableLength);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "  MADT is at %x and length is %x\n",
+                  gMadtHdr,
+                  TableLength);
   } else {
-    acs_print(ACS_PRINT_ERR, L" MADT not found\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " MADT not found\n");
     return;
   }
 
@@ -109,7 +114,9 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
       if (Entry->PhysicalBaseAddress != 0) {
         GicEntry->type = ENTRY_TYPE_CPUIF;
         GicEntry->base = Entry->PhysicalBaseAddress;
-        acs_print(ACS_PRINT_INFO, L"  GIC CPUIF base %lx\n", GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC CPUIF base %lx\n",
+                      GicEntry->base);
         GicEntry++;
       }
 
@@ -119,12 +126,15 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
           GicEntry->type = ENTRY_TYPE_GICC_GICRD;
           GicEntry->base = Entry->GICRBaseAddress;
           GicEntry->length = 0;
-          acs_print(ACS_PRINT_INFO, L"  GICC RD base %lx\n", GicEntry->base);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  GICC RD base %lx\n",
+                        GicEntry->base);
           GicTable->header.num_gicc_rd++;
           GicEntry++;
         } else {
-          acs_print(ACS_PRINT_INFO,
-                    L"  Warning : GICR Structure Present, GICC RD Base Non-Zero\n", 0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Warning : GICR Structure Present, GICC RD Base Non-Zero\n",
+                        0);
         }
       }
 
@@ -132,7 +142,9 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICH;
         GicEntry->base = Entry->GICH;
         GicEntry->length = 0;
-        acs_print(ACS_PRINT_INFO, L"  GICH base %lx\n", GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GICH base %lx\n",
+                      GicEntry->base);
         GicEntry++;
       }
     }
@@ -141,7 +153,9 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICD;
         GicEntry->base = ((EFI_ACPI_6_1_GIC_DISTRIBUTOR_STRUCTURE *)Entry)->PhysicalBaseAddress;
         GicTable->header.gic_version = ((EFI_ACPI_6_1_GIC_DISTRIBUTOR_STRUCTURE *)Entry)->GicVersion;
-        acs_print(ACS_PRINT_INFO, L"  GIC DIS base %lx\n", GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC DIS base %lx\n",
+                      GicEntry->base);
         GicTable->header.num_gicd++;
         GicEntry++;
     }
@@ -150,8 +164,12 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICR_GICRD;
         GicEntry->base = ((EFI_ACPI_6_1_GICR_STRUCTURE *)Entry)->DiscoveryRangeBaseAddress;
         GicEntry->length = ((EFI_ACPI_6_1_GICR_STRUCTURE *)Entry)->DiscoveryRangeLength;
-        acs_print(ACS_PRINT_INFO, L"  GICR RD base %lx\n", GicEntry->base);
-        acs_print(ACS_PRINT_INFO, L"  GICR RD Length %lx\n", GicEntry->length);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GICR RD base %lx\n",
+                      GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GICR RD Length %lx\n",
+                      GicEntry->length);
         GicTable->header.num_gicr_rd++;
         GicEntry++;
     }
@@ -160,8 +178,12 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICITS;
         GicEntry->base = ((EFI_ACPI_6_1_GIC_ITS_STRUCTURE *)Entry)->PhysicalBaseAddress;
         GicEntry->entry_id = ((EFI_ACPI_6_1_GIC_ITS_STRUCTURE *)Entry)->GicItsId;
-        acs_print(ACS_PRINT_INFO, L"  GIC ITS base %lx\n", GicEntry->base);
-        acs_print(ACS_PRINT_INFO, L"  GIC ITS ID%x\n", GicEntry->entry_id);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC ITS base %lx\n",
+                      GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC ITS ID%x\n",
+                      GicEntry->entry_id);
         GicTable->header.num_its++;
         GicEntry++;
     }
@@ -173,9 +195,15 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->flags = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->Flags;
         GicEntry->spi_count = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->SPICount;
         GicEntry->spi_base = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->SPIBase;
-        acs_print(ACS_PRINT_INFO, L"  GIC MSI Frame base %lx\n", GicEntry->base);
-        acs_print(ACS_PRINT_INFO, L"  GIC MSI SPI base %x\n", GicEntry->spi_base);
-        acs_print(ACS_PRINT_INFO, L"  GIC MSI SPI Count %x\n", GicEntry->spi_count);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC MSI Frame base %lx\n",
+                      GicEntry->base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC MSI SPI base %x\n",
+                      GicEntry->spi_base);
+        pal_print_msg(ACS_PRINT_INFO,
+                      "  GIC MSI SPI Count %x\n",
+                      GicEntry->spi_count);
         GicTable->header.num_msi_frame++;
         GicEntry++;
     }

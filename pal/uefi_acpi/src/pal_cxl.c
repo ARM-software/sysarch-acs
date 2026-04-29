@@ -91,14 +91,16 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
   UINT64 cedt_address;
 
   if (CxlTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Input CXL Table Pointer is NULL. Cannot create CXL INFO ");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input CXL Table Pointer is NULL. Cannot create CXL INFO ");
     return;
   }
   CxlTable->num_entries = 0;
 
   cedt_address = pal_get_acpi_table_ptr(EFI_ACPI_6_4_CXL_EARLY_DISCOVERY_TABLE_SIGNATURE);
   if (cedt_address == 0) {
-    acs_print(ACS_PRINT_ERR, L" ACPI - CEDT Table not found.\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " ACPI - CEDT Table not found.\n");
     return;
   }
 
@@ -111,12 +113,14 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
       (EFI_ACPI_6_4_CEDT_CXL_HOST_BRIDGE_STRUCTURE *)ptr;
 
     if (Host->RecordLength == 0) {
-      acs_print(ACS_PRINT_WARN, L" CEDT record length is zero. Aborting parse. ");
+      pal_print_msg(ACS_PRINT_WARN,
+                    " CEDT record length is zero. Aborting parse. ");
       return;
     }
 
     if ((ptr + Host->RecordLength) > end) {
-      acs_print(ACS_PRINT_WARN, L" CEDT record overruns table length. Stopping parse. ");
+      pal_print_msg(ACS_PRINT_WARN,
+                    " CEDT record overruns table length. Stopping parse. ");
       break;
     }
 
@@ -145,12 +149,14 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
     UINT16 len  = *(UINT16 *)(ptr + 2);
 
     if (len == 0) {
-      acs_print(ACS_PRINT_WARN, L" CEDT record length is zero. Aborting parse. ");
+      pal_print_msg(ACS_PRINT_WARN,
+                    " CEDT record length is zero. Aborting parse. ");
       return;
     }
 
     if ((ptr + len) > end) {
-      acs_print(ACS_PRINT_WARN, L" CEDT record overruns table length. Stopping parse. ");
+      pal_print_msg(ACS_PRINT_WARN,
+                    " CEDT record overruns table length. Stopping parse. ");
       break;
     }
 
@@ -180,7 +186,9 @@ pal_cxl_get_host_bridge_uid(UINT32 bdf, UINT32 *uid)
 
   /* Map root port BDF to the root bridge UID for CEDT lookup. */
   if (uid == NULL) {
-    acs_print(ACS_PRINT_ERR, L" pal_cxl_get_host_bridge_uid UID pointer NULL ");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " %a UID pointer NULL ",
+                  __func__);
     return 1;
   }
 

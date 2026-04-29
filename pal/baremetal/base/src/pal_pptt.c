@@ -38,26 +38,47 @@ pal_cache_dump_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable)
 
   /*Iterate cache info table and print cache info entries*/
   for (i = 0 ; i < CacheTable->num_of_cache ; i++) {
-    print(ACS_PRINT_INFO, "\nCache info * Index %d *", i);
-    print(ACS_PRINT_INFO, "\n  Offset:                  0x%llx", curr_entry->my_offset);
-    print(ACS_PRINT_INFO, "\n  Type:                    0x%llx", curr_entry->cache_type);
-    print(ACS_PRINT_INFO, "\n  Cache ID:                0x%llx", curr_entry->cache_id);
-    print(ACS_PRINT_INFO, "\n  Size:                    0x%llx", curr_entry->size);
-    print(ACS_PRINT_INFO, "\n  Next level index:        %d", curr_entry->next_level_index);
-    print(ACS_PRINT_INFO, "\n  Private flag:            0x%llx\n", curr_entry->is_private);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nCache info * Index %d *",
+                  i);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Offset:                  0x%llx",
+                  curr_entry->my_offset);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Type:                    0x%llx",
+                  curr_entry->cache_type);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Cache ID:                0x%llx",
+                  curr_entry->cache_id);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Size:                    0x%llx",
+                  curr_entry->size);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Next level index:        %d",
+                  curr_entry->next_level_index);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Private flag:            0x%llx\n",
+                  curr_entry->is_private);
     curr_entry++;
   }
 
-  print(ACS_PRINT_INFO, "\nPE level one cache index info");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\nPE level one cache index info");
   /*Iterate PE info table and print level one cache index info*/
   for (i = 0 ; i < PeTable->header.num_of_pe; i++) {
-    print(ACS_PRINT_INFO, "\nPE Index * %d *", i);
-    print(ACS_PRINT_INFO, "\n  Level 1 Cache index(s) :");
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nPE Index * %d *",
+                  i);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n  Level 1 Cache index(s) :");
 
     for (j = 0; j < MAX_L1_CACHE_RES && pe_entry->level_1_res[j] != DEFAULT_CACHE_IDX; j++) {
-      print(ACS_PRINT_INFO, " %d,", pe_entry->level_1_res[j]);
+      pal_print_msg(ACS_PRINT_INFO,
+                    " %d,",
+                    pe_entry->level_1_res[j]);
     }
-    print(ACS_PRINT_INFO, "\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\n");
     pe_entry++;
   }
 }
@@ -110,7 +131,8 @@ pal_cache_create_info_table(CACHE_INFO_TABLE *CacheTable, PE_INFO_TABLE *PeTable
   uint32_t i;
 
   if (CacheTable == NULL) {
-    print(ACS_PRINT_ERR, " Unable to create cache info table, input pointer is NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Unable to create cache info table, input pointer is NULL\n");
     return;
   }
 

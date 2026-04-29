@@ -55,7 +55,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   PERIPHERAL_INFO_BLOCK *per_info = NULL;
 
   if (peripheralInfoTable == NULL) {
-    print(ACS_PRINT_ERR, "Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  "Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
     return;
   }
 
@@ -74,7 +75,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   /* check for any USB Controllers */
   do {
 
-       print(ACS_PRINT_INFO, "Entered USB loop\n");
+       pal_print_msg(ACS_PRINT_INFO,
+                     "Entered USB loop\n");
        DeviceBdf = pal_pcie_get_bdf(USB_CLASSCODE, StartBdf);
        if (DeviceBdf != 0) {
           per_info->type  = PERIPHERAL_TYPE_USB;
@@ -87,7 +89,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->bdf   = DeviceBdf;
           per_info->platform_type = 0;
 
-          print(ACS_PRINT_INFO, "Found a USB controller %4x\n", per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "Found a USB controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -101,7 +105,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   /* check for any SATA Controllers */
   do {
 
-       print(ACS_PRINT_INFO, "Entered SATA loop\n");
+       pal_print_msg(ACS_PRINT_INFO,
+                     "Entered SATA loop\n");
        DeviceBdf = pal_pcie_get_bdf(SATA_CLASSCODE, StartBdf);
        if (DeviceBdf != 0) {
           per_info->type  = PERIPHERAL_TYPE_SATA;
@@ -115,7 +120,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->platform_type = 0;
           per_info->bdf   = DeviceBdf;
 
-          print(ACS_PRINT_INFO, "Found a SATA controller %4x\n", per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "Found a SATA controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_sata++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -183,7 +190,9 @@ uint32_t pal_peripheral_is_pcie(uint32_t seg, uint32_t bus, uint32_t dev, uint32
      pal_pcie_read_cfg(seg, bus, dev, fn, next_cap_offset, &reg_value);
      if ((reg_value & PCIE_CIDR_MASK) == CID_PCIECS)
      {
-         print(ACS_PRINT_INFO, "PCIe Capable", 0);
+         pal_print_msg(ACS_PRINT_INFO,
+                       "PCIe Capable",
+                       0);
          return 1;
      }
      next_cap_offset = ((reg_value >> PCIE_NCPR_SHIFT) & PCIE_NCPR_MASK);
@@ -206,7 +215,9 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
     uint32_t index = 0;
 
     if (memoryInfoTable == NULL) {
-        print(ACS_PRINT_ERR, "\nInput Memory Table Pointer is NULL", 0);
+        pal_print_msg(ACS_PRINT_ERR,
+                      "\nInput Memory Table Pointer is NULL",
+                      0);
         return;
     }
 
@@ -246,7 +257,9 @@ pal_memory_get_unpopulated_addr(uint64_t *addr, uint32_t instance)
           if (memory_instance == instance)
           {
               *addr =  platform_mem_cfg.info[index].virt_addr;
-              print(ACS_PRINT_INFO, "Unpopulated region with base address 0x%lX found\n", *addr);
+              pal_print_msg(ACS_PRINT_INFO,
+                            "Unpopulated region with base address 0x%lX found\n",
+                            *addr);
               return MEM_MAP_SUCCESS;
           }
 

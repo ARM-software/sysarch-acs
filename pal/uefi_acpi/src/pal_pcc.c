@@ -44,7 +44,7 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
     /* initialise pcc info count */
     g_pcc_info_table->subspace_cnt = 0;
 
-    /* this API doesn't parse PCC structure, pal_pcc_store_info API should be
+    /* this API doesn't parse PCC structure, the PCC store helper should be
        called by component (e.g, MPAM) which defines PCC shared memory region, to
        populate PCC info table  */
 
@@ -82,9 +82,10 @@ pal_pcc_store_info(UINT32 subspace_idx)
     if (index == subspace_idx) {
         /* this API only supports parsing of type 3 PCC structure info */
         if (pcct_subspace->Type != EFI_ACPI_6_5_PCCT_SUBSPACE_TYPE_3_EXTENDED_PCC) {
-            acs_print(ACS_PRINT_ERR,
-                      L"\n    pal_pcc_store_info API doesn't support PCC structure type : 0x%x",
-                      pcct_subspace->Type);
+            pal_print_msg(ACS_PRINT_ERR,
+                          "\n    %a API doesn't support PCC structure type : 0x%x",
+                          __func__,
+                          pcct_subspace->Type);
         }
 
         /* parse PCC structure type 3 */
@@ -120,4 +121,3 @@ pal_pcc_store_info(UINT32 subspace_idx)
   }
 
 }
-

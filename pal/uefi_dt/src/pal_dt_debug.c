@@ -33,22 +33,37 @@ dt_dump_pe_table(PE_INFO_TABLE *PeTable)
   UINT32 Index = 0;
 
   if (!PeTable) {
-    acs_print(ACS_PRINT_ERR, L" PeTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " PeTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************PE TABLE DUMP************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM PE %d\n", PeTable->header.num_of_pe);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************PE TABLE DUMP************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM PE %d\n",
+                PeTable->header.num_of_pe);
 
   while (Index < PeTable->header.num_of_pe) {
-    acs_print(ACS_PRINT_DEBUG, L" PE NUM      :%x\n", PeTable->pe_info[Index].pe_num);
-    acs_print(ACS_PRINT_DEBUG, L" MPIDR       :%llx\n", PeTable->pe_info[Index].mpidr);
-//    acs_print(ACS_PRINT_DEBUG, L"    ATTR     :%x\n", PeTable->pe_info[Index].attr);
-    acs_print(ACS_PRINT_DEBUG, L" PMU GSIV    :%x\n", PeTable->pe_info[Index].pmu_gsiv);
-    acs_print(ACS_PRINT_DEBUG, L" GIC MAINT GSIV    :%x\n", PeTable->pe_info[Index].gmain_gsiv);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " PE NUM      :%x\n",
+                  PeTable->pe_info[Index].pe_num);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " MPIDR       :%llx\n",
+                  PeTable->pe_info[Index].mpidr);
+//    pal_print_msg(ACS_PRINT_DEBUG,
+//                  "    ATTR     :%x\n",
+//                  PeTable->pe_info[Index].attr);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " PMU GSIV    :%x\n",
+                  PeTable->pe_info[Index].pmu_gsiv);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GIC MAINT GSIV    :%x\n",
+                  PeTable->pe_info[Index].gmain_gsiv);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -64,25 +79,46 @@ dt_dump_gic_table(GIC_INFO_TABLE *GicTable)
   UINT32 Index = 0;
 
   if (!GicTable) {
-    acs_print(ACS_PRINT_ERR, L" GicTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " GicTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************GIC TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" GIC version %d\n", GicTable->header.gic_version);
-  acs_print(ACS_PRINT_DEBUG, L" GIC num D %d\n", GicTable->header.num_gicd);
-  acs_print(ACS_PRINT_DEBUG, L" GIC num GICC RD %d\n", GicTable->header.num_gicc_rd);
-  acs_print(ACS_PRINT_DEBUG, L" GIC num GICR RD %d\n", GicTable->header.num_gicr_rd);
-//  acs_print(ACS_PRINT_DEBUG, L" GIC num ITS %d\n", GicTable->header.num_its);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************GIC TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " GIC version %d\n",
+                GicTable->header.gic_version);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " GIC num D %d\n",
+                GicTable->header.num_gicd);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " GIC num GICC RD %d\n",
+                GicTable->header.num_gicc_rd);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " GIC num GICR RD %d\n",
+                GicTable->header.num_gicr_rd);
+//  pal_print_msg(ACS_PRINT_DEBUG,
+//                " GIC num ITS %d\n",
+//                GicTable->header.num_its);
 
   while (GicTable->gic_info[Index].type != 0xFF) {
-    acs_print(ACS_PRINT_DEBUG, L" GIC TYPE     :%x\n", GicTable->gic_info[Index].type);
-    acs_print(ACS_PRINT_DEBUG, L" BASE         :%x\n", GicTable->gic_info[Index].base);
-    acs_print(ACS_PRINT_DEBUG, L" LEN          :%x\n", GicTable->gic_info[Index].length);
-//    acs_print(ACS_PRINT_DEBUG, L"     ITS ID   :%x\n", GicTable->gic_info[Index].entry_id);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GIC TYPE     :%x\n",
+                  GicTable->gic_info[Index].type);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " BASE         :%x\n",
+                  GicTable->gic_info[Index].base);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " LEN          :%x\n",
+                  GicTable->gic_info[Index].length);
+//    pal_print_msg(ACS_PRINT_DEBUG,
+//                  "     ITS ID   :%x\n",
+//                  GicTable->gic_info[Index].entry_id);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -98,21 +134,34 @@ dt_dump_wd_table(WD_INFO_TABLE *WdTable)
   UINT32 Index = 0;
 
   if (!WdTable) {
-    acs_print(ACS_PRINT_ERR, L" WdTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " WdTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************WD TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM WD %d\n", WdTable->header.num_wd);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************WD TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM WD %d\n",
+                WdTable->header.num_wd);
 
   while (Index < WdTable->header.num_wd) {
-    acs_print(ACS_PRINT_DEBUG, L" REFRESH BASE  :%x\n", WdTable->wd_info[Index].wd_refresh_base);
-    acs_print(ACS_PRINT_DEBUG, L" CONTROL BASE  :%x\n", WdTable->wd_info[Index].wd_ctrl_base);
-    acs_print(ACS_PRINT_DEBUG, L" GSIV          :%x\n", WdTable->wd_info[Index].wd_gsiv);
-    acs_print(ACS_PRINT_DEBUG, L" FLAGS         :%x\n", WdTable->wd_info[Index].wd_flags);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " REFRESH BASE  :%x\n",
+                  WdTable->wd_info[Index].wd_refresh_base);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " CONTROL BASE  :%x\n",
+                  WdTable->wd_info[Index].wd_ctrl_base);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GSIV          :%x\n",
+                  WdTable->wd_info[Index].wd_gsiv);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " FLAGS         :%x\n",
+                  WdTable->wd_info[Index].wd_flags);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -129,21 +178,34 @@ dt_dump_pcie_table(PCIE_INFO_TABLE *PcieTable)
   UINT32 Index = 0;
 
   if (!PcieTable) {
-    acs_print(ACS_PRINT_ERR, L" PcieTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " PcieTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************PCIE TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM ECAM %d\n", PcieTable->num_entries);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************PCIE TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM ECAM %d\n",
+                PcieTable->num_entries);
 
   while (Index < PcieTable->num_entries) {
-    acs_print(ACS_PRINT_DEBUG, L" ECAM BASE          :%x\n", PcieTable->block[Index].ecam_base);
-    acs_print(ACS_PRINT_DEBUG, L" START BUS          :%x\n", PcieTable->block[Index].start_bus_num);
-    acs_print(ACS_PRINT_DEBUG, L" END BUS            :%x\n", PcieTable->block[Index].end_bus_num);
-//    acs_print(ACS_PRINT_DEBUG, L"      SEGMENT NUM   :%x\n", PcieTable->block[Index].segment_num);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " ECAM BASE          :%x\n",
+                  PcieTable->block[Index].ecam_base);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " START BUS          :%x\n",
+                  PcieTable->block[Index].start_bus_num);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " END BUS            :%x\n",
+                  PcieTable->block[Index].end_bus_num);
+//    pal_print_msg(ACS_PRINT_DEBUG,
+//                  "      SEGMENT NUM   :%x\n",
+//                  PcieTable->block[Index].segment_num);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -159,23 +221,40 @@ dt_dump_memory_table(MEMORY_INFO_TABLE *memoryInfoTable)
   UINT32 Index = 0;
 
   if (!memoryInfoTable) {
-    acs_print(ACS_PRINT_ERR, L" memoryInfoTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " memoryInfoTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************MEMORY TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" dram base  :%x\n", memoryInfoTable->dram_base);
-  acs_print(ACS_PRINT_DEBUG, L" dram size  :%x\n", memoryInfoTable->dram_size);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************MEMORY TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " dram base  :%x\n",
+                memoryInfoTable->dram_base);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " dram size  :%x\n",
+                memoryInfoTable->dram_size);
 
   while (memoryInfoTable->info[Index].type < 0x1004) {
-    acs_print(ACS_PRINT_DEBUG, L" Type      :%x\n", memoryInfoTable->info[Index].type);
-    acs_print(ACS_PRINT_DEBUG, L" PHY addr  :%x\n", memoryInfoTable->info[Index].phy_addr);
-    acs_print(ACS_PRINT_DEBUG, L" VIRT addr :%x\n", memoryInfoTable->info[Index].virt_addr);
-    acs_print(ACS_PRINT_DEBUG, L" size      :%x\n", memoryInfoTable->info[Index].size);
-    acs_print(ACS_PRINT_DEBUG, L" flags     :%x\n", memoryInfoTable->info[Index].flags);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " Type      :%x\n",
+                  memoryInfoTable->info[Index].type);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " PHY addr  :%x\n",
+                  memoryInfoTable->info[Index].phy_addr);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " VIRT addr :%x\n",
+                  memoryInfoTable->info[Index].virt_addr);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " size      :%x\n",
+                  memoryInfoTable->info[Index].size);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " flags     :%x\n",
+                  memoryInfoTable->info[Index].flags);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -191,34 +270,73 @@ dt_dump_timer_table(TIMER_INFO_TABLE *TimerTable)
   UINT32 Index = 0;
 
   if (!TimerTable) {
-    acs_print(ACS_PRINT_ERR, L" TimerTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " TimerTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************TIMER TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" Num of system timers %d\n", TimerTable->header.num_platform_timer);
-  acs_print(ACS_PRINT_DEBUG, L" s_el1_timer_flag %x\n", TimerTable->header.s_el1_timer_flag);
-  acs_print(ACS_PRINT_DEBUG, L" ns_el1_timer_flag %x\n", TimerTable->header.ns_el1_timer_flag);
-  acs_print(ACS_PRINT_DEBUG, L" el2_timer_flag %x\n", TimerTable->header.el2_timer_flag);
-  acs_print(ACS_PRINT_DEBUG, L" el2_virt_timer_flag %x\n", TimerTable->header.el2_virt_timer_flag);
-  acs_print(ACS_PRINT_DEBUG, L" s_el1_timer_gsiv %x\n", TimerTable->header.s_el1_timer_gsiv);
-  acs_print(ACS_PRINT_DEBUG, L" ns_el1_timer_gsiv %x\n", TimerTable->header.ns_el1_timer_gsiv);
-  acs_print(ACS_PRINT_DEBUG, L" el2_timer_gsiv %x\n", TimerTable->header.el2_timer_gsiv);
-  acs_print(ACS_PRINT_DEBUG, L" virtual_timer_flag %x\n", TimerTable->header.virtual_timer_flag);
-  acs_print(ACS_PRINT_DEBUG, L" virtual_timer_gsiv %x\n", TimerTable->header.virtual_timer_gsiv);
-  acs_print(ACS_PRINT_DEBUG, L" el2_virt_timer_gsiv %x\n", TimerTable->header.el2_virt_timer_gsiv);
-  acs_print(ACS_PRINT_DEBUG, L" CNTBase             %x\n", TimerTable->gt_info->block_cntl_base);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************TIMER TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " Num of system timers %d\n",
+                TimerTable->header.num_platform_timer);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " s_el1_timer_flag %x\n",
+                TimerTable->header.s_el1_timer_flag);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ns_el1_timer_flag %x\n",
+                TimerTable->header.ns_el1_timer_flag);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " el2_timer_flag %x\n",
+                TimerTable->header.el2_timer_flag);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " el2_virt_timer_flag %x\n",
+                TimerTable->header.el2_virt_timer_flag);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " s_el1_timer_gsiv %x\n",
+                TimerTable->header.s_el1_timer_gsiv);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ns_el1_timer_gsiv %x\n",
+                TimerTable->header.ns_el1_timer_gsiv);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " el2_timer_gsiv %x\n",
+                TimerTable->header.el2_timer_gsiv);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " virtual_timer_flag %x\n",
+                TimerTable->header.virtual_timer_flag);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " virtual_timer_gsiv %x\n",
+                TimerTable->header.virtual_timer_gsiv);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " el2_virt_timer_gsiv %x\n",
+                TimerTable->header.el2_virt_timer_gsiv);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " CNTBase             %x\n",
+                TimerTable->gt_info->block_cntl_base);
 
   while (Index < TimerTable->gt_info->timer_count) {
-    acs_print(ACS_PRINT_DEBUG, L" Frame num   :%x\n", TimerTable->gt_info->frame_num[Index]);
-    acs_print(ACS_PRINT_DEBUG, L" GtCntBase   :%x\n", TimerTable->gt_info->GtCntBase[Index]);
-    acs_print(ACS_PRINT_DEBUG, L" GtCntEl0Base:%x\n", TimerTable->gt_info->GtCntEl0Base[Index]);
-    acs_print(ACS_PRINT_DEBUG, L" gsiv        :%x\n", TimerTable->gt_info->gsiv[Index]);
-    acs_print(ACS_PRINT_DEBUG, L" virt_gsiv   :%x\n", TimerTable->gt_info->virt_gsiv[Index]);
-    acs_print(ACS_PRINT_DEBUG, L" flags       :%x\n", TimerTable->gt_info->flags[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " Frame num   :%x\n",
+                  TimerTable->gt_info->frame_num[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GtCntBase   :%x\n",
+                  TimerTable->gt_info->GtCntBase[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GtCntEl0Base:%x\n",
+                  TimerTable->gt_info->GtCntEl0Base[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " gsiv        :%x\n",
+                  TimerTable->gt_info->gsiv[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " virt_gsiv   :%x\n",
+                  TimerTable->gt_info->virt_gsiv[Index]);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " flags       :%x\n",
+                  TimerTable->gt_info->flags[Index]);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }
 
 /**
@@ -234,44 +352,83 @@ dt_dump_peripheral_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   UINT32 Index = 0;
 
   if (!peripheralInfoTable) {
-    acs_print(ACS_PRINT_ERR, L" peripheralInfoTable ptr NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " peripheralInfoTable ptr NULL\n");
     return;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************USB TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM USB %d\n", peripheralInfoTable->header.num_usb);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************USB TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM USB %d\n",
+                peripheralInfoTable->header.num_usb);
 
   while (Index < peripheralInfoTable->header.num_usb) {
-    acs_print(ACS_PRINT_DEBUG, L" TYPE          :%x\n", peripheralInfoTable->info[Index].type);
-    acs_print(ACS_PRINT_DEBUG, L" CONTROL BASE  :%x\n", peripheralInfoTable->info[Index].base0);
-    acs_print(ACS_PRINT_DEBUG, L" GSIV          :%d\n", peripheralInfoTable->info[Index].irq);
-    acs_print(ACS_PRINT_DEBUG, L" FLAGS         :%x\n", peripheralInfoTable->info[Index].flags);
-    acs_print(ACS_PRINT_DEBUG, L" BDF           :%x\n", peripheralInfoTable->info[Index].bdf);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " TYPE          :%x\n",
+                  peripheralInfoTable->info[Index].type);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " CONTROL BASE  :%x\n",
+                  peripheralInfoTable->info[Index].base0);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GSIV          :%d\n",
+                  peripheralInfoTable->info[Index].irq);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " FLAGS         :%x\n",
+                  peripheralInfoTable->info[Index].flags);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " BDF           :%x\n",
+                  peripheralInfoTable->info[Index].bdf);
     Index++;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************SATA TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM SATA %d\n", peripheralInfoTable->header.num_sata);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************SATA TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM SATA %d\n",
+                peripheralInfoTable->header.num_sata);
 
   while (Index < (peripheralInfoTable->header.num_sata + peripheralInfoTable->header.num_usb)) {
-    acs_print(ACS_PRINT_DEBUG, L" TYPE          :%x\n", peripheralInfoTable->info[Index].type);
-    acs_print(ACS_PRINT_DEBUG, L" CONTROL BASE  :%x\n", peripheralInfoTable->info[Index].base0);
-    acs_print(ACS_PRINT_DEBUG, L" GSIV          :%d\n", peripheralInfoTable->info[Index].irq);
-    acs_print(ACS_PRINT_DEBUG, L" FLAGS         :%x\n", peripheralInfoTable->info[Index].flags);
-    acs_print(ACS_PRINT_DEBUG, L" BDF           :%x\n", peripheralInfoTable->info[Index].bdf);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " TYPE          :%x\n",
+                  peripheralInfoTable->info[Index].type);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " CONTROL BASE  :%x\n",
+                  peripheralInfoTable->info[Index].base0);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GSIV          :%d\n",
+                  peripheralInfoTable->info[Index].irq);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " FLAGS         :%x\n",
+                  peripheralInfoTable->info[Index].flags);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " BDF           :%x\n",
+                  peripheralInfoTable->info[Index].bdf);
     Index++;
   }
 
-  acs_print(ACS_PRINT_DEBUG, L" ************UART TABLE************\n");
-  acs_print(ACS_PRINT_DEBUG, L" NUM UART %d\n", peripheralInfoTable->header.num_uart);
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " ************UART TABLE************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " NUM UART %d\n",
+                peripheralInfoTable->header.num_uart);
 
   while (Index < (peripheralInfoTable->header.num_sata + peripheralInfoTable->header.num_usb +
       peripheralInfoTable->header.num_uart)) {
-    acs_print(ACS_PRINT_DEBUG, L" TYPE          :%x\n", peripheralInfoTable->info[Index].type);
-    acs_print(ACS_PRINT_DEBUG, L" CONTROL BASE  :%x\n", peripheralInfoTable->info[Index].base0);
-    acs_print(ACS_PRINT_DEBUG, L" GSIV          :%d\n", peripheralInfoTable->info[Index].irq);
-    acs_print(ACS_PRINT_DEBUG, L" FLAGS         :%x\n", peripheralInfoTable->info[Index].flags);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " TYPE          :%x\n",
+                  peripheralInfoTable->info[Index].type);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " CONTROL BASE  :%x\n",
+                  peripheralInfoTable->info[Index].base0);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " GSIV          :%d\n",
+                  peripheralInfoTable->info[Index].irq);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " FLAGS         :%x\n",
+                  peripheralInfoTable->info[Index].flags);
     Index++;
   }
-  acs_print(ACS_PRINT_DEBUG, L" *************************************\n");
+  pal_print_msg(ACS_PRINT_DEBUG,
+                " *************************************\n");
 }

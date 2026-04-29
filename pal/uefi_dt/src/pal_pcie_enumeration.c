@@ -83,7 +83,8 @@ palPcieGetBdf(UINT32 ClassCode, UINT32 StartBdf)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No PCI devices found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No PCI devices found in the system\n");
     return EFI_SUCCESS;
   }
 
@@ -107,7 +108,13 @@ palPcieGetBdf(UINT32 ClassCode, UINT32 StartBdf)
           Status = Pci->Pci.Read (Pci, EfiPciIoWidthUint32, 0, sizeof (PciHeader)/sizeof (UINT32), &PciHeader);
           if (!EFI_ERROR (Status)) {
             Hdr = &PciHeader.Bridge.Hdr;
-            acs_print(ACS_PRINT_INFO,L"\n%03d.%02d.%02d class_code = %d %d", Bus, Dev, Index, Hdr->ClassCode[1], Hdr->ClassCode[2]);
+            pal_print_msg(ACS_PRINT_INFO,
+                          "\n%03d.%02d.%02d class_code = %d %d",
+                          Bus,
+                          Dev,
+                          Index,
+                          Hdr->ClassCode[1],
+                          Hdr->ClassCode[2]);
             if (Hdr->ClassCode[2] == ((ClassCode >> 16) & 0xFF)) {
               if (Hdr->ClassCode[1] == ((ClassCode >> 8) & 0xFF)) {
                  /* Found our device */
@@ -171,7 +178,8 @@ palPcieGetBase(UINT32 bdf, UINT32 bar_index)
 
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    acs_print(ACS_PRINT_INFO,L" No PCI devices found in the system\n");
+    pal_print_msg(ACS_PRINT_INFO,
+                  " No PCI devices found in the system\n");
     return EFI_SUCCESS;
   }
 

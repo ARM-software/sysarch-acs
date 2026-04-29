@@ -35,43 +35,59 @@ pal_pcc_dump_info_table(PCC_INFO_TABLE *PccInfoTable)
   uint32_t i;
 
   if (PccInfoTable == NULL) {
-      print(ACS_PRINT_ERR, "\nUnable to dump PCC info table, input pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\nUnable to dump PCC info table, input pointer is NULL\n");
       return;
   }
 
-  print(ACS_PRINT_INFO, "\n*** PCC Information ***");
-  print(ACS_PRINT_INFO, "\nNumber of PCC subspace entries : %d", PccInfoTable->subspace_cnt);
+  pal_print_msg(ACS_PRINT_INFO,
+                "\n*** PCC Information ***");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\nNumber of PCC subspace entries : %d",
+                PccInfoTable->subspace_cnt);
 
   curr_entry = PccInfoTable->pcc_info;
 
   for (i = 0; i < PccInfoTable->subspace_cnt; i++) {
-      print(ACS_PRINT_INFO, "\n PCC subspace index                : 0x%x",
-                  curr_entry->subspace_idx);
-      print(ACS_PRINT_INFO, "\n PCC subspace type                 : 0x%x",
-                  curr_entry->subspace_type);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n PCC subspace index                : 0x%x",
+                    curr_entry->subspace_idx);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n PCC subspace type                 : 0x%x",
+                    curr_entry->subspace_type);
 
       if (curr_entry->subspace_type == PCCT_SUBSPACE_TYPE_3_EXTENDED_PCC) {
           ptr_pcc_ss_type_3 = &(curr_entry->type_spec_info.pcc_ss_type_3);
-          print(ACS_PRINT_INFO, "\n Base address                      : 0x%lx",
-                      ptr_pcc_ss_type_3->base_addr);
-          print(ACS_PRINT_INFO, "\n Doorbell Register addr            : 0x%lx",
-                      ptr_pcc_ss_type_3->doorbell_reg.addr);
-          print(ACS_PRINT_INFO, "\n Doorbell preserve Mask            : 0x%lx",
-                      ptr_pcc_ss_type_3->doorbell_preserve);
-          print(ACS_PRINT_INFO, "\n Doorbell write Mask               : 0x%lx",
-                      ptr_pcc_ss_type_3->doorbell_write);
-          print(ACS_PRINT_INFO, "\n Min req turnaround time (us)      : 0x%x",
-                      ptr_pcc_ss_type_3->min_req_turnaround_usec);
-          print(ACS_PRINT_INFO, "\n Command complete check reg addr   : 0x%lx",
-                      ptr_pcc_ss_type_3->cmd_complete_chk_reg.addr);
-          print(ACS_PRINT_INFO, "\n Command complete check mask       : 0x%lx",
-                      ptr_pcc_ss_type_3->cmd_complete_chk_mask);
-          print(ACS_PRINT_INFO, "\n Command complete update reg addr  : 0x%lx",
-                      ptr_pcc_ss_type_3->cmd_complete_update_reg.addr);
-          print(ACS_PRINT_INFO, "\n Command complete update preserve  : 0x%lx",
-                      ptr_pcc_ss_type_3->cmd_complete_update_preserve);
-          print(ACS_PRINT_INFO, "\n Command complete update set mask  : 0x%lx",
-                      ptr_pcc_ss_type_3->cmd_complete_update_set);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Base address                      : 0x%lx",
+                        ptr_pcc_ss_type_3->base_addr);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Doorbell Register addr            : 0x%lx",
+                        ptr_pcc_ss_type_3->doorbell_reg.addr);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Doorbell preserve Mask            : 0x%lx",
+                        ptr_pcc_ss_type_3->doorbell_preserve);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Doorbell write Mask               : 0x%lx",
+                        ptr_pcc_ss_type_3->doorbell_write);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Min req turnaround time (us)      : 0x%x",
+                        ptr_pcc_ss_type_3->min_req_turnaround_usec);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Command complete check reg addr   : 0x%lx",
+                        ptr_pcc_ss_type_3->cmd_complete_chk_reg.addr);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Command complete check mask       : 0x%lx",
+                        ptr_pcc_ss_type_3->cmd_complete_chk_mask);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Command complete update reg addr  : 0x%lx",
+                        ptr_pcc_ss_type_3->cmd_complete_update_reg.addr);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Command complete update preserve  : 0x%lx",
+                        ptr_pcc_ss_type_3->cmd_complete_update_preserve);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Command complete update set mask  : 0x%lx",
+                        ptr_pcc_ss_type_3->cmd_complete_update_set);
       }
   }
 }
@@ -89,7 +105,8 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
   uint32_t i;
 
   if (PccInfoTable == NULL) {
-    print(ACS_PRINT_ERR, " Unable to create PCC info table, input pointer is NULL\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Unable to create PCC info table, input pointer is NULL\n");
     return;
   }
 

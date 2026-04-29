@@ -31,7 +31,8 @@ void
 pal_tpm2_create_info_table(TPM2_INFO_TABLE *Tpm2InfoTable)
 {
     if (Tpm2InfoTable == NULL) {
-        print(ACS_PRINT_ERR, "\nTPM2: Info table pointer is NULL");
+        pal_print_msg(ACS_PRINT_ERR,
+                      "\nTPM2: Info table pointer is NULL");
         return;
     }
 
@@ -40,7 +41,8 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE *Tpm2InfoTable)
     Tpm2InfoTable->base          = 0;
 
     if (platform_tpm2_cfg.tpm_present == 0) {
-        print(ACS_PRINT_INFO, "\nTPM2: Platform reports no TPM");
+        pal_print_msg(ACS_PRINT_INFO,
+                      "\nTPM2: Platform reports no TPM");
         return;
     }
 
@@ -48,9 +50,14 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE *Tpm2InfoTable)
     Tpm2InfoTable->tpm_interface = platform_tpm2_cfg.tpm_interface_type;
     Tpm2InfoTable->base          = platform_tpm2_cfg.tpm_base;
 
-    print(ACS_PRINT_INFO, "\nTPM2: Present");
-    print(ACS_PRINT_INFO, "\nTPM2: Interface 0x%llx", Tpm2InfoTable->tpm_interface);
-    print(ACS_PRINT_INFO, "\nTPM2: Base 0x%llx", Tpm2InfoTable->base);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nTPM2: Present");
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nTPM2: Interface 0x%llx",
+                  Tpm2InfoTable->tpm_interface);
+    pal_print_msg(ACS_PRINT_INFO,
+                  "\nTPM2: Base 0x%llx",
+                  Tpm2InfoTable->base);
 }
 
 /**

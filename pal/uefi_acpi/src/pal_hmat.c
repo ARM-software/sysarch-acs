@@ -125,9 +125,11 @@ EFI_ACPI_6_4_HMAT_STRUCTURE_SYSTEM_LOCALITY_LATENCY_AND_BANDWIDTH_INFO *curr_bw_
   entry_base_unit = curr_bw_struct->EntryBaseUnit;
 
   if (entry_base_unit > HMAT_BASE_UNIT_48BIT) {
-      acs_print(ACS_PRINT_ERR, L"\nEntry Base unit exceeds 0x%llx Mbytes/s ",
-                                HMAT_BASE_UNIT_48BIT);
-      acs_print(ACS_PRINT_ERR, L"\n  BW info entries might overflow 64 bit boundary");
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\nEntry Base unit exceeds 0x%llx Mbytes/s ",
+                    HMAT_BASE_UNIT_48BIT);
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\n  BW info entries might overflow 64 bit boundary");
   }
 
   /* pointer to list of target proximity domains */
@@ -141,10 +143,18 @@ EFI_ACPI_6_4_HMAT_STRUCTURE_SYSTEM_LOCALITY_LATENCY_AND_BANDWIDTH_INFO *curr_bw_
       curr_max_bw_entry = pal_hmat_get_max_bw_entry(i, curr_bw_struct);
       curr_max_bw = entry_base_unit * curr_max_bw_entry;
 
-      acs_print(ACS_PRINT_INFO, L"\nMemory Proximity Domain  : 0x%llx", *curr_tgt_prox_domain);
-      acs_print(ACS_PRINT_INFO, L"\nEntry Base Unit          : 0x%llx", entry_base_unit);
-      acs_print(ACS_PRINT_INFO, L"\nMax Bandwidth entry      : 0x%llx", curr_max_bw_entry);
-      acs_print(ACS_PRINT_INFO, L"\nMax Bandwidth            : 0x%llx", curr_max_bw);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMemory Proximity Domain  : 0x%llx",
+                    *curr_tgt_prox_domain);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nEntry Base Unit          : 0x%llx",
+                    entry_base_unit);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMax Bandwidth entry      : 0x%llx",
+                    curr_max_bw_entry);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMax Bandwidth            : 0x%llx",
+                    curr_max_bw);
       /* get index to HMAT info table entry for curr_tgt_prox_domain */
       bw_info_index = pal_hmat_get_entry_index(HmatTable, *curr_tgt_prox_domain);
       /* pointer to HMAT info table entry curr_tgt_prox_domain */
@@ -185,12 +195,18 @@ VOID pal_hmat_dump_info_table(HMAT_INFO_TABLE *HmatTable)
       return;
 
   curr_entry = HmatTable->bw_info;
-  acs_print(ACS_PRINT_INFO, L"\n*** HMAT info table entries ***\n");
+  pal_print_msg(ACS_PRINT_INFO,
+                "\n*** HMAT info table entries ***\n");
   for (i = 0 ; i < HmatTable->num_of_mem_prox_domain ; i++) {
-      acs_print(ACS_PRINT_INFO, L"\nMemory Proximity domain  :   0x%llx",
-                                curr_entry->mem_prox_domain);
-      acs_print(ACS_PRINT_INFO, L"\n  Write bandwidth        :   0x%llx", curr_entry->write_bw);
-      acs_print(ACS_PRINT_INFO, L"\n  Read  bandwidth        :   0x%llx\n", curr_entry->read_bw);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMemory Proximity domain  :   0x%llx",
+                    curr_entry->mem_prox_domain);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n  Write bandwidth        :   0x%llx",
+                    curr_entry->write_bw);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\n  Read  bandwidth        :   0x%llx\n",
+                    curr_entry->read_bw);
       curr_entry++;
   }
 }
@@ -211,7 +227,8 @@ VOID pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
   UINT32 TableLength = 0;
 
   if (HmatTable == NULL) {
-      acs_print(ACS_PRINT_ERR, L" Unable to create HMAT info table, input pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Unable to create HMAT info table, input pointer is NULL\n");
       return;
   }
 
@@ -220,13 +237,16 @@ VOID pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
 
   HmatHdr = (EFI_ACPI_6_4_HETEROGENEOUS_MEMORY_ATTRIBUTE_TABLE_HEADER *) pal_get_hmat_ptr();
   if (HmatHdr == NULL) {
-      acs_print(ACS_PRINT_DEBUG, L" HMAT ACPI table not found\n");
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " HMAT ACPI table not found\n");
       return;
   }
   else {
       TableLength = HmatHdr->Header.Length;
-      acs_print(ACS_PRINT_INFO, L"HMAT ACPI table found at 0x%llx with length 0x%x\n",
-                 HmatHdr, TableLength);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "HMAT ACPI table found at 0x%llx with length 0x%x\n",
+                    HmatHdr,
+                    TableLength);
   }
 
   /* pointer to first HMAT structure in ACPI table */

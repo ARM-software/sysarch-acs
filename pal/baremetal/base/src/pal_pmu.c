@@ -38,17 +38,28 @@ pal_pmu_dump_info_table(PMU_INFO_TABLE *PmuTable)
   }
 
   for (i = 0; i < PmuTable->pmu_count; i++) {
-      print(ACS_PRINT_INFO, "\nPMU info Index      :%d ", i);
-      print(ACS_PRINT_INFO, "\nPMU node type       :%02X ", PmuTable->info[i].type);
-      print(ACS_PRINT_INFO, "\nDual page extension :%d ",
-                 PmuTable->info[i].dual_page_extension);
-      print(ACS_PRINT_INFO, "\nBase Address 0      :%llX ", PmuTable->info[i].base0);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPMU info Index      :%d ",
+                    i);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPMU node type       :%02X ",
+                    PmuTable->info[i].type);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nDual page extension :%d ",
+                    PmuTable->info[i].dual_page_extension);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nBase Address 0      :%llX ",
+                    PmuTable->info[i].base0);
       if(PmuTable->info[i].dual_page_extension)
-          print(ACS_PRINT_INFO, "\nBase Address 1      :%llX ", PmuTable->info[i].base1);
-      print(ACS_PRINT_INFO, "\nPrimary Instance    :%llX ",
-                 PmuTable->info[i].primary_instance);
-      print(ACS_PRINT_INFO, "\nSecondary Instance  :%08X ",
-                 PmuTable->info[i].secondary_instance);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nBase Address 1      :%llX ",
+                        PmuTable->info[i].base1);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nPrimary Instance    :%llX ",
+                    PmuTable->info[i].primary_instance);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nSecondary Instance  :%08X ",
+                    PmuTable->info[i].secondary_instance);
 
   }
 }
@@ -69,7 +80,8 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
 
   /* Check if memory for PMU info table allocated */
   if (PmuTable == NULL) {
-      print(ACS_PRINT_ERR, "\n Input PMU Table Pointer is NULL");
+      pal_print_msg(ACS_PRINT_ERR,
+                    "\n Input PMU Table Pointer is NULL");
       return;
   }
 
@@ -87,8 +99,9 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
 
       PmuTable->pmu_count++;
       if (PmuTable->pmu_count >= MAX_NUM_OF_PMU_SUPPORTED) {
-          print(ACS_PRINT_WARN, "\n Number of PMUs greater than %d",
-                MAX_NUM_OF_PMU_SUPPORTED);
+          pal_print_msg(ACS_PRINT_WARN,
+                        "\n Number of PMUs greater than %d",
+                        MAX_NUM_OF_PMU_SUPPORTED);
           break;
       }
 

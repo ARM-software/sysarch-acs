@@ -59,8 +59,8 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   EFI_ACPI_SERIAL_PORT_CONSOLE_REDIRECTION_TABLE *spcr = NULL;
 
   if (peripheralInfoTable == NULL) {
-    acs_print(ACS_PRINT_ERR,
-              L" Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
     return;
   }
 
@@ -86,8 +86,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           }
           per_info->bdf   = DeviceBdf;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
-          acs_print(ACS_PRINT_INFO, L"  Found a USB controller %4x\n",
-                                                            per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Found a USB controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -111,8 +112,9 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           }
           per_info->bdf   = DeviceBdf;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
-          acs_print(ACS_PRINT_INFO, L"  Found a SATA controller %4x\n",
-                                                            per_info->base0);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Found a SATA controller %4x\n",
+                        per_info->base0);
           peripheralInfoTable->header.num_sata++;
           peripheralInfoTable->header.num_all++;
           per_info++;
@@ -143,8 +145,12 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
     per_info++;
   }
   else {
-    acs_print(ACS_PRINT_DEBUG, L"  WARNING:SPCR acpi table not found\n", 0);
-    acs_print(ACS_PRINT_DEBUG, L"  UEFI console setting must be set to serial\n", 0);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  "  WARNING:SPCR acpi table not found\n",
+                  0);
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  "  UEFI console setting must be set to serial\n",
+                  0);
   }
 
   if (PLATFORM_GENERIC_UART_BASE) {
@@ -277,7 +283,8 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
   UINT32                Index, i = 0;
 
   if (memoryInfoTable == NULL) {
-    acs_print(ACS_PRINT_ERR, L" Input Memory Table Pointer is NULL. Cannot create Memory INFO\n");
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Input Memory Table Pointer is NULL. Cannot create Memory INFO\n");
     return;
   }
 
@@ -303,9 +310,12 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
   if (!EFI_ERROR (Status)) {
     MemoryMapPtr = MemoryMap;
     for (Index = 0; Index < (MemoryMapSize / DescriptorSize); Index++) {
-          acs_print(ACS_PRINT_INFO, L"  Reserved region of type %d [0x%lX, 0x%lX]\n",
-            MemoryMapPtr->Type, (UINTN)MemoryMapPtr->PhysicalStart,
-            (UINTN)(MemoryMapPtr->PhysicalStart + MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE));
+          pal_print_msg(ACS_PRINT_INFO,
+                        "  Reserved region of type %d [0x%lX, 0x%lX]\n",
+                        MemoryMapPtr->Type,
+                        (UINTN)MemoryMapPtr->PhysicalStart,
+                        (UINTN)(MemoryMapPtr->PhysicalStart +
+                                MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE));
       if (IsUefiMemory ((EFI_MEMORY_TYPE)MemoryMapPtr->Type)) {
         memoryInfoTable->info[i].type      = MEMORY_TYPE_RESERVED;
       } else {
@@ -328,7 +338,9 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
       memoryInfoTable->info[i].size      = (MemoryMapPtr->NumberOfPages * EFI_PAGE_SIZE);
       i++;
       if (i >= MEM_INFO_TBL_MAX_ENTRY) {
-        acs_print(ACS_PRINT_DEBUG, L"  Memory Info tbl limit exceeded, Skipping remaining\n", 0);
+        pal_print_msg(ACS_PRINT_DEBUG,
+                      "  Memory Info tbl limit exceeded, Skipping remaining\n",
+                      0);
         break;
       }
 
@@ -361,7 +373,9 @@ pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance)
   Status = gDS->GetMemorySpaceMap(&NumberOfDescriptors, &MemorySpaceMap);
   if (Status != EFI_SUCCESS)
   {
-    acs_print(ACS_PRINT_ERR, L" Failed to get GCD memory with error: %x\n", Status);
+    pal_print_msg(ACS_PRINT_ERR,
+                  " Failed to get GCD memory with error: %x\n",
+                  Status);
     if (Status == EFI_NO_MAPPING)
     {
         return MEM_MAP_NO_MEM;
@@ -380,7 +394,9 @@ pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance)
         if (*addr == 0)
           continue;
 
-        acs_print(ACS_PRINT_INFO, L" Unpopulated region with base address 0x%lX found\n", *addr);
+        pal_print_msg(ACS_PRINT_INFO,
+                      " Unpopulated region with base address 0x%lX found\n",
+                      *addr);
         return MEM_MAP_SUCCESS;
       }
 

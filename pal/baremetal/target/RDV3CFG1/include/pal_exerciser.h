@@ -31,9 +31,6 @@
 void *mem_alloc(size_t alignment, size_t size);
 #endif
 
-#define print(verbose, string, ...) \
-    PAL_PRINT_LITERAL((verbose), string, ##__VA_ARGS__)
-
 /* Exerciser PAL API declarations */
 uint64_t pal_exerciser_get_ecam(uint32_t Bdf);
 uint64_t pal_exerciser_get_ecsr_base(uint32_t Bdf, uint32_t BarIndex);

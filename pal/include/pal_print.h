@@ -33,6 +33,11 @@
         } \
     } while (0)
 
+/*
+ * PAL_PRINT_FORMAT and PAL_PRINT_LITERAL are backend-specific building blocks.
+ * Keep normal PAL call sites on pal_print_msg() with plain source literals.
+ * UEFI widens those literals here; baremetal forwards them unchanged.
+ */
 #if defined(TARGET_BAREMETAL)
 void pal_uart_print(int log, const char *fmt, ...);
 
@@ -48,9 +53,22 @@ void pal_uart_print(int log, const char *fmt, ...);
     PAL_PRINT_IF((verbose), Print((string), ##__VA_ARGS__))
 
 #define PAL_PRINT_LITERAL(verbose, string, ...) \
-    PAL_PRINT_IF((verbose), Print(L##string, ##__VA_ARGS__))
+    PAL_PRINT_IF((verbose), Print(L"" string, ##__VA_ARGS__))
 #else
 #error "pal_print.h requires TARGET_BAREMETAL or TARGET_UEFI"
 #endif
+
+/*
+ * pal_print_msg() is the standard PAL wrapper used by current call sites.
+ * Pass a plain C string literal, not L"...".
+ *
+ * pal_print_native() is only for rare cases where the caller already has a
+ * target-native format string, such as a UEFI CHAR16/L"..." format.
+ */
+#define pal_print_native(verbose, string, ...) \
+    PAL_PRINT_FORMAT((verbose), (string), ##__VA_ARGS__)
+
+#define pal_print_msg(verbose, string, ...) \
+    PAL_PRINT_LITERAL((verbose), string, ##__VA_ARGS__)
 
 #endif

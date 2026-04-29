@@ -52,26 +52,38 @@ pal_mpam_dump_table(MPAM_INFO_TABLE *MpamTable)
   curr_entry = &(MpamTable->msc_node[0]);
 
   for (i = 0; i < MpamTable->msc_count; i++) {
-      acs_print(ACS_PRINT_INFO, L"\nMSC node Index         :%d ", i);
-      acs_print(ACS_PRINT_INFO, L"\nMSC base addr          :%llx ",
-                                        curr_entry->msc_base_addr);
-      acs_print(ACS_PRINT_INFO, L"\nMSC Overflow interrupt :%llx ",
-                                        curr_entry->of_intr);
-      acs_print(ACS_PRINT_INFO, L"\nMSC Error interrupt    :%llx ",
-                                        curr_entry->err_intr);
-      acs_print(ACS_PRINT_INFO, L"\nMSC resource count     :%lx ",
-                                        curr_entry->rsrc_count);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC node Index         :%d ",
+                    i);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC base addr          :%llx ",
+                    curr_entry->msc_base_addr);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC Overflow interrupt :%llx ",
+                    curr_entry->of_intr);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC Error interrupt    :%llx ",
+                    curr_entry->err_intr);
+      pal_print_msg(ACS_PRINT_INFO,
+                    "\nMSC resource count     :%lx ",
+                    curr_entry->rsrc_count);
 
       for (j = 0; j < curr_entry->rsrc_count; j++) {
-          acs_print(ACS_PRINT_INFO, L"\nRESOURCE index  :%d ", j);
-          acs_print(ACS_PRINT_INFO, L"\nRIS index       :%d ",
-                               curr_entry->rsrc_node[j].ris_index);
-          acs_print(ACS_PRINT_INFO, L"\nlocator type    :%08X ",
-                            curr_entry->rsrc_node[j].locator_type);
-          acs_print(ACS_PRINT_INFO, L"\ndescriptor1     :%llx ",
-                             curr_entry->rsrc_node[j].descriptor1);
-          acs_print(ACS_PRINT_INFO, L"\ndescriptor2     :%x ",
-                             curr_entry->rsrc_node[j].descriptor2);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nRESOURCE index  :%d ",
+                        j);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nRIS index       :%d ",
+                        curr_entry->rsrc_node[j].ris_index);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\nlocator type    :%08X ",
+                        curr_entry->rsrc_node[j].locator_type);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\ndescriptor1     :%llx ",
+                        curr_entry->rsrc_node[j].descriptor1);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\ndescriptor2     :%x ",
+                        curr_entry->rsrc_node[j].descriptor2);
       }
       curr_entry = MPAM_NEXT_MSC(curr_entry);
   }
@@ -97,18 +109,23 @@ pal_srat_dump_table(SRAT_INFO_TABLE *SratTable)
   for (i = 0; i < SratTable->num_of_srat_entries; i++) {
       curr_entry = &(SratTable->srat_info[i]);
       if (curr_entry->node_type == SRAT_NODE_MEM_AFF) {
-          acs_print(ACS_PRINT_INFO, L"\n       SRAT mem prox domain :%x ",
-                                                   curr_entry->node_data.mem_aff.prox_domain);
-          acs_print(ACS_PRINT_INFO, L"\n       SRAT mem addr_base :%llx ",
-                                                     curr_entry->node_data.mem_aff.addr_base);
-          acs_print(ACS_PRINT_INFO, L"\n       SRAT mem addr_len :%llx ",
-                                                      curr_entry->node_data.mem_aff.addr_len);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem prox domain :%x ",
+                        curr_entry->node_data.mem_aff.prox_domain);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem addr_base :%llx ",
+                        curr_entry->node_data.mem_aff.addr_base);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT mem addr_len :%llx ",
+                        curr_entry->node_data.mem_aff.addr_len);
       }
       else if (curr_entry->node_type == SRAT_NODE_GICC_AFF) {
-          acs_print(ACS_PRINT_INFO, L"\n       SRAT Gicc prox domain :%x ",
-                                                   curr_entry->node_data.gicc_aff.prox_domain);
-          acs_print(ACS_PRINT_INFO, L"\n       SRAT Gicc processor uid :%x ",
-                                                   curr_entry->node_data.gicc_aff.proc_uid);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT Gicc prox domain :%x ",
+                        curr_entry->node_data.gicc_aff.prox_domain);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n       SRAT Gicc processor uid :%x ",
+                        curr_entry->node_data.gicc_aff.proc_uid);
       }
   }
 }
@@ -131,7 +148,8 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
   MPAM_MSC_NODE *curr_entry;
 
   if (MpamTable == NULL) {
-      acs_print(ACS_PRINT_ERR, L" Input MPAM Table Pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Input MPAM Table Pointer is NULL\n");
       return;
   }
 
@@ -143,7 +161,8 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
 
   mpam = (EFI_ACPI_MPAM_TABLE *)pal_get_mpam_ptr();
   if (mpam == NULL) {
-      acs_print(ACS_PRINT_DEBUG, L" MPAM table not found\n");
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " MPAM table not found\n");
       return;
   }
 
@@ -217,7 +236,8 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
   UINT32  Length = 0;
 
   if (SratTable == NULL) {
-      acs_print(ACS_PRINT_ERR, L" Input SRAT Table Pointer is NULL\n");
+      pal_print_msg(ACS_PRINT_ERR,
+                    " Input SRAT Table Pointer is NULL\n");
       return;
   }
 
@@ -229,9 +249,13 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
 
   if (SratHdr != NULL) {
     TableLength =  SratHdr->Header.Length;
-    acs_print(ACS_PRINT_INFO, L" SRAT is at %x and length is %x\n", SratHdr, TableLength);
+    pal_print_msg(ACS_PRINT_INFO,
+                  " SRAT is at %x and length is %x\n",
+                  SratHdr,
+                  TableLength);
   } else {
-    acs_print(ACS_PRINT_DEBUG, L" SRAT not found\n");
+    pal_print_msg(ACS_PRINT_DEBUG,
+                  " SRAT not found\n");
     return;
   }
 
@@ -251,9 +275,15 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
       Ptr->node_data.mem_aff.addr_len    = ((UINT64) Mem_Aff_Entry->LengthHigh << 32) |
                                                               Mem_Aff_Entry->LengthLow;
       Ptr->node_data.mem_aff.flags       = Mem_Aff_Entry->Flags;
-      acs_print(ACS_PRINT_DEBUG, L" Proximity Domain %x\n", Ptr->node_data.mem_aff.prox_domain);
-      acs_print(ACS_PRINT_DEBUG, L" Address %x\n", Ptr->node_data.mem_aff.addr_base);
-      acs_print(ACS_PRINT_DEBUG, L" Length %x\n", Ptr->node_data.mem_aff.addr_len);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Proximity Domain %x\n",
+                    Ptr->node_data.mem_aff.prox_domain);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Address %x\n",
+                    Ptr->node_data.mem_aff.addr_base);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Length %x\n",
+                    Ptr->node_data.mem_aff.addr_len);
       pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
       Ptr++;
       SratTable->num_of_mem_ranges++;
@@ -267,9 +297,15 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
       Ptr->node_data.gicc_aff.proc_uid = Gicc_Aff_Entry->AcpiProcessorUid;
       Ptr->node_data.gicc_aff.flags = Gicc_Aff_Entry->Flags;
       Ptr->node_data.gicc_aff.clk_domain = Gicc_Aff_Entry->ClockDomain;
-      acs_print(ACS_PRINT_DEBUG, L" Proximity Domain %x\n", Ptr->node_data.gicc_aff.prox_domain);
-      acs_print(ACS_PRINT_DEBUG, L" Processor UID %x\n", Ptr->node_data.gicc_aff.proc_uid);
-      acs_print(ACS_PRINT_DEBUG, L" Clock Domain %x\n", Ptr->node_data.gicc_aff.clk_domain);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Proximity Domain %x\n",
+                    Ptr->node_data.gicc_aff.prox_domain);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Processor UID %x\n",
+                    Ptr->node_data.gicc_aff.proc_uid);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    " Clock Domain %x\n",
+                    Ptr->node_data.gicc_aff.clk_domain);
       pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
       Ptr++;
       SratTable->num_of_srat_entries++;
