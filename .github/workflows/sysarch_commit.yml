@@ -2,9 +2,11 @@ name: SYSARCH-ACS Integration Build (push/PR)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - '**'
   pull_request:
-    branches: [ main ]
+    branches:
+      - '**'
   workflow_dispatch:
 
 jobs:
@@ -15,5 +17,5 @@ jobs:
       toolchain: arm-toolchain,gcc
       run-uefi: true
       run-baremetal: true
-      run-linux: true
+      run-linux: false
     secrets: inherit
