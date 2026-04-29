@@ -49,12 +49,12 @@ payload(uint32_t num_pe)
     dma_prot_support = VAL_EXTRACT_BITS(g_drtm_features.dma_prot_features.value, 0, 7);
     if (dma_prot_support == 0) {
       val_print(ERROR, "\n       DMA Protection Not Supported");
+      val_set_status(index, RESULT_FAIL(3));
       return;
     }
   } else {
     val_print(ERROR,
               "\n       DMA protection feature value not available in return value");
-      val_set_status(index, RESULT_FAIL(3));
     val_set_status(index, RESULT_FAIL(4));
     return;
   }

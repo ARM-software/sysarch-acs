@@ -110,11 +110,11 @@ payload(uint32_t num_pe)
     val_print(ERROR, "\n       DRTM Dynamic Launch failed, Expected = %d",
                             DRTM_ACS_DENIED);
     val_print(ERROR, " Found = %d", dl_status);
+    val_set_status(index, RESULT_FAIL(4));
     if (status == DRTM_ACS_SUCCESS) {
       status = val_drtm_unprotect_memory();
       if (status < DRTM_ACS_SUCCESS) {
         val_print(ERROR, "\n       DRTM Unprotect Memory failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(4));
         val_set_status(index, RESULT_FAIL(5));
       }
     }
