@@ -20,7 +20,8 @@
             "binaryDir": "${sourceDir}/build/${presetName}_build",
             "inherits": ["baremetal"],
             "cacheVariables": {
-                "ACS": "bsa"
+                "ACS": "bsa",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
             }
         },
         {
@@ -29,7 +30,8 @@
             "binaryDir": "${sourceDir}/build/${presetName}_build",
             "inherits": ["baremetal"],
             "cacheVariables": {
-                "ACS": "sbsa"
+                "ACS": "sbsa",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
             }
         },
         {
@@ -38,7 +40,8 @@
             "binaryDir": "${sourceDir}/build/${presetName}_build",
             "inherits": ["baremetal"],
             "cacheVariables": {
-                "ACS": "pc_bsa"
+                "ACS": "pc_bsa",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
             }
         },
         {
@@ -66,6 +69,12 @@
             "name": "pc_bsa",
             "configurePreset": "pc_bsa",
             "jobs": 8
+        },
+        {
+            "name": "acs_all",
+            "displayName": "Build: all baremetal ACS",
+            "configurePreset": "acs_all",
+            "targets": ["acs_all"]
         }
     ]
 }

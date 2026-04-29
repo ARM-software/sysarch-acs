@@ -224,7 +224,7 @@ if(ACS_CREATE_WRAPPER_TARGETS)
         )
     endforeach()
 
-    add_custom_target(acs_all
+    add_custom_target(acs_all ALL
         DEPENDS ${ACS_LIST}
     )
 
