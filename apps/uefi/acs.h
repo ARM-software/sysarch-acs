@@ -20,66 +20,15 @@
 
 #include <stdbool.h>
 #include <Library/ShellLib.h>
+#include "val/include/acs_app_defs.h"
+#include "val/include/acs_cfg.h"
 #include "val/include/rule_based_execution.h"
 
-/* BSA Release versions */
-#define BSA_ACS_MAJOR_VER       1
-#define BSA_ACS_MINOR_VER       2
-#define BSA_ACS_SUBMINOR_VER    1
-
-/* SBSA Release versions */
-#define SBSA_ACS_MAJOR_VER       8
-#define SBSA_ACS_MINOR_VER       0
-#define SBSA_ACS_SUBMINOR_VER    1
-
-/* PC BSA Release versions */
-#define PC_BSA_ACS_MAJOR_VER     1
-#define PC_BSA_ACS_MINOR_VER     0
-#define PC_BSA_ACS_SUBMINOR_VER  0
-
-/* VBSA Release versions */
-#define VBSA_ACS_MAJOR_VER       1
-#define VBSA_ACS_MINOR_VER       0
-#define VBSA_ACS_SUBMINOR_VER    0
-
-/* xBSA ACS Release versions */
-#define XBSA_ACS_MAJOR_VER     1
-#define XBSA_ACS_MINOR_VER     0
-#define XBSA_ACS_SUBMINOR_VER  0
-
-/* DRTM Release versions */
-#define DRTM_ACS_MAJOR_VER      0
-#define DRTM_ACS_MINOR_VER      7
-
-/* MPAM Release versions */
-#define MPAM_ACS_MAJOR_VER      0
-#define MPAM_ACS_MINOR_VER      7
-#define MPAM_ACS_SUBMINOR_VER   0
-
-/* PFDI Release versions */
-#define PFDI_ACS_MAJOR_VER      0
-#define PFDI_ACS_MINOR_VER      8
-#define PFDI_ACS_SUBMINOR_VER   0
+#ifndef EXCLUDE_RBX
+#include "val/include/acs_app_tables.h"
+#endif
 
 #define G_PRINT_LEVEL INFO
-
-#define G_SW_OS                 0
-#define G_SW_HYP                1
-#define G_SW_PS                 2
-
-#define G_BSA_LEVEL             1
-#define BSA_MIN_LEVEL_SUPPORTED 1
-#define BSA_MAX_LEVEL_SUPPORTED 1
-
-#define G_SBSA_LEVEL             4
-#define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 9
-
-#define G_PCBSA_LEVEL             1
-#define PCBSA_MIN_LEVEL_SUPPORTED 1
-#define PCBSA_MAX_LEVEL_SUPPORTED 1
-
-#define SIZE_4K                 0x1000
 
 /* Note : Total Size Required for Info tables ~ 550 KB
   * Table size is required to be updated whenever new members
@@ -127,12 +76,6 @@
 #define TPM2_INFO_TBL_SZ        256   /* Supports maximum of 10 TPM2 info entries */
                                       /* [24 B each: 3 x uint64_t] + 16 B Header */
 
-#define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
-    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
-    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((filter_mode == LVL_FILTER_ONLY) ? \
-    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
-
 #ifdef _AARCH64_BUILD_
 unsigned long __stack_chk_guard = 0xBAAAAAAD;
 unsigned long __stack_chk_fail =  0xBAAFAAAD;
@@ -147,14 +90,6 @@ uint32_t command_init(void);
 /* TODO remove #if once all ACS app using this header moves to rule based infra.*/
 #ifndef EXCLUDE_RBX
 /* Extern declarations */
-extern UINT32  g_num_skip;
-extern UINT64  g_stack_pointer;
-extern UINT64  g_exception_ret_addr;
-extern UINT64  g_ret_addr;
-extern UINT32  g_build_sbsa;
-extern UINT32  g_build_pcbsa;
-extern UINT32  g_curr_module;
-extern UINT32  g_enable_module;
 extern SHELL_FILE_HANDLE g_acs_log_file_handle;
 extern SHELL_FILE_HANDLE g_dtb_log_file_handle;
 extern BOOLEAN    g_invalid_arg_seen;
@@ -164,25 +99,9 @@ extern char8_t *rule_id_string[RULE_ID_SENTINEL];
 /* Use module string map from VAL to translate -m inputs */
 extern char8_t *module_name_string[MODULE_ID_SENTINEL];
 
-/* Function declarations */
+/* UEFI-only declarations */
 void HelpMsg(VOID);
-uint32_t createPeInfoTable(void);
-uint32_t createGicInfoTable(void);
-uint32_t createRasInfoTable(void);
-void     createTimerInfoTable(void);
-void     createWatchdogInfoTable(void);
 void     createPcieVirtInfoTable(void);
-void     createCxlInfoTable(void);
-void     createPeripheralInfoTable(void);
-void     createSmbiosInfoTable(void);
-void     createPmuInfoTable(void);
-void     createCacheInfoTable(void);
-void     createMpamInfoTable(void);
-void     createHmatInfoTable(void);
-void     createSratInfoTable(void);
-void     createPccInfoTable(void);
-void     createRas2InfoTable(void);
-void     createTpm2InfoTable(void);
 void     print_selection_summary(void);
 void     FlushImage(void);
 #endif /* EXCLUDE_RBX */

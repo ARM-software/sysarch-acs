@@ -36,7 +36,6 @@
 extern uint32_t pcie_bdf_table_list_flag;
 extern pcie_device_bdf_table *g_pcie_bdf_table;
 extern uint32_t g_pcie_integrated_devices;
-extern uint32_t g_its_init;
 
 #ifndef TARGET_LINUX
 /**

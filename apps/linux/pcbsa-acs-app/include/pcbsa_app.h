@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,14 +19,7 @@
 #ifndef __PCBSA_APP_LINUX_H__
 #define __PCBSA_APP_LINUX_H__
 
-
-/* PC BSA Release versions */
-#define PC_BSA_APP_VERSION_MAJOR     1
-#define PC_BSA_APP_VERSION_MINOR     0
-#define PC_BSA_APP_VERSION_SUBMINOR  0
-
-#define PCBSA_MIN_LEVEL_SUPPORTED 1
-#define PCBSA_MAX_LEVEL_SUPPORTED 1
+#include "acs_app_defs.h"
 
 #include "pcbsa_drv_intf.h"
 

@@ -42,8 +42,9 @@ extern uint32_t g_num_modules;
 extern uint32_t g_build_sbsa;
 extern uint32_t g_build_pcbsa;
 extern uint32_t g_curr_module;
+extern uint32_t g_enable_module;
+extern uint32_t g_its_init;
 extern uint32_t g_drtm_acs_dlme[];
 extern uint64_t g_drtm_acs_dlme_size;
 
-
-#endif
+#endif /* __ACS_CFG_H__ */

@@ -394,7 +394,6 @@ uint32_t val_exerciser_test_init(void)
     uint32_t num_instances = 0;
     uint32_t num_smmu = 0;
     uint32_t instance = 0;
-    extern uint32_t g_its_init;
 
     /* If init already performed return stored status */
     if (status != ACS_STATUS_UNKNOWN) {

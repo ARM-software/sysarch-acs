@@ -19,13 +19,7 @@
 #ifndef __SBSA_APP_LINUX_H__
 #define __SBSA_APP_LINUX_H__
 
-
-#define SBSA_APP_VERSION_MAJOR      8
-#define SBSA_APP_VERSION_MINOR      0
-#define SBSA_APP_VERSION_SUBMINOR   1
-
-#define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 9
+#include "acs_app_defs.h"
 
 #include "sbsa_drv_intf.h"
 

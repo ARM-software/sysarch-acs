@@ -19,18 +19,7 @@
 #ifndef __BSA_APP_LINUX_H__
 #define __BSA_APP_LINUX_H__
 
-
-#define BSA_APP_VERSION_MAJOR     1
-#define BSA_APP_VERSION_MINOR     2
-#define BSA_APP_VERSION_SUBMINOR  1
-
-#define G_SW_OS            0
-#define G_SW_HYP           1
-#define G_SW_PS            2
-
-#define BSA_MIN_LEVEL_SUPPORTED 1
-#define BSA_MAX_LEVEL_SUPPORTED 1
-
+#include "acs_app_defs.h"
 
 #include "bsa_drv_intf.h"
 

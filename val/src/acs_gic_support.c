@@ -27,7 +27,6 @@
 #include "pal_interface.h"
 
 extern GIC_INFO_TABLE  *g_gic_info_table;
-extern uint32_t  g_its_init;
 GIC_INFO_ENTRY  *g_gic_entry = NULL;
 GIC_ITS_INFO    *g_gic_its_info;
 

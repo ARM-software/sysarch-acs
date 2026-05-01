@@ -125,8 +125,8 @@ int main(int argc, char **argv)
 
 
     printf("\n ************ PC BSA Architecture Compliance Suite *********\n");
-    printf("                        Version %d.%d.%d\n", PC_BSA_APP_VERSION_MAJOR,
-            PC_BSA_APP_VERSION_MINOR, PC_BSA_APP_VERSION_SUBMINOR);
+    printf("                        Version %d.%d.%d\n", PC_BSA_ACS_MAJOR_VER,
+            PC_BSA_ACS_MINOR_VER, PC_BSA_ACS_SUBMINOR_VER);
 
 
     printf(PC_BSA_LEVEL_PRINT_FORMAT(pcbsa_level, pcbsa_only_level),

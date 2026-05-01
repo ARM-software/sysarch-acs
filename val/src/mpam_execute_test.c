@@ -21,8 +21,6 @@
 #include "acs_std_smc.h"
 #include "acs_cfg.h"
 
-extern uint32_t g_its_init;
-
 /**
   @brief   This API will execute all MPAM Error tests
            1. Caller       -  Application layer.

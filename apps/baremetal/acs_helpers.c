@@ -175,7 +175,7 @@ createPmuInfoTable(
     val_pmu_create_info_table(PmuInfoTable);
 }
 
-void
+uint32_t
 createRasInfoTable(
 )
 {
@@ -186,7 +186,7 @@ createRasInfoTable(
                     * sizeof(RAS_NODE_INFO) + PLATFORM_OVERRIDE_NUM_RAS_NODES
                     * sizeof(RAS_INTERFACE_INFO)
                     + PLATFORM_OVERRIDE_NUM_RAS_NODES * sizeof(RAS_INTERRUPT_INFO));
-    val_ras_create_info_table(RasInfoTable);
+    return val_ras_create_info_table(RasInfoTable);
 }
 
 void

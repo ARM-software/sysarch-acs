@@ -21,20 +21,6 @@
 #include "platform_image_def.h"
 #include "platform_override_fvp.h"
 
-#define SIZE_4K 0x1000
-
-#define BSA_ACS_MAJOR_VER      1
-#define BSA_ACS_MINOR_VER      2
-#define BSA_ACS_SUBMINOR_VER   1
-
-#define SBSA_ACS_MAJOR_VER       8
-#define SBSA_ACS_MINOR_VER       0
-#define SBSA_ACS_SUBMINOR_VER    1
-
-#define PC_BSA_ACS_MAJOR_VER     1
-#define PC_BSA_ACS_MINOR_VER     0
-#define PC_BSA_ACS_SUBMINOR_VER  0
-
 #define INVALID_MPIDR     0xffffffff
 
 #define STACK_SIZE          0x1000
@@ -52,13 +38,6 @@
 #elif (PLATFORM_PAGE_SIZE == PAGE_SIZE_64K)
  #define PAGE_SIZE           PAGE_SIZE_64K
 #endif
-
-#define BSA_MIN_LEVEL_SUPPORTED 1
-#define BSA_MAX_LEVEL_SUPPORTED 1
-
-#define G_SBSA_LEVEL             4
-#define SBSA_MIN_LEVEL_SUPPORTED 3
-#define SBSA_MAX_LEVEL_SUPPORTED 9
 
 /*******************************************************************************
  * Used to align variables on the biggest cache line size in the platform.
@@ -80,51 +59,20 @@
 /* This .h file is included by .S assembly files, and assembler will choke on the C code, hence
    gating C code when included by .S files */
 #ifndef __ASSEMBLER__
+#include "val/include/acs_app_defs.h"
+#include "val/include/acs_app_tables.h"
+#include "val/include/acs_cfg.h"
 #include "val/include/rule_based_execution.h"
 #include "acs_runtime_init.h"
 
-#define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
-    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
-    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((filter_mode == LVL_FILTER_ONLY) ? \
-    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
-
 /* Remaining baremetal execution globals from apps/baremetal/acs_globals.c */
 extern uint32_t  g_el1physkip;
-extern uint32_t  g_curr_module;
-extern uint32_t  g_enable_module;
-extern uint32_t  g_acs_tests_total;
-extern uint32_t  g_acs_tests_pass;
-extern uint32_t  g_acs_tests_fail;
-extern uint64_t  g_stack_pointer;
-extern uint64_t  g_exception_ret_addr;
-extern uint64_t  g_ret_addr;
-extern uint32_t  g_build_sbsa;
-extern uint32_t  g_build_pcbsa;
-extern uint32_t  g_its_init;
 
-/* Function declarations */
-uint32_t createPeInfoTable(void);
-uint32_t createGicInfoTable(void);
-
+/* Baremetal-only info table helpers */
 void     createMemoryInfoTable(void);
 void     createPcieInfoTable(void);
 void     createIoVirtInfoTable(void);
-void     createTimerInfoTable(void);
-void     createWatchdogInfoTable(void);
-void     createPeripheralInfoTable(void);
 void     createDmaInfoTable(void);
-void     createSmbiosInfoTable(void);
-void     createPmuInfoTable(void);
-void     createRasInfoTable(void);
-void     createCacheInfoTable(void);
-void     createMpamInfoTable(void);
-void     createHmatInfoTable(void);
-void     createSratInfoTable(void);
-void     createPccInfoTable(void);
-void     createRas2InfoTable(void);
-void     createTpm2InfoTable(void);
-void     createCxlInfoTable(void);
 
 #endif /* __ASSEMBLER__ */
 /*

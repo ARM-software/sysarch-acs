@@ -28,11 +28,6 @@
 #include <stdint.h>
 
 #define BSA_RULE_ID_LIST_MAX 20u
-#define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
-    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
-    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((filter_mode == LVL_FILTER_ONLY) ? \
-    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
 
 /* Global extern for rule ID string map (defined in val/src/rule_enum_string_map.c) */
 extern char *rule_id_string[RULE_ID_SENTINEL];
@@ -243,7 +238,7 @@ main (int argc, char **argv)
 
     printf("\n ************ BSA Architecture Compliance Suite *********\n");
     printf("                        Version %d.%d.%d\n",
-            BSA_APP_VERSION_MAJOR, BSA_APP_VERSION_MINOR, BSA_APP_VERSION_SUBMINOR);
+            BSA_ACS_MAJOR_VER, BSA_ACS_MINOR_VER, BSA_ACS_SUBMINOR_VER);
 
     printf(LEVEL_PRINT_FORMAT(level_value, level_filter_mode, BSA_LEVEL_FR), level_value);
 
