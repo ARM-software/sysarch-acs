@@ -22,11 +22,19 @@ APP_INCLUDE_DIR := $(CURDIR)/include
 VAL_DRIVER_DIR := $(VAL_ROOT)/driver
 
 program_NAME := pc_bsa
-program_C_SRCS := $(wildcard *.c)
-program_CXX_SRCS := $(wildcard *.cpp)
-program_C_OBJS := ${program_C_SRCS:.c=.o}
-program_CXX_OBJS := ${program_CXX_SRCS:.cpp=.o}
+BUILD_ROOT ?= $(ROOT_DIR)/build/apps
+BUILD_DIR := $(BUILD_ROOT)/$(program_NAME)
+OBJ_DIR := $(BUILD_DIR)/obj
+BIN_DIR := $(BUILD_DIR)/bin
+
+program_BIN := $(BIN_DIR)/$(program_NAME)
+program_C_SRCS := $(abspath $(wildcard *.c))
+program_CXX_SRCS := $(abspath $(wildcard *.cpp))
+program_C_OBJS := $(patsubst $(ROOT_DIR)/%.c,$(OBJ_DIR)/%.o,$(program_C_SRCS))
+program_CXX_OBJS := $(patsubst $(ROOT_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(program_CXX_SRCS))
 program_OBJS := $(program_C_OBJS) $(program_CXX_OBJS)
+legacy_OBJS := $(program_C_SRCS:.c=.o) $(program_CXX_SRCS:.cpp=.o)
+
 program_INCLUDE_DIRS := \
 	$(APP_INCLUDE_DIR) \
 	$(ROOT_DIR) \
@@ -41,21 +49,33 @@ program_INCLUDE_DIRS := \
 program_LIBRARY_DIRS :=
 program_LIBRARIES :=
 CC := $(CROSS_COMPILE)gcc
+CXX := $(CROSS_COMPILE)g++
 
 CPPFLAGS += $(foreach includedir,$(program_INCLUDE_DIRS),-I$(includedir)) -DTARGET_LINUX -g -Werror
 LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean $(program_NAME)
 
-all: $(program_NAME)
+all: $(program_BIN)
 
-$(program_NAME): $(program_OBJS)
-	$(CROSS_COMPILE)gcc -static $(program_OBJS) -o $(program_NAME)
+$(program_NAME): $(program_BIN)
+
+$(program_BIN): $(program_OBJS)
+	@mkdir -p $(dir $@)
+	$(CC) -static $(program_OBJS) -o $@
+
+$(OBJ_DIR)/%.o: $(ROOT_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(ROOT_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 
 clean:
+	@- $(RM) -r $(BUILD_DIR)
 	@- $(RM) $(program_NAME)
-	@- $(RM) $(program_OBJS)
+	@- $(RM) $(legacy_OBJS)
 
 distclean: clean
-
