@@ -772,17 +772,17 @@ The checklist provides information about:
       <td>PCI_IN_13</td>
       <td>804</td>
       <td>Check RootPort NP Memory Access</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>This test is run only on Baremetal environment in BSA ACS</td>
+      <td></td>
     </tr>
     <tr>
       <td></td>
       <td>805</td>
       <td>Check RootPort P Memory Access</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>This test is run only on Baremetal environment in BSA ACS</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_14</td>

@@ -1185,7 +1185,7 @@ The checklist provides information about:
       <td rowspan="2">PCI_IN_13</td>
       <td>804</td>
       <td>Check RootPort NP Memory Access</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td></td>
@@ -1193,7 +1193,7 @@ The checklist provides information about:
     <tr>
       <td>805</td>
       <td>Check RootPort P Memory Access</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td></td>
@@ -3045,7 +3045,7 @@ The checklist provides information about:
       <td>PCI_IN_13</td>
       <td>804</td>
       <td>Check RootPort NP Memory Access</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td></td>

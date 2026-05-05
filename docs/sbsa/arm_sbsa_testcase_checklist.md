@@ -1865,7 +1865,7 @@ The checklist provides information about:
       <td>PCI_IN_13</td>
       <td></td>
       <td>Check RootPort NP Memory Access</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>

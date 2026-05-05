@@ -1859,7 +1859,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = PCI_IN_13_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check RootPort NP Memory Access",
-            .platform_bitmask = PLATFORM_BAREMETAL,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [PCI_IN_16] = {
