@@ -191,9 +191,9 @@ payload(void *arg)
        */
       if (val_pcie_function_header_type(bdf) == TYPE1_HEADER) {
           if (get_dsf_bdf(bdf, &dsf_bdf))
-              continue;
-
-          val_pcie_get_mmio_bar(dsf_bdf, &bar_base);
+              val_pcie_get_mmio_bar(bdf, &bar_base);
+          else
+              val_pcie_get_mmio_bar(dsf_bdf, &bar_base);
       } else {
           val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
           val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
