@@ -90,6 +90,7 @@
   ../../test_pool/peripherals/d001.c
   ../../test_pool/peripherals/d002.c
   ../../test_pool/peripherals/d003.c
+  ../../test_pool/memory_map/m001.c
   ../../test_pool/memory_map/m002.c
   ../../test_pool/memory_map/m003.c
   ../../test_pool/power_wakeup/u001.c
