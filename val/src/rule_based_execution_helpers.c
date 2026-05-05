@@ -25,6 +25,10 @@ extern const uint32_t alias_rule_map_count;
 extern const alias_rule_map_t alias_rule_map[];
 extern uint8_t g_current_pal;
 
+static RULE_ID_e rule_reference_path[RULE_REFERENCE_PATH_MAX_DEPTH + 1] = {
+    RULE_ID_SENTINEL
+};
+
 /**
  * @brief Check if a rule ID exists in a list.
  *
@@ -45,6 +49,102 @@ bool rule_in_list(RULE_ID_e rid, const RULE_ID_e *list, uint32_t count)
             return 1;
     }
     return 0;
+}
+
+/**
+ * @brief Reset the current rule reference path.
+ *
+ * The path is sentinel-terminated so tests can iterate it without a separate
+ * depth value.
+ */
+void rule_reference_path_reset(void)
+{
+    uint32_t i;
+
+    for (i = 0; i <= RULE_REFERENCE_PATH_MAX_DEPTH; i++) {
+        rule_reference_path[i] = RULE_ID_SENTINEL;
+    }
+}
+
+/**
+ * @brief Check whether a rule is already in the current reference path.
+ *
+ * Used by the orchestrator for alias cycle detection.
+ *
+ * @param rule_id Rule to find.
+ * @return true if present, false otherwise.
+ */
+bool rule_reference_path_contains(RULE_ID_e rule_id)
+{
+    uint32_t i;
+
+    for (i = 0; i <= RULE_REFERENCE_PATH_MAX_DEPTH; i++) {
+        if (rule_reference_path[i] == RULE_ID_SENTINEL) {
+            return 0;
+        }
+        if (rule_reference_path[i] == rule_id) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Push a rule onto the current reference path.
+ *
+ * @param rule_id Rule being entered by the recursive executor.
+ * @return true if pushed, false on cycle or depth overflow.
+ */
+bool rule_reference_path_push(RULE_ID_e rule_id)
+{
+    uint32_t depth;
+
+    if (rule_reference_path_contains(rule_id)) {
+        return 0;
+    }
+
+    for (depth = 0; depth < RULE_REFERENCE_PATH_MAX_DEPTH; depth++) {
+        if (rule_reference_path[depth] == RULE_ID_SENTINEL) {
+            rule_reference_path[depth] = rule_id;
+            rule_reference_path[depth + 1] = RULE_ID_SENTINEL;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Pop the current rule from the reference path.
+ */
+void rule_reference_path_pop(void)
+{
+    uint32_t depth;
+
+    for (depth = 0; depth <= RULE_REFERENCE_PATH_MAX_DEPTH; depth++) {
+        if (rule_reference_path[depth] == RULE_ID_SENTINEL) {
+            if (depth > 0) {
+                rule_reference_path[depth - 1] = RULE_ID_SENTINEL;
+            }
+            return;
+        }
+    }
+
+    rule_reference_path[RULE_REFERENCE_PATH_MAX_DEPTH] = RULE_ID_SENTINEL;
+}
+
+/**
+ * @brief Return the current sentinel-terminated rule reference path.
+ *
+ * Tests can read the returned array until RULE_ID_SENTINEL. The returned
+ * pointer must not be modified.
+ *
+ * @return Pointer to the current rule reference path.
+ */
+const RULE_ID_e *rule_reference_path_get(void)
+{
+    return rule_reference_path;
 }
 
 /**

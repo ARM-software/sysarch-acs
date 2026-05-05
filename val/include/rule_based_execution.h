@@ -26,6 +26,7 @@
 #define RULE_STRING_SIZE 10
 #define RULE_DESC_SIZE   49
 #define INVALID_IDX 0xFFFFFFFF
+#define RULE_REFERENCE_PATH_MAX_DEPTH 10
 
 /* ----------------------------  Struct  Definations --------------------------------------------*/
 
@@ -42,11 +43,13 @@ typedef struct {
     char8_t          rule_desc[RULE_DESC_SIZE];
 } rule_test_map_t;
 
-/* Alias rules to Base rule mapping definition
- * base_rule_list must be terminated with RULE_ID_SENTINEL */
+/* Alias rules to child rule mapping definition.
+ * child_rule_list may contain base or alias rules and must be terminated
+ * with RULE_ID_SENTINEL.
+ */
 typedef struct {
     RULE_ID_e   alias_rule_id;
-    RULE_ID_e   *base_rule_list; /* sentinel-terminated */
+    const RULE_ID_e *child_rule_list; /* sentinel-terminated */
 } alias_rule_map_t;
 
 /* Module init status struct */
@@ -91,6 +94,11 @@ void     print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t st
 void     rule_status_map_reset(void);
 bool     rule_in_list(RULE_ID_e rid, const RULE_ID_e *list, uint32_t count);
 void     print_pal_validation_info(uint32_t rule_enum, uint32_t indent);
+void     rule_reference_path_reset(void);
+bool     rule_reference_path_contains(RULE_ID_e rule_id);
+bool     rule_reference_path_push(RULE_ID_e rule_id);
+void     rule_reference_path_pop(void);
+const RULE_ID_e *rule_reference_path_get(void);
 
 /* ---------------------------- Externs ---------------------------- */
 extern uint32_t rule_status_map[RULE_ID_SENTINEL];

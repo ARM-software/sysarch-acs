@@ -49,14 +49,6 @@
  */
 uint32_t rule_status_map[RULE_ID_SENTINEL] = { 0 };
 
-/* The variable is used for special cases where a RULE needs to call
- * different set of entry functions depending on base rule it is been
- * called under, ex PCI_LI_01 needs to run only pci test when called
- * as part of B_PER_08 and both pci and integrated endpoint when called
- * as part of B_IEP_1
- */
-RULE_ID_e g_base_rule = RULE_ID_SENTINEL;
-
 /* Following structure has every test entry that was is sysarch-acs on 23/07/25 */
 rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L3_01] = {
@@ -2184,6 +2176,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE  +  36,
         },
+        [RI_SMU_4] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check BSA Section H ITS requirements",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
         [S_L6PCI_1] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = PCIE,
@@ -3340,9 +3339,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [RI_SMU_2] = {
             .module_id        = PCIE,
         },
-        [RI_SMU_4] = {
-            .module_id        = PCIE,
-        },
         [RI_CRS_1] = {
             .module_id        = PCIE,
         },
@@ -4407,82 +4403,45 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 
 /* BSA alias lists */
 /* BSA L1 Requirements */
-RULE_ID_e bsa_l1_rule_list[] = {
-    /* PE L1 */
+const RULE_ID_e bsa_l1_rule_list[] = {
+    /* PE */
     B_PE_01, B_PE_02, B_PE_03, B_PE_04, B_PE_05, B_PE_06,
     B_PE_07, B_PE_08, B_PE_09, B_PE_10, B_PE_11, B_PE_12,
     B_PE_13, B_PE_14, B_PE_18, B_PE_19, B_PE_20, B_PE_21,
     B_PE_22, B_PE_23, B_PE_24,
-
     /* Memory map L1 */
     B_MEM_01, B_MEM_02, B_MEM_03, B_MEM_05, B_MEM_06, B_MEM_07,
     B_MEM_08, B_MEM_09,
-
     /* Interrupts (GIC, PPI) L1 */
     B_GIC_01, B_GIC_02, B_GIC_03, B_GIC_04, B_GIC_05, B_PPI_00,
-
     /* SMMU L1 */
     B_SMMU_01, B_SMMU_02, B_SMMU_06, B_SMMU_07, B_SMMU_08, B_SMMU_12,
-    B_SMMU_16, B_SMMU_17, B_SMMU_18, B_SMMU_19,
-    /*B_SMMU_21,*/
-        SMMU_01, SMMU_02,
-
+    B_SMMU_16, B_SMMU_17, B_SMMU_18, B_SMMU_19, B_SMMU_21,
     /* Timer L1 */
     B_TIME_01, B_TIME_02, B_TIME_03, B_TIME_04, B_TIME_05,
     B_TIME_06, B_TIME_07, B_TIME_08, B_TIME_09, B_TIME_10,
-
     /* Power and wakeup L1 */
     B_WAK_01, B_WAK_02, B_WAK_03, B_WAK_04, B_WAK_05,
     B_WAK_06, B_WAK_07, B_WAK_08, B_WAK_10, B_WAK_11,
-
     /* Watchdog L1 */
-    /* B_WD_00, */
-        B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
-
+    B_WD_00,
     /* Peripherals L1 */
     B_PER_01, B_PER_02, B_PER_03, B_PER_04, B_PER_05, B_PER_06,
     B_PER_07, B_PER_09, B_PER_10, B_PER_11, B_PER_12,
-
-    /* B_PER_08, */
-        /* BSA Section E */
-        /* E.1 - Configuration Space */
-        PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
-        PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
-        PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
-        PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
-        PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
-        /* E.2 - PCIe Memory Space */
-        PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
-        /* E.3 - PCIe Device View of Memory */
-        PCI_MM_05, PCI_MM_06, PCI_MM_07,
-        /* E.4 - Message Signaled Interrupts */
-        PCI_MSI_1, PCI_MSI_2,
-        /* E.6 - Legacy Interrupts */
-        PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
-        /* E.7 - System MMU and Device Assignment */
-        PCI_SM_01, PCI_SM_02,
-        /* E.8 - I/O Coherency */
-        PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
-        PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
-        /* E.9 - Legacy I/O */
-        PCI_IO_01,
-        /* E.10 - Integrated End Points */
-        PCI_IEP_1,
-        /* E.11 - Peer-to-Peer */
-        PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05,
-        /* E.12 - PASID Support */
-        PCI_PAS_1,
-        /* E.13 - PCIe Precision Time Measurement */
-        PCI_PTM_1,
-
+    /* PCIe */
+    B_PER_08,
     RULE_ID_SENTINEL
 };
+
 /* B_WD_00 */
-RULE_ID_e b_wd_00_rule_list[]     = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
+const RULE_ID_e b_wd_00_rule_list[]     = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
                                      RULE_ID_SENTINEL};
+
+/* B_SMMU_21 */
+const RULE_ID_e b_smmu_21_rule_list[]   = {SMMU_01, SMMU_02, RULE_ID_SENTINEL};
+
 /* JKZMT */
-RULE_ID_e jkzmt_rule_list[] = {
+const RULE_ID_e jkzmt_rule_list[] = {
     /* BSA Section E */
     /* E.1 - Configuration Space */
     /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, PCI_IN_06, */
@@ -4514,71 +4473,42 @@ RULE_ID_e jkzmt_rule_list[] = {
     PCI_PAS_1,
     /* E.13 - PCIe Precision Time Measurement */
     PCI_PTM_1,
-
     RULE_ID_SENTINEL
 };
+
 /* B_REP_1 */
-RULE_ID_e b_rep_1_rule_list[] = {
-/* BSA Section F.1 - Rules Common for RCiEP and I-EP */
+const RULE_ID_e b_rep_1_rule_list[] = {
+    /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
-    RI_SMU_1, RI_SMU_2, RI_SMU_3,
-    /* RI_SMU_4, refers BSA Section H */
-        /* H.1 - ITS Groups */
-        ITS_01, ITS_02, ITS_03, ITS_04,
-        ITS_05, ITS_06, ITS_07, ITS_08,
-        /* H.2 - Generation of DeviceID Values */
-        ITS_DEV_1, ITS_DEV_2, ITS_DEV_3,
-        ITS_DEV_4, ITS_DEV_5, ITS_DEV_6,
-        ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,
+    RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
     RI_RST_1, RI_PWR_1,
-
-/* BSA Section F.2 - RCiEP */
-    /* JKZMT, refers BSA Section E */
-        /* E.1 - Configuration Space */
-        /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, */
-        /* PCI_IN_06, PCI_IN_08, PCI_IN_09, PCI_IN_10, PCI_IN_11, */
-        /* PCI_IN_12, PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19 */
-        PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_07,
-        PCI_IN_14, PCI_IN_15, PCI_IN_16, PCI_IN_20,
-        /* E.2 - PCIe Memory Space */
-        PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
-        /* E.3 - PCIe Device View of Memory */
-        PCI_MM_05, PCI_MM_06, PCI_MM_07,
-        /* E.4 - Message Signaled Interrupts */
-        PCI_MSI_1, PCI_MSI_2,
-        /* E.6 - Legacy Interrupts */
-        PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
-        /* E.7 - System MMU and Device Assignment */
-        PCI_SM_01, PCI_SM_02,
-        /* E.8 - I/O Coherency */
-        PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
-        PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
-        /* E.9 - Legacy I/O */
-        PCI_IO_01,
-        /* E.10 - Integrated End Points */
-        PCI_IEP_1,
-        /* E.11 - Peer-to-Peer */
-        PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05,
-        /* E.12 - PASID Support */
-        PCI_PAS_1,
-        /* E.13 - PCIe Precision Time Measurement */
-        PCI_PTM_1,
+    /* BSA Section F.2 - RCiEP */
+    JKZMT,
     RE_PCI_1, RE_PCI_2,
     RE_CFG_1, RE_CFG_2, RE_CFG_3,
     RE_ORD_4,
     RE_PWR_2, RE_PWR_3,
     RE_ACS_1, RE_ACS_2, RE_ACS_3,
-
-/* BSA Section G.1 - RCiEP Capabilities and Registers */
+    /* BSA Section G.1 - RCiEP Capabilities and Registers */
     RE_REG_1, RE_REG_2, RE_REG_3,
     RE_REC_1, RE_REC_2,
-
     RULE_ID_SENTINEL
 };
+
+/* RI_SMU_4 */
+const RULE_ID_e ri_smu_4_rule_list[] = {
+    /* BSA section H.1 and H.2 */
+    /* PCIE-tagged ITS rules */
+    ITS_03, ITS_04, ITS_05, ITS_06, ITS_07, ITS_08,
+    ITS_DEV_1, ITS_DEV_3, ITS_DEV_4, ITS_DEV_5, ITS_DEV_6, ITS_DEV_9,
+    /* GIC-tagged ITS rules */
+    ITS_01, ITS_02, ITS_DEV_2, ITS_DEV_7, ITS_DEV_8,
+    RULE_ID_SENTINEL
+};
+
 /* HVZJY */
-RULE_ID_e hvzjy_rule_list[] = {
+const RULE_ID_e hvzjy_rule_list[] = {
     /* BSA Section E */
     /* E.1 - Configuration Space */
     PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
@@ -4610,85 +4540,45 @@ RULE_ID_e hvzjy_rule_list[] = {
     PCI_PAS_1,
     /* E.13 - PCIe Precision Time Measurement */
     PCI_PTM_1,
-
     RULE_ID_SENTINEL
 };
+
 /* IE_CFG_3 */
-RULE_ID_e ie_cfg_3_rule_list[] = {
+const RULE_ID_e ie_cfg_3_rule_list[] = {
     /* E.1 - Configuration Space */
     PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
     PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
     PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
     PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
     PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
-
     RULE_ID_SENTINEL
 };
+
 /* B_IEP_1 */
-RULE_ID_e b_iep_1_rule_list[] = {
-/* BSA Section F.1 - Rules Common for RCiEP and I-EP */
+const RULE_ID_e b_iep_1_rule_list[] = {
+    /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
-    RI_SMU_1, RI_SMU_2, RI_SMU_3,
-    /* RI_SMU_4, refers BSA Section H */
-        /* H.1 - ITS Groups */
-        ITS_01, ITS_02, ITS_03, ITS_04,
-        ITS_05, ITS_06, ITS_07, ITS_08,
-        /* H.2 - Generation of DeviceID Values */
-        ITS_DEV_1, ITS_DEV_2, ITS_DEV_3,
-        ITS_DEV_4, ITS_DEV_5, ITS_DEV_6,
-        ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,
+    RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
     RI_RST_1, RI_PWR_1,
-
-/* BSA Section  F.3 - I-EP */
-    /* HVZJY, refers BSA Section E */
-        /* E.1 - Configuration Space */
-        PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
-        PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
-        PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
-        PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
-        PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
-        /* E.2 - PCIe Memory Space */
-        PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
-        /* E.3 - PCIe Device View of Memory */
-        PCI_MM_05, PCI_MM_06, PCI_MM_07,
-        /* E.4 - Message Signaled Interrupts */
-        PCI_MSI_1, PCI_MSI_2,
-        /* E.6 - Legacy Interrupts */
-        PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
-        /* E.7 - System MMU and Device Assignment */
-        PCI_SM_01, PCI_SM_02,
-        /* E.8 - I/O Coherency */
-        PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
-        PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
-        /* E.9 - Legacy I/O */
-        PCI_IO_01,
-        /* E.10 - Integrated End Points */
-        PCI_IEP_1,
-        /* E.11 - Peer-to-Peer */
-        PCI_PP_01, PCI_PP_02, PCI_PP_03,
-        PCI_PP_04, PCI_PP_05,
-        /* E.12 - PASID Support */
-        PCI_PAS_1,
-        /* E.13 - PCIe Precision Time Measurement */
-        PCI_PTM_1,
+    /* BSA Section  F.3 - I-EP */
+    HVZJY,
     IE_CFG_1, IE_CFG_2,
-    /* IE_CFG_3, covered by  (E.1 - Configuration Space) refered by HVZJY for B_IEP_1 */
+    IE_CFG_3,
     IE_CFG_4,
     IE_ORD_4,
     IE_RST_2, IE_RST_3,
     IE_PWR_2, IE_PWR_3,
     IE_ACS_1, IE_ACS_2,
-
-/* G.2 - I-EP */
+    /* G.2 - I-EP */
     IE_REG_1, IE_REG_2, IE_REG_3,
     IE_REG_4, IE_REG_5, IE_REG_6,
     IE_REG_7, IE_REG_8, IE_REG_9,
-
     RULE_ID_SENTINEL
 };
+
 /* B_PER_08 */
-RULE_ID_e b_per_08_rule_list[] = {
+const RULE_ID_e b_per_08_rule_list[] = {
     /* BSA Section E */
     /* E.1 - Configuration Space */
     PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
@@ -4735,115 +4625,37 @@ RULE_ID_e b_per_08_rule_list[] = {
 
 /* SBSA alias lists */
 /* S_L3PR_01 */
-RULE_ID_e s_l3pr_01_rule_list[]   = {B_PER_05, RULE_ID_SENTINEL};
+const RULE_ID_e s_l3pr_01_rule_list[]   = {B_PER_05, RULE_ID_SENTINEL};
+
 /* S_L3WD_01 */
-RULE_ID_e s_l3wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
+const RULE_ID_e s_l3wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
                                      RULE_ID_SENTINEL};
-/* SBSA l8 GPU rules*/
-RULE_ID_e xdgkz_rule_list[] = {GPU_03, GPU_01, GPU_02, GPU_04, RULE_ID_SENTINEL};
+
+/* XDGKZ */
+const RULE_ID_e xdgkz_rule_list[] = {GPU_03, GPU_01, GPU_02, GPU_04, RULE_ID_SENTINEL};
 
 /* S_L6PCI_1 */
-RULE_ID_e s_l6pci_1_rule_list[] = {
-    /* S_L6PCI_1 refers B_REP_1 */
-        /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
-        RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
-        RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
-        RI_SMU_1, RI_SMU_2, RI_SMU_3,
-        /* RI_SMU_4, refers BSA Section H */
-            /* H.1 - ITS Groups */
-            ITS_01, ITS_02, ITS_03, ITS_04,
-            ITS_05, ITS_06, ITS_07, ITS_08,
-            /* H.2 - Generation of DeviceID Values */
-            ITS_DEV_1, ITS_DEV_2, ITS_DEV_3,
-            ITS_DEV_4, ITS_DEV_5, ITS_DEV_6,
-            ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,
-        RI_RST_1, RI_PWR_1,
+const RULE_ID_e s_l6pci_1_rule_list[] = {B_REP_1, B_IEP_1, RULE_ID_SENTINEL};
 
-        /* BSA Section F.2 - RCiEP */
-        /* JKZMT, refers BSA Section E */
-            /* E.1 - Configuration Space */
-            /* VGLFZ excludes these RCiEP/RCEC rules: PCI_IN_04, PCI_IN_05, */
-            /* PCI_IN_06, PCI_IN_08, PCI_IN_09, PCI_IN_10, PCI_IN_11, */
-            /* PCI_IN_12, PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19 */
-            PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_07,
-            PCI_IN_14, PCI_IN_15, PCI_IN_16, PCI_IN_20,
-            /* E.2 - PCIe Memory Space */
-            PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MM_04,
-            /* E.3 - PCIe Device View of Memory */
-            PCI_MM_05, PCI_MM_06, PCI_MM_07,
-            /* E.4 - Message Signaled Interrupts */
-            PCI_MSI_1, PCI_MSI_2,
-            /* E.6 - Legacy Interrupts */
-            PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
-            /* E.7 - System MMU and Device Assignment */
-            PCI_SM_01, PCI_SM_02,
-            /* E.8 - I/O Coherency */
-            PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
-            PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
-            /* E.9 - Legacy I/O */
-            PCI_IO_01,
-            /* E.10 - Integrated End Points */
-            PCI_IEP_1,
-            /* E.11 - Peer-to-Peer */
-            PCI_PP_01, PCI_PP_02, PCI_PP_03,
-            PCI_PP_04, PCI_PP_05,
-            /* E.12 - PASID Support */
-            PCI_PAS_1,
-            /* E.13 - PCIe Precision Time Measurement */
-            PCI_PTM_1,
-        RE_PCI_1, RE_PCI_2,
-        RE_CFG_1, RE_CFG_2, RE_CFG_3,
-        RE_ORD_4,
-        RE_PWR_2, RE_PWR_3,
-        RE_ACS_1, RE_ACS_2, RE_ACS_3,
-
-        /* BSA Section G.1 - RCiEP Capabilities and Registers */
-        RE_REG_1, RE_REG_2, RE_REG_3,
-        RE_REC_1, RE_REC_2,
-
-    /* S_L6PCI_1 refers B_IEP_1 */
-        /* BSA Section F.1 covered by B_REP_1 for S_L6PCI_1, omitting */
-
-        /* BSA Section  F.3 - I-EP */
-        /* HVZJY, refers BSA Section E, but covered by JKZMT for S_L6PCI_1, omitting */
-        /* VGLFZ excludes these RCiEP/RCEC rules as part of JKZMT but required under
-           HVZJY adding those excluded rules back */
-        PCI_IN_04, PCI_IN_05, PCI_IN_06, PCI_IN_08,
-        PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
-        PCI_IN_13, PCI_IN_17, PCI_IN_18, PCI_IN_19,
-        IE_CFG_1, IE_CFG_2,
-        /* IE_CFG_3, covered by (E.1 - Configuration Space) refered by JKZMT for S_L6PCI_1 */
-        IE_CFG_4,
-        IE_ORD_4,
-        IE_RST_2, IE_RST_3,
-        IE_PWR_2, IE_PWR_3,
-        IE_ACS_1, IE_ACS_2,
-
-        /* G.2 - I-EP */
-        IE_REG_1, IE_REG_2, IE_REG_3,
-        IE_REG_4, IE_REG_5, IE_REG_6,
-        IE_REG_7, IE_REG_8, IE_REG_9,
-
-        RULE_ID_SENTINEL
-    };
 /* S_L6PE_01 */
-RULE_ID_e s_l6pe_01_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
+const RULE_ID_e s_l6pe_01_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
                                      RULE_ID_SENTINEL};
 /* LVQBC */
-RULE_ID_e lvqbc_rule_list[]   = {ZVDJG, RKLPK, RULE_ID_SENTINEL};
+const RULE_ID_e lvqbc_rule_list[]   = {ZVDJG, RKLPK, RULE_ID_SENTINEL};
 
 /* SYS_RAS */
-RULE_ID_e sys_ras_rule_list[] = {
+const RULE_ID_e sys_ras_rule_list[] = {
     /* SBSA Section B Server RAS */
     RAS_01, RAS_02, RAS_03, RAS_04, RAS_05, RAS_06, RAS_07,
     RAS_08, RAS_10, RAS_11, RAS_12,
-
     RULE_ID_SENTINEL
 };
 
 /* S_PCIe_10 */
-RULE_ID_e s_pcie_10_rule_list[]   = {B_PCIe_10, B_PCIe_11, RULE_ID_SENTINEL};
-RULE_ID_e s_l7pmu_rule_list[]   = {
+const RULE_ID_e s_pcie_10_rule_list[]   = {B_PCIe_10, B_PCIe_11, RULE_ID_SENTINEL};
+
+/* S_L7PMU */
+const RULE_ID_e s_l7pmu_rule_list[]   = {
                                     PMU_PE_01, PMU_PE_02, PMU_PE_03, PMU_SYS_1,
                                     PMU_SYS_2, PMU_SYS_5, PMU_SYS_6, PMU_MEM_1,
                                     PMU_BM_1, PMU_BM_2,  PMU_EV_11, PMU_SPE,
@@ -4855,14 +4667,15 @@ RULE_ID_e s_l7pmu_rule_list[]   = {
                                     /********/
                                     RULE_ID_SENTINEL};
 
-RULE_ID_e s_l8shd_1_rule_list[]   = {
+/* S_L8SHD_1 */
+const RULE_ID_e s_l8shd_1_rule_list[]   = {
                                     ETE_01, ETE_02, ETE_03, ETE_04, ETE_05,
                                     ETE_06, ETE_07, ETE_08, ETE_09, ETE_10,
                                     RULE_ID_SENTINEL
 };
 
 /* S_L8CXL_1 */
-RULE_ID_e s_l8cxl_rule_list[] = {
+const RULE_ID_e s_l8cxl_rule_list[] = {
     /* SBSA CXL Rules */
     CXL_01,
     CXL_02,
@@ -4880,80 +4693,77 @@ RULE_ID_e s_l8cxl_rule_list[] = {
 };
 
 /* S_L5SM_04 */
-RULE_ID_e s_l5sm_04_rule_list[]   = {B_SMMU_09, B_SMMU_20, RULE_ID_SENTINEL};
+const RULE_ID_e s_l5sm_04_rule_list[]   = {B_SMMU_09, B_SMMU_20, RULE_ID_SENTINEL};
 
 /* S_L6SM_04 */
-RULE_ID_e s_l6sm_04_rule_list[]   = {B_SMMU_03, B_SMMU_04, B_SMMU_05, B_SMMU_13,
+const RULE_ID_e s_l6sm_04_rule_list[]   = {B_SMMU_03, B_SMMU_04, B_SMMU_05, B_SMMU_13,
                                      B_SMMU_14, B_SMMU_23, RULE_ID_SENTINEL};
 
 /* PCBSA alias lists */
 /* P_L2WD_01 */
-RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
+const RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
                                      RULE_ID_SENTINEL};
-/* P_L1MM_01 */
-RULE_ID_e p_l1mm_01_rule_list[]   = {S_L3MM_01, S_L3MM_02, RULE_ID_SENTINEL};
 
-/* B_SMMU_21 */
-RULE_ID_e b_smmu_21_rule_list[]   = {SMMU_01, SMMU_02, RULE_ID_SENTINEL};
+/* P_L1MM_01 */
+const RULE_ID_e p_l1mm_01_rule_list[]   = {S_L3MM_01, S_L3MM_02, RULE_ID_SENTINEL};
 
 
 /* VBSA alias lists */
-RULE_ID_e v_l1pe_01_rule_list[]   = {B_PE_01, B_PE_02, B_PE_03, B_PE_04, B_PE_05,
+/* V_L1PE_01 */
+const RULE_ID_e v_l1pe_01_rule_list[]   = {B_PE_01, B_PE_02, B_PE_03, B_PE_04, B_PE_05,
                                      B_PE_06, B_PE_07, B_PE_08, B_PE_10, B_PE_13,
                                      B_PE_14, RULE_ID_SENTINEL};
-RULE_ID_e v_l1mm_01_rule_list[]   = {B_MEM_01, B_MEM_02, B_MEM_04, B_MEM_05,
+
+/* V_L1MM_01 */
+const RULE_ID_e v_l1mm_01_rule_list[]   = {B_MEM_01, B_MEM_02, B_MEM_04, B_MEM_05,
                                      B_MEM_07, RULE_ID_SENTINEL};
-RULE_ID_e v_l1gi_01_rule_list[]   = {B_GIC_01, B_GIC_02, B_GIC_03, B_GIC_05,
+
+/* V_L1GI_01 */
+const RULE_ID_e v_l1gi_01_rule_list[]   = {B_GIC_01, B_GIC_02, B_GIC_03, B_GIC_05,
                                      RULE_ID_SENTINEL};
-RULE_ID_e v_l1sm_01_rule_list[]   = {B_SMMU_01, B_SMMU_02, B_SMMU_06,
+
+/* V_L1SM_01 */
+const RULE_ID_e v_l1sm_01_rule_list[]   = {B_SMMU_01, B_SMMU_02, B_SMMU_06,
                                      B_SMMU_07, B_SMMU_12, RULE_ID_SENTINEL};
-RULE_ID_e v_l1pr_01_rule_list[]   = {B_PER_01,  B_PER_02,  B_PER_03,
+
+/* V_L1PR_01 */
+const RULE_ID_e v_l1pr_01_rule_list[]   = {B_PER_01,  B_PER_02,  B_PER_03,
                                      B_PER_04,  B_PER_05,  B_PER_06,
                                      B_PER_09,  B_PER_10,  B_PER_11,
                                      B_PER_12,  RULE_ID_SENTINEL};
-RULE_ID_e v_l1pr_02_rule_list[]   = {
+
+/* V_L1PR_02 */
+const RULE_ID_e v_l1pr_02_rule_list[]   = {
                                      /* E.1 - Configuration Space */
                                      PCI_IN_01, PCI_IN_02, PCI_IN_03, PCI_IN_04,
                                      PCI_IN_05, PCI_IN_06, PCI_IN_07, PCI_IN_08,
                                      PCI_IN_09, PCI_IN_10, PCI_IN_11, PCI_IN_12,
                                      PCI_IN_13, PCI_IN_14, PCI_IN_15, PCI_IN_16,
                                      PCI_IN_17, PCI_IN_18, PCI_IN_19, PCI_IN_20,
-
                                      /* E.2 - PCI Express memory space (Except PCI_MM_02) */
                                      PCI_MM_01, PCI_MM_03, PCI_MM_04,
-
                                      /* E.3 - PCI Express deivce view of memory */
                                      PCI_MM_05, PCI_MM_06, PCI_MM_07,
-
                                      /* E.4 - Message Signaled Interrupts */
                                      PCI_MSI_1, PCI_MSI_2,
-
                                      /* E.6 - Legacy Interrupts */
                                      PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
-
                                      /* E.7 - System MMU and Device Assignment */
                                      PCI_SM_01, PCI_SM_02,
-
                                      /* E.8 - I/O Coherency */
                                      PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
                                      PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
-
                                      /* E.9 - Legacy I/O */
                                      PCI_IO_01,
-
                                      /* E.10 - Integrated End Points */
                                      PCI_IEP_1,
-
                                      /* E.11 - Peer-to-Peer */
                                      PCI_PP_01, PCI_PP_02, PCI_PP_03,
                                      PCI_PP_04, PCI_PP_05,
-
                                      /* E.12 - PASID Support */
                                      PCI_PAS_1,
-
                                      /* E.13 - PCIe Precision Time Measurement */
                                      PCI_PTM_1,
-
                                      RULE_ID_SENTINEL};
 
 const alias_rule_map_t alias_rule_map[] = {
@@ -4965,6 +4775,7 @@ const alias_rule_map_t alias_rule_map[] = {
     {HVZJY,     hvzjy_rule_list},
     {IE_CFG_3,  ie_cfg_3_rule_list},
     {B_IEP_1,   b_iep_1_rule_list},
+    {RI_SMU_4,  ri_smu_4_rule_list},
     {B_SMMU_21, b_smmu_21_rule_list},
 
     /* SBSA alias rules */
