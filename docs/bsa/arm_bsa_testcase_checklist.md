@@ -1304,11 +1304,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>906</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
       <td></td>
     </tr>
     <tr>
@@ -2393,11 +2393,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>906</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
       <td></td>
     </tr>
     <tr>
@@ -3277,11 +3277,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>906</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
       <td></td>
     </tr>
     <tr>
@@ -3762,6 +3762,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated PCI_MM_02 coverage with test 906.
 - Added direct B_PER_07 UART Non-secure register access coverage (test 605).
 - Updated B_PER_08 to include ITS Rules.
 - **RI_ Added:** RI_PWR_1

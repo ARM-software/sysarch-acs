@@ -1060,12 +1060,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>907</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>RCiEP, RCEC, iEP RP, iEP EP</td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -1944,12 +1944,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>907</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>RCiEP, RCEC, iEP RP, iEP EP</td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -3675,6 +3675,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated PCI_MM_02 coverage with test 907.
 - Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
 
 ### v26.03_SBSA_8.0.1

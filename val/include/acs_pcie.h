@@ -292,5 +292,7 @@ uint32_t p100_entry(uint32_t num_pe);
 uint32_t p103_entry(uint32_t num_pe); /* Linux test */
 uint32_t p104_entry(uint32_t num_pe); /* Linux test */
 uint32_t p105_entry(uint32_t num_pe); /* Linux test */
+uint32_t p106_entry(uint32_t num_pe); /* Linux test */
+uint32_t p107_entry(uint32_t num_pe); /* Linux test */
 
 #endif

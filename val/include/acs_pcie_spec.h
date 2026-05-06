@@ -130,6 +130,8 @@
 #define BAR_BASE_MASK   0xfffffff
 
 /*BAR offset */
+#define BAR_32B_OFFSET            4
+#define BAR_64B_OFFSET            8
 #define BAR0_OFFSET               0x10
 #define BAR_TYPE_0_MAX_OFFSET     0x24
 #define BAR_TYPE_1_MAX_OFFSET     0x14
