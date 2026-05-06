@@ -43,8 +43,10 @@ payload(void)
   target_dev_index = val_dma_get_info(DMA_NUM_CTRL, 0);
 
   if (!target_dev_index) {
-      val_print(DEBUG, "\n       No DMA controllers detected...    ");
-      val_set_status(index, RESULT_SKIP(1));
+      val_print(WARN, "\n       ACS could not detect any DMA-capable devices.");
+      val_print(WARN, "\n       If the platform includes DMA-capable devices, "
+                      "manual validation is required.");
+      val_set_status(index, RESULT_WARNING(1));
       return;
   }
 
@@ -81,7 +83,7 @@ payload(void)
   return;
 
 test_warn_unimplemented:
-    val_set_status(index, RESULT_WARNING(1));
+    val_set_status(index, RESULT_WARNING(2));
 }
 
 

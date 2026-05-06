@@ -44,8 +44,10 @@ check_peripheral_dma_capability (void)
   pcie_bdf_list_t *pcie_peripherals_bdf_list = val_pcie_get_pcie_peripheral_bdf_list();
 
   if (pcie_peripherals_bdf_list == NULL || pcie_peripherals_bdf_list->count == 0) {
-      val_print(DEBUG, "\n       Skip as no peripherals detected   ");
-      val_set_status(index, RESULT_SKIP(1));
+      val_print(WARN, "\n       ACS could not detect any PCIe peripherals with driver support.");
+      val_print(WARN, "\n       if the system has peripherals devices, "
+                      "manually review the rule.");
+      val_set_status(index, RESULT_WARNING(1));
       return;
   }
 
@@ -84,9 +86,10 @@ payload_check_dev_dma_if_behind_smmu (void)
   pcie_bdf_list_t *pcie_peripherals_bdf_list = val_pcie_get_pcie_peripheral_bdf_list();
 
   if (pcie_peripherals_bdf_list == NULL || pcie_peripherals_bdf_list->count == 0) {
-      val_print(DEBUG, "\n       Skip as no peripherals detected   ");
-      val_set_status(index, RESULT_SKIP(1));
-      return;
+      val_print(WARN, "\n       ACS could not detect any PCIe peripherals with driver support.");
+      val_print(WARN, "\n       if the system has peripherals devices, "
+                      "manually review the rule.");
+      val_set_status(index, RESULT_WARNING(1));
   }
 
   /* Check if a device is capable of accessing non secure address */
@@ -127,8 +130,10 @@ payload_check_if_non_dma_dev_behind_smmu (void)
   pcie_bdf_list_t *pcie_peripherals_bdf_list = val_pcie_get_pcie_peripheral_bdf_list();
 
   if (pcie_peripherals_bdf_list == NULL || pcie_peripherals_bdf_list->count == 0) {
-      val_print(DEBUG, "\n       Skip as no peripherals detected   ");
-      val_set_status(index, RESULT_SKIP(1));
+      val_print(WARN, "\n       ACS could not detect any PCIe peripherals with driver support.");
+      val_print(WARN, "\n       if the system has peripherals devices, "
+                      "manually review the rule.");
+      val_set_status(index, RESULT_WARNING(1));
       return;
   }
 

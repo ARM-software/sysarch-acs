@@ -2441,7 +2441,7 @@ pcie_bdf_list_t *val_pcie_get_pcie_peripheral_bdf_list(void)
       }
 
       if (!val_pcie_device_driver_present(dev_bdf)) {
-        val_print(DEBUG, "\n       Driver not present for bdf 0x%x", dev_bdf);
+        val_print(WARN, "\n       Driver not present for bdf 0x%x", dev_bdf);
         continue;
       }
 
