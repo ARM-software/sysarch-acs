@@ -99,6 +99,7 @@ payload(void)
   uint32_t read_value, value;
   uint32_t old_value, new_value;
   uint32_t status;
+  uint32_t ur_status;
   uint32_t test_skip = 1;
   uint32_t mem_offset = 0;
   uint64_t mem_base = 0, mem_base_upper = 0, ori_mem_base = 0;
@@ -225,7 +226,7 @@ payload(void)
             continue;
         }
 
-        /**Check_2: Accessing out of P memory limit range must return 0xFFFFFFFF
+        /**Check_2: Accessing out of P memory limit range must result in UR completion
          *
          * If the limit exceeds 1MB then modify the range to be 1MB
          * and access out of the limit set
@@ -261,16 +262,20 @@ payload(void)
            updated_mem_lim |= (mem_lim_upper << P_MEM_LU_SHIFT);
 
            val_pcie_bar_mem_read(bdf, new_mem_lim + MEM_OFFSET_SMALL, &value);
-           val_print(DEBUG, "       Value read is 0x%llx", value);
-           if (value != PCIE_UNKNOWN_RESPONSE)
+           ur_status = val_pcie_is_urd(bdf);
+           val_print(DEBUG, "       Value read is 0x%llx, UR status is %d", value, ur_status);
+           if (!ur_status)
            {
-               val_print(ERROR, "\n       Memory range for bdf 0x%x", bdf);
-               val_print(ERROR, " is 0x%llx", updated_mem_base);
-               val_print(ERROR, " 0x%llx", updated_mem_lim);
                val_print(ERROR,
-                   "\n       Out of range 0x%llx", (new_mem_lim + MEM_OFFSET_SMALL));
+                     "\n       UR response not obtained for out of range access on bdf 0x%x", bdf);
+               val_print(ERROR, " Range 0x%llx - 0x%llx",
+                                            updated_mem_base, updated_mem_lim);
+               val_print(ERROR, "\n       Out of range 0x%llx",
+                                         (new_mem_lim + MEM_OFFSET_SMALL));
                val_set_status(pe_index, RESULT_FAIL(03));
            }
+
+            val_pcie_clear_urd(bdf);
         }
 
 exception_return:
