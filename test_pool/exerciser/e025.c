@@ -28,6 +28,13 @@
 #define TEST_DESC  "Check 2/4/8 Bytes targeted writes     "
 #define TEST_RULE  "S_PCIe_04"
 
+#define TEST_DMA_BUF_SIZE      SIZE_4KB
+#define TEST_DMA_SRC_SIZE      (SIZE_4KB/2)
+#define TEST_DMA_DST_SIZE      (SIZE_4KB/2)
+#define TEST_DMA_PATTERN 0xABCDC0DEABCDC0DE
+
+uint64_t test_dma_src_buffer[TEST_DMA_SRC_SIZE/8];
+uint64_t test_dma_dst_buffer[TEST_DMA_DST_SIZE/8];
 
 static
 uint32_t
@@ -106,7 +113,7 @@ clean_fail:
 
 static
 uint32_t
-check_sequence(uint64_t dma_addr, uint32_t tgt_instance, uint32_t req_instance,
+check_p2p_sequence(uint64_t dma_src, uint32_t tgt_instance, uint32_t req_instance,
                uint64_t bar_base, uint32_t size)
 {
   uint32_t status;
@@ -114,79 +121,177 @@ check_sequence(uint64_t dma_addr, uint32_t tgt_instance, uint32_t req_instance,
   uint64_t idx;
 
   /* Copy the contents of the memory to requestor exercise's memory */
-  val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dma_addr, size, req_instance);
-  val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, req_instance);
+  if (val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dma_src, size, req_instance))
+      return ACS_STATUS_FAIL;
+
+  if (val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, req_instance))
+      return ACS_STATUS_FAIL;
 
   /* Set the destination buffer as BAR base address of target exerciser */
-  val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)bar_base, size, req_instance);
+  if (val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)bar_base, size, req_instance))
+      return ACS_STATUS_FAIL;
 
   /* Start the transaction monitoring in the target exerciser */
   status = val_exerciser_ops(START_TXN_MONITOR, CFG_READ, tgt_instance);
   if (status == PCIE_CAP_NOT_FOUND)
   {
       val_print(ERROR, "\n       Transaction Monitoring capability not found");
-      return 1;
+      return ACS_STATUS_FAIL;
   }
 
   /* Copy the contents from requestor exerciser to target exerciser's BAR address */
-  val_exerciser_ops(START_DMA, EDMA_FROM_DEVICE, req_instance);
+  if (val_exerciser_ops(START_DMA, EDMA_FROM_DEVICE, req_instance))
+      return ACS_STATUS_FAIL;
 
   /* Stop the transaction monitoring in the target exerciser */
   status = val_exerciser_ops(STOP_TXN_MONITOR, CFG_READ, tgt_instance);
   if (status == PCIE_CAP_NOT_FOUND)
   {
       val_print(ERROR, "\n       Transaction Monitoring capability not found");
-      return 1;
+      return ACS_STATUS_FAIL;
   }
 
   /* Compare the transaction data */
-  val_exerciser_get_param(DATA_ATTRIBUTES, &transaction_data, &idx, tgt_instance);
-  if (val_memory_compare(&transaction_data, (void *)dma_addr, size))
+  status = val_exerciser_get_param(DATA_ATTRIBUTES, (uint64_t *)&transaction_data,
+                                    &idx, tgt_instance);
+  if (status)
+  {
+      val_print(ERROR, "\n       Read Transaction data failed");
+      return ACS_STATUS_FAIL;
+  }
+  if (val_memory_compare((void *)&transaction_data, (void *)dma_src, size))
   {
       val_print(ERROR,
                 "\n       Data mismatch for target exerciser instance: %x", tgt_instance);
-      val_print(ERROR, " with value: %x", transaction_data);
-      return 1;
+      val_print(ERROR, " with value: %x\n", transaction_data);
+      return ACS_STATUS_FAIL;
   }
 
-  return 0;
+  return ACS_STATUS_PASS;
 }
 
 static
-void
-payload(void)
+uint32_t
+check_host_sequence(uint64_t dma_src, uint64_t dma_dst, uint32_t req_instance, uint32_t size)
 {
+  uint64_t tmp_zerobuf = 0;
 
-  uint32_t status;
-  uint32_t pe_index;
-  uint32_t req_instance;
-  uint32_t fail_cnt;
-  uint32_t test_skip;
-  uint32_t req_e_bdf, req_rp_bdf, tgt_e_bdf, tgt_rp_bdf, tgt_instance;
-  uint64_t bar_base;
-  uint64_t dma_buffer = 0xABCDC0DEABCDC0DE;
+  /* Copy the contents of host memory to requestor exerciser's memory. */
+  if (val_exerciser_set_param(DMA_ATTRIBUTES, dma_src, size, req_instance))
+      return ACS_STATUS_FAIL;
 
+  if (val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, req_instance))
+      return ACS_STATUS_FAIL;
 
-  fail_cnt = 0;
-  test_skip = 1;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
-  req_instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+  // Clear the destination buffer; cleaning the first 8 bytes is sufficient
+  *((uint64_t *)dma_dst) = 0;
+  val_pe_cache_clean_invalidate_range(dma_dst, size);
 
-  /* Check If PCIe Hierarchy supports P2P. */
-  if (val_pcie_p2p_support() == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-    val_set_status(pe_index, RESULT_WARNING(02));
-    return;
+  /* Copy the contents from requestor exerciser to host memory. */
+  if (val_exerciser_set_param(DMA_ATTRIBUTES, dma_dst, size, req_instance))
+      return ACS_STATUS_FAIL;
+
+  if (val_exerciser_ops(START_DMA, EDMA_FROM_DEVICE, req_instance))
+      return ACS_STATUS_FAIL;
+
+  val_pe_cache_invalidate_range(dma_dst, size);
+
+  if ((val_memory_compare((void *) dma_src, (void *)dma_dst, size)) ||
+      (val_memory_compare((void *)(((uint8_t *) dma_dst) + size),
+                          (void *)&tmp_zerobuf, 8-size)))
+  {
+      val_print(ERROR,
+                "\n       Host memory data mismatch for exerciser instance: %x", req_instance);
+      val_print(ERROR, " with value: %x", ((uint32_t *)(dma_dst))[0]);
+      return ACS_STATUS_FAIL;
   }
 
+  return ACS_STATUS_PASS;
+}
+
+static const char *printStatus(uint32_t ret_status)
+{
+  switch (ret_status) {
+  case ACS_STATUS_FAIL:
+      return "FAILED";
+  case ACS_STATUS_SKIP:
+      return "SKIPPED";
+  case ACS_STATUS_PASS:
+      return "PASSED";
+  default:
+      return "UNKNOWN";
+  }
+}
+
+static
+uint32_t
+host_dma_test(uint32_t req_instance, uint64_t dma_src, uint64_t dma_dst)
+{
+  uint32_t req_e_bdf;
+  uint32_t ret_status = ACS_STATUS_SKIP;
+  // Data sizes = 2Bytes, 4Bytes, 8Bytes
+  uint32_t datasizes[3] = {2, 4, 8};
+  uint32_t i;
+  uint32_t test_fail = 0;
+  uint32_t count = (sizeof(datasizes)/sizeof(datasizes[0]));
+
+  val_print(DEBUG, "\n   Testing endpoint to Host DMA\n");
   while (req_instance-- != 0)
   {
-
       /* if init fail moves to next exerciser */
       if (val_exerciser_init(req_instance))
           continue;
 
       req_e_bdf = val_exerciser_get_bdf(req_instance);
-      val_print(DEBUG, "\n       Requester exerciser BDF - 0x%x", req_e_bdf);
+      val_print(DEBUG, "       Requester exerciser BDF - 0x%x\n", req_e_bdf);
+
+      for (i = 0; i < count; i++)
+      {
+          ret_status = check_host_sequence(dma_src, dma_dst, req_instance, datasizes[i]);
+          if (ret_status != ACS_STATUS_PASS)
+          {
+              val_print(ERROR,
+                    "       Failed for %dByte host memory transaction from exerciser: %x\n",
+                     datasizes[i], req_instance);
+              // Continue running the tests even if this fails
+              test_fail++;
+          }
+      }
+  }
+  // Check whether test failed in any instance
+  if (test_fail)
+  {
+      ret_status = ACS_STATUS_FAIL;
+  }
+  // else test is either skip or pass
+  val_print(INFO, "Endpoint to Host DMA test  %s\n", printStatus(ret_status));
+  return ret_status;
+}
+
+static
+uint32_t
+p2p_dma_test(uint32_t req_instance, uint64_t dma_src)
+{
+  uint32_t ret_status = ACS_STATUS_SKIP;
+  uint32_t req_e_bdf, req_rp_bdf, tgt_e_bdf, tgt_rp_bdf, tgt_instance;
+  uint64_t bar_base;
+  // Data sizes = 2Bytes, 4Bytes, 8Bytes
+  uint32_t datasizes[3] = {2, 4, 8};
+  uint32_t i;
+  uint32_t test_fail = 0;
+  uint32_t count = (sizeof(datasizes)/sizeof(datasizes[0]));
+
+
+  val_print(DEBUG, "\n   Testing endpoint to endpoint DMA\n");
+
+  while (req_instance-- != 0)
+  {
+      /* if init fail moves to next exerciser */
+      if (val_exerciser_init(req_instance))
+          continue;
+
+      req_e_bdf = val_exerciser_get_bdf(req_instance);
+      val_print(DEBUG, "       Requester exerciser BDF - 0x%x\n", req_e_bdf);
 
       /* Get RP of the exerciser */
       if (val_pcie_get_rootport(req_e_bdf, &req_rp_bdf))
@@ -197,46 +302,106 @@ payload(void)
       if (get_target_exer_bdf(req_rp_bdf, &tgt_e_bdf, &tgt_rp_bdf, &bar_base, &tgt_instance))
           continue;
 
-      test_skip = 0;
-
-      /* Passing the buffer address as a value, to be configured as the source address for
-       * performing DMA */
-      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 2);
-      if (status)
+      for (i = 0; i < count; i++)
       {
-          val_print(ERROR,
-                    "\n       Failed for 2B transaction from exerciser: %x", req_instance);
-          fail_cnt++;
-      }
-
-      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 4);
-      if (status)
-      {
-          val_print(ERROR,
-                    "\n       Failed for 4B transaction from exerciser: %x", req_instance);
-          fail_cnt++;
-      }
-
-      status = check_sequence((uint64_t)&dma_buffer, tgt_instance, req_instance, bar_base, 8);
-      if (status)
-      {
-          val_print(ERROR,
-                   "\n       Failed for 8B transaction from exerciser: %x", req_instance);
-          fail_cnt++;
+          /* Passing the buffer address as a value, to be configured as the source address for
+          * performing DMA */
+          ret_status = check_p2p_sequence(dma_src, tgt_instance, req_instance,
+                                                   bar_base, datasizes[i]);
+          if (ret_status != ACS_STATUS_PASS)
+          {
+              val_print(ERROR,
+                      "       Failed for %dBytes transaction from exerciser: %x\n",
+                           datasizes[i], req_instance);
+              test_fail++;
+          }
       }
 
   }
-
-  if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(02));
-  else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(fail_cnt));
-  else
-      val_set_status(pe_index, RESULT_PASS);
-
-  return;
-
+  // Check whether test failed in any instance
+  if (test_fail)
+  {
+      ret_status = ACS_STATUS_FAIL;
+  }
+  // else test is either skip or pass
+  val_print(INFO, "Endpoint to Endpoint DMA test  %s\n", printStatus(ret_status));
+  return ret_status;
 }
+
+static
+void
+set_status(uint32_t pe_index, uint32_t ret_status, int32_t instance)
+{
+    switch (ret_status) {
+    case ACS_STATUS_PASS:
+        val_set_status(pe_index, RESULT_PASS);
+        break;
+    case ACS_STATUS_FAIL:
+        val_set_status(pe_index, RESULT_FAIL(instance));
+        break;
+    case ACS_STATUS_SKIP:
+        val_set_status(pe_index, RESULT_SKIP(instance));
+        break;
+    }
+    return;
+}
+
+static
+void
+payload(void)
+{
+  uint32_t pe_index;
+  uint32_t req_instance;
+  uint32_t p2p_status;
+  uint32_t test_status = 0;
+
+  do
+  {
+      pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+      req_instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+
+      // Initialize the DMA source buffer with 8 bytes, as this is the maximum transfer size
+      test_dma_src_buffer[0] = TEST_DMA_PATTERN;
+      val_pe_cache_clean_invalidate_range((uint64_t)test_dma_src_buffer, 8);
+
+      val_print(DEBUG, "\nPerforming Endpoint to Host DMA transfer\n");
+      test_status = host_dma_test(req_instance,
+                                   (uint64_t) test_dma_src_buffer,
+                                   (uint64_t) test_dma_dst_buffer);
+      if (test_status != ACS_STATUS_PASS) {
+          set_status(pe_index, test_status, 1);
+          break;
+      }
+      else {
+          val_print(DEBUG, "Endpoint to Host DMA transfer Success\n");
+      }
+
+      /* Check If PCIe Hierarchy supports P2P. */
+      p2p_status = val_pcie_p2p_support();
+      if (p2p_status == ACS_STATUS_PASS)
+      {
+          val_print(DEBUG, "Platform supports PCIe P2P dma transfer ");
+          val_print(DEBUG, "performing Endpoint to Endpoint transfer\n");
+          test_status = p2p_dma_test(req_instance, (uint64_t)test_dma_src_buffer);
+          if (test_status != ACS_STATUS_PASS) {
+              set_status(pe_index, test_status, 2);
+              break;
+          }
+          else {
+              val_print(DEBUG, "Endpoint to Endpoint DMA transfer Success\n");
+          }
+      }
+      else
+      {
+          val_print(DEBUG, "Platform do not support PCIe P2P dma transfer\n");
+      }
+  } while (0);
+
+  if (test_status == ACS_STATUS_PASS)
+      set_status(pe_index, test_status, 0);
+  return;
+}
+
 
 uint32_t
 e025_entry(uint32_t num_pe)
