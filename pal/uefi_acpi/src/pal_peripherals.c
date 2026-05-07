@@ -303,6 +303,7 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
       Status = EFI_OUT_OF_RESOURCES;
       return;
     }
+    MemoryMapSize = EFI_PAGES_TO_SIZE (Pages);
     Status = gBS->GetMemoryMap (&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
   }
 
