@@ -26,6 +26,9 @@ EXERCISER_INFO_TABLE g_exerciser_info_table;
 
 extern uint32_t pcie_bdf_table_list_flag;
 
+/* Cached result from the last exerciser init attempt, encoded as RESULT_* */
+static uint32_t g_exerciser_init_result = RESULT_PASS;
+
 /**
   @brief   Return a string representing the vendor name for a given vendor ID
 **/
@@ -379,6 +382,8 @@ val_exerciser_check_firmware_handle_support(void)
   Builds the PCIe BDF table, validates platform hierarchy, discovers Exerciser
   instances, initializes and disables SMMU contexts, and configures ITS once.
   Subsequent calls return the cached status from the first invocation.
+  The encoded outcome for the last attempt can be queried via
+  val_exerciser_get_init_result() to surface WARN vs SKIP to rule-based flows.
 
   @return ACS_STATUS_PASS on success
   @return ACS_STATUS_SKIP if prerequisites are not met (no ECAM/BDF/Exerciser,
@@ -388,6 +393,7 @@ uint32_t val_exerciser_test_init(void)
 {
 /* For non-rule based build the init is done by val_*bsa_exerciser_execute_tests */
 #ifndef COMPILE_RB_EXE
+    g_exerciser_init_result = RESULT_PASS;
     return ACS_STATUS_PASS;
 #endif
     static uint32_t status = ACS_STATUS_UNKNOWN;
@@ -400,11 +406,14 @@ uint32_t val_exerciser_test_init(void)
         return status;
     }
 
+    g_exerciser_init_result = RESULT_PASS;
+
     /* Build BDF table for all PCIe devices */
     if (val_pcie_create_device_bdf_table()) {
         val_print(WARN,
                   "\n     Create BDF Table Failed, Skipping Exerciser tests...\n");
         status = ACS_STATUS_SKIP;
+        g_exerciser_init_result = RESULT_SKIP(0);
         return status;
     }
 
@@ -413,6 +422,7 @@ uint32_t val_exerciser_test_init(void)
                   "\n     *** Created device list with valid bdf doesn't match with the"
                   " platform pcie device hierarchy, Skipping exerciser tests ***\n");
         status = ACS_STATUS_SKIP;
+        g_exerciser_init_result = RESULT_SKIP(0);
         return status;
     }
 
@@ -421,9 +431,8 @@ uint32_t val_exerciser_test_init(void)
     val_exerciser_create_info_table();
     num_instances = val_exerciser_get_info(EXERCISER_NUM_CARDS);
     if (num_instances == 0) {
-        val_print(WARN,
-                  "\n     No Exerciser Devices Found, Skipping Exerciser tests...\n");
         status = ACS_STATUS_SKIP;
+        g_exerciser_init_result = RESULT_WARNING(1);
         return status;
     }
 
@@ -432,6 +441,7 @@ uint32_t val_exerciser_test_init(void)
     if (val_smmu_init() == ACS_STATUS_ERR) {
         val_print(ERROR, "\n     val_smmu_init() failed \n");
         status = ACS_STATUS_SKIP;
+        g_exerciser_init_result = RESULT_SKIP(0);
         return status;
     }
 
@@ -446,6 +456,7 @@ uint32_t val_exerciser_test_init(void)
         if (val_gic_its_configure() == ACS_STATUS_ERR) {
             val_print(ERROR, "\n     val_gic_its_configure() failed \n");
             status = ACS_STATUS_SKIP;
+            g_exerciser_init_result = RESULT_SKIP(0);
             return status;
         }
         g_its_init = 1;
@@ -453,4 +464,65 @@ uint32_t val_exerciser_test_init(void)
 
     status = ACS_STATUS_PASS;
     return status;
+}
+
+#ifdef COMPILE_RB_EXE
+static bool
+rule_is_conditional(const char8_t *rule_id)
+{
+    uint32_t i;
+    const char8_t *curr;
+    uint32_t len_rule;
+    uint32_t len_curr;
+    /* Extend this list with conditional rules that should SKIP when exerciser is absent. */
+    static const char8_t *conditional_rules[] = {
+        "RI_SMU_1",
+        "PCI_ER_10",
+        "B_PCIe_10",
+        "RI_SMU_3",
+        "CXL_09",
+        "CXL_06",
+    };
+
+    if (rule_id == NULL) {
+        return STATUS_ERROR;
+    }
+
+    len_rule = (uint32_t)val_strlen((char *)rule_id);
+
+    for (i = 0; i < (sizeof(conditional_rules) / sizeof(conditional_rules[0])); i++) {
+        curr = conditional_rules[i];
+        len_curr = (uint32_t)val_strlen((char *)curr);
+        if (len_rule != len_curr) {
+            continue;
+        }
+        /* Compare including terminator to ensure full-string match */
+        if (val_strncmp((char8_t *)rule_id, (char8_t *)curr, len_rule + 1) == 0) {
+            return STATUS_ERROR;
+        }
+    }
+    return STATUS_SUCCESS;
+}
+#endif
+
+uint32_t
+val_exerciser_get_init_result(const char8_t *rule_id)
+{
+#ifndef COMPILE_RB_EXE
+    return RESULT_PASS;
+#else
+    /* Surface the cached warning for each caller when no exerciser is present. */
+    if (GET_STATE(g_exerciser_init_result) == TEST_WARNING) {
+        if (rule_is_conditional(rule_id)) {
+            return RESULT_SKIP(0);
+        }
+        val_print(WARN,
+                  "\n     This test requires PCIe exerciser.");
+        val_print(WARN,
+                  "\n     Please rerun with a supported exerciser device");
+        val_print(WARN,
+                  "\n     or conduct manual review.");
+    }
+    return g_exerciser_init_result;
+#endif
 }

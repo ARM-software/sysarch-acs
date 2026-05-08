@@ -278,7 +278,7 @@ payload(void)
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   if (val_exerciser_test_init() != ACS_STATUS_PASS) {
-    val_set_status(pe_index, RESULT_SKIP(01));
+    val_set_status(pe_index, val_exerciser_get_init_result(TEST_RULE));
     return;
   }
 
@@ -328,7 +328,7 @@ e040_entry(uint32_t num_pe)
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-        return RESULT_SKIP(0);
+          return val_exerciser_get_init_result(TEST_RULE);
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
 

@@ -250,7 +250,7 @@ e026_entry(uint32_t num_pe)
   status = val_initialize_test(test_entries[0].test_num, test_entries[0].desc, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return RESULT_SKIP(0);
+          return val_exerciser_get_init_result(test_entries[0].rule);
       val_run_test_configurable_payload(&data, payload);
   }
 
@@ -275,7 +275,7 @@ e032_entry(uint32_t num_pe)
   status = val_initialize_test(test_entries[1].test_num, test_entries[1].desc, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return RESULT_SKIP(0);
+          return val_exerciser_get_init_result(test_entries[1].rule);
       val_run_test_configurable_payload(&data, payload);
   }
 

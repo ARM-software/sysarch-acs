@@ -235,7 +235,7 @@ payload(void)
 
   /* Check If PCIe Hierarchy supports P2P. */
   if (val_pcie_p2p_support() == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-    val_set_status(pe_index, RESULT_WARNING(1));
+    val_set_status(pe_index, RESULT_WARNING(2));
     return;
   }
 
@@ -335,7 +335,7 @@ e001_entry(uint32_t num_pe)
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return RESULT_SKIP(0);
+          return val_exerciser_get_init_result(TEST_RULE);
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
 
