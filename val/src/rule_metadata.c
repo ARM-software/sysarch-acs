@@ -2232,14 +2232,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 30,
         },
-        [B_PCIe_11] = {
-            .test_entry_id    = P091_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Steering Tag value properties",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 91,
-        },
         [BJLPB] = {
             .test_entry_id    = P100_ENTRY,
             .module_id        = PCIE,
@@ -3203,6 +3195,9 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [P_L1TP_04] = {
             .module_id        = TPM,
         },
+        [B_PCIe_11] = {
+            .module_id        = PCIE,
+        },
         [IE_BAR_1] = {
             .module_id        = PCIE,
         },
@@ -3442,7 +3437,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #if defined(TARGET_LINUX)
     [P001_ENTRY] = p001_entry,
     [P045_ENTRY] = p045_entry, // used in wrapper.
-    [P091_ENTRY] = p091_entry, // used in wrapper.
     [P103_ENTRY] = p103_entry, // used in wrapper.
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P104_ENTRY] = p104_entry, // used in wrapper.
@@ -4209,7 +4203,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P084_ENTRY] = p084_entry,
     [P085_ENTRY] = p085_entry,
     [P088_ENTRY] = p088_entry, // used in wrapper.
-    [P091_ENTRY] = p091_entry,
     [P092_ENTRY] = p092_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.

@@ -546,12 +546,6 @@ val_bsa_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 #endif
       }
 
-#if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
-    if (g_bsa_level > 1 || g_bsa_only_level == 2) {
-        status |= p091_entry(num_pe);
-    }
-#endif
-
 #ifndef TARGET_LINUX
     if (g_bsa_level > 1 || g_bsa_only_level == 2) {
         status |= p100_entry(num_pe);

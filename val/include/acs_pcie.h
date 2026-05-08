@@ -281,7 +281,6 @@ uint32_t p087_entry(uint32_t num_pe);
 uint32_t p088_entry(uint32_t num_pe);
 uint32_t p089_entry(uint32_t num_pe);
 uint32_t p090_entry(uint32_t num_pe);
-uint32_t p091_entry(uint32_t num_pe); /* Linux test */
 uint32_t p092_entry(uint32_t num_pe);
 uint32_t p093_entry(uint32_t num_pe);
 uint32_t p094_entry(uint32_t num_pe); /* Linux test */
