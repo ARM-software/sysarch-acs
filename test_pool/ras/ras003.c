@@ -32,12 +32,14 @@ payload()
 {
 
   uint32_t status;
-  uint32_t fail_cnt = 0, test_skip = 1;
+  uint32_t fail_cnt = 0, compare_cnt = 0, sr_node_cnt = 0, first_sr_node = 0;
   uint64_t num_node;
   uint32_t node_index, sec_node;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint64_t intf_type;
+  uint64_t fhi_id = 0, fhi_id_sec;
   uint64_t base_addr, base_addr_sec;
-  uint64_t fhi_id, fhi_id_sec;
+  uint32_t fhi_valid = 0;
 
   /* Get Number of nodes with RAS Functionality */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
@@ -48,19 +50,100 @@ payload()
     val_set_status(index, RESULT_WARNING(01));
     return;
   }
-  if (num_node < 2) {
-    val_print(DEBUG, "\n       RAS Nodes should be more than 1. Skipping...");
-    val_set_status(index, RESULT_SKIP(01));
+  /*
+   * SR nodes do not have an MMIO base address that can be used for grouping.
+   * Count them up front so the test can distinguish between:
+   *   - zero/one SR node: no SR-to-SR comparison is possible, so this is PASS.
+   *   - two or more SR nodes: all SR nodes must report the same FHI.
+   */
+  for (node_index = 0; node_index < num_node; node_index++) {
+    status = val_ras_get_info(RAS_INFO_INTF_TYPE, node_index, &intf_type);
+    if (status) {
+      val_print(ERROR, "\n       Could not get interface type for index %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+
+    if (intf_type == RAS_INTERFACE_SR)
+      sr_node_cnt++;
+  }
+
+  if (fail_cnt) {
+    val_set_status(index, RESULT_FAIL(01));
     return;
   }
 
+  /*
+   * Validate the SR-node rule. The first SR node with an FHI becomes the
+   * reference value; every subsequent SR node must expose the same FHI.
+   * MMIO nodes are deliberately ignored in this loop because they are checked
+   * separately below using the original same-error-record-group logic.
+   */
+  for (node_index = 0; node_index < num_node; node_index++) {
+    status = val_ras_get_info(RAS_INFO_INTF_TYPE, node_index, &intf_type);
+    if (status) {
+      val_print(ERROR, "\n       Could not get interface type for index %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+
+    if (intf_type != RAS_INTERFACE_SR)
+      continue;
+
+    /*
+     * A single SR node, or one SR node mixed with MMIO nodes, has no second SR
+     * node to compare against. That is compliant and must pass, not skip.
+     */
+    if (sr_node_cnt < 2)
+      continue;
+
+    /* Get FHI number for this SR Node */
+    status = val_ras_get_info(RAS_INFO_FHI_ID, node_index, &fhi_id_sec);
+    if (status) {
+      val_print(ERROR, "\n       FHI not supported for SR node index %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+
+    if (!fhi_valid) {
+      fhi_id = fhi_id_sec;
+      first_sr_node = node_index;
+      fhi_valid = 1;
+      continue;
+    }
+
+    /* Check if FHI is same for all SR nodes otherwise fail the test */
+    compare_cnt++;
+    if (fhi_id != fhi_id_sec) {
+      val_print(ERROR, "\n       FHI different for SR node index %d", first_sr_node);
+      val_print(ERROR, " : %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+  }
+
+  /*
+   * Preserve the existing MMIO behavior: MMIO RAS nodes that belong to the
+   * same Error Record Group share the same base address, and nodes in the same
+   * group must report the same FHI. SR nodes are skipped here because they do
+   * not provide RAS_INFO_BASE_ADDR.
+   */
   for (node_index = 0; node_index < (num_node - 1); node_index++) {
+    status = val_ras_get_info(RAS_INFO_INTF_TYPE, node_index, &intf_type);
+    if (status) {
+      val_print(ERROR, "\n       Could not get interface type for index %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+
+    if (intf_type == RAS_INTERFACE_SR)
+      continue;
 
     /* Get Current Node Base Address */
     status = val_ras_get_info(RAS_INFO_BASE_ADDR, node_index, &base_addr);
     if (status) {
-      /* Interface is System Register based, Skipping this node */
-      val_print(DEBUG, "\n       Interface is SR, Skipping node %d", node_index);
+      val_print(ERROR, "\n       Could not get base address for index %d", node_index);
+      fail_cnt++;
       continue;
     }
 
@@ -71,16 +154,23 @@ payload()
       continue;
     }
 
-    test_skip = 0;
-
     /* Compare with Rest of the node having same Base Address */
     for (sec_node = node_index + 1; sec_node < num_node; sec_node++) {
+      status = val_ras_get_info(RAS_INFO_INTF_TYPE, sec_node, &intf_type);
+      if (status) {
+        val_print(ERROR, "\n       Could not get interface type for index %d", sec_node);
+        fail_cnt++;
+        continue;
+      }
+
+      if (intf_type == RAS_INTERFACE_SR)
+        continue;
 
       /* Get Second Node Base Address */
       status = val_ras_get_info(RAS_INFO_BASE_ADDR, sec_node, &base_addr_sec);
       if (status) {
-        /* Interface is System Register based, Skipping this node */
-        val_print(DEBUG, "\n       Interface is SR, Skipping sec_node %d", node_index);
+        val_print(ERROR, "\n       Could not get base address for index %d", sec_node);
+        fail_cnt++;
         continue;
       }
 
@@ -96,6 +186,7 @@ payload()
       }
 
       /* Check if FHI is same otherwise fail the test */
+      compare_cnt++;
       if (fhi_id != fhi_id_sec) {
         val_print(ERROR, "\n       FHI different for Same Group index %d", node_index);
         val_print(ERROR, " : %d", sec_node);
@@ -108,10 +199,10 @@ payload()
   if (fail_cnt) {
     val_set_status(index, RESULT_FAIL(01));
     return;
-  } else if (test_skip) {
-    val_set_status(index, RESULT_SKIP(02));
-    return;
   }
+
+  if (!compare_cnt)
+    val_print(DEBUG, "\n       No FHI comparison required.");
 
   val_set_status(index, RESULT_PASS);
 }
