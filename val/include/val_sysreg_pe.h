@@ -56,6 +56,7 @@ SYSREG_READ_FUNC(pmsidr_el1)
 SYSREG_READ_FUNC(lorid_el1)
 
 SYSREG_RW_FUNCS(mdcr_el2)
+SYSREG_RW_FUNCS(zcr_el1)
 
 SYSREG_RW_FUNCS(pmcr_el0)
 SYSREG_RW_FUNCS(pmovsclr_el0)
