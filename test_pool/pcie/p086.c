@@ -21,7 +21,7 @@
 #include "acs_pcie.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 86)
-#define TEST_DESC  "Check RootPort P&NP Memory Access     "
+#define TEST_DESC  "Check PCIe P&NP Memory Access     "
 #define TEST_RULE  "S_PCIe_02"
 
 static void *branch_to_test;
@@ -41,7 +41,7 @@ esr(uint64_t interrupt_type, void *context)
   /* Update the ELR to return to test specified address */
   val_pe_update_elr(context, (uint64_t)branch_to_test);
 
-  val_print(TRACE, "\n       Received exception of type in test 861: %d", interrupt_type);
+  val_print(TRACE, "\n       Received exception of type: %d in test 861", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(01));
 }
 
@@ -100,6 +100,7 @@ void
 payload(void)
 {
   uint32_t pe_index;
+  uint32_t rp_bdf;
   uint32_t bar_data;
   uint32_t test_fails;
   uint32_t test_skip = 1;
@@ -131,15 +132,16 @@ payload(void)
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
 
       val_print(DEBUG, "\n       BDF - 0x%x", bdf);
+
       /*
-       * For Function with Type 1 config space header, obtain
-       * base address of the its own BAR address.
+       * Restrict test scope to Root Ports and devices downstream of a Root Port.
+       * This excludes RCiEP/RCEC and any function not mapped under a RP hierarchy.
        */
-      if (val_pcie_function_header_type(bdf) == TYPE0_HEADER) {
-          val_print(DEBUG, "\n  Skipping not a RP, BDF - 0x%x", bdf);
-          continue;
+      if (val_pcie_get_rootport(bdf, &rp_bdf)) {
+         val_print(DEBUG, "\n  Skipping as BDF 0x%x is not RP/downstream of RP", bdf);
+         continue;
       }
-         
+
       val_pcie_get_mmio_bar(bdf, &bar_base);
       /* Skip this function if it doesn't have mmio BAR */
       if (!bar_base) {
@@ -152,6 +154,8 @@ payload(void)
 
       bar_data = val_mmio_read(bar_base);
 
+      val_print(DEBUG, "\n  Bar base is - 0x%llx", bar_base);
+      val_print(DEBUG, "\n  Initial bar data is - 0x%llx", bar_data);
       if (test_sequence_1B((uint8_t *)bar_base)) {
           val_print(ERROR, "\n       Failed check for Bdf 0x%x", bdf);
           test_fails++;
