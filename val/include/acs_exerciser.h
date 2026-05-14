@@ -172,5 +172,6 @@ uint32_t e043_entry(uint32_t num_pe);
 uint32_t e044_entry(uint32_t num_pe);
 uint32_t e045_entry(uint32_t num_pe);
 uint32_t e046_entry(uint32_t num_pe);
+uint32_t e047_entry(uint32_t num_pe);
 
 #endif

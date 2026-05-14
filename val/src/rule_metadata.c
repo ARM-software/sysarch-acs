@@ -1966,10 +1966,10 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
         },
         [PCI_MM_05] = {
-            .test_entry_id    = P095_ENTRY,
+            .test_entry_id    = PCI_MM_05_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "PCIe & PE common physical memory view",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 95,
         },
@@ -3453,6 +3453,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_MM_02_ENTRY] = pci_mm_02_entry,
     [PCI_MM_03_ENTRY] = pci_mm_03_entry,
     [PCI_MM_07_ENTRY] = pci_mm_07_entry,
+    [PCI_MM_05_ENTRY] = pci_mm_05_entry,
     [PCI_MSI_2_ENTRY] = pci_msi_2_entry,
     [D004_ENTRY] = d004_entry,
     [D007_ENTRY] = d007_entry,
@@ -3518,6 +3519,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E044_ENTRY] = e044_entry, // used for CXL_05.
     [E045_ENTRY] = e045_entry, // used for CXL_06.
     [E046_ENTRY] = e046_entry,
+    [E047_ENTRY] = e047_entry,
     [ETE001_ENTRY] = ete001_entry,
     [ETE002_ENTRY] = ete002_entry,
     [ETE003_ENTRY] = ete003_entry,
@@ -3562,6 +3564,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_MM_02_ENTRY]  = pci_mm_02_entry,
     [PCI_MM_03_ENTRY]  = pci_mm_03_entry,
     [PCI_MM_07_ENTRY]  = pci_mm_07_entry,
+    [PCI_MM_05_ENTRY]  = pci_mm_05_entry,
     [PCI_MSI_2_ENTRY]  = pci_msi_2_entry,
     [PCI_PP_04_ENTRY]  = pci_pp_04_entry,
     [PCI_PP_05_ENTRY]  = pci_pp_05_entry,
@@ -4336,6 +4339,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E033_ENTRY] = e033_entry, // used in wrapper.
     [E006_ENTRY] = e006_entry, // used in wrapper.
     [E046_ENTRY] = e046_entry,
+    [E047_ENTRY] = e047_entry,
     [E015_ENTRY] = e015_entry, // used in wrapper.
     [E001_ENTRY] = e001_entry, // used in wrapper.
     [U005_ENTRY] = u005_entry, // used in wrapper.
@@ -4401,6 +4405,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P026_ENTRY] = p026_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,
     [PCI_MM_07_ENTRY] = pci_mm_07_entry,
+    [PCI_MM_05_ENTRY] = pci_mm_05_entry,
 #endif /* TARGET_PC_BAREMETAL */
 #endif /* TARGET_BAREMETAL */
 };

@@ -1089,7 +1089,7 @@ The checklist provides information about:
       <td>PCI_MM_05</td>
       <td>895</td>
       <td>PCIe &amp; PE common physical memory view</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>

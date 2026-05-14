@@ -27,9 +27,16 @@
 #include "acs_iovirt.h"
 #include "acs_pcie_enumeration.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 105)
-#define TEST_RULE  "PCI_MM_07"
-#define TEST_DESC  "No extra address translation          "
+static const
+test_config_t test_entries[] = {
+    { ACS_PCIE_TEST_NUM_BASE + 105, "No extra address translation ", "PCI_MM_07"},
+    { ACS_PCIE_TEST_NUM_BASE + 95, "PCIe & PE common physical memory view ", "PCI_MM_05"}
+};
+
+/* Track whether the shared payload already executed so e046/e047 don't repeat work. */
+static uint8_t g_shared_payload_done;
+static uint32_t g_shared_result;
+static uint32_t g_shared_status;
 
 #define TEST_DATA_NUM_PAGES  1
 #define TEST_DATA 0xDE
@@ -309,25 +316,62 @@ test_clean:
   val_memory_free_aligned(pgt_base_array);
 }
 
+static uint32_t
+run_shared_test(uint32_t entry_idx, uint32_t num_pe)
+{
+  uint32_t status;
+  uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+
+  status = val_initialize_test(test_entries[entry_idx].test_num,
+                               test_entries[entry_idx].desc, num_pe);
+  if (status != ACS_STATUS_SKIP)
+  {
+    if (!g_shared_payload_done)
+    {
+      if (val_exerciser_test_init() != ACS_STATUS_PASS)
+            return val_exerciser_get_init_result(test_entries[entry_idx].rule);
+      val_run_test_payload(test_entries[entry_idx].test_num, num_pe, payload, 0);
+      status = val_check_for_error(test_entries[entry_idx].test_num,
+                                  num_pe, test_entries[entry_idx].rule);
+      g_shared_payload_done = 1;
+      g_shared_status = status;
+      g_shared_result = val_get_status(pe_index);
+    }
+    else
+    {
+      /* Avoid rerunning identical payload; reuse prior result for the second rule. */
+      val_set_status(pe_index, g_shared_result);
+      status = g_shared_status;
+    }
+  }
+  else
+  {
+    g_shared_status = status;
+  }
+
+  val_report_status(0, ACS_END(test_entries[entry_idx].test_num), test_entries[entry_idx].rule);
+  return status;
+}
+
 uint32_t
 e046_entry(uint32_t num_pe)
 {
 
-  uint32_t status = ACS_STATUS_FAIL;
+  num_pe = 1;  //This test is run on single processor
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  return run_shared_test(0, num_pe);
+}
+
+/*
+ * Reuse the same DMA payload as PCI_MM_07 because the SMMU-backed exerciser
+ * write/read round-trip proves both "no extra translation" and that PE and
+ * device see the same physical memory view required by PCI_MM_05.
+ */
+uint32_t
+e047_entry(uint32_t num_pe)
+{
 
   num_pe = 1;  //This test is run on single processor
-
   val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
-  if (status != ACS_STATUS_SKIP)
-  {
-    if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return val_exerciser_get_init_result(TEST_RULE);
-    val_run_test_payload(TEST_NUM, num_pe, payload, 0);
-  }
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
-  val_report_status(0, ACS_END(TEST_NUM), TEST_RULE);
-
-  return status;
+  return run_shared_test(1, num_pe);
 }
