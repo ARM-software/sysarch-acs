@@ -843,20 +843,6 @@ val_pe_get_far(void *context)
 }
 
 /**
-  @brief  Write to an address, meant for debugging purpose
-
-  @param  data Data to be written
-
-  @return None
-**/
-void
-val_debug_brk(uint32_t data)
-{
-   addr_t address = 0x9000F000; // address = pal_get_debug_address();
-   *(addr_t *)address = data;
-}
-
-/**
   Stalls the CPU for the number of microseconds specified by MicroSeconds.
 
   @param  MicroSeconds  The minimum number of microseconds to delay.

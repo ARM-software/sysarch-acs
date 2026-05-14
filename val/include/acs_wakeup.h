@@ -25,7 +25,6 @@ uint32_t u002_entry(uint32_t num_pe);
 uint32_t u003_entry(uint32_t num_pe);
 uint32_t u004_entry(uint32_t num_pe);
 uint32_t u005_entry(uint32_t num_pe);
-uint32_t u006_entry(uint32_t num_pe);
 
 #endif
 

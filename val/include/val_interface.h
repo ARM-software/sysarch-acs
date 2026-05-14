@@ -413,7 +413,6 @@ typedef enum {
     BSA_POWER_SEM_I
 } BSA_POWER_SEM_e;
 
-void     val_debug_brk(uint32_t data);
 uint32_t val_power_enter_semantic(BSA_POWER_SEM_e semantic);
 uint32_t val_bsa_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 

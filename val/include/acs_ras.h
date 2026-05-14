@@ -124,7 +124,6 @@ uint32_t ras008_entry(uint32_t num_pe);
 uint32_t ras009_entry(uint32_t num_pe);
 uint32_t ras010_entry(uint32_t num_pe);
 uint32_t ras011_entry(uint32_t num_pe);
-uint32_t ras012_entry(uint32_t num_pe);
 uint32_t ras013_entry(uint32_t num_pe);
 uint32_t ras014_entry(uint32_t num_pe);
 uint32_t ras015_entry(uint32_t num_pe);
