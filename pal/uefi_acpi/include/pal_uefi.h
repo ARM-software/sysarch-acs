@@ -28,6 +28,8 @@
 #include "Include/IndustryStandard/Tpm20.h"
 #include "Include/IndustryStandard/Tpm2Acpi.h"
 
+typedef struct _EFI_PCI_IO_PROTOCOL EFI_PCI_IO_PROTOCOL;
+
 #define PLATFORM_TIMEOUT_MEDIUM 0x1000
 
 UINT64 pal_get_acpi_table_ptr(UINT32 table_signature);
@@ -991,6 +993,33 @@ typedef struct {
 } TPM2_GET_CAPABILITY_COMMAND;
 
 #pragma pack()
+
+typedef enum {
+  DMA_TYPE_USB  =  0x2000,
+  DMA_TYPE_SATA,
+  DMA_TYPE_OTHER,
+} DMA_INFO_TYPE_e;
+
+typedef struct {
+  VOID                 *CpuAddr;
+  VOID                 *Mapping;
+  EFI_PCI_IO_PROTOCOL  *PciIo;
+  UINTN                Pages;
+  BOOLEAN              UsingPci;
+} PAL_DMA_MAP;
+
+typedef struct {
+  DMA_INFO_TYPE_e type;
+  void            *target;   ///< Implementation-specific target pointer.
+  void            *port;
+  void            *host;     // It will be used only by PAL. hence void.
+  UINT32           flags;
+} DMA_INFO_BLOCK;
+
+typedef struct {
+  UINT32         num_dma_ctrls;
+  DMA_INFO_BLOCK   info[];    ///< Array of information blocks - per DMA controller
+} DMA_INFO_TABLE;
 
 /** @brief   TPM2 Info Table  **/
 

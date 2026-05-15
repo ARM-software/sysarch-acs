@@ -20,6 +20,8 @@
 #include "acs_dma.h"
 #include "pal_interface.h"
 #include "val_interface.h"
+#include "acs_pgt.h"
+#include "acs_pe.h"
 
 DMA_INFO_TABLE  *g_dma_info_table;
 
@@ -35,7 +37,7 @@ val_dma_free_info_table(void)
 {
 
     if (g_dma_info_table != NULL) {
-        pal_mem_free((void *)g_dma_info_table);
+        pal_mem_free_aligned((void *)g_dma_info_table);
         g_dma_info_table = NULL;
     }
     else {
@@ -215,5 +217,41 @@ val_dma_device_get_dma_addr(uint32_t ctrl_index, uint64_t *dma_addr, uint32_t *c
 int
 val_dma_mem_get_attrs(void *buf, uint32_t *attr, uint32_t *sh)
 {
+#if defined(TARGET_BAREMETAL) || defined(TARGET_UEFI)
+  pgt_descriptor_t pgt_desc;
+  uint64_t ttbr;
+  uint64_t desc_attr;
+  uint32_t ttbr_sel;
+
+  if (buf == NULL || attr == NULL || sh == NULL)
+    return 1;
+
+  for (ttbr_sel = 0; ttbr_sel < TTBR_SEL_MAX; ttbr_sel++) {
+    val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
+    pgt_desc.stage = PGT_STAGE1;
+
+    if (val_pe_reg_read_tcr(ttbr_sel, &pgt_desc.tcr))
+      continue;
+
+    if (val_pe_reg_read_ttbr(ttbr_sel, &ttbr))
+      continue;
+
+    pgt_desc.pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
+    pgt_desc.mair = val_pe_reg_read(MAIR_ELx);
+
+    if (!pgt_desc.pgt_base)
+      continue;
+
+    if (val_pgt_get_attributes(pgt_desc, (uint64_t)buf, &desc_attr))
+      continue;
+
+    *attr = (uint32_t)MAIR_ATTR_VALUE(pgt_desc.mair, PGT_DESC_ATTR_INDEX(desc_attr));
+    *sh = (uint32_t)PGT_DESC_SH(desc_attr);
+    return 0;
+  }
+
+  return 1;
+#else
   return pal_dma_mem_get_attrs(buf, attr, sh);
+#endif
 }

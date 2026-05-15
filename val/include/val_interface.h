@@ -409,6 +409,7 @@ typedef enum {
 } DMA_INFO_e;
 
 void     val_dma_create_info_table(uint64_t *dma_info_ptr);
+void     val_dma_free_info_table(void);
 uint64_t val_dma_get_info(DMA_INFO_e type, uint32_t index);
 uint32_t val_dma_start_from_device(void *buffer, uint32_t length, uint32_t index);
 uint32_t val_dma_iommu_check_iova(uint32_t ctrl_index, addr_t dma_addr, addr_t cpu_addr);
