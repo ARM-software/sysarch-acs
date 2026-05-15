@@ -101,6 +101,12 @@ extern char8_t *module_name_string[MODULE_ID_SENTINEL];
 
 /* UEFI-only declarations */
 void HelpMsg(VOID);
+uint32_t createPeInfoTable(void);
+uint32_t createGicInfoTable(void);
+uint32_t createRasInfoTable(void);
+void     createTimerInfoTable(void);
+void     createWatchdogInfoTable(void);
+void     createDmaInfoTable(void);
 void     createPcieVirtInfoTable(void);
 void     print_selection_summary(void);
 void     FlushImage(void);

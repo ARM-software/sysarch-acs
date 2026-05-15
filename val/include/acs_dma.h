@@ -33,6 +33,11 @@
 #define PCI_EP      0x100
 #define PCI_EP_MASK 0xF00
 
+#define TTBR_SEL_MAX 2
+#define PGT_DESC_ATTR_INDEX(desc_attr) (((desc_attr) >> 2) & 0x7)
+#define PGT_DESC_SH(desc_attr) (((desc_attr) >> 8) & 0x3)
+#define MAIR_ATTR_VALUE(mair, idx) (((mair) >> ((idx) * 8)) & 0xFF)
+
 void val_dma_free_info_table(void);
 
 uint64_t val_dma_mem_alloc(void **buffer, uint32_t size, uint32_t dev_index, uint32_t flags,
