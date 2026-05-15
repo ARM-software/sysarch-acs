@@ -1208,6 +1208,16 @@ createCxlInfoTable(
   val_cxl_create_info_table(CxlInfoTable);
 }
 
+void
+createDmaInfoTable(
+)
+{
+    UINT64  *DmaInfoTable;
+
+    DmaInfoTable = val_aligned_alloc(SIZE_4K, sizeof(DMA_INFO_TABLE)
+                                    + sizeof(DMA_INFO_BLOCK));
+    val_dma_create_info_table(DmaInfoTable);
+}
 VOID
 createPeripheralInfoTable(
 )

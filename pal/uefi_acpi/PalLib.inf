@@ -50,6 +50,7 @@
   src/pal_pcc.c
   src/pal_tpm2.c
   src/pal_cxl.c
+  src/pal_dma.c
 
 [Packages]
   ArmPkg/ArmPkg.dec

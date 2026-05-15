@@ -98,6 +98,7 @@ freeAcsMem()
     val_pcie_free_info_table();
     val_iovirt_free_info_table();
     val_peripheral_free_info_table();
+    val_dma_free_info_table();
     val_tpm2_free_info_table();
     val_free_shared_mem();
     val_srat_free_info_table();
@@ -181,6 +182,7 @@ execute_tests()
     createWatchdogInfoTable();
     createPcieVirtInfoTable();
     createPeripheralInfoTable();
+    createDmaInfoTable();
     createTpm2InfoTable();
     createSratInfoTable();
     val_drtm_create_info_table();

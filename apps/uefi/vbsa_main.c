@@ -103,6 +103,7 @@ freeAcsMem()
     val_pcie_free_info_table();
     val_iovirt_free_info_table();
     val_peripheral_free_info_table();
+    val_dma_free_info_table();
     val_smbios_free_info_table();
 }
 
@@ -181,6 +182,7 @@ execute_tests()
     createWatchdogInfoTable();
     createPcieVirtInfoTable();
     createPeripheralInfoTable();
+    createDmaInfoTable();
     createSmbiosInfoTable();
     val_allocate_shared_mem();
 

@@ -41,13 +41,14 @@ payload_check_dma_mem_attribute(void)
 {
   uint32_t target_dev_index;
   void *buffer;
-  uint32_t attr, sh;
+  uint32_t attr = 0, sh = 0;
   int ret;
   bool flag_fail  = 0;
   uint32_t index   = val_pe_get_index_mpid(val_pe_get_mpid());
   target_dev_index = val_dma_get_info(DMA_NUM_CTRL, 0);
   addr_t   dma_addr = 0;
   uint32_t status;
+  uint32_t dma_flags;
 
   if (!target_dev_index)
   {
@@ -65,27 +66,43 @@ payload_check_dma_mem_attribute(void)
       /* Allocate DMA memory based on coherency */
       if (val_dma_get_info(DMA_HOST_COHERENT, target_dev_index))
       {
+          dma_flags = DMA_COHERENT;
           status = val_dma_mem_alloc(&buffer, 512, target_dev_index, DMA_COHERENT, &dma_addr);
           if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
             goto test_warn_unimplemented;
           }
+          else if (status) {
+            val_print(WARN, "\n       Error during DMA alloc. %x", status);
+            val_set_status(index, RESULT_FAIL(1));
+            flag_fail = 1;
+            continue;
+          }
       } else {
+          dma_flags = DMA_NOT_COHERENT;
           status = val_dma_mem_alloc(&buffer, 512, target_dev_index, DMA_NOT_COHERENT, &dma_addr);
           if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
             goto test_warn_unimplemented;
+          }
+          else if (status) {
+            val_print(WARN, "\n       Error during DMA alloc.");
+            val_set_status(index, RESULT_FAIL(1));
+            flag_fail = 1;
+            continue;
           }
       }
       ret = val_dma_mem_get_attrs(buffer, &attr, &sh);
       if (ret)
       {
           if (ret == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+            val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, dma_flags);
             goto test_warn_unimplemented;
           }
           val_print(ERROR,
                     "\n       DMA controller %d: Failed to get memory attributes",
                     target_dev_index);
-          val_set_status(index, RESULT_FAIL(1));
+          val_set_status(index, RESULT_FAIL(2));
           flag_fail = 1;
+          val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, dma_flags);
           continue;
       }
 
@@ -97,9 +114,10 @@ payload_check_dma_mem_attribute(void)
           val_print(TRACE,
                     "\n       DMA controller %d: DMA memory must be inner/outer writeback inner shareable, inner/outer non-cacheable, or device type",
           target_dev_index);
-          val_set_status(index, RESULT_FAIL(2));
+          val_set_status(index, RESULT_FAIL(3));
           flag_fail = 1;
       }
+      val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, dma_flags);
   }
   /* PASS the test if no fail conditions hit */
   if (!flag_fail)

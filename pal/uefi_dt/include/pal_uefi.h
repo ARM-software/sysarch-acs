@@ -26,6 +26,8 @@ extern UINT32 g_curr_module;
 extern UINT32 g_enable_module;
 VOID pal_warn_not_implemented(const CHAR8 *api_name);
 
+typedef struct _EFI_PCI_IO_PROTOCOL EFI_PCI_IO_PROTOCOL;
+
 #define PCIE_SUCCESS            0x00000000  /* Operation completed successfully */
 #define PCIE_NO_MAPPING         0x10000001  /* A mapping to a Function does not exist */
 #define PCIE_CAP_NOT_FOUND      0x10000010  /* The specified capability was not found */
@@ -490,7 +492,32 @@ typedef struct {
   UINT64  dram_size;
   MEM_INFO_BLOCK  info[];
 } MEMORY_INFO_TABLE;
+typedef enum {
+  DMA_TYPE_USB  =  0x2000,
+  DMA_TYPE_SATA,
+  DMA_TYPE_OTHER,
+} DMA_INFO_TYPE_e;
 
+typedef struct {
+  VOID                 *CpuAddr;
+  VOID                 *Mapping;
+  EFI_PCI_IO_PROTOCOL  *PciIo;
+  UINTN                Pages;
+  BOOLEAN              UsingPci;
+} PAL_DMA_MAP;
+
+typedef struct {
+  DMA_INFO_TYPE_e type;
+  void            *target;   ///< Implementation-specific target pointer.
+  void            *port;
+  void            *host;     // It will be used only by PAL. hence void.
+  UINT32           flags;
+} DMA_INFO_BLOCK;
+
+typedef struct {
+  UINT32         num_dma_ctrls;
+  DMA_INFO_BLOCK   info[];    ///< Array of information blocks - per DMA controller
+} DMA_INFO_TABLE;
 
 VOID  pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable);
 

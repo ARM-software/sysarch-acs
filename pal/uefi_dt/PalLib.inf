@@ -45,6 +45,7 @@
   src/pal_dt.c
   src/pal_dt_debug.c
   src/pal_pfdi.c
+  src/pal_dma.c
 
 [Packages]
   StdLib/StdLib.dec
