@@ -444,7 +444,7 @@ v_l1wk_02_05_entry(uint32_t num_pe)
 {
 #ifdef TARGET_LINUX
     // Test not applicable for Linux target
-    return TEST_SKIP;
+    return RESULT_SKIP(0);
 #endif
 
     if (acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_CNTPCT) {
