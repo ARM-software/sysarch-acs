@@ -64,7 +64,7 @@ payload_check_dma_mem_attribute(void)
   {
       target_dev_index--; /* Index is zero based */
       /* Allocate DMA memory based on coherency */
-      if (val_dma_get_info(DMA_HOST_COHERENT, target_dev_index))
+      if (val_dma_get_info(DMA_HOST_COHERENT, target_dev_index) & DMA_COHERENT)
       {
           dma_flags = DMA_COHERENT;
           status = val_dma_mem_alloc(&buffer, 512, target_dev_index, DMA_COHERENT, &dma_addr);
@@ -165,8 +165,15 @@ payload_check_io_coherent_dma_mem_attribute(void)
             if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
                 goto test_warn_unimplemented;
             }
+            else if (status) {
+                val_print(WARN, "\n       Error during DMA alloc. %x", status);
+                val_set_status(index, RESULT_FAIL(1));
+                flag_fail = 1;
+                continue;
+            }
             ret = val_dma_mem_get_attrs(buffer, &attr, &sh);
             if (ret == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+                val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, DMA_COHERENT);
                 goto test_warn_unimplemented;
             } else if (ret) {
                 val_print(ERROR,
@@ -174,6 +181,7 @@ payload_check_io_coherent_dma_mem_attribute(void)
                             target_dev_index);
                 val_set_status(index, RESULT_FAIL(1));
                 flag_fail = 1;
+                val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, DMA_COHERENT);
                 continue;
             }
             /* Check Inner Write-Back, Outer Write-Back, Inner Shareable */
@@ -187,6 +195,7 @@ payload_check_io_coherent_dma_mem_attribute(void)
                 val_set_status(index, RESULT_FAIL(2));
                 flag_fail = 1;
             }
+            val_dma_mem_free(buffer, dma_addr, 512, target_dev_index, DMA_COHERENT);
         }
     }
     /* PASS the test if no fail conditions hit */

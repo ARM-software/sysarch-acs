@@ -847,7 +847,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = D007_ENTRY,
             .module_id        = PERIPHERAL,
             .rule_desc        = "Check DMA for I/O coherency",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
             .test_num         = ACS_PER_TEST_NUM_BASE + 7,
         },
@@ -3520,6 +3520,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [D006_ENTRY] = d006_entry,
     [D008_ENTRY] = d008_entry,
     [D004_ENTRY] = d004_entry,
+    [D007_ENTRY] = d007_entry,
     [E001_ENTRY] = e001_entry, // used in wrapper.
     [E002_ENTRY] = e002_entry, // used in wrapper.
     [E003_ENTRY] = e003_entry,
