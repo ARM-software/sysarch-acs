@@ -39,6 +39,13 @@ static acs_test_status_counters_t g_rule_test_stats;
 void
 val_log_context(char8_t *file, char8_t *func, uint32_t line)
 {
+#ifndef COMPILE_RB_EXE
+  /* Skip printing log context when built for Rule-Based execution. */
+  (void)file;
+  (void)func;
+  (void)line;
+  return;
+#else
   char8_t *trimmed_file;
   char8_t *marker;
   /* Substring to locate in full file path */
@@ -66,6 +73,7 @@ val_log_context(char8_t *file, char8_t *func, uint32_t line)
   val_print(DEBUG, "%d", line);
   val_print(DEBUG, " ");
   val_print(DEBUG, func);
+#endif /* COMPILE_RB_EXE */
 }
 
 /**
