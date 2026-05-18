@@ -1215,9 +1215,10 @@ createDmaInfoTable(
     UINT64  *DmaInfoTable;
 
     DmaInfoTable = val_aligned_alloc(SIZE_4K, sizeof(DMA_INFO_TABLE)
-                                    + sizeof(DMA_INFO_BLOCK));
+                                    + (2 * sizeof(DMA_INFO_BLOCK)));
     val_dma_create_info_table(DmaInfoTable);
 }
+
 VOID
 createPeripheralInfoTable(
 )

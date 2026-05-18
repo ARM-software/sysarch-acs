@@ -118,13 +118,19 @@ pal_dma_create_info_table(DMA_INFO_TABLE *dma_info_table)
     return;
   }
 
-  /* Expose a single coherent DMA-capable instance so the test can run. */
-  dma_info_table->num_dma_ctrls = 1;
+ /* Expose two DMA-capable instances so the test can exercise both coherent and non-coherent. */
+  dma_info_table->num_dma_ctrls = 2;
   dma_info_table->info[0].host = NULL;
   dma_info_table->info[0].port = gPalDmaPciIo;
   dma_info_table->info[0].target = NULL;
   dma_info_table->info[0].flags = DMA_COHERENT;
   dma_info_table->info[0].type = DMA_TYPE_OTHER;
+
+  dma_info_table->info[1].host = NULL;
+  dma_info_table->info[1].port = gPalDmaPciIo;
+  dma_info_table->info[1].target = NULL;
+  dma_info_table->info[1].flags = DMA_NOT_COHERENT;
+  dma_info_table->info[1].type = DMA_TYPE_OTHER;
 }
 
 /**
