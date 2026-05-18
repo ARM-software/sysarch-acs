@@ -34,9 +34,18 @@
 #define ACS_STATUS_PASS    STATUS_SUCCESS
 #define ACS_STATUS_SKIP    STATUS_SKIP
 #define ACS_STATUS_UNKNOWN STATUS_UNKNOWN
-/*Note: val_print can be overriden in platform_override_fvp.h, to
-enable implementation specific prints in PAL*/
-#ifndef val_print
+/*
+ * Note: val_print can be overridden by defining FAST_PRINT_ENABLE in
+ * platform_override_fvp.h, provided a FASTPRINT implementation is available
+ * in the PAL layer.
+ */
+#if defined(TARGET_BAREMETAL) && defined(FAST_PRINT_ENABLE)
+#define val_print(level, ...)                         \
+    do {                                              \
+        if ((level) >= acs_policy_get_print_level())  \
+            pal_vfastprint(__VA_ARGS__);              \
+    } while (0)
+#else
 #define val_print(level, ...)                     \
     do {                                          \
         if ((level) >= acs_policy_get_print_level()) \

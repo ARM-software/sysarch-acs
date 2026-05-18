@@ -22,10 +22,10 @@
 #include "acs_stdint.h"
 #include <string.h>
 #include <stdlib.h>
+#include "platform_override_fvp.h"
 #include "pal_status.h"
 #include "pal_execution_policy.h"
 #include "pal_print.h"
-#include "platform_override_fvp.h"
 
 typedef uintptr_t addr_t;
 typedef char     char8_t;
