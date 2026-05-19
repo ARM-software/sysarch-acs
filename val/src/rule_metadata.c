@@ -1750,6 +1750,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 12,
         },
+        [ITS_08] = {
+            .test_entry_id    = E048_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "ITS blocks in group observe same DeviceID",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 48,
+        },
         [ITS_DEV_4] = {
             .test_entry_id    = E013_ENTRY,
             .module_id        = PCIE,
@@ -3257,9 +3265,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [ITS_07] = {
             .module_id        = PCIE,
         },
-        [ITS_08] = {
-            .module_id        = PCIE,
-        },
         [ITS_DEV_1] = {
             .module_id        = PCIE,
         },
@@ -3541,6 +3546,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E045_ENTRY] = e045_entry, // used for CXL_06.
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry,
+    [E048_ENTRY] = e048_entry,
     [ETE001_ENTRY] = ete001_entry,
     [ETE002_ENTRY] = ete002_entry,
     [ETE003_ENTRY] = ete003_entry,
@@ -4367,6 +4373,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E006_ENTRY] = e006_entry, // used in wrapper.
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry,
+    [E048_ENTRY] = e048_entry,
     [E015_ENTRY] = e015_entry, // used in wrapper.
     [E001_ENTRY] = e001_entry, // used in wrapper.
     [U005_ENTRY] = u005_entry, // used in wrapper.

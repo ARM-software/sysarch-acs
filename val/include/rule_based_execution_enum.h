@@ -961,6 +961,7 @@ typedef enum {
     E045_ENTRY,
     E046_ENTRY,
     E047_ENTRY,
+    E048_ENTRY,
     P094_ENTRY,
     P096_ENTRY,
     P097_ENTRY,

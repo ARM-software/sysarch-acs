@@ -901,6 +901,7 @@ val_bsa_exerciser_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
              status |= e012_entry(num_pe);
              status |= e013_entry(num_pe);
              status |= e035_entry(num_pe);
+             status |= e048_entry(num_pe);
          }
 
          status |= e014_entry(num_pe);

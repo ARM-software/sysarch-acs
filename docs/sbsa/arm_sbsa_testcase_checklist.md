@@ -871,12 +871,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>ITS_08</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>1548</td>
+      <td>ITS blocks in group observe same DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
     </tr>
     <tr>
       <td>ITS_DEV_1</td>
@@ -1647,12 +1647,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>ITS_08</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>1548</td>
+      <td>ITS blocks in group observe same DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required</td>
     </tr>
     <tr>
       <td>ITS_DEV_1</td>

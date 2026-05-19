@@ -26,9 +26,15 @@
 #define TEST_RULE  "ITS_04"
 #define TEST_DESC  "MSI-cap device can target any ITS blk "
 
+#define TEST_NUM_2   (ACS_EXERCISER_TEST_NUM_BASE + 48)
+#define TEST_RULE_2  "ITS_08"
+#define TEST_DESC_2  "ITS blocks in group observe same DeviceID"
+
 static uint32_t irq_pending;
 static uint32_t base_lpi_id = 0x204C;
 static uint32_t instance;
+static uint32_t its_04_result = RESULT_SKIP(0);
+static uint32_t its_04_result_valid;
 
 static
 void
@@ -191,23 +197,74 @@ payload (void)
 uint32_t
 e035_entry(uint32_t num_pe)
 {
+  uint32_t index;
   uint32_t status = ACS_STATUS_FAIL;
 
   /* Run test on single PE */
   num_pe = 1;
+  index = val_pe_get_index_mpid(val_pe_get_mpid());
+  its_04_result_valid = 0;
 
   val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
-    if (val_exerciser_test_init() != ACS_STATUS_PASS)
-         return val_exerciser_get_init_result(TEST_RULE);
+     if (val_exerciser_test_init() != ACS_STATUS_PASS) {
+         status = val_exerciser_get_init_result(TEST_RULE);
+         its_04_result = status;
+         its_04_result_valid = 1;
+         return status;
+     }
      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
+
+  its_04_result = val_get_status(index);
+  its_04_result_valid = 1;
 
   /* get the result from all PE and check for failure */
   status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
   val_report_status(0, ACS_END(TEST_NUM), NULL);
+
+  return status;
+}
+
+/* Entry for ITS_08 rule.
+   1. ITS_04 verifies that an MSI-capable device can target every ITS block in its ITS group.
+   2. The test programs each ITS block with the same DeviceID for the given device and then
+      triggers an MSI.
+   3. If any ITS block in the group does not observe that same DeviceID, the MSI mapping or
+      delivery through that ITS block is expected to fail.
+   4. Therefore, the ITS_04 runtime result also provides coverage for ITS_08.
+*/
+uint32_t
+e048_entry(uint32_t num_pe)
+{
+  uint32_t index;
+  uint32_t status = ACS_STATUS_FAIL;
+
+  /* Run test on single PE */
+  num_pe = 1;
+  index = val_pe_get_index_mpid(val_pe_get_mpid());
+
+  val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
+  status = val_initialize_test(TEST_NUM_2, TEST_DESC_2, num_pe);
+  if (status != ACS_STATUS_SKIP) {
+      /* ITS_08 uses the test result already collected by e035/ITS_04.
+         If a valid result is not available, then run the payload for ITS_08 */
+      if (its_04_result_valid)
+          val_set_status(index, its_04_result);
+      else {
+          if (val_exerciser_test_init() != ACS_STATUS_PASS)
+              val_set_status(index, val_exerciser_get_init_result(TEST_RULE_2));
+          else
+              val_run_test_payload(TEST_NUM_2, num_pe, payload, 0);
+      }
+  }
+
+  /* get the result from all PE and check for failure */
+  status = val_check_for_error(TEST_NUM_2, num_pe, TEST_RULE_2);
+
+  val_report_status(0, ACS_END(TEST_NUM_2), NULL);
 
   return status;
 }
