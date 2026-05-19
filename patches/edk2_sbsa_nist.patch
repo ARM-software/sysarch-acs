@@ -32,26 +32,6 @@ index 7e985f8280..ae19e5b070 100644
 +       *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
 +!endif
 +!include edk2-libc/StdLib/StdLib.inc
-diff --git a/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c b/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
-index e3b595e..cc12b38 100644
---- a/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
-+++ b/edk2-libc/StdLib/LibC/Main/Arm/flt_rounds.c
-@@ -38,13 +38,14 @@ __RCSID("$NetBSD: flt_rounds.c,v 1.3 2006/02/25 00:58:35 wiz Exp $");
- 
- #include <sys/types.h>
- //#include <ieeefp.h>
--
-+#if 0
- static const int map[] = {
-   1,  /* round to nearest */
-   2,  /* round to positive infinity */
-   3,  /* round to negative infinity */
-   0   /* round to zero */
- };
-+#endif
- 
- /*
-  * Return the current FP rounding mode
 diff --git a/edk2-libc/StdLib/LibC/Main/Main.c b/edk2-libc/StdLib/LibC/Main/Main.c
 index b203d15..8c9618e 100644
 --- a/edk2-libc/StdLib/LibC/Main/Main.c
