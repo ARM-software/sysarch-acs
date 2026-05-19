@@ -294,5 +294,25 @@ acs_apply_compile_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
     policy->print_level = FATAL;
 #endif
 
+  /*
+   * Compile-time compliance level override (via CMake `-DACS_LEVEL=<n|fr>`):
+   *
+   *   ACS_LEVEL_FR    -> select future-requirements filter mode; leave
+   *                      ctx->level_value at whatever was set by the
+   *                      platform/user defaults so existing range
+   *                      clamping continues to apply.
+   *   ACS_LEVEL=<n>   -> set ctx->level_value = <n> and force the
+   *                      standard "levels <= n" filter (LVL_FILTER_MAX).
+   *
+   * If neither is defined the value set by apply_user_config_and_defaults()
+   * (from PLATFORM_OVERRIDE_<ACS>_LEVEL) is preserved.
+   */
+#if defined(ACS_LEVEL_FR)
+  ctx->level_filter_mode = LVL_FILTER_FR;
+#elif defined(ACS_LEVEL)
+  ctx->level_value = ACS_LEVEL;
+  ctx->level_filter_mode = LVL_FILTER_MAX;
+#endif
+
   return;
 }
