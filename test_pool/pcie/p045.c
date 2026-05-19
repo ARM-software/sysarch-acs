@@ -63,6 +63,8 @@ payload(void)
   char    *baseptr;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t test_skip = 1;
+  bool skip_due_to_flag = false;
+  bool skip_flag = acs_policy_get_pcie_skip_dp_nic_ms();
   uint32_t test_warn = 1;
   uint32_t test_fail = 0;
   uint64_t offset;
@@ -110,9 +112,10 @@ next_bdf:
       val_print(DEBUG, "\n       Class code is 0x%x", reg_value);
       base_cc = reg_value >> TYPE01_BCC_SHIFT;
 
-      if (acs_policy_get_pcie_skip_dp_nic_ms() &&
+      if (skip_flag &&
           ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
           || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC))) {
+          skip_due_to_flag = true;
           val_print(DEBUG, "\n       Skipping BDF 0x%x", bdf);
           tbl_index++;
           goto next_bdf;
@@ -256,10 +259,20 @@ next_bar:
   }
 
 test_status:
-  if (test_skip)
-      val_set_status(index, RESULT_SKIP(1));
-  else if (test_warn) {
-    val_set_status(index, RESULT_WARNING(1));
+  if (test_skip) {
+      if (skip_flag && skip_due_to_flag) {
+          val_print(WARN,
+            "\n       DP/NIC/MAS/RES devices are skipped.");
+          val_print(WARN,
+            "\n       Please individually run the test without");
+          val_print(WARN,
+            "\n       --skip-dp-nic-ms to check the compliance.");
+          val_set_status(index, RESULT_WARNING(1));
+      } else {
+          val_set_status(index, RESULT_SKIP(1));
+      }
+  } else if (test_warn) {
+      val_set_status(index, RESULT_WARNING(1));
   } else if (test_fail)
       val_set_status(index, RESULT_FAIL(test_fail));
   else

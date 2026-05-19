@@ -67,6 +67,8 @@ payload(void)
   uint32_t base_cc;
   uint32_t test_fails;
   bool     test_skip = 1;
+  bool skip_due_to_flag = false;
+  bool skip_flag = acs_policy_get_pcie_skip_dp_nic_ms();
   uint32_t idx;
   uint32_t timeout;
   uint32_t status;
@@ -93,10 +95,11 @@ payload(void)
        * init can get corrupted when FLR is done */
       val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
       base_cc = reg_value >> TYPE01_BCC_SHIFT;
-      if (acs_policy_get_pcie_skip_dp_nic_ms() &&
+      if (skip_flag &&
           ((base_cc == UNCLAS_CC) || (base_cc == MAS_CC)
           || (base_cc == CNTRL_CC) || (base_cc == DP_CNTRL_CC)))
       {
+          skip_due_to_flag = true;
           val_print(DEBUG, "\n       Skipping for BDF - 0x%x ", bdf);
           val_print(DEBUG, " Classcode is : 0x%x ", base_cc);
           continue;
@@ -202,9 +205,19 @@ payload(void)
   }
 
   if (test_skip == 1) {
-      val_print(DEBUG,
-        "\n       No target device type with FLR Cap found. Skipping test");
-      val_set_status(pe_index, RESULT_SKIP(01));
+      if (skip_flag && skip_due_to_flag) {
+          val_print(WARN,
+            "\n       DP/NIC/MAS/RES devices are skipped.");
+          val_print(WARN,
+            "\n       Please individually run the test without");
+          val_print(WARN,
+            "\n       --skip-dp-nic-ms to check the compliance.");
+          val_set_status(pe_index, RESULT_WARNING(01));
+      } else {
+          val_print(DEBUG,
+            "\n       No target device type with FLR Cap found. Skipping test");
+          val_set_status(pe_index, RESULT_SKIP(01));
+      }
   }
   else if (test_fails)
       val_set_status(pe_index, RESULT_FAIL(test_fails));
