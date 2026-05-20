@@ -669,6 +669,7 @@ typedef enum {
     ITS003_ENTRY,
     ITS004_ENTRY,
     ITS005_ENTRY,
+    ITS006_ENTRY,
     G006_ENTRY,
     G007_ENTRY,
     G009_ENTRY,

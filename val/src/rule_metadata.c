@@ -642,6 +642,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 3,
         },
+        [ITS_DEV_5] = {
+            .test_entry_id    = ITS006_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "MSI-capable devices have DeviceID",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 6,
+        },
         [ITS_DEV_7] = {
             .test_entry_id    = ITS004_ENTRY,
             .module_id        = GIC,
@@ -3271,9 +3279,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [ITS_DEV_3] = {
             .module_id        = PCIE,
         },
-        [ITS_DEV_5] = {
-            .module_id        = PCIE,
-        },
         [ITS_DEV_9] = {
             .module_id        = PCIE,
         },
@@ -3646,6 +3651,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [ITS003_ENTRY] = its003_entry,
     [ITS004_ENTRY] = its004_entry,
     [ITS005_ENTRY] = its005_entry,
+    [ITS006_ENTRY] = its006_entry,
     [M001_ENTRY] = m001_entry,
     [M002_ENTRY] = m002_entry,
     [M003_ENTRY] = m003_entry,
@@ -4308,6 +4314,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [G002_ENTRY] = g002_entry,
     [ITS002_ENTRY] = its002_entry,
     [ITS005_ENTRY] = its005_entry,
+    [ITS006_ENTRY] = its006_entry,
     [ITS001_ENTRY] = its001_entry,
     [G005_ENTRY] = g005_entry,
     [G006_ENTRY] = g006_entry, // used in wrapper.

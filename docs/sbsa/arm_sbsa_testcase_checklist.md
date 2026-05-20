@@ -916,11 +916,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>ITS_DEV_5</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -1692,11 +1692,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>ITS_DEV_5</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3678,6 +3678,7 @@ The checklist provides information about:
 - Updated PCI_MM_02 coverage with test 907.
 - Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
 - Added rule S_L5PE_03
+- Updated ITS_08, ITS_DEV_5
 
 ### v26.03_SBSA_8.0.1
 - **FR Added:** LVQBC, KBRZG

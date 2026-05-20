@@ -44,6 +44,7 @@ its002.c
 its003.c
 its004.c
 its005.c
+its006.c
 t001.c
 t002.c
 t003.c
