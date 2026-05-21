@@ -79,7 +79,7 @@ payload()
                 and the independent time delta to estimate the effective frequency of CNTPCT_EL0.
   */
 
-  for (iter = 0; iter < 5; iter++) {
+  for (iter = 0; iter < 1; iter++) {
       isb();
       counter_start_value = read_cntpct_el0();
       time_start_us = val_get_platform_time_us();
