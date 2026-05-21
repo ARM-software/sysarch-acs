@@ -54,7 +54,8 @@ typedef struct {
 
   uint64_t cache  :1;               /*Pass this flag to indicate that if the test system supports
                                     PCIe address translation cache\n*/
-  uint64_t el1skiptrap_mask  :1;    /*Skips EL1 register checks*/
+  uint64_t el1skiptrap_mask  :3;    /*Bitmask of EL1SKIPTRAP_* flags: b0=PMSIDR,
+                                      b1=CNTPCT, b2=DEVMEM*/
   uint64_t mmio   :1;               /*enable pal_mmio_read/write prints use with **verbose** */
   uint64_t no_crypto_ext :1;        /*cryptography extension not supported*/
   uint64_t software_view_filter :3; /*b0 : OS software view test b1 : Hypervisior view test
@@ -73,7 +74,7 @@ typedef struct {
   uint64_t sys_cache :2;            /*Specify SLC cache type 0-unknown
                                     1-PPTT PE-side LLC
                                     2 - HMAT mem-side LLC */
-  uint64_t reserved :11;
+  uint64_t reserved :9;
 } acs_el3_params;
 
 #endif /* ACS_EL3_PARAM_H */

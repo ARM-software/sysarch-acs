@@ -83,7 +83,9 @@ acs_get_platform_run_request_defaults(void)
  *   2 - HMAT mem-side LLC
  *
  * el1skiptrap_mask is a bitmask composed from EL1SKIPTRAP_* flags when a
- * platform needs specific EL1 register accesses skipped.
+ * platform needs specific EL1 register accesses skipped:
+ *   b0=EL1SKIPTRAP_PMSIDR, b1=EL1SKIPTRAP_CNTPCT, b2=EL1SKIPTRAP_DEVMEM.
+ *   Example: el1skiptrap_mask = EL1SKIPTRAP_CNTPCT;
  */
 static const acs_execution_policy_t g_platform_execution_policy = {
     .timeout_pass = PLATFORM_OVERRIDE_TIMEOUT,
