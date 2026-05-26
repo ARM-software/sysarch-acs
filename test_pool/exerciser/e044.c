@@ -29,21 +29,6 @@
 
 static
 uint32_t
-check_pm_state(uint32_t bdf, uint32_t *state)
-{
-  uint32_t cap_base;
-  uint32_t reg_value;
-
-  if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PMC, &cap_base) != PCIE_SUCCESS)
-    return ACS_STATUS_ERR;
-
-  val_pcie_read_cfg(bdf, cap_base + PMCSR_OFFSET, &reg_value);
-  *state = reg_value & PMCSR_POWER_STATE_MASK;
-  return ACS_STATUS_PASS;
-}
-
-static
-uint32_t
 is_cxl_root_port(uint32_t rp_bdf)
 {
   uint32_t comp_count;
@@ -70,7 +55,10 @@ payload(void)
   uint32_t num_instances;
   uint32_t instance;
   uint32_t e_bdf;
+  uint32_t cap_base;
   uint32_t rp_bdf;
+  uint32_t reg_value;
+  uint32_t ori_pm_reg;
   uint32_t pm_state_before;
   uint32_t pm_state_after;
   uint32_t status;
@@ -100,29 +88,35 @@ payload(void)
     if (is_cxl_root_port(rp_bdf) != ACS_STATUS_PASS)
       continue;
 
-    if (check_pm_state(e_bdf, &pm_state_before) != ACS_STATUS_PASS) {
-      val_print(ERROR, "\n       PM capability missing for exerciser BDF 0x%x", e_bdf);
-      fail_cnt++;
-      continue;
-    }
+     if (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_PMC, &cap_base) != PCIE_SUCCESS) {
+       val_print(ERROR, "\n       PM capability missing for exerciser BDF 0x%x", e_bdf);
+       fail_cnt++;
+       continue;
+     }
+
+     val_pcie_read_cfg(e_bdf, cap_base + PMCSR_OFFSET, &reg_value);
+     val_print(DEBUG, "\n       PMCSR Reg value before PM VDM is 0x%x", reg_value);
+     ori_pm_reg = reg_value;
+     pm_state_before = reg_value & PMCSR_POWER_STATE_MASK;
 
     /* Only validate a real transition to lower power state. */
     if (pm_state_before == PM_STATE_D3HOT)
       continue;
 
-    status = val_exerciser_set_param(GENERATE_PMREQ_VDM, PM_STATE_D3HOT, rp_bdf, instance);
-    if (status != ACS_STATUS_PASS) {
+    /* Set the Power state that the device should transition to */
+    status = val_exerciser_set_param(PM_VDM_TYPE, PM_STATE_D3HOT, e_bdf, instance);
+    if (status) {
+      val_print(ERROR, "\n       Status is not set 0x%x", status);
+      fail_cnt++;
       continue;
     }
 
     test_skip = 0;
     val_time_delay_ms(1 * ONE_MILLISECOND);
 
-    if (check_pm_state(e_bdf, &pm_state_after) != ACS_STATUS_PASS) {
-      val_print(ERROR, "\n       Failed to read PMCSR for exerciser BDF 0x%x", e_bdf);
-      fail_cnt++;
-      continue;
-    }
+    val_pcie_read_cfg(e_bdf, cap_base + PMCSR_OFFSET, &reg_value);
+    val_print(DEBUG, "\n       PMCSR Reg value after PM VDM is 0x%x", reg_value);
+    pm_state_after = reg_value & PMCSR_POWER_STATE_MASK;
 
     if ((pm_state_after != PM_STATE_D3HOT) || (pm_state_after == pm_state_before)) {
       val_print(ERROR, "\n       PM state transition failed for BDF 0x%x", e_bdf);
@@ -130,6 +124,10 @@ payload(void)
       val_print(ERROR, " (after 0x%x)", pm_state_after);
       fail_cnt++;
     }
+
+    /*Restore the original device state*/
+    val_pcie_write_cfg(e_bdf, cap_base + PMCSR_OFFSET, ori_pm_reg);
+
   }
 
   if (fail_cnt)

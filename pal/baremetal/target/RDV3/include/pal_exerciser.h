@@ -133,7 +133,7 @@ typedef enum {
     DISABLE_POISON_MODE = 0x10,
     CLEAR_TXN           = 0x11,
     ENABLE_CACHE_TXN    = 0x12,
-    GENERATE_PMREQ_VDM  = 0x13,
+    PM_VDM_TYPE         = 0x13,
     GENERATE_MEFN_VDM   = 0x14
 } EXERCISER_PARAM_TYPE;
 

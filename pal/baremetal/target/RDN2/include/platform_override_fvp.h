@@ -598,6 +598,11 @@
 #define PLATFORM_OVERRIDE_CXL0_WINDOW_SIZE           0x0  /* CFMWS Length*/
 #define PLATFORM_OVERRIDE_CXL0_WINDOW_RESTRICTIONS   0x0  /* CFMWS Window restrictions*/
 
+#define PM_D3_VDM      0x300
+#define TRIGGER_PM_VDM 0x80000000
+#define VDM_RSP_SHIFT  16
+#define VDM_RSP_MASK   7
+
 /* PERIPHERAL platform config parameters */
 #define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 3  //UART + USB + SATA
 
@@ -834,6 +839,7 @@
 #define TXN_CTRL_BASE   0x44
 #define PCI_MAX_BUS     255
 #define PCI_MAX_DEVICE  31
+#define PM_VDM_CTLR     0x48
 
 #define DVSEC_CTRL      0x8
 #define PCI_EXT_CAP_ID  0x10
