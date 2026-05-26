@@ -452,6 +452,8 @@ vdm_trigger               31        Trigger VDM request                         
 
 **HOW TO USE CXL PM VDM:**
 
+> **Note:** The reference implementation is present at [pal_exerciser.c](../../pal/baremetal/target/RDN2/src/pal_exerciser.c) .
+
   * Program `vdm_params` (bits `[11:8]`) with the target power state.
 
   * Write `1` to bits `[3:0]` (vdm_type = PM) and set bit `31` (trigger) to fire the PM VDM request.

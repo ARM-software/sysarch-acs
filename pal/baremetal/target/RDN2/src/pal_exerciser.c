@@ -355,8 +355,15 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
       case ENABLE_CACHE_TXN:
         return 1;
 
-      case GENERATE_PMREQ_VDM:
-        return 1;
+      case PM_VDM_TYPE:
+        /* Transition to D3hot state */
+        pal_mmio_write(Base + PM_VDM_CTLR, 1);
+        pal_mmio_write(Base + PM_VDM_CTLR, (pal_mmio_read(Base + PM_VDM_CTLR) | PM_D3_VDM));
+        pal_mmio_write(Base + PM_VDM_CTLR, (pal_mmio_read(Base + PM_VDM_CTLR) | TRIGGER_PM_VDM));
+        if ((pal_mmio_read(Base + PM_VDM_CTLR) >> VDM_RSP_SHIFT) & VDM_RSP_MASK)
+            return 0;
+        else
+            return 1;
 
       case GENERATE_MEFN_VDM:
         return 1;
