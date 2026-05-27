@@ -40,10 +40,13 @@
  */
 #if defined(TARGET_BAREMETAL)
 void pal_uart_print(int log, const char *fmt, ...);
-
+#if !defined(FAST_PRINT_ENABLE)
 #define PAL_PRINT_FORMAT(verbose, string, ...) \
     PAL_PRINT_IF((verbose), pal_uart_print((verbose), (string), ##__VA_ARGS__))
-
+#else
+#define PAL_PRINT_FORMAT(verbose, string, ...) \
+    PAL_PRINT_IF((verbose), pal_vfastprint((string), ##__VA_ARGS__))
+#endif
 #define PAL_PRINT_LITERAL(verbose, string, ...) \
     PAL_PRINT_FORMAT((verbose), (string), ##__VA_ARGS__)
 #elif defined(TARGET_UEFI)
@@ -65,23 +68,9 @@ void pal_uart_print(int log, const char *fmt, ...);
  * pal_print_native() is only for rare cases where the caller already has a
  * target-native format string, such as a UEFI CHAR16/L"..." format.
  */
-#ifndef FAST_PRINT_ENABLE
 #define pal_print_native(verbose, string, ...) \
     PAL_PRINT_FORMAT((verbose), (string), ##__VA_ARGS__)
 
 #define pal_print_msg(verbose, string, ...) \
     PAL_PRINT_LITERAL((verbose), string, ##__VA_ARGS__)
-#else
-#define pal_print_native(verbose, string, ...)         \
-    do {                                               \
-        if ((verbose) >= acs_policy_get_print_level()) \
-            pal_vfastprint(string, ##__VA_ARGS__);     \
-    } while (0)
-
-#define pal_print_msg(verbose, string, ...)            \
-    do {                                               \
-        if ((verbose) >= acs_policy_get_print_level()) \
-            pal_vfastprint(string, ##__VA_ARGS__);     \
-    } while (0)
-#endif
 #endif
