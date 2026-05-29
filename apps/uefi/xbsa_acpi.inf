@@ -361,4 +361,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS+  = -march=armv8.5-a+lse+ls2
-  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+sme+profile+lse -DPC_BSA $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+sve2+sme+profile+lse -DPC_BSA $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI
