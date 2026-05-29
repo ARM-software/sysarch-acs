@@ -38,6 +38,23 @@ static void *branch_to_test;
 static uint32_t test_fail;
 
 static
+uint32_t
+uart_is_16550(uint32_t interface_type)
+{
+  return (interface_type == COMPATIBLE_FULL_16550
+          || interface_type == COMPATIBLE_SUBSET_16550
+          || interface_type == COMPATIBLE_GENERIC_16550);
+}
+
+static
+uint32_t
+uart_is_generic(uint32_t interface_type)
+{
+  return (interface_type == ARM_PL011_UART
+          || interface_type == ARM_SBSA_GENERIC_UART);
+}
+
+static
 void
 esr(uint64_t interrupt_type, void *context)
 {
@@ -50,80 +67,15 @@ esr(uint64_t interrupt_type, void *context)
   val_set_status(index, TEST_FAIL);
 }
 
-/* Following APIs are for 16550 compatible UART access */
-
-static
-void
-uart_16550_reg_write(uint64_t uart_base, uint32_t offset, uint32_t reg_shift,
-               uint32_t width_mask, uint32_t data)
-{
-  if (width_mask & WIDTH_BIT8)
-      *((volatile uint8_t *)(uart_base + (offset << reg_shift))) = (uint8_t)data;
-
-  if (width_mask & WIDTH_BIT16)
-      *((volatile uint16_t *)(uart_base + (offset << reg_shift))) = (uint16_t)data;
-
-  if (width_mask & WIDTH_BIT32)
-      *((volatile uint32_t *)(uart_base + (offset << reg_shift))) = (uint32_t)data;
-
-}
-
-static
-uint32_t
-uart_16550_reg_read(uint64_t uart_base, uint32_t offset, uint32_t reg_shift, uint32_t width_mask)
-{
-  if (width_mask & WIDTH_BIT8)
-      return *((volatile uint8_t *)(uart_base + (offset << reg_shift)));
-
-  if (width_mask & WIDTH_BIT16)
-      return *((volatile uint16_t *)(uart_base + (offset << reg_shift)));
-
-  if (width_mask & WIDTH_BIT32)
-      return *((volatile uint32_t *)(uart_base + (offset << reg_shift)));
-
-  return 0;
-}
-
-/* Following APIs are for Arm Generic UART access */
-
-uint32_t
-uart_generic_reg_read(uint32_t offset, uint32_t width_mask)
-{
-  if (width_mask & WIDTH_BIT8)
-      return *((volatile uint8_t *)(l_uart_base + offset));
-
-  if (width_mask & WIDTH_BIT16)
-      return *((volatile uint16_t *)(l_uart_base + offset));
-
-  if (width_mask & WIDTH_BIT32)
-      return *((volatile uint32_t *)(l_uart_base + offset));
-
-  return 0;
-}
-
-void
-uart_generic_reg_write(uint32_t offset, uint32_t width_mask, uint32_t data)
-{
-  if (width_mask & WIDTH_BIT8)
-      *((volatile uint8_t *)(l_uart_base + offset)) = (uint8_t)data;
-
-  if (width_mask & WIDTH_BIT16)
-      *((volatile uint16_t *)(l_uart_base + offset)) = (uint16_t)data;
-
-  if (width_mask & WIDTH_BIT32)
-      *((volatile uint32_t *)(l_uart_base + offset)) = (uint32_t)data;
-
-}
-
 void
 uart_enable_txintr()
 {
   uint32_t data;
 
   /* Enable TX interrupt by setting mask bit[5] in UARTIMSC */
-  data = uart_generic_reg_read(BSA_UARTIMSC, WIDTH_BIT32);
+  data = val_peripheral_uart_reg_read(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32);
   data = data | (1<<5);
-  uart_generic_reg_write(BSA_UARTIMSC, WIDTH_BIT32, data);
+  val_peripheral_uart_reg_write(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32, data);
 }
 
 void
@@ -132,9 +84,9 @@ uart_disable_txintr()
   uint32_t data;
 
   /* Disable TX interrupt by clearing mask bit[5] in UARTIMSC */
-  data = uart_generic_reg_read(BSA_UARTIMSC, WIDTH_BIT32);
+  data = val_peripheral_uart_reg_read(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32);
   data = data & (~(1<<5));
-  uart_generic_reg_write(BSA_UARTIMSC, WIDTH_BIT32, data);
+  val_peripheral_uart_reg_write(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32, data);
 
 }
 
@@ -143,13 +95,13 @@ uint32_t
 validate_register_access(uint32_t offset, uint32_t width)
 {
   if (width & WIDTH_BIT8) {
-      uart_generic_reg_write(offset, WIDTH_BIT8, 0xFF);
+      val_peripheral_uart_reg_write(l_uart_base + offset, WIDTH_BIT8, 0xFF);
   }
   if (width & WIDTH_BIT16) {
-      uart_generic_reg_write(offset, WIDTH_BIT16, 0xFFFF);
+      val_peripheral_uart_reg_write(l_uart_base + offset, WIDTH_BIT16, 0xFFFF);
   }
   if (width & WIDTH_BIT32) {
-      uart_generic_reg_write(offset, WIDTH_BIT32, 0xFFFFFFFF);
+      val_peripheral_uart_reg_write(l_uart_base + offset, WIDTH_BIT32, 0xFFFFFFFF);
   }
   return ACS_STATUS_PASS;
 }
@@ -191,10 +143,7 @@ check_arm_generic_uart()
 
   while (count != 0) {
       interface_type = val_peripheral_get_info(UART_INTERFACE_TYPE, count - 1);
-      if (interface_type != COMPATIBLE_FULL_16550
-           && interface_type != COMPATIBLE_SUBSET_16550
-           && interface_type != COMPATIBLE_GENERIC_16550)
-      {
+      if (uart_is_generic(interface_type)) {
           l_uart_base = val_peripheral_get_info(UART_BASE0, count - 1);
           if (l_uart_base == 0) {
               return TEST_SKIP;
@@ -252,10 +201,7 @@ check_uart_16550()
 
   while (count != 0) {
       interface_type = val_peripheral_get_info(UART_INTERFACE_TYPE, count - 1);
-      if (interface_type == COMPATIBLE_FULL_16550
-           || interface_type == COMPATIBLE_SUBSET_16550
-           || interface_type == COMPATIBLE_GENERIC_16550)
-      {
+      if (uart_is_16550(interface_type)) {
           test_skip = 0;
           val_print(DEBUG,
               "\n         UART 16550 found with instance: %x",
@@ -272,20 +218,8 @@ check_uart_16550()
 
           /* Check the access width (use width for reg_shift like linux earlycon) */
           access_width = val_peripheral_get_info(UART_WIDTH, count - 1);
-          switch (access_width) {
-          case 8:
-              reg_shift  = 0;
-              width_mask = WIDTH_BIT8;
-              break;
-          case 16:
-              reg_shift  = 1;
-              width_mask = WIDTH_BIT16;
-              break;
-          case 32:
-              reg_shift  = 2;
-              width_mask = WIDTH_BIT32;
-              break;
-          default:
+          if (val_peripheral_uart_16550_width_to_access(access_width, &reg_shift,
+                                                        &width_mask)) {
               val_print(ERROR, "\n         UART access width must be specified"
                                        " for instance: %x", count - 1);
               return TEST_FAIL;
@@ -304,17 +238,15 @@ check_uart_16550()
               }
           }
 
-          val_print(ERROR, "\nDEBUG: uart_base %llx", uart_base);
-          val_print(ERROR, "\nDEBUG: access_width %d", access_width);
-
-
           /* Check the read/write property of Line Control Register */
-          lcr_reg = uart_16550_reg_read(uart_base, LCR, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, 0);
-          lcr_scratch2 = uart_16550_reg_read(uart_base, LCR, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, 0xFF);
-          lcr_scratch3 = uart_16550_reg_read(uart_base, LCR, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, lcr_reg);
+          lcr_reg = val_peripheral_uart_16550_reg_read(uart_base, LCR, reg_shift, width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, 0);
+          lcr_scratch2 = val_peripheral_uart_16550_reg_read(uart_base, LCR, reg_shift,
+                                                            width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, 0xFF);
+          lcr_scratch3 = val_peripheral_uart_16550_reg_read(uart_base, LCR, reg_shift,
+                                                            width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, lcr_reg);
           if ((lcr_scratch2 != 0) || (lcr_scratch3 != 0xFF))
           {
               val_print(ERROR, "\n   LCR register are not read/write"
@@ -323,12 +255,14 @@ check_uart_16550()
           }
 
           /* Check the read/write property of Interrupt Enable Register */
-          ier_reg = uart_16550_reg_read(uart_base, IER, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, 0);
-          ier_scratch2 = uart_16550_reg_read(uart_base, IER, reg_shift, width_mask) & 0xF;
-          uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, 0xF);
-          ier_scratch3 = uart_16550_reg_read(uart_base, IER, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, ier_reg);
+          ier_reg = val_peripheral_uart_16550_reg_read(uart_base, IER, reg_shift, width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, 0);
+          ier_scratch2 = val_peripheral_uart_16550_reg_read(uart_base, IER, reg_shift,
+                                                            width_mask) & 0xF;
+          val_peripheral_uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, 0xF);
+          ier_scratch3 = val_peripheral_uart_16550_reg_read(uart_base, IER, reg_shift,
+                                                            width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, ier_reg);
           if ((ier_scratch2 != 0) || (ier_scratch3 != 0xF))
           {
               val_print(ERROR, "\n   IER register[0:3] are not read/write"
@@ -337,10 +271,12 @@ check_uart_16550()
           }
 
           /* Check if UART is really present using loopback test mode */
-          mcr_reg = uart_16550_reg_read(uart_base, MCR, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, MCR, reg_shift, width_mask, MCR_LOOP | 0xA);
-          msr_status = uart_16550_reg_read(uart_base, MSR, reg_shift, width_mask);
-          uart_16550_reg_write(uart_base, MCR, reg_shift, width_mask, mcr_reg);
+          mcr_reg = val_peripheral_uart_16550_reg_read(uart_base, MCR, reg_shift, width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, MCR, reg_shift, width_mask,
+                                              MCR_LOOP | 0xA);
+          msr_status = val_peripheral_uart_16550_reg_read(uart_base, MSR, reg_shift,
+                                                          width_mask);
+          val_peripheral_uart_16550_reg_write(uart_base, MCR, reg_shift, width_mask, mcr_reg);
           if ((msr_status & 0xF0) != CTS_DCD_EN)
           {
               val_print(ERROR, "\n   Loopback test mode failed"
@@ -376,10 +312,12 @@ payload_check_uart_compliance()
   /* Pass if UART is found and is either one of the type required by test */
   if (gen_uart_status == TEST_PASS || uart_16550_status == TEST_PASS)
       val_set_status(index, RESULT_PASS);
+  else if (gen_uart_status == TEST_FAIL || uart_16550_status == TEST_FAIL)
+      val_set_status(index, RESULT_FAIL(1));
   /* Skip if UART not found by test */
-  else if (gen_uart_status == TEST_SKIP || uart_16550_status == TEST_SKIP)
+  else if (gen_uart_status == TEST_SKIP && uart_16550_status == TEST_SKIP)
       val_set_status(index, RESULT_SKIP(1));
-  /* Fail if neither passed or both skipped */
+  /* Fail for any remaining unexpected state */
   else
       val_set_status(index, RESULT_FAIL(1));
   return;
@@ -393,7 +331,10 @@ payload_check_arm_generic_uart_interrupt()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint32_t timeout;
   uint32_t interface_type;
+  uint32_t supported_uart_found = 0;
+  uint32_t uart_interrupt_checked = 0;
 
+  test_fail = 0;
   if (count == 0) {
       val_print(ERROR, "\n       No UART defined by Platform      ");
       val_set_status(index, RESULT_SKIP(1));
@@ -405,61 +346,75 @@ payload_check_arm_generic_uart_interrupt()
       int_id    = val_peripheral_get_info(UART_GSIV, count - 1);
       interface_type = val_peripheral_get_info(UART_INTERFACE_TYPE, count - 1);
       l_uart_base = val_peripheral_get_info(UART_BASE0, count - 1);
-      if (interface_type != COMPATIBLE_FULL_16550
-           && interface_type != COMPATIBLE_SUBSET_16550
-           && interface_type != COMPATIBLE_GENERIC_16550) {
+      if (uart_is_generic(interface_type) || uart_is_16550(interface_type)) {
+          supported_uart_found = 1;
 
-          /* If Interrupt ID is available, check for interrupt generation */
-          if (int_id != 0x0) {
-              /* PASS will be set from ISR */
-              val_set_status(index, RESULT_PENDING(TEST_NUM1));
-
-              /* Check int_id is SPI or ESPI */
-              if (!(IsSpi(int_id)) && !(val_gic_is_valid_espi(int_id))) {
-                 val_print(ERROR, "\n       Interrupt-%d is neither SPI nor ESPI", int_id);
-                 val_set_status(index, RESULT_FAIL(2));
-                 return;
-              }
-
-               val_peripheral_uart_setup();
-               /* If UART is used by other app (optee/TF) skip it */
-               if (((uart_generic_reg_read(BSA_UARTIMSC, WIDTH_BIT32)) & 0x10))
-               {
-                    count--;
-                    continue;
-               }
-
-              /* Install ISR */
-              if (val_gic_install_isr(int_id, isr)) {
-                 val_print(ERROR, "\n       GIC Install Handler Failed...");
-                 val_set_status(index, RESULT_FAIL(3));
-                 return;
-              }
-
-              uart_enable_txintr();
-              val_print_raw(l_uart_base, acs_policy_get_print_level(),
-                            "\n       Test Message                          ", 0);
-
-              while ((--timeout > 0) && (IS_RESULT_PENDING(val_get_status(index)))) {
-              };
-
-              if (timeout == 0) {
-                 val_print(ERROR,
-                 "\n       Did not receive UART interrupt on %d  ",
-                 int_id);
-                 test_fail++;
-              }
-          } else {
-              val_set_status(index, RESULT_SKIP(3));
+          if (int_id == 0x0) {
+              val_print(ERROR, "\n       UART interrupt must be specified for instance: %x",
+                        count - 1);
+              test_fail++;
+              count--;
+              continue;
           }
+
+          /* Check int_id is SPI or ESPI */
+          if (!(IsSpi(int_id)) && !(val_gic_is_valid_espi(int_id))) {
+             val_print(ERROR, "\n       Interrupt-%d is neither SPI nor ESPI", int_id);
+             val_set_status(index, RESULT_FAIL(2));
+             return;
+          }
+
+          uart_interrupt_checked = 1;
+          if (uart_is_16550(interface_type)) {
+              count--;
+              continue;
+          }
+
+          /* PASS will be set from ISR */
+          val_set_status(index, RESULT_PENDING(TEST_NUM1));
+
+          val_peripheral_uart_setup();
+          /* If UART is used by other app (optee/TF) skip it */
+          if (((val_peripheral_uart_reg_read(l_uart_base + BSA_UARTIMSC,
+                                              WIDTH_BIT32)) & 0x10))
+          {
+              count--;
+              continue;
+          }
+
+          /* Install ISR */
+          if (val_gic_install_isr(int_id, isr)) {
+             val_print(ERROR, "\n       GIC Install Handler Failed...");
+             val_set_status(index, RESULT_FAIL(3));
+             return;
+          }
+
+          uart_enable_txintr();
+          val_print_raw(l_uart_base, acs_policy_get_print_level(),
+                        "\n       Test Message                          ", 0);
+
+          while ((--timeout > 0) && (IS_RESULT_PENDING(val_get_status(index)))) {
+          };
+
+          if (timeout == 0) {
+             val_print(ERROR,
+             "\n       Did not receive UART interrupt on %d  ",
+             int_id);
+             test_fail++;
+          }
+      } else if (!uart_is_16550(interface_type)) {
+          val_print(DEBUG, "\n       UART interface type %x is not BSA compatible",
+                    interface_type);
       }
       count--;
   }
 
   if (test_fail)
     val_set_status(index, RESULT_FAIL(4));
-  else
+  else if (uart_interrupt_checked)
     val_set_status(index, RESULT_PASS);
+  else if (supported_uart_found)
+    val_set_status(index, RESULT_SKIP(3));
 
   return;
 }

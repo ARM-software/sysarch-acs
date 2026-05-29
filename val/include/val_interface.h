@@ -468,6 +468,16 @@ void     val_peripheral_dump_info(void);
 uint64_t val_peripheral_get_info(PERIPHERAL_INFO_e info_type, uint32_t index);
 uint32_t val_peripheral_is_pcie(uint32_t bdf);
 void     val_peripheral_uart_setup(void);
+void     val_peripheral_uart_reg_write(uint64_t addr, uint32_t width_mask, uint32_t data);
+uint32_t val_peripheral_uart_reg_read(uint64_t addr, uint32_t width_mask);
+void     val_peripheral_uart_16550_reg_write(uint64_t uart_base, uint32_t offset,
+                                             uint32_t reg_shift, uint32_t width_mask,
+                                             uint32_t data);
+uint32_t val_peripheral_uart_16550_reg_read(uint64_t uart_base, uint32_t offset,
+                                            uint32_t reg_shift, uint32_t width_mask);
+uint32_t val_peripheral_uart_16550_width_to_access(uint32_t access_width,
+                                                   uint32_t *reg_shift,
+                                                   uint32_t *width_mask);
 uint32_t val_bsa_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 
 /* Memory Tests APIs */

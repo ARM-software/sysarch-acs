@@ -19,6 +19,7 @@
 #include "acs_peripherals.h"
 #include "acs_common.h"
 #include "acs_pcie.h"
+#include "acs_pe.h"
 
 PERIPHERAL_INFO_TABLE  *g_peripheral_info_table;
 
@@ -324,6 +325,73 @@ val_peripheral_free_info_table(void)
       val_print(DEBUG,
               "\n g_peripheral_info_table pointer is already NULL");
     }
+}
+
+void
+val_peripheral_uart_reg_write(uint64_t addr, uint32_t width_mask, uint32_t data)
+{
+  if (width_mask & WIDTH_BIT8)
+      val_mmio_write8(addr, (uint8_t)data);
+
+  if (width_mask & WIDTH_BIT16)
+      val_mmio_write16(addr, (uint16_t)data);
+
+  if (width_mask & WIDTH_BIT32)
+      val_mmio_write(addr, data);
+}
+
+uint32_t
+val_peripheral_uart_reg_read(uint64_t addr, uint32_t width_mask)
+{
+  if (width_mask & WIDTH_BIT8)
+      return val_mmio_read8(addr);
+
+  if (width_mask & WIDTH_BIT16)
+      return val_mmio_read16(addr);
+
+  if (width_mask & WIDTH_BIT32)
+      return val_mmio_read(addr);
+
+  return 0;
+}
+
+void
+val_peripheral_uart_16550_reg_write(uint64_t uart_base, uint32_t offset,
+                                    uint32_t reg_shift, uint32_t width_mask,
+                                    uint32_t data)
+{
+  val_peripheral_uart_reg_write(uart_base + (offset << reg_shift), width_mask, data);
+}
+
+uint32_t
+val_peripheral_uart_16550_reg_read(uint64_t uart_base, uint32_t offset,
+                                   uint32_t reg_shift, uint32_t width_mask)
+{
+  return val_peripheral_uart_reg_read(uart_base + (offset << reg_shift), width_mask);
+}
+
+uint32_t
+val_peripheral_uart_16550_width_to_access(uint32_t access_width, uint32_t *reg_shift,
+                                          uint32_t *width_mask)
+{
+  switch (access_width) {
+  case 8:
+      *reg_shift  = 0;
+      *width_mask = WIDTH_BIT8;
+      break;
+  case 16:
+      *reg_shift  = 1;
+      *width_mask = WIDTH_BIT16;
+      break;
+  case 32:
+      *reg_shift  = 2;
+      *width_mask = WIDTH_BIT32;
+      break;
+  default:
+      return ACS_STATUS_FAIL;
+  }
+
+  return ACS_STATUS_PASS;
 }
 
 void val_peripheral_uart_setup(void)

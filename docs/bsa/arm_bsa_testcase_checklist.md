@@ -1016,12 +1016,12 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_PER_07</td>
       <td>B_PER_07</td>
-      <td>Rule is covered as part of B_PER_06 test</td>
+      <td>605</td>
+      <td>Check UART Non-secure register access</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>A direct test will be added in future</td>
     </tr>
     <tr>
       <td rowspan="85">L1</td>
@@ -3762,6 +3762,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Added direct B_PER_07 UART Non-secure register access coverage (test 605).
 - Updated B_PER_08 to include ITS Rules.
 - **RI_ Added:** RI_PWR_1
 - Updated B_WD_02.
