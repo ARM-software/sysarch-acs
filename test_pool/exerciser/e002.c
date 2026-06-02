@@ -345,6 +345,7 @@ payload(void)
   uint32_t tgt_e_bus_num;
   uint32_t tgt_e_dev_num;
   uint32_t tgt_e_func_num;
+  uint32_t p2p_status;
 
   fail_cnt = 0;
   test_skip = 1;
@@ -353,14 +354,28 @@ payload(void)
   pcie_device_bdf_table *bdf_tbl_ptr;
 
   tbl_index = 0;
-  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  uint32_t acsctrl_default[bdf_tbl_ptr->num_entries][1];
 
-  /* Check If PCIe Hierarchy supports P2P. */
-  if (val_pcie_p2p_support() == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-    val_set_status(pe_index, RESULT_WARNING(2));
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+    val_print(DEBUG, "\n       No ECAM region found. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(1));
     return;
   }
+
+  /* Check If PCIe Hierarchy supports P2P. */
+  p2p_status = val_pcie_p2p_support();
+  if (p2p_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+    val_set_status(pe_index, RESULT_WARNING(1));
+    return;
+  }
+
+  if (p2p_status != 0) {
+    val_print(DEBUG, "\n       P2P not supported. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(2));
+    return;
+  }
+
+  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+  uint32_t acsctrl_default[bdf_tbl_ptr->num_entries][1];
 
   /* Store ACS Control reg bits in an array for every BDF and reset them to default at the end. */
   val_pcie_read_acsctrl(acsctrl_default);
@@ -470,7 +485,7 @@ payload(void)
   val_pcie_write_acsctrl(acsctrl_default);
 
   if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(1));
+      val_set_status(pe_index, RESULT_SKIP(3));
   else if (fail_cnt)
       val_set_status(pe_index, RESULT_FAIL(fail_cnt));
   else

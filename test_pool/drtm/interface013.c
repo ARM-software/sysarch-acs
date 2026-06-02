@@ -79,6 +79,7 @@ payload(uint32_t num_pe)
   if (!num_hashes) {
     val_print(ERROR, "\n       Max Hashes can be recorded with DRTM_SET_TCB_HASH is 0");
     val_set_status(index, RESULT_SKIP(2));
+    return;
   }
 
   /* Max number of hashes can be recorded plus one */

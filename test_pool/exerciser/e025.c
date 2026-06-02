@@ -355,9 +355,16 @@ payload(void)
   uint32_t p2p_status;
   uint32_t test_status = 0;
 
+  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+      val_print(DEBUG, "\n       No ECAM region found. Skipping test");
+      val_set_status(pe_index, RESULT_SKIP(1));
+      return;
+  }
+
   do
   {
-      pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
       req_instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
       // Initialize the DMA source buffer with 8 bytes, as this is the maximum transfer size

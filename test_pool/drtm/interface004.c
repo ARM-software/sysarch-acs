@@ -47,6 +47,7 @@ payload(uint32_t num_pe)
   } else {
     val_print(ERROR, "\n       TCB hash feature value not available in return value");
     val_set_status(index, RESULT_FAIL(3));
+    return;
   }
 
   val_set_status(index, RESULT_PASS);

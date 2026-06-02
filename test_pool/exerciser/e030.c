@@ -177,6 +177,11 @@ payload(void)
 
   }
 
+  if (test_skip == 1) {
+      val_set_status(pe_index, RESULT_SKIP(01));
+      goto test_clean;
+  }
+
   val_set_status(pe_index, RESULT_PASS);
   goto test_clean;
 
@@ -184,10 +189,6 @@ test_fail:
   val_set_status(pe_index, RESULT_FAIL(02));
 
 test_clean:
-
-  if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(01));
-
   /* Remove all address mappings for each exerciser */
   for (instance = 0; instance < num_exercisers; ++instance)
   {

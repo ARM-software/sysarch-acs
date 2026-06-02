@@ -42,17 +42,31 @@ payload(void)
   uint32_t status;
   uint32_t iep_rp_bdf;
   uint32_t curr_bdf_failed = 0;
+  uint32_t p2p_status;
   pcie_device_bdf_table *bdf_tbl_ptr;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Check If PCIe Hierarchy supports P2P */
-  if (val_pcie_p2p_support() == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-    val_set_status(pe_index, RESULT_WARNING(01));
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+    val_print(DEBUG, "\n       No ECAM region found. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(1));
     return;
   }
 
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+
+  /* Check If PCIe Hierarchy supports P2P */
+  p2p_status = val_pcie_p2p_support();
+  if (p2p_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+    val_set_status(pe_index, RESULT_WARNING(1));
+    return;
+  }
+
+  if (p2p_status != 0) {
+    val_print(DEBUG, "\n       P2P not supported. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(2));
+    return;
+  }
   test_fails = 0;
 
   /* Check for all the function present in bdf table */
@@ -68,7 +82,7 @@ payload(void)
           /* Check If iEP_EP supports P2P with others. */
           status = val_pcie_dev_p2p_support(bdf);
           if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-              val_set_status(pe_index, RESULT_WARNING(01));
+              val_set_status(pe_index, RESULT_WARNING(2));
               return;
           }
           if (status)
@@ -156,7 +170,7 @@ payload(void)
   if (test_skip == 1) {
       val_print(DEBUG,
            "\n       No iEP_EP type device found with P2P support. Skipping test");
-      val_set_status(pe_index, RESULT_SKIP(01));
+      val_set_status(pe_index, RESULT_SKIP(3));
   }
   else if (test_fails)
       val_set_status(pe_index, RESULT_FAIL(test_fails));

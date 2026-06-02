@@ -37,7 +37,6 @@ payload()
   }
   if (!num_group) {
       val_print(DEBUG, "\n       No ITS group found            ");
-      val_set_status(index, RESULT_FAIL(1));
       val_set_status(index, RESULT_SKIP(1));
       return;
   }
@@ -48,13 +47,13 @@ payload()
       status = val_iovirt_get_its_info(ITS_GROUP_NUM_BLOCKS, i, 0, &num_blocks);
       if (status) {
           val_print(ERROR, "\n       ITS get number of blocks failed        ");
-          val_set_status(index, RESULT_FAIL(2));
+          val_set_status(index, RESULT_FAIL(1));
           return;
       }
 
       if (!num_blocks) {
           val_print(ERROR, "\n       No valid ITS Blocks found in group %d  ", i);
-          val_set_status(index, RESULT_FAIL(3));
+          val_set_status(index, RESULT_FAIL(2));
           return;
       }
       val_print(DEBUG, "\n       ITS group index      = %d", i);
@@ -64,7 +63,7 @@ payload()
           status = val_iovirt_get_its_info(ITS_GET_ID_FOR_BLK_INDEX, i, j, &its_id);
           if (status) {
               val_print(ERROR, "\n       ITS get id failed        ");
-              val_set_status(index, RESULT_FAIL(4));
+              val_set_status(index, RESULT_FAIL(3));
               return;
           }
 
@@ -76,7 +75,7 @@ payload()
               if (status != ACS_INVALID_INDEX) {
                   val_print(ERROR, "\n       ITS ID (%d) repeated in multiple groups",
                             its_id);
-                  val_set_status(index, RESULT_FAIL(5));
+                  val_set_status(index, RESULT_FAIL(4));
                   return;
               }
           }

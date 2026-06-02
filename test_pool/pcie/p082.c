@@ -72,19 +72,33 @@ payload(void *arg)
   uint32_t acs_data;
   uint32_t data;
   uint32_t status;
+  uint32_t p2p_status;
   uint8_t p2p_support_flag = 0;
   pcie_device_bdf_table *bdf_tbl_ptr;
   test_data_t *test_data = (test_data_t *)arg;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Check If PCIe Hierarchy supports P2P */
-  if (val_pcie_p2p_support() == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-    val_set_status(pe_index, RESULT_WARNING(01));
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+    val_print(DEBUG, "\n       No ECAM region found. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(1));
     return;
   }
 
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+
+  /* Check If PCIe Hierarchy supports P2P */
+  p2p_status = val_pcie_p2p_support();
+  if (p2p_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+    val_set_status(pe_index, RESULT_WARNING(01));
+    return;
+  }
+
+  if (p2p_status != 0) {
+    val_print(DEBUG, "\n       P2P not supported. Skipping test");
+    val_set_status(pe_index, RESULT_SKIP(2));
+    return;
+  }
 
   test_fails = 0;
 
@@ -106,7 +120,7 @@ payload(void *arg)
           /* Check If Endpoint supports P2P with other Functions. */
           status = val_pcie_dev_p2p_support(bdf);
           if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-              val_set_status(pe_index, RESULT_WARNING(01));
+              val_set_status(pe_index, RESULT_WARNING(02));
               return;
           }
           if (status)
@@ -170,7 +184,7 @@ payload(void *arg)
   if (test_skip == 1) {
       val_print(DEBUG,
       "\n       No target device type with Multifunction and P2P support.Skipping test");
-      val_set_status(pe_index, RESULT_SKIP(01));
+      val_set_status(pe_index, RESULT_SKIP(3));
   }
   else if (test_fails + aer_cap_fail)
       val_set_status(pe_index, RESULT_FAIL(test_fails));
@@ -235,9 +249,9 @@ p016_entry(uint32_t num_pe)
 
   if (status != ACS_STATUS_SKIP) {
       if (g_aer_cap_status == ACS_STATUS_SKIP)
-          val_set_status(pe_index, RESULT_SKIP(01));
+          val_set_status(pe_index, RESULT_SKIP(4));
       else if (g_aer_cap_status == ACS_STATUS_FAIL)
-          val_set_status(pe_index, RESULT_FAIL(01));
+          val_set_status(pe_index, RESULT_FAIL(1));
       else
           val_set_status(pe_index, RESULT_PASS);
   }

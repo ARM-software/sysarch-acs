@@ -49,6 +49,7 @@ payload(uint32_t num_pe)
     val_print(ERROR,
         "\n       DLME Image Authentication feature value not available in return value");
     val_set_status(index, RESULT_FAIL(2));
+    return;
   }
 
   val_set_status(index, RESULT_PASS);

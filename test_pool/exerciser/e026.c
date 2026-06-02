@@ -222,15 +222,18 @@ disable_ro:
       }
   }
 
+  if (test_skip) {
+      val_set_status(pe_index, RESULT_SKIP(01));
+      goto test_clean;
+  }
+
 test_pass:
   val_set_status(pe_index, RESULT_PASS);
   goto test_clean;
 
-  if (test_skip)
-      val_set_status(pe_index, RESULT_SKIP(01));
-
 test_fail:
   val_set_status(pe_index, RESULT_FAIL(03));
+
 test_clean:
   val_memory_free_aligned(pgt_base_array);
   val_memory_free_aligned(pgt_base);

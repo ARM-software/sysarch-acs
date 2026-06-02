@@ -119,17 +119,30 @@ payload(void)
   uint32_t tgt_rp_bdf;
   uint32_t instance;
   uint32_t test_skip;
+  uint32_t p2p_status;
   uint64_t bar_base;
 
   test_skip = 1;
   index = val_pe_get_index_mpid(val_pe_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
+  if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
+    val_print(DEBUG, "\n       No ECAM region found. Skipping test");
+    val_set_status(index, RESULT_SKIP(1));
+    return;
+  }
+
   /* Check If PCIe Hierarchy supports P2P. */
-  if (!val_pcie_p2p_support())
+  p2p_status = val_pcie_p2p_support();
+  if (p2p_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
+    val_set_status(index, RESULT_WARNING(1));
+    return;
+  }
+
+  if (p2p_status == ACS_STATUS_PASS)
   {
     val_print(DEBUG, "\n       P2P is supported, Skipping Test");
-    val_set_status(index, RESULT_SKIP(1));
+    val_set_status(index, RESULT_SKIP(2));
     return;
   }
 
@@ -169,7 +182,7 @@ payload(void)
     }
 
     if (test_skip) {
-        val_set_status(index, RESULT_SKIP(2));
+        val_set_status(index, RESULT_SKIP(3));
         return;
     }
 
