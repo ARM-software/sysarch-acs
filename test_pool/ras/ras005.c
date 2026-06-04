@@ -30,6 +30,8 @@
 
 static uint64_t int_id;
 static uint32_t intr_pending = 1;
+static uint32_t intr_node_index;
+static uint8_t intr_is_pfg_check;
 
 static
 void
@@ -37,9 +39,10 @@ intr_handler(void)
 {
   intr_pending = 0;
 
-  /* Clear the interrupt pending state */
+  /* Clear the RAS source before the common IRQ wrapper EOIs the interrupt. */
+  val_ras_clear_error_status(intr_node_index, intr_is_pfg_check);
 
-  val_print(TRACE, "\n       Received interrupt %x       ");
+  val_print(TRACE, "\n       Received interrupt 0x%x", int_id);
   val_gic_end_of_interrupt(int_id);
   return;
 }
@@ -121,6 +124,8 @@ payload()
       err_in_params.node_index = node_index;
       err_in_params.ras_error_type = ERR_CE;
       err_in_params.is_pfg_check = 0;
+      intr_node_index = node_index;
+      intr_is_pfg_check = err_in_params.is_pfg_check;
 
       /* Install handler for interrupt */
       val_gic_install_isr(int_id, intr_handler);

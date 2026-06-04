@@ -574,6 +574,26 @@ val_ras_reg_write(uint32_t node_index, uint32_t reg, uint64_t write_data)
 }
 
 /**
+  @brief  Function to clear the RAS error status after an error interrupt.
+
+  @param  node_index     RAS Node index in the info table.
+  @param  is_pfg_check  Pseudo fault check indicator.
+
+  @return None
+**/
+void
+val_ras_clear_error_status(uint32_t node_index, uint8_t is_pfg_check)
+{
+  if (is_pfg_check)
+    val_ras_reg_write(node_index, RAS_ERR_PFGCTL, 0);
+
+  val_ras_reg_write(node_index, RAS_ERR_STATUS, ERR_STATUS_CLEAR);
+
+  /* Read back to make sure the clear write has completed before EOI. */
+  (void)val_ras_reg_read(node_index, RAS_ERR_STATUS, 0);
+}
+
+/**
   @brief  Function for setting up the Error Environment
 
   @param  in_param  - Error Input Parameters.
