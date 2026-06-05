@@ -122,6 +122,15 @@ if(DEFINED ACS_ENABLE_MMU)
     add_compile_definitions(ACS_ENABLE_MMU=${ACS_ENABLE_MMU})
 endif()
 
+if(NOT DEFINED CHIP_ID)
+    set(CHIP_ID 0 CACHE STRING "Default CHIP_ID value" FORCE)
+    message(STATUS "[ACS] : Defaulting CHIP_ID to ${CHIP_ID}")
+else()
+    set(CHIP_ID "${CHIP_ID}" CACHE STRING "CHIP_ID is set to ${CHIP_ID}" FORCE)
+    message(STATUS "[ACS] : CHIP_ID is set to ${CHIP_ID}")
+endif()
+add_compile_definitions(CHIP_ID=${CHIP_ID})
+
 # Propagate ACS_VERBOSE_LEVEL into compiler definitions for all sources
 if(DEFINED ACS_VERBOSE_LEVEL)
     message(STATUS "[ACS] : ACS_VERBOSE_LEVEL (compile defs) = ${ACS_VERBOSE_LEVEL}")
@@ -209,6 +218,9 @@ if(DEFINED ACS_ENABLE_MMU)
     message(STATUS "[ACS] : ACS_ENABLE_MMU (compile defs) = ${ACS_ENABLE_MMU}")
     list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_ENABLE_MMU=${ACS_ENABLE_MMU})
 endif()
+
+#   cmake -DCHIP_ID=0
+list(APPEND DEFAULT_OVERRIDE_ARGS -DCHIP_ID=${CHIP_ID})
 
 #   cmake -DACS_VERBOSE_LEVEL=1 ...
 if(DEFINED ACS_VERBOSE_LEVEL)
