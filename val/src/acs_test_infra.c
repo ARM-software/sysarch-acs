@@ -398,7 +398,7 @@ val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
 {
 
   uint32_t i;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_pe_get_primary_index();
 
   g_override_skip = 0;
 
@@ -636,7 +636,7 @@ void
 val_run_test_payload(uint32_t test_num, uint32_t num_pe, void (*payload)(void), uint64_t test_input)
 {
 
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_pe_get_primary_index();
   uint32_t i;
 
   payload();  //this is test run separately on present PE
@@ -692,7 +692,7 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
   uint32_t i;
   uint32_t status = 0;
   uint32_t error_flag = 0;
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_pe_get_primary_index();
   (void) test_num;
 
   /* this special case is needed when the Main PE is not the first entry
@@ -746,7 +746,7 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
   uint32_t i, checkpoint;
   uint32_t overall_status;
   uint32_t status = RESULT_FAIL(0);
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_pe_get_primary_index();
 
   if (num_pe == 1) {
       status = val_get_status(my_index);

@@ -39,7 +39,7 @@ PE_INFO_TABLE *g_pe_info_table;
 ARM_SMC_ARGS g_smc_args;
 
 /* global variable to store primary PE index */
-uint32_t g_primary_pe_index = 0;
+uint32_t g_primary_pe_index = ACS_INVALID_INDEX;
 
 /**
   @brief   This API will call PAL layer to fill in the PE information
@@ -95,7 +95,12 @@ val_print(INFO, " Primary PE: MIDR_EL1                 :    0x%llx \n",
 
   /* store primary PE index for debug message printing purposes on
      multi PE tests */
-  g_primary_pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  if (g_primary_pe_index == ACS_INVALID_INDEX) {
+      if (g_primary_mpidr == PAL_INVALID_MPID)
+          g_primary_mpidr = val_pe_get_mpid();
+
+      g_primary_pe_index = val_pe_get_index_mpid(g_primary_mpidr);
+  }
   val_print(DEBUG, " PE_INFO: Primary PE index       : %4d\n",
             g_primary_pe_index);
 
@@ -154,7 +159,7 @@ val_pe_get_mpid()
   #ifdef TARGET_LINUX
     data = 0;
   #else
-    data = val_pe_reg_read(MPIDR_EL1);
+      data = val_pe_reg_read(MPIDR_EL1);
   #endif
   /* Return the Affinity bits */
   data = data & MPIDR_AFF_MASK;
@@ -382,7 +387,7 @@ val_pe_initialize_default_exception_handler(void (*esr)(uint64_t, void *))
 void
 val_pe_default_esr(uint64_t interrupt_type, void *context)
 {
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t index = val_pe_get_primary_index();
     val_print(WARN, "\n        Unexpected exception of type %d occurred", interrupt_type);
 
 #ifndef TARGET_LINUX
@@ -490,7 +495,7 @@ val_pe_cache_invalidate_range(uint64_t start_addr, uint64_t length)
   @param   None
   @return  Primary PE index.
 **/
-uint32_t
+inline __attribute__((always_inline)) uint32_t
 val_pe_get_primary_index(void)
 {
   return g_primary_pe_index;
