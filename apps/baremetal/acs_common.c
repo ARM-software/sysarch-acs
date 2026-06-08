@@ -23,6 +23,7 @@
 
 extern uint64_t  g_el3_param_magic;
 extern uint64_t  g_el3_param_addr;
+extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
 
 /* === Build-time module list support (ACS_ENABLED_MODULE_LIST) === */
 #if ACS_HAS_ENABLED_MODULE_LIST
@@ -34,21 +35,29 @@ const uint32_t acs_build_module_count =
 bool
 acs_is_module_enabled(uint32_t module_base)
 {
+    RULE_ID_e rule;
+
+    if (g_rule_count == 0 && g_num_modules == 0)
+      return true;
+
     /* Runtime / EL3 / CLI override has highest priority */
     if (g_num_modules) {
-        return acs_list_contains(g_execute_modules, g_num_modules, module_base);
+      if (acs_list_contains(g_execute_modules, g_num_modules, module_base))
+        return true;
     }
 
-#if ACS_HAS_ENABLED_MODULE_LIST
-    /* Build-time default list */
-    return acs_list_contains(acs_build_module_array,
-                             acs_build_module_count,
-                             module_base);
-#else
-    /* No overrides: enable everything */
-    (void)module_base;
-    return true;
-#endif
+    for (uint32_t i = 0; i < g_rule_count; i++)
+    {
+      rule = g_rule_list[i];
+
+      if (rule < 0 || rule >= RULE_ID_SENTINEL)
+        continue;
+
+      if (rule_test_map[rule].module_id == module_base)
+        return true;
+    }
+
+    return false;
 }
 
 bool
