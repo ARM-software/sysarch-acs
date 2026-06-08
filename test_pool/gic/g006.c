@@ -20,7 +20,7 @@
 #include "acs_pe.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 6)
-#define TEST_RULE  "B_PPI_00"
+#define TEST_RULE  "B_PPI_01"
 #define TEST_DESC  "Check EL1-Phy timer PPI assignment    "
 
 

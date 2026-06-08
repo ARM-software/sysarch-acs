@@ -23,7 +23,7 @@
 #include "acs_gic_support.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 10)
-#define TEST_RULE  "B_PPI_00"
+#define TEST_RULE  "B_PPI_02"
 #define TEST_DESC  "Check NS EL2-Phy timer PPI Assignment "
 
 static uint32_t intid;

@@ -675,10 +675,31 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 46,
         },
         [B_PPI_00] = {
-            .test_entry_id    = B_PPI_00_ENTRY,
+            .test_entry_id    = NULL_ENTRY,
             .module_id        = GIC,
             .rule_desc        = "PPI Assignments check",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
+        [B_PPI_01] = {
+            .test_entry_id    = B_PPI_01_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "Check EL1 timer PPI assignments",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+        },
+        [B_PPI_02] = {
+            .test_entry_id    = B_PPI_02_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "Check EL2 and GIC PPI assignments",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+        },
+        [B_PPI_03] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = GIC,
+            .rule_desc        = "Check secure timer PPI assignments",
+            .platform_bitmask = 0,
             .flag             = BASE_RULE,
         },
         [S_L3PP_01] = {
@@ -3543,6 +3564,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [G012_ENTRY] = g012_entry,
     [P_L1PE_01_ENTRY]  = p_l1pe_01_entry,
     [B_PPI_00_ENTRY]   = b_ppi_00_entry,
+    [B_PPI_01_ENTRY]   = b_ppi_01_entry,
+    [B_PPI_02_ENTRY]   = b_ppi_02_entry,
     [B_WAK_03_07_ENTRY] = b_wak_03_07_entry,
     [GPU_04_ENTRY] = gpu_04_entry,
     [S_L7MP_03_ENTRY]  = s_l7mp_03_entry,
@@ -3917,6 +3940,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [G012_ENTRY] = g012_entry,
     [G014_ENTRY] = g014_entry,
     [B_PPI_00_ENTRY] = b_ppi_00_entry,
+    [B_PPI_01_ENTRY]   = b_ppi_01_entry,
+    [B_PPI_02_ENTRY]   = b_ppi_02_entry,
     [M001_ENTRY] = m001_entry,
     [M002_ENTRY] = m002_entry,
     [M003_ENTRY] = m003_entry,
@@ -4244,6 +4269,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [V2M002_ENTRY] = v2m002_entry,
     [P_L1PE_01_ENTRY]  = p_l1pe_01_entry,
     [B_PPI_00_ENTRY]   = b_ppi_00_entry,
+    [B_PPI_01_ENTRY]   = b_ppi_01_entry,
+    [B_PPI_02_ENTRY]   = b_ppi_02_entry,
     [B_WAK_03_07_ENTRY] = b_wak_03_07_entry,
     [S_L7MP_03_ENTRY]  = s_l7mp_03_entry,
     [APPENDIX_I_6_ENTRY] = appendix_i_6_entry,
@@ -4421,6 +4448,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #endif
 
 /* BSA alias lists */
+RULE_ID_e b_ppi_00_rule_list[] = {B_PPI_01, B_PPI_02, B_PPI_03, RULE_ID_SENTINEL};
+
 /* BSA L1 Requirements */
 const RULE_ID_e bsa_l1_rule_list[] = {
     /* PE */
@@ -4796,6 +4825,7 @@ const alias_rule_map_t alias_rule_map[] = {
     {IE_CFG_3,  ie_cfg_3_rule_list},
     {B_IEP_1,   b_iep_1_rule_list},
     {RI_SMU_4,  ri_smu_4_rule_list},
+    {B_PPI_00,  b_ppi_00_rule_list},
     {B_SMMU_21, b_smmu_21_rule_list},
 
     /* SBSA alias rules */

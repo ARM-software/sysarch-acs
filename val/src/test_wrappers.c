@@ -127,6 +127,29 @@ b_ppi_00_entry(uint32_t num_pe)
     return run_test_entries(tst_entry_list, num_pe);
 }
 
+/* B_PPI_01 */
+uint32_t
+b_ppi_01_entry(uint32_t num_pe)
+{
+    TEST_ENTRY_ID_e skip_list[] = {G007_ENTRY, TEST_ENTRY_SENTINEL};
+    TEST_ENTRY_ID_e default_list[] = {G006_ENTRY, G007_ENTRY, TEST_ENTRY_SENTINEL};
+
+    TEST_ENTRY_ID_e *entry_list =
+        (acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_CNTPCT) ? skip_list : default_list;
+
+    return run_test_entries(entry_list, num_pe);
+}
+
+/* B_PPI_02 */
+uint32_t
+b_ppi_02_entry(uint32_t num_pe)
+{
+    TEST_ENTRY_ID_e tst_entry_list[] = {G009_ENTRY, G010_ENTRY, G011_ENTRY,
+                                        TEST_ENTRY_SENTINEL};
+
+    return run_test_entries(tst_entry_list, num_pe);
+}
+
 /* B_WAK_03, B_WAK_07 */
 uint32_t
 b_wak_03_07_entry(uint32_t num_pe)
