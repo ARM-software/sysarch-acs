@@ -145,7 +145,7 @@ payload_poison_supported()
     err_in_params.rec_index = rec_index;
     err_in_params.node_index = node_index;
     err_in_params.ras_error_type = ERR_CE;
-    err_in_params.is_pfg_check = 0;
+    err_in_params.intr_type = RAS_INTR_TYPE_ERI;
 
     /* Get Interrupt details for this node */
     status = val_ras_get_info(RAS_INFO_ERI_ID, node_index, &int_id);
@@ -346,7 +346,7 @@ payload_poison_unsupported()
     err_in_params.rec_index = rec_index;
     err_in_params.node_index = node_index;
     err_in_params.ras_error_type = ERR_CE;
-    err_in_params.is_pfg_check = 0;
+    err_in_params.intr_type = RAS_INTR_TYPE_ERI;
 
     /* Get Interrupt details for this node */
     status = val_ras_get_info(RAS_INFO_ERI_ID, node_index, &int_id);
