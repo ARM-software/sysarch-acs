@@ -894,17 +894,22 @@ typedef enum {
     ERR_CONTAINABLE       /* Containable Error */
 } RAS_ERROR_TYPE;
 
+#define RAS_INTR_TYPE_FHI   0x0  /* Fault Handling Interrupt */
+#define RAS_INTR_TYPE_ERI   0x1  /* Error Recovery Interrupt */
+#define RAS_INTR_TYPE_NONE  0xFF /* No ERI/FHI selected */
+
 typedef struct {
    RAS_ERROR_TYPE ras_error_type;   /* Error Type */
    UINT64 error_pa;                 /* Error Phy Address */
    UINT32 rec_index;                /* Error Record Index */
    UINT32 node_index;               /* Error Node Index in Info table */
-   UINT8 is_pfg_check;              /* Pseudo Fault Check or not */
+   UINT32 intr_type;                /* Interrupt type used for common PFG setup */
 } RAS_ERR_IN_t;
 
 typedef struct {
    UINT32 intr_id;        /* Interrupt ID */
    UINT32 error_record;   /* Error Record Number */
+   UINT8 is_pfg_check;    /* Pseudo Fault Check or not */
 } RAS_ERR_OUT_t;
 
 void pal_ras_create_info_table(RAS_INFO_TABLE *ras_info_table);

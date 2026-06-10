@@ -604,8 +604,14 @@ val_ras_clear_error_status(uint32_t node_index, uint8_t is_pfg_check)
 uint32_t
 val_ras_setup_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
 {
-  uint32_t status = ACS_STATUS_FAIL;
-  uint32_t pfgctl_value = 0;
+  uint32_t status;
+  uint64_t ctlr_value;
+  uint64_t ctlr_intr_enable;
+  uint64_t pfgctl_value;
+  uint8_t is_pfg_check = 0;
+
+  if (out_param)
+    out_param->is_pfg_check = 0;
 
   /* Clear the ERR_STATUS for any previous error */
   val_ras_reg_write(in_param.node_index, RAS_ERR_STATUS, ERR_STATUS_CLEAR);
@@ -616,36 +622,62 @@ val_ras_setup_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
   /* Enable fault injection: ERR<n>CTLR.ED=1 */
   val_ras_reg_write(in_param.node_index, RAS_ERR_CTLR, ERR_CTLR_ED_ENABLE);
 
+  /* PAL can request the common PFG setup path through out_param->is_pfg_check. */
+  status = pal_ras_setup_error(in_param, out_param);
+  if (status)
+    return status;
+
+  if (out_param)
+    is_pfg_check = out_param->is_pfg_check;
+
   /* Check if Pseudo Fault needs to test */
-  if (in_param.is_pfg_check)
+  if (is_pfg_check)
   {
+    /* Enable the interrupt selected by the test without clobbering PAL CTLR bits. */
+    switch (in_param.intr_type) {
+    case RAS_INTR_TYPE_FHI:
+      ctlr_intr_enable = ERR_CTLR_FHI_ENABLE;
+      break;
+    case RAS_INTR_TYPE_ERI:
+      ctlr_intr_enable = ERR_CTLR_ERI_ENABLE;
+      break;
+    default:
+      val_print(ERROR, "\n       RAS PFG setup: invalid interrupt type %d", in_param.intr_type);
+      return ACS_STATUS_FAIL;
+    }
+
+    ctlr_value = val_ras_reg_read(in_param.node_index, RAS_ERR_CTLR, in_param.rec_index);
+    if (ctlr_value == INVALID_RAS_REG_VAL) {
+        val_print(ERROR,
+                  "\n       Couldn't read ERR<%d>CTLR register for ",
+                  in_param.rec_index);
+        val_print(ERROR,
+                  "RAS node index: 0x%lx",
+                  in_param.node_index);
+        return ACS_STATUS_FAIL;
+    }
+    val_ras_reg_write(in_param.node_index, RAS_ERR_CTLR, (ctlr_value | ctlr_intr_enable));
+
     /* Write Counter in ERR<n>PFGCDN */
     val_ras_reg_write(in_param.node_index, RAS_ERR_PFGCDN, 0x5);
 
-    /* Write to ERR<n>PFGCTL.* To Enable Error */
-    switch (in_param.ras_error_type) {
-    case ERR_UC:
-                pfgctl_value = ERR_PFGCTL_UC_ENABLE;
-                break;
-    case ERR_DE:
-                pfgctl_value = ERR_PFGCTL_DE_ENABLE;
-                break;
-    case ERR_CE:
-                pfgctl_value = ERR_PFGCTL_CE_NON_ENABLE;
-                break;
-    case ERR_CRITICAL:
-                pfgctl_value = ERR_PFGCTL_CI_ENABLE;
-                break;
-    default:
-                break;
+    /* Trigger all supported PFG error classes while preserving current PFGCTL bits. */
+    pfgctl_value = val_ras_reg_read(in_param.node_index, RAS_ERR_PFGCTL, in_param.rec_index);
+    if (pfgctl_value == INVALID_RAS_REG_VAL) {
+        val_print(ERROR,
+                  "\n       Couldn't read ERR<%d>PFGCTL register for ",
+                  in_param.rec_index);
+        val_print(ERROR,
+                  "RAS node index: 0x%lx",
+                  in_param.node_index);
+        return ACS_STATUS_FAIL;
     }
-    val_ras_reg_write(in_param.node_index, RAS_ERR_PFGCTL, pfgctl_value);
+    val_ras_reg_write(in_param.node_index, RAS_ERR_PFGCTL,
+                                (pfgctl_value | ERR_PFGCTL_TRIGGER_ALL));
 
     return ACS_STATUS_PASS;
   }
 
-  /* Platform defined way of error setup */
-  status = pal_ras_setup_error(in_param, out_param);
   return status;
 }
 
@@ -692,11 +724,14 @@ ras_pfg_access_node(uint32_t node_index)
 uint32_t
 val_ras_inject_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
 {
-  uint32_t status = ACS_STATUS_FAIL;
   uint64_t reg_value;
+  uint8_t is_pfg_check = 0;
+
+  if (out_param)
+    is_pfg_check = out_param->is_pfg_check;
 
   /* Check if Pseudo Fault needs to test */
-  if (in_param.is_pfg_check)
+  if (is_pfg_check)
   {
     /* Write to ERR<n>PFGCTL.CDNEN */
     reg_value = val_ras_reg_read(in_param.node_index, RAS_ERR_PFGCTL, in_param.rec_index);
@@ -711,6 +746,7 @@ val_ras_inject_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
         return ACS_STATUS_FAIL;
     }
 
+    /* Start PFG countdown without disturbing the setup-time PFGCTL programming. */
     val_ras_reg_write(in_param.node_index, RAS_ERR_PFGCTL, reg_value | ERR_PFGCTL_CDNEN_ENABLE);
 
     /* Wait and Access to Node */
@@ -720,9 +756,7 @@ val_ras_inject_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
   }
 
   /* Platform Defined Way of Error Injection */
-  status = pal_ras_inject_error(in_param, out_param);
-
-  return status;
+  return pal_ras_inject_error(in_param, out_param);
 }
 
 /**

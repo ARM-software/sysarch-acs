@@ -43,6 +43,8 @@
 
 #define ERR_CTLR_CLEAR_MASK     0x3FFD
 #define ERR_CTLR_ED_ENABLE      0x1
+#define ERR_CTLR_FHI_ENABLE     0x108ULL  /* Enable Fault Handling Interrupt */
+#define ERR_CTLR_ERI_ENABLE     0x4ULL    /* Enable Error Recovery Interrupt */
 
 #define ERR_ADDR_AI_SHIFT 61
 
@@ -51,6 +53,7 @@
 #define ERR_PFGCTL_CE_NON_ENABLE  (0x1ull << 6)
 #define ERR_PFGCTL_CI_ENABLE      (0x1ull << 8)
 #define ERR_PFGCTL_CDNEN_ENABLE   (0x1ull << 31)
+#define ERR_PFGCTL_TRIGGER_ALL    0xC0001FFFULL  /* Trigger all supported PFG classes */
 
 #define ERR_FR_OFFSET           0x000
 #define ERR_CTLR_OFFSET         0x008

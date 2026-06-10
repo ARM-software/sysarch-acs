@@ -163,7 +163,9 @@ pal_ras_setup_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
   /* Platform Defined way of setting up the Error Environment */
 
   (void) in_param;
-  (void) out_param;
+
+  if (out_param)
+    out_param->is_pfg_check = 0;
 
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;

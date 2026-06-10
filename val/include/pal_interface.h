@@ -1362,17 +1362,22 @@ typedef enum {
     ERR_CONTAINABLE  /* Containable Error */
 } RAS_ERROR_TYPE;
 
+#define RAS_INTR_TYPE_FHI   0x0  /* Fault Handling Interrupt */
+#define RAS_INTR_TYPE_ERI   0x1  /* Error Recovery Interrupt */
+#define RAS_INTR_TYPE_NONE  0xFF /* No ERI/FHI selected */
+
 typedef struct {
    RAS_ERROR_TYPE ras_error_type;   /* Error Type */
    uint64_t error_pa;                 /* Error Phy Address */
    uint32_t rec_index;                /* Error Record Index */
    uint32_t node_index;               /* Error Node Index in Info table */
-   uint8_t is_pfg_check;              /* Pseudo Fault Check or not */
+   uint32_t intr_type;                /* Interrupt type used for common PFG setup */
 } RAS_ERR_IN_t;
 
 typedef struct {
    uint32_t intr_id;        /* Interrupt ID */
    uint32_t error_record;   /* Error Record Number */
+   uint8_t is_pfg_check;    /* Pseudo Fault Check or not */
 } RAS_ERR_OUT_t;
 
 typedef enum {
