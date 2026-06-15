@@ -60,8 +60,8 @@ Run the command
 
 ```
 CMake Command Line Options:
- `-DARM_ARCH_MAJOR` = Arch major version. Default value is 9.
- `-DARM_ARCH_MINOR` = Arch minor version. Default value is 0.
+ `-DARM_ARCH_MAJOR` = Arch major version. Default value is 8.
+ `-DARM_ARCH_MINOR` = Arch minor version. Default value is 6.
  `-DCROSS_COMPILE`  = Cross compiler path
  `-DTARGET`         = Target platform. Should be same as folder under baremetal/target/
  `-DACS`            = To compile <bsa/sbsa/pc_bsa> ACS
