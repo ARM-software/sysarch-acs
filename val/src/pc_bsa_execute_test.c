@@ -23,7 +23,7 @@
 #include "acs_pe.h"
 #include "acs_memory.h"
 #include "acs_gic.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 #include "acs_wd.h"
 #include "acs_tpm.h"
 

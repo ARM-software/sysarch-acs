@@ -31,7 +31,7 @@
 #include "acs_ras.h"
 #include "acs_nist.h"
 #include "acs_ete.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 
 extern uint32_t pcie_bdf_table_list_flag;
 extern pcie_device_bdf_table *g_pcie_bdf_table;

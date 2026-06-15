@@ -17,7 +17,7 @@
 
 #include "acs_val.h"
 #include "val_interface.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 #include "acs_pe.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 5)

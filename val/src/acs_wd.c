@@ -16,7 +16,7 @@
  **/
 
 #include "acs_val.h"
-#include "acs_timer_support.h"
+#include "acs_timer.h"
 #include "acs_wd.h"
 #include "acs_common.h"
 

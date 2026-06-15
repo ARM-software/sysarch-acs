@@ -24,7 +24,7 @@
 #include "acs_memory.h"
 #include "acs_peripherals.h"
 #include "acs_smmu.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 #include "acs_wd.h"
 #include "acs_gic_support.h"
 #include "acs_common.h"

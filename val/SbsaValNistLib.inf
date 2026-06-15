@@ -43,8 +43,8 @@
   src/acs_mmu.c
   src/acs_smmu.c
   src/acs_test_infra.c
+  src/acs_timer_infra.c
   src/acs_timer.c
-  src/acs_timer_support.c
   src/acs_wd.c
   src/acs_wakeup.c
   src/acs_peripherals.c

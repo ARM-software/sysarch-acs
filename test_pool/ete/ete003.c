@@ -19,7 +19,7 @@
 #include "acs_pe.h"
 #include "val_interface.h"
 #include "acs_memory.h"
-#include "acs_timer_support.h"
+#include "acs_timer.h"
 #include "acs_ete.h"
 
 #define TEST_NUM   (ACS_ETE_TEST_NUM_BASE + 3)

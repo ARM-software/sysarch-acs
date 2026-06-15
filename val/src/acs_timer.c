@@ -13,110 +13,266 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- **/
-
-#include "acs_val.h"
-#include "acs_pe.h"
-#include "acs_mmu.h"
-#include "acs_timer_support.h"
-#include "acs_timer.h"
-
-TIMER_INFO_TABLE  *g_timer_info_table;
-
-/**
-  @brief   This API is the single entry point to return all Timer related information
-           1. Caller       -  Test Suite
-           2. Prerequisite -  val_timer_create_info_table
-  @param   info_type  - Type of the information to be returned
-  @param   instance   - timer instance number
-
-  @return  64-bit data pertaining to the requested input type
 **/
 
-uint64_t
-val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance)
+#include "acs_val.h"
+#include "acs_timer.h"
+#include "acs_common.h"
+#include "acs_pe.h"
+#include "acs_mmu.h"
+#include "acs_timer_infra.h"
+
+/**
+  @brief This API is used to get the effective HCR_EL2.E2H
+**/
+uint8_t get_effective_e2h(void)
 {
+  uint32_t effective_e2h;
 
-  uint32_t block_num, block_index;
-  if (g_timer_info_table == NULL)
-      return 0;
-
-  switch (info_type) {
-      case TIMER_INFO_CNTFREQ:
-          return ArmArchTimerReadReg(CntFrq);
-      case TIMER_INFO_PHY_EL1_INTID:
-          return g_timer_info_table->header.ns_el1_timer_gsiv;
-      case TIMER_INFO_VIR_EL1_INTID:
-          return g_timer_info_table->header.virtual_timer_gsiv;
-      case TIMER_INFO_PHY_EL2_INTID:
-          return g_timer_info_table->header.el2_timer_gsiv;
-      case TIMER_INFO_VIR_EL2_INTID:
-          return g_timer_info_table->header.el2_virt_timer_gsiv;
-      case TIMER_INFO_NUM_PLATFORM_TIMERS:
-          return g_timer_info_table->header.num_platform_timer;
-      case TIMER_INFO_IS_PLATFORM_TIMER_SECURE:
-          val_platform_timer_get_entry_index (instance, &block_num, &block_index);
-          if (block_num != 0xFFFF)
-              return ((g_timer_info_table->gt_info[block_num].flags[block_index] >> 16) & 1);
-          break;
-      case TIMER_INFO_SYS_CNTL_BASE:
-          val_platform_timer_get_entry_index (instance, &block_num, &block_index);
-          if (block_num != 0xFFFF)
-              return g_timer_info_table->gt_info[block_num].block_cntl_base;
-          break;
-      case TIMER_INFO_SYS_CNT_BASE_N:
-          val_platform_timer_get_entry_index (instance, &block_num, &block_index);
-          if (block_num != 0xFFFF)
-              return g_timer_info_table->gt_info[block_num].GtCntBase[block_index];
-          break;
-      case TIMER_INFO_FRAME_NUM:
-          val_platform_timer_get_entry_index (instance, &block_num, &block_index);
-          if (block_num != 0xFFFF)
-              return g_timer_info_table->gt_info[block_num].frame_num[block_index];
-          break;
-      case TIMER_INFO_SYS_INTID:
-          val_platform_timer_get_entry_index (instance, &block_num, &block_index);
-          if (block_num != 0xFFFF)
-            return g_timer_info_table->gt_info[block_num].gsiv[block_index];
-          break;
-      case TIMER_INFO_PHY_EL1_FLAGS:
-          return g_timer_info_table->header.ns_el1_timer_flag;
-      case TIMER_INFO_VIR_EL1_FLAGS:
-          return g_timer_info_table->header.virtual_timer_flag;
-      case TIMER_INFO_PHY_EL2_FLAGS:
-          return g_timer_info_table->header.el2_timer_flag;
-      case TIMER_INFO_SYS_TIMER_STATUS:
-          return g_timer_info_table->header.sys_timer_status;
-    default:
-      return 0;
+  /* if EL2 is not present, effective E2H will be 0 */
+  if (val_pe_reg_read(CurrentEL) == AARCH64_EL1) {
+    val_print(DEBUG, "\n       CurrentEL: AARCH64_EL1");
+    return 0;
   }
-  return 0x0;
+
+  uint32_t hcr_e2h = VAL_EXTRACT_BITS(read_hcr_el2(), 34, 34);
+  uint32_t feat_vhe = VAL_EXTRACT_BITS(read_id_aa64mmfr1_el1(), 8, 11);
+  uint32_t e2h0 = VAL_EXTRACT_BITS(read_s3_0_c0_c7_4(), 24, 27);
+
+  val_print(DEBUG, "\n       hcr_e2h   : 0x%x", hcr_e2h);
+  val_print(DEBUG, "\n       feat_vhe  : 0x%x", feat_vhe);
+  val_print(DEBUG, "\n       e2h0 : 0x%x", e2h0);
+
+  if (feat_vhe == 0x0) //ID_AA64MMFR1_EL1.VH
+    effective_e2h = 0;
+  else if (e2h0 != 0x0) //E2H0 = 0 means implemented
+    effective_e2h = 1;
+  else
+    effective_e2h = hcr_e2h;
+
+  val_print(DEBUG, "\n       effective e2h : 0x%x\n", effective_e2h);
+  return effective_e2h;
+}
+
+static uint8_t timer_reg_requires_el2(ARM_ARCH_TIMER_REGS Reg)
+{
+  switch (Reg) {
+  case CntvOff:
+  case CnthpCtl:
+  case CnthpTval:
+  case CnthvCtl:
+  case CnthvTval:
+  case CnthCtl:
+  case CnthpCval:
+  case CnthvCval:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
+static uint8_t timer_reg_el2_access_allowed(ARM_ARCH_TIMER_REGS Reg)
+{
+  if (!timer_reg_requires_el2(Reg))
+    return 1;
+
+  if (val_pe_reg_read(CurrentEL) == AARCH64_EL1) {
+    val_print(INFO, "The register is related to Hypervisor Mode. "
+                    "Can't perform requested operation\n");
+    return 0;
+  }
+
+  return 1;
 }
 
 /**
-  @brief   This API returns the index in timer info table.
+  @brief   This API is used to read Timer related registers
 
-  @param   instance - For which info to be returned
-  @param   *block - Information Block
-  @param   *index - Index in timer info table
+  @param   Reg  Register to be read
+
+  @return  Register value
+**/
+uint64_t
+ArmArchTimerReadReg (
+    ARM_ARCH_TIMER_REGS   Reg
+  )
+{
+    static uint8_t effective_e2h = 0xFF;
+
+    if (effective_e2h == 0xFF)
+      effective_e2h = get_effective_e2h();
+
+    if (!timer_reg_el2_access_allowed(Reg))
+      return 0xFFFFFFFF;
+
+    switch (Reg) {
+
+    case CntFrq:
+      return read_cntfrq_el0();
+
+    case CntPct:
+      return read_cntpct_el0();
+
+    case CntPctSS:
+      return read_cntpctss_el0();
+
+    case CntkCtl:
+      return effective_e2h ? read_cntkctl_el12() : read_cntkctl_el1();
+
+    case CntpTval:
+      /* Check For E2H, If EL2 Host then access to cntp_tval_el02 */
+      return effective_e2h ? read_cntp_tval_el02() : read_cntp_tval_el0();
+
+    case CntpCtl:
+      /* Check For E2H, If EL2 Host then access to cntp_ctl_el02 */
+      return effective_e2h ? read_cntp_ctl_el02() : read_cntp_ctl_el0();
+
+    case CntvTval:
+      return effective_e2h ? read_cntv_tval_el02() : read_cntv_tval_el0();
+
+    case CntvCtl:
+      return effective_e2h ? read_cntv_ctl_el02() : read_cntv_ctl_el0();
+
+    case CntvCt:
+      return read_cntvct_el0();
+
+    case CntVctSS:
+      return read_cntvctss_el0();
+
+    case CntpCval:
+      return effective_e2h ? read_cntp_cval_el02() : read_cntp_cval_el0();
+
+    case CntvCval:
+      return effective_e2h ? read_cntv_cval_el02() : read_cntv_cval_el0();
+
+    case CntvOff:
+      return read_cntvoff_el2();
+    case CnthpCtl:
+      return read_cnthp_ctl_el2();
+    case CnthpTval:
+      return read_cnthp_tval_el2();
+    case CnthvCtl:
+      return read_cnthv_ctl_el2();
+    case CnthvTval:
+      return read_cnthv_tval_el2();
+    case CnthCtl:
+      return read_cnthctl_el2();
+    case CnthpCval:
+      return read_cnthp_cval_el2();
+    case CnthvCval:
+      return read_cnthv_cval_el2();
+
+    default:
+      val_print(INFO, "Unknown ARM Generic Timer register %x.\n ", Reg);
+    }
+
+    return 0xFFFFFFFF;
+}
+
+/**
+  @brief   This API is used to write Timer related registers
+
+  @param   Reg  Register to be read
+  @param   data_buf Data to write in register
 
   @return  None
 **/
 void
-val_platform_timer_get_entry_index(uint64_t instance, uint32_t *block, uint32_t *index)
+ArmArchTimerWriteReg (
+    ARM_ARCH_TIMER_REGS   Reg,
+    uint64_t              *data_buf
+  )
 {
-  if(instance > g_timer_info_table->header.num_platform_timer){
-      *block = 0xFFFF;
-      return;
-  }
+    static uint8_t effective_e2h = 0xFF;
 
-  *block = 0;
-  *index = instance;
-  while (instance >= g_timer_info_table->gt_info[*block].timer_count) {
-      instance = instance - g_timer_info_table->gt_info[*block].timer_count;
-      *index   = instance;
-      *block   = *block + 1;
-  }
+    if (effective_e2h == 0xFF)
+      effective_e2h = get_effective_e2h();
+
+    if (!timer_reg_el2_access_allowed(Reg))
+      return;
+
+    switch (Reg) {
+
+    case CntPct:
+      val_print(INFO, "Can't write to Read Only Register: CNTPCT\n");
+      break;
+
+    case CntkCtl:
+      if (effective_e2h)
+        write_cntkctl_el12(*data_buf);
+      else
+        write_cntkctl_el1(*data_buf);
+      break;
+
+    case CntpTval:
+      if (effective_e2h)
+        write_cntp_tval_el02(*data_buf);
+      else
+        write_cntp_tval_el0(*data_buf);
+      break;
+
+    case CntpCtl:
+      if (effective_e2h)
+        write_cntp_ctl_el02(*data_buf);
+      else
+        write_cntp_ctl_el0(*data_buf);
+      break;
+
+    case CntvTval:
+      if (effective_e2h)
+        write_cntv_tval_el02(*data_buf);
+      else
+        write_cntv_tval_el0(*data_buf);
+      break;
+
+    case CntvCtl:
+      if (effective_e2h)
+        write_cntv_ctl_el02(*data_buf);
+      else
+        write_cntv_ctl_el0(*data_buf);
+      break;
+
+    case CntvCt:
+       val_print(INFO, "Can't write to Read Only Register: CNTVCT\n");
+      break;
+
+    case CntpCval:
+      write_cntp_cval_el0(*data_buf);
+      break;
+
+    case CntvCval:
+      write_cntv_cval_el0(*data_buf);
+      break;
+
+    case CntvOff:
+      write_cntvoff_el2(*data_buf);
+      break;
+
+    case CnthpTval:
+      write_cnthp_tval_el2(*data_buf);
+      break;
+    case CnthpCtl:
+      write_cnthp_ctl_el2(*data_buf);
+      break;
+    case CnthvTval:
+      write_cnthv_tval_el2(*data_buf);
+      break;
+    case CnthvCtl:
+      write_cnthv_ctl_el2(*data_buf);
+      break;
+    case CnthCtl:
+      write_cnthctl_el2(*data_buf);
+      break;
+    case CnthpCval:
+      write_cnthp_cval_el2(*data_buf);
+      break;
+    case CnthvCval:
+      write_cnthv_cval_el2(*data_buf);
+      break;
+
+    default:
+      val_print(INFO, "Unknown ARM Generic Timer register %x.\n ", Reg);
+    }
 }
 
 /**
@@ -162,20 +318,6 @@ ArmGenericTimerDisableTimer (
 }
 
 /**
-  @brief   This API to get the el2 phy timer count.
-           1. Caller       -  Test Suite
-           2. Prerequisite -  None
-  @param   None
-
-  @return  Current timer count
-**/
-uint64_t
-val_get_phy_el2_timer_count(void)
-{
-  return  ArmArchTimerReadReg(CnthpTval);
-}
-
-/**
   @brief   This API programs the el1 phy timer with the input timeout value.
            1. Caller       -  Test Suite
            2. Prerequisite -  None
@@ -186,10 +328,15 @@ val_get_phy_el2_timer_count(void)
 void
 val_timer_set_phy_el1(uint32_t timeout)
 {
-  uint64_t temp = timeout;
+  uint64_t cval;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CntpCtl);
-    ArmArchTimerWriteReg(CntpTval, &temp);
+
+    /* Program the timer */
+    cval = syscounter_read();
+    cval += (uint64_t)timeout;
+
+    ArmArchTimerWriteReg(CntpCval, &cval);
     ArmGenericTimerEnableTimer(CntpCtl);
   } else {
     ArmGenericTimerDisableTimer(CntpCtl);
@@ -207,117 +354,19 @@ val_timer_set_phy_el1(uint32_t timeout)
 void
 val_timer_set_vir_el1(uint32_t timeout)
 {
-  uint64_t temp = timeout;
+  uint64_t cval;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CntvCtl);
-    ArmArchTimerWriteReg(CntvTval, &temp);
+
+    /* Program the timer */
+    cval = syscounter_read();
+    cval += (uint64_t)timeout;
+
+    ArmArchTimerWriteReg(CntvCval, &cval);
     ArmGenericTimerEnableTimer(CntvCtl);
   } else {
     ArmGenericTimerDisableTimer(CntvCtl);
  }
-
-}
-
-/**
-  @brief   This API will call PAL layer to fill in the Timer information
-           into the g_timer_info_table pointer.
-           1. Caller       -  Application layer.
-           2. Prerequisite -  Memory allocated and passed as argument.
-  @param   timer_info_table  pre-allocated memory pointer for timer_info
-  @return  Error if Input param is NULL
-**/
-void
-val_timer_create_info_table(uint64_t *timer_info_table)
-{
-  uint64_t timer_num;
-  uint64_t gt_entry;
-  uint64_t timer_entry;
-  uint64_t freq_mhz;
-
-  if (timer_info_table == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
-      return;
-  }
-  val_print(TRACE, " Creating TIMER INFO table\n");
-
-  g_timer_info_table = (TIMER_INFO_TABLE *)timer_info_table;
-
-  pal_timer_create_info_table(g_timer_info_table);
-
-  /* UEFI or other EL1 software may have enabled the EL1 physical/virtual timer.
-     Disable the timers to prevent interrupts at un-expected times */
-
-  if (!(acs_policy_get_el1skiptrap_mask() & EL1SKIPTRAP_CNTPCT)) {
-     val_timer_set_phy_el1(0);
-     val_timer_set_vir_el1(0);
-  }
-
-  freq_mhz = val_timer_get_info(TIMER_INFO_CNTFREQ, 0);
-  if (freq_mhz != 0) {
-    freq_mhz = freq_mhz/1000;
-    if (freq_mhz > 1000) {
-      freq_mhz = freq_mhz/1000;
-      val_print(INFO, " TIMER_INFO: System Counter frequency :    %ld MHz\n", freq_mhz);
-    } else {
-      val_print(INFO, " TIMER_INFO: System Counter frequency :    %ld KHz\n", freq_mhz);
-    }
-  }
-
-  val_print(INFO, " TIMER_INFO: Number of system timers  : %4d\n",
-                                            g_timer_info_table->header.num_platform_timer);
-  timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
-
-  while (timer_num) {
-      --timer_num;
-
-      if (val_timer_get_info(TIMER_INFO_IS_PLATFORM_TIMER_SECURE, timer_num))
-          continue;    //Skip Secure Timer
-
-      gt_entry = val_timer_get_info(TIMER_INFO_SYS_CNTL_BASE, timer_num);
-      timer_entry = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
-
-      val_print(DEBUG, "   Add entry %lx entry in memmap", gt_entry);
-      if (val_mmu_update_entry(gt_entry, 0x10000, DEVICE_nGnRnE))
-          val_print(WARN, "\n   Adding %lx entry failed", gt_entry);
-
-      val_print(DEBUG, "\n   Add entry %lx entry in memmap", timer_entry);
-      if (val_mmu_update_entry(timer_entry, 0x10000, DEVICE_nGnRnE))
-          val_print(WARN, "\n   Adding %lx entry failed", timer_entry);
-  }
-}
-
-/**
-  @brief  Free the memory allocated for the Timer Info table
-
-  @param  None
-
-  @return None
-**/
-void
-val_timer_free_info_table(void)
-{
-    if (g_timer_info_table != NULL) {
-        pal_mem_free_aligned((void *)g_timer_info_table);
-        g_timer_info_table = NULL;
-    }
-    else {
-      val_print(DEBUG,
-                  "\n g_timer_info_table pointer is already NULL", 0);
-    }
-}
-
-/**
-  @brief   This API to get the el1 phy timer count.
-           1. Caller       -  Test Suite
-           2. Prerequisite -  None
-  @param   None
-
-  @return  Current timer count
-**/
-uint64_t
-val_get_phy_el1_timer_count(void)
-{
-  return  ArmArchTimerReadReg(CntpTval);
 }
 
 /**
@@ -331,10 +380,15 @@ val_get_phy_el1_timer_count(void)
 void
 val_timer_set_phy_el2(uint32_t timeout)
 {
-  uint64_t temp = timeout;
+  uint64_t cval;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CnthpCtl);
-    ArmArchTimerWriteReg(CnthpTval, &temp);
+
+    /* Program the timer */
+    cval = syscounter_read();
+    cval += (uint64_t)timeout;
+
+    ArmArchTimerWriteReg(CnthpCval, &cval);
     ArmGenericTimerEnableTimer(CnthpCtl);
   } else {
     ArmGenericTimerDisableTimer(CnthpCtl);
@@ -352,15 +406,47 @@ val_timer_set_phy_el2(uint32_t timeout)
 void
 val_timer_set_vir_el2(uint32_t timeout)
 {
-  uint64_t temp = timeout;
+  uint64_t cval;
   if (timeout != 0) {
     ArmGenericTimerDisableTimer(CnthvCtl);
-    ArmArchTimerWriteReg(CnthvTval, &temp);
+
+    /* Program the timer */
+    cval = syscounter_read();
+    cval += (uint64_t)timeout;
+
+    ArmArchTimerWriteReg(CnthvCval, &cval);
     ArmGenericTimerEnableTimer(CnthvCtl);
   } else {
     ArmGenericTimerDisableTimer(CnthvCtl);
  }
+}
 
+/**
+  @brief   This API to get the el2 phy timer count.
+           1. Caller       -  Test Suite
+           2. Prerequisite -  None
+  @param   None
+
+  @return  Current timer count
+**/
+uint64_t
+val_get_phy_el2_timer_count(void)
+{
+  return  ArmArchTimerReadReg(CnthpTval);
+}
+
+/**
+  @brief   This API to get the el1 phy timer count.
+           1. Caller       -  Test Suite
+           2. Prerequisite -  None
+  @param   None
+
+  @return  Current timer count
+**/
+uint64_t
+val_get_phy_el1_timer_count(void)
+{
+  return  ArmArchTimerReadReg(CntpTval);
 }
 
 /**

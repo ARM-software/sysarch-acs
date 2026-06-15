@@ -24,7 +24,7 @@
 #include "val_interface.h"
 #include "val_sysreg_mpam.h"
 #include "acs_std_smc.h"
-#include "acs_timer_support.h"
+#include "acs_timer.h"
 
 /**
   @brief   Pointer to the memory location of the PE Information table

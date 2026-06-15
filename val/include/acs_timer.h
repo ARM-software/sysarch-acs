@@ -1,6 +1,5 @@
-
 /** @file
- * Copyright (c) 2016-2018, 2021, 2024-2026, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,35 +18,61 @@
 #ifndef __ACS_TIMER_H__
 #define __ACS_TIMER_H__
 
+#include "val_sysreg_timer.h"
+#include "acs_timer_infra.h"
+
 #define ARM_ARCH_TIMER_ENABLE           (1 << 0)
 #define ARM_ARCH_TIMER_IMASK            (1 << 1)
 #define ARM_ARCH_TIMER_ISTATUS          (1 << 2)
 
-/* CNTCTLBase register offset */
-#define CNTTIDR          0x8
-#define CNTACR           0x40
+typedef enum {
+  CntFrq = 0,
+  CntPct,
+  CntPctSS,
+  CntkCtl,
+  CntpTval,
+  CntpCtl,
+  CntvTval,
+  CntvCtl,
+  CntvCt,
+  CntVctSS,
+  CntpCval,
+  CntvCval,
+  CntvOff,
+  CnthCtl,
+  CnthpTval,
+  CnthpCtl,
+  CnthpCval,
+  CnthvTval,
+  CnthvCtl,
+  CnthvCval,
+  RegMaximum
+} ARM_ARCH_TIMER_REGS;
 
-/* CNTBaseN register offset*/
-#define CNTPCT_LOWER     0x00
-#define CNTPCT_HIGHER    0x04
-#define CNTVCT_LOWER     0x08
-#define CNTVCT_HIGHER    0x0C
-#define CNTBaseN_CNTFRQ  0x10
-#define CNTP_CVAL_LOWER  0x20
-#define CNTP_CVAL_HIGHER 0x24
-#define CNTP_TVAL        0x28
-#define CNTP_CTL         0x2C
-#define COUNTER_ID       0xFD0
 
-#define MICRO_SECONDS    1000000
-#define MAX_WAKEUP_TIMEOUT 5
+uint64_t
+ArmArchTimerReadReg (
+  ARM_ARCH_TIMER_REGS   Reg
+  );
 
-uint32_t t001_entry(uint32_t num_pe);
-uint32_t t002_entry(uint32_t num_pe);
-uint32_t t003_entry(uint32_t num_pe);
-uint32_t t004_entry(uint32_t num_pe);
-uint32_t t005_entry(uint32_t num_pe);
-uint32_t t006_entry(uint32_t num_pe);
-uint32_t t008_entry(uint32_t num_pe);
-uint32_t t009_entry(uint32_t num_pe);
+
+void
+ArmArchTimerWriteReg (
+    ARM_ARCH_TIMER_REGS   Reg,
+    uint64_t              *data_buf
+  );
+
+void
+ArmWriteCntFrq (
+  uint64_t   FreqInHz
+  );
+
+void ArmGenericTimerEnableTimer (ARM_ARCH_TIMER_REGS reg);
+void ArmGenericTimerDisableTimer (ARM_ARCH_TIMER_REGS reg);
+
+void val_timer_set_phy_el1(uint32_t timeout);
+void val_timer_set_vir_el1(uint32_t timeout);
+void val_timer_set_phy_el2(uint32_t timeout);
+void val_timer_set_vir_el2(uint32_t timeout);
+
 #endif // __ACS_TIMER_H__

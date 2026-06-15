@@ -17,7 +17,7 @@
 
 #include "acs_val.h"
 #include "acs_timer.h"
-#include "acs_timer_support.h"
+#include "acs_timer_infra.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 6)
 #define TEST_RULE  "S_L5TI_01"
