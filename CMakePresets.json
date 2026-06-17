@@ -45,6 +45,16 @@
             }
         },
         {
+            "name": "mpam",
+            "displayName": "Configure: aarch64-none-elf (mpam)",
+            "binaryDir": "${sourceDir}/build/${presetName}_build",
+            "inherits": ["baremetal"],
+            "cacheVariables": {
+                "ACS": "mpam",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            }
+        },
+        {
             "name": "acs_all",
             "displayName": "Configure: aarch64-none-elf (for make acs_all)",
             "binaryDir": "${sourceDir}/build",
@@ -68,6 +78,11 @@
         {
             "name": "pc_bsa",
             "configurePreset": "pc_bsa",
+            "jobs": 8
+        },
+        {
+            "name": "mpam",
+            "configurePreset": "mpam",
             "jobs": 8
         },
         {

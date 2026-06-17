@@ -29,12 +29,9 @@
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_error_tests(uint32_t num_pe)
+val_mpam_execute_error_tests(void)
 {
   uint32_t status, i;
-
-  /* Making num_pe as 1 */
-  num_pe = 1;
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_MPAM_ERROR_TEST_NUM_BASE) {
@@ -104,12 +101,9 @@ val_mpam_execute_error_tests(uint32_t num_pe)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_membw_tests(uint32_t num_pe)
+val_mpam_execute_membw_tests(void)
 {
   uint32_t status, i;
-
-  /* Making num_pe as 1 */
-  num_pe = 1;
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_MPAM_MEMORY_TEST_NUM_BASE) {
@@ -154,12 +148,10 @@ val_mpam_execute_membw_tests(uint32_t num_pe)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_register_tests(uint32_t num_pe)
+val_mpam_execute_register_tests(void)
 {
   uint32_t status, i;
 
-  /* Making num_pe as 1 */
-  num_pe = 1;
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_MPAM_REGISTER_TEST_NUM_BASE) {
         val_print(TRACE, "\n       USER Override - Skipping all Register tests\n");
@@ -200,12 +192,10 @@ val_mpam_execute_register_tests(uint32_t num_pe)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_cache_tests(uint32_t num_pe)
+val_mpam_execute_cache_tests(void)
 {
   uint32_t status, i;
 
-  /* Making num_pe as 1 */
-  num_pe = 1;
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_MPAM_CACHE_TEST_NUM_BASE) {
         val_print(TRACE, "\n       USER Override - Skipping all CACHE tests\n");

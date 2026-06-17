@@ -35,6 +35,7 @@ const uint32_t acs_build_module_count =
     sizeof(acs_build_module_array) / sizeof(acs_build_module_array[0]);
 #endif
 
+#ifdef COMPILE_RB_EXE
 static bool
 acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
 {
@@ -111,6 +112,36 @@ acs_is_module_enabled(uint32_t module_base)
 
     return false;
 }
+#else
+bool
+acs_is_module_enabled(uint32_t module_base)
+{
+    uint32_t i;
+
+    /* Explicit module include list */
+    if (g_num_modules) {
+        for (i = 0; i < g_num_modules; i++) {
+            if (g_execute_modules[i] == module_base)
+                return true;
+        }
+    }
+
+    /* Explicit test list */
+    if (g_num_tests) {
+        for (i = 0; i < g_num_tests; i++) {
+            if ((g_execute_tests[i] >= module_base) &&
+                (g_execute_tests[i] < module_base + 100))
+                return true;
+        }
+    }
+
+    /* No filters: enable all */
+    if (g_num_modules == 0 && g_num_tests == 0)
+        return true;
+
+    return false;
+}
+#endif
 
 void
 acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
@@ -216,6 +247,7 @@ acs_load_run_request_defaults(acs_run_request_t *ctx)
   }
 }
 
+#ifdef COMPILE_RB_EXE
 void
 acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 {
@@ -317,6 +349,52 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
                 "Override skipped for timeout  %d\n", params->timeout);
   }
 }
+#else
+void
+acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
+{
+  acs_el3_params *params;
+
+  if (ctx == NULL || policy == NULL)
+    return;
+
+  /* If magic doesn't match, ignore X20 completely */
+  if (g_el3_param_magic != ACS_EL3_PARAM_MAGIC)
+    return;
+
+  if (!g_el3_param_addr) {
+    val_print(WARN,
+              "EL3 param magic set but param address is 0, ignoring\n");
+    return;
+  }
+
+  params = (acs_el3_params *)(uintptr_t)g_el3_param_addr;
+
+  if ((params->version < 0x1) || (params->version > ACS_EL3_PARAM_VERSION)) {
+    val_print(WARN,
+              "Unsupported EL3 param version %ld, ignoring\n", params->version);
+    return;
+  }
+
+  if (params->test_array_addr && params->test_array_count) {
+    g_execute_tests = (uint32_t *)(uintptr_t)params->test_array_addr;
+    g_num_tests = (uint32_t)params->test_array_count;
+  }
+
+  if (params->module_array_addr && params->module_array_count) {
+    g_execute_modules = (uint32_t *)(uintptr_t)params->module_array_addr;
+    g_num_modules = (uint32_t)params->module_array_count;
+  }
+
+  if (params->skip_test_array_addr && params->skip_test_array_count) {
+    g_skip_test_num = (uint32_t *)(uintptr_t)params->skip_test_array_addr;
+    g_num_skip = (uint32_t)params->skip_test_array_count;
+  }
+
+  if (params->verbose >= TRACE && params->verbose <= FATAL)
+    policy->print_level = params->verbose;
+}
+#endif
 
 void
 acs_apply_compile_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)

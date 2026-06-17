@@ -764,10 +764,10 @@ typedef enum {
 } MPAM_MODULE_ID_e;
 
 // Module entry functions.
-uint32_t val_mpam_execute_register_tests(uint32_t num_pe);
-uint32_t val_mpam_execute_error_tests(uint32_t num_pe);
-uint32_t val_mpam_execute_cache_tests(uint32_t num_pe);
-uint32_t val_mpam_execute_membw_tests(uint32_t num_pe);
+uint32_t val_mpam_execute_register_tests(void);
+uint32_t val_mpam_execute_error_tests(void);
+uint32_t val_mpam_execute_cache_tests(void);
+uint32_t val_mpam_execute_membw_tests(void);
 
 // VAL API prototypes
 uint32_t val_mpam_msc_reset_errcode(uint32_t msc_index);

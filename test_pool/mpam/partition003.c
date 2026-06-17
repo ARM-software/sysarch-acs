@@ -39,8 +39,8 @@ typedef struct {
 } payload_config_t;
 
 static payload_config_t test_config_data[] = {
-    {"Check for 75% CCAP & 75% CPOR partition size", 75, 75, 75, TRUE},
-    {"Check for 75% CCAP & 25% CPOR partition size", 75, 25, 75, TRUE}
+    {"Check for 75% CCAP & 75% CPOR partition size", 75, 75, 75, true},
+    {"Check for 75% CCAP & 25% CPOR partition size", 75, 25, 75, true}
 };
 
 static void payload(void)

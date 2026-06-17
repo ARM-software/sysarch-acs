@@ -18,7 +18,7 @@ Description of each directory are as follows:
 
 ### Pre-requisite
 
-> Note: <acs>.bin stands for either bsa.bin or sbsa.bin or pc_bsa.bin. Any platform specific changes can be done by using `TARGET_BAREMETAL` macro definition. The baremetal reference code is located in [baremetal](.).
+> Note: <acs>.bin stands for either bsa.bin or sbsa.bin or pc_bsa.bin or mpam.bin. Any platform specific changes can be done by using `TARGET_BAREMETAL` macro definition. The baremetal reference code is located in [baremetal](.).
 
 Run the command
 - `cd sysarch-acs`
@@ -45,6 +45,12 @@ Run the command
 &emsp; 3.3 `cmake --preset pc_bsa -DTARGET="Target platform"`\
 &emsp; 3.4 `cmake --build --preset pc_bsa`
 
+4. To compile MPAM, perform the following steps\
+&emsp; 4.1 `cd sysarch-acs`\
+&emsp; 4.2 `export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf-`\
+&emsp; 4.3 `cmake --preset mpam -DTARGET="Target platform"`\
+&emsp; 4.4 `cmake --build --preset mpam`
+
 </br>
 
 > **Note:**
@@ -61,7 +67,7 @@ CMake Command Line Options:
  `-DARM_ARCH_MINOR` = Arch minor version. Default value is 6.
  `-DCROSS_COMPILE`  = Cross compiler path
  `-DTARGET`         = Target platform. Should be same as folder under baremetal/target/
- `-DACS`            = To compile <bsa/sbsa/pc_bsa> ACS
+ `-DACS`            = To compile <bsa/sbsa/pc_bsa/mpam> ACS
 ```
 
 </br>

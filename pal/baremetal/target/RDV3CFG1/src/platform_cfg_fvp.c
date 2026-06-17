@@ -20,6 +20,31 @@
 #include "platform_override_struct.h"
 #include "rule_based_execution_enum.h"
 
+/*
+ * MPAM-only, non-rulebase selection arrays.
+ *
+ * To run specific modules:
+ *   - Put module base numbers in g_module_array (see val/include/bsa_acs_common.h).
+ *   - Example: {300} runs only MPAM memory tests (ACS_MPAM_MEMORY_TEST_NUM_BASE).
+ *
+ * To run specific tests:
+ *   - Put test numbers in g_test_array (see test_pool/<module>/test.c).
+ *   - Example: {101} runs only the first MPAM cache test (ACS_MPAM_CACHE_TEST_NUM_BASE + 1).
+ *
+ * To skip tests/modules:
+ *   - Put test numbers or module bases in g_skip_array.
+ *   - Tests run = g_test_array + g_module_array - entries in g_skip_array.
+ */
+#ifndef COMPILE_RB_EXE
+uint32_t  g_skip_array[]   = {};
+uint32_t  g_test_array[]   = {};
+uint32_t  g_module_array[] = {};
+
+const uint32_t g_skip_array_len   = sizeof(g_skip_array) / sizeof(g_skip_array[0]);
+const uint32_t g_test_array_len   = sizeof(g_test_array) / sizeof(g_test_array[0]);
+const uint32_t g_module_array_len = sizeof(g_module_array) / sizeof(g_module_array[0]);
+#endif
+
 /* Following global variables can be edited by user before compilation to pass hints to framework
    as well as run compliance against subset of rules.
 
@@ -1177,6 +1202,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[0].identifier    = PLATFORM_MPAM_MSC0_ID,
     .msc_node[0].msc_base_addr = PLATFORM_MPAM_MSC0_BASE_ADDR,
     .msc_node[0].msc_addr_len  = PLATFORM_MPAM_MSC0_ADDR_LEN,
+    .msc_node[0].of_intr       = PLATFORM_MPAM_MSC0_OF_INTR,
+    .msc_node[0].of_intr_flags = PLATFORM_MPAM_MSC0_OF_INTR_FLAGS,
+    .msc_node[0].err_intr      = PLATFORM_MPAM_MSC0_ERR_INTR,
+    .msc_node[0].err_intr_flags = PLATFORM_MPAM_MSC0_ERR_INTR_FLAGS,
     .msc_node[0].max_nrdy      = PLATFORM_MPAM_MSC0_MAX_NRDY,
     .msc_node[0].rsrc_count    = PLATFORM_MPAM_MSC0_RSRC_COUNT,
     .msc_node[0].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC0_RSRC0_RIS_INDEX,
@@ -1189,6 +1218,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[1].identifier    = PLATFORM_MPAM_MSC1_ID,
     .msc_node[1].msc_base_addr = PLATFORM_MPAM_MSC1_BASE_ADDR,
     .msc_node[1].msc_addr_len  = PLATFORM_MPAM_MSC1_ADDR_LEN,
+    .msc_node[1].of_intr       = PLATFORM_MPAM_MSC1_OF_INTR,
+    .msc_node[1].of_intr_flags = PLATFORM_MPAM_MSC1_OF_INTR_FLAGS,
+    .msc_node[1].err_intr      = PLATFORM_MPAM_MSC1_ERR_INTR,
+    .msc_node[1].err_intr_flags = PLATFORM_MPAM_MSC1_ERR_INTR_FLAGS,
     .msc_node[1].max_nrdy      = PLATFORM_MPAM_MSC1_MAX_NRDY,
     .msc_node[1].rsrc_count    = PLATFORM_MPAM_MSC1_RSRC_COUNT,
     .msc_node[1].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC1_RSRC0_RIS_INDEX,
@@ -1201,6 +1234,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[2].identifier    = PLATFORM_MPAM_MSC2_ID,
     .msc_node[2].msc_base_addr = PLATFORM_MPAM_MSC2_BASE_ADDR,
     .msc_node[2].msc_addr_len  = PLATFORM_MPAM_MSC2_ADDR_LEN,
+    .msc_node[2].of_intr       = PLATFORM_MPAM_MSC2_OF_INTR,
+    .msc_node[2].of_intr_flags = PLATFORM_MPAM_MSC2_OF_INTR_FLAGS,
+    .msc_node[2].err_intr      = PLATFORM_MPAM_MSC2_ERR_INTR,
+    .msc_node[2].err_intr_flags = PLATFORM_MPAM_MSC2_ERR_INTR_FLAGS,
     .msc_node[2].max_nrdy      = PLATFORM_MPAM_MSC2_MAX_NRDY,
     .msc_node[2].rsrc_count    = PLATFORM_MPAM_MSC2_RSRC_COUNT,
     .msc_node[2].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC2_RSRC0_RIS_INDEX,
@@ -1213,6 +1250,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[3].identifier    = PLATFORM_MPAM_MSC3_ID,
     .msc_node[3].msc_base_addr = PLATFORM_MPAM_MSC3_BASE_ADDR,
     .msc_node[3].msc_addr_len  = PLATFORM_MPAM_MSC3_ADDR_LEN,
+    .msc_node[3].of_intr       = PLATFORM_MPAM_MSC3_OF_INTR,
+    .msc_node[3].of_intr_flags = PLATFORM_MPAM_MSC3_OF_INTR_FLAGS,
+    .msc_node[3].err_intr      = PLATFORM_MPAM_MSC3_ERR_INTR,
+    .msc_node[3].err_intr_flags = PLATFORM_MPAM_MSC3_ERR_INTR_FLAGS,
     .msc_node[3].max_nrdy      = PLATFORM_MPAM_MSC3_MAX_NRDY,
     .msc_node[3].rsrc_count    = PLATFORM_MPAM_MSC3_RSRC_COUNT,
     .msc_node[3].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC3_RSRC0_RIS_INDEX,
@@ -1225,6 +1266,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[4].identifier    = PLATFORM_MPAM_MSC4_ID,
     .msc_node[4].msc_base_addr = PLATFORM_MPAM_MSC4_BASE_ADDR,
     .msc_node[4].msc_addr_len  = PLATFORM_MPAM_MSC4_ADDR_LEN,
+    .msc_node[4].of_intr       = PLATFORM_MPAM_MSC4_OF_INTR,
+    .msc_node[4].of_intr_flags = PLATFORM_MPAM_MSC4_OF_INTR_FLAGS,
+    .msc_node[4].err_intr      = PLATFORM_MPAM_MSC4_ERR_INTR,
+    .msc_node[4].err_intr_flags = PLATFORM_MPAM_MSC4_ERR_INTR_FLAGS,
     .msc_node[4].max_nrdy      = PLATFORM_MPAM_MSC4_MAX_NRDY,
     .msc_node[4].rsrc_count    = PLATFORM_MPAM_MSC4_RSRC_COUNT,
     .msc_node[4].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC4_RSRC0_RIS_INDEX,
@@ -1237,6 +1282,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[5].identifier    = PLATFORM_MPAM_MSC5_ID,
     .msc_node[5].msc_base_addr = PLATFORM_MPAM_MSC5_BASE_ADDR,
     .msc_node[5].msc_addr_len  = PLATFORM_MPAM_MSC5_ADDR_LEN,
+    .msc_node[5].of_intr       = PLATFORM_MPAM_MSC5_OF_INTR,
+    .msc_node[5].of_intr_flags = PLATFORM_MPAM_MSC5_OF_INTR_FLAGS,
+    .msc_node[5].err_intr      = PLATFORM_MPAM_MSC5_ERR_INTR,
+    .msc_node[5].err_intr_flags = PLATFORM_MPAM_MSC5_ERR_INTR_FLAGS,
     .msc_node[5].max_nrdy      = PLATFORM_MPAM_MSC5_MAX_NRDY,
     .msc_node[5].rsrc_count    = PLATFORM_MPAM_MSC5_RSRC_COUNT,
     .msc_node[5].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC5_RSRC0_RIS_INDEX,
@@ -1249,6 +1298,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[6].identifier    = PLATFORM_MPAM_MSC6_ID,
     .msc_node[6].msc_base_addr = PLATFORM_MPAM_MSC6_BASE_ADDR,
     .msc_node[6].msc_addr_len  = PLATFORM_MPAM_MSC6_ADDR_LEN,
+    .msc_node[6].of_intr       = PLATFORM_MPAM_MSC6_OF_INTR,
+    .msc_node[6].of_intr_flags = PLATFORM_MPAM_MSC6_OF_INTR_FLAGS,
+    .msc_node[6].err_intr      = PLATFORM_MPAM_MSC6_ERR_INTR,
+    .msc_node[6].err_intr_flags = PLATFORM_MPAM_MSC6_ERR_INTR_FLAGS,
     .msc_node[6].max_nrdy      = PLATFORM_MPAM_MSC6_MAX_NRDY,
     .msc_node[6].rsrc_count    = PLATFORM_MPAM_MSC6_RSRC_COUNT,
     .msc_node[6].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC6_RSRC0_RIS_INDEX,
@@ -1261,6 +1314,10 @@ const PLATFORM_OVERRIDE_MPAM_INFO_TABLE platform_mpam_cfg = {
     .msc_node[7].identifier    = PLATFORM_MPAM_MSC7_ID,
     .msc_node[7].msc_base_addr = PLATFORM_MPAM_MSC7_BASE_ADDR,
     .msc_node[7].msc_addr_len  = PLATFORM_MPAM_MSC7_ADDR_LEN,
+    .msc_node[7].of_intr       = PLATFORM_MPAM_MSC7_OF_INTR,
+    .msc_node[7].of_intr_flags = PLATFORM_MPAM_MSC7_OF_INTR_FLAGS,
+    .msc_node[7].err_intr      = PLATFORM_MPAM_MSC7_ERR_INTR,
+    .msc_node[7].err_intr_flags = PLATFORM_MPAM_MSC7_ERR_INTR_FLAGS,
     .msc_node[7].max_nrdy      = PLATFORM_MPAM_MSC7_MAX_NRDY,
     .msc_node[7].rsrc_count    = PLATFORM_MPAM_MSC7_RSRC_COUNT,
     .msc_node[7].rsrc_node[0].ris_index     = PLATFORM_MPAM_MSC7_RSRC0_RIS_INDEX,

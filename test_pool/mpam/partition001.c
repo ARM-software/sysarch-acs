@@ -38,8 +38,8 @@ typedef struct {
 } cpor_config_t;
 
 static cpor_config_t cpor_config_data[] = {
-    {"CPOR check for 75% partition size", 75, 75, TRUE},
-    {"CPOR check for 25% partition size", 25, 75, TRUE}
+    {"CPOR check for 75% partition size", 75, 75, true},
+    {"CPOR check for 25% partition size", 25, 75, true}
 };
 
 static void payload(void)

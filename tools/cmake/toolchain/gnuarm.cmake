@@ -55,6 +55,8 @@ elseif(ACS MATCHES "sbsa")
     add_definitions(-DSBSA)
 elseif(ACS MATCHES "bsa")
     add_definitions(-DBSA)
+elseif(ACS MATCHES "mpam")
+    add_definitions(-DMPAM_ACS)
 endif()
 
 set(CMAKE_C_FLAGS          "${TARGET_SWITCH}  ${COMPILE_PIE_SWITCH} ${C_COMPILE_DEBUG_OPTIONS} -ffunction-sections -fdata-sections -mstrict-align -O0 -ffreestanding -Wall -Werror -std=gnu99 -Wextra -Wstrict-overflow -DCMAKE_GNUARM_COMPILE -Wno-packed-bitfield-compat -Wno-missing-field-initializers -mcmodel=small")  #   -Wcast-align -Wmissing-prototypes -Wmissing-declarations

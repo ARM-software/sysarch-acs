@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
  */
 #define PLATFORM_NORMAL_WORLD_IMAGE_SIZE  0x4000000
 #define PLATFORM_HOST_IMAGE_SIZE          (PLATFORM_NORMAL_WORLD_IMAGE_SIZE / 2)
-#define PLATFORM_MEMORY_POOL_SIZE         (250 * 0x100000)
+#define PLATFORM_MEMORY_POOL_SIZE         (300 * 0x100000)
 #define PLATFORM_SHARED_REGION_SIZE       0x100000
 #define PLATFORM_HEAP_REGION_SIZE         (PLATFORM_MEMORY_POOL_SIZE \
                                              - PLATFORM_SHARED_REGION_SIZE)

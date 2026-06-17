@@ -60,7 +60,6 @@ payload(void)
 
     void     *src_buf;
     void     *dest_buf;
-    uint32_t start_count  = 0;
     uint32_t end_count    = 0;
     uint32_t test_fail    = 0;
     uint16_t partid_x     = 1;
@@ -127,7 +126,6 @@ payload(void)
 
             num_mon     = 0;
             cpart_flag  = 0;
-            start_count = 0;
             end_count   = 0;
 
             /* Check if MSC implements CSU monitors */
