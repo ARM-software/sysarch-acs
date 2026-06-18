@@ -41,6 +41,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-only", TypeValue},
     {L"-r", TypeValue},
     {L"-skip", TypeValue},
+    {L"-skip-dp-nic-ms", TypeFlag},
     {L"-skipmodule", TypeValue},
     {L"-timeout", TypeValue},
     {L"-v", TypeValue},
@@ -75,6 +76,8 @@ HelpMsg (VOID)
         "        Only run tests for rules at level <n> \n"
         "-skip   Rule ID(s) to be skipped (comma-separated, like -r)\n"
         "        Example: -skip B_PE_01,B_GIC_02\n"
+        "-skip-dp-nic-ms \n"
+        "        Skip PCIe tests for DisplayPort, Network, Mass Storage devices and Unclassified devices\n"
         "-skipmodule \n"
         "        Skip the specified modules (comma-separated names).\n"
         "        Example: -skipmodule PE,GIC,PCIE\n"
