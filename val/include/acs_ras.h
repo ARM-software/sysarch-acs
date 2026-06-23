@@ -52,7 +52,7 @@
 #define ERR_PFGCTL_CE_NON_ENABLE  (0x1ull << 6)
 #define ERR_PFGCTL_CI_ENABLE      (0x1ull << 8)
 #define ERR_PFGCTL_CDNEN_ENABLE   (0x1ull << 31)
-#define ERR_PFGCTL_TRIGGER_ALL    0xC0001FFFULL  /* Trigger all supported PFG classes */
+#define ERR_PFGCTL_TRIGGER_ALL    0x40001FFFULL  /* Trigger all supported PFG classes */
 
 #define ERR_FR_OFFSET           0x000
 #define ERR_CTLR_OFFSET         0x008

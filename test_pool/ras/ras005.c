@@ -28,10 +28,10 @@
 
 #define IS_NOT_SPI_PPI(int_id) ((int_id < 16) || (int_id > 1019))
 
-static uint64_t int_id;
-static uint32_t intr_pending = 1;
-static uint32_t intr_node_index;
-static uint8_t intr_is_pfg_check;
+static volatile uint64_t int_id;
+static volatile uint32_t intr_pending = 1;
+static volatile uint32_t intr_node_index;
+static volatile uint8_t intr_is_pfg_check;
 
 static
 void
