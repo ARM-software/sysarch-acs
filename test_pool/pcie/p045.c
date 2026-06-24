@@ -247,6 +247,7 @@ next_bdf:
           *(uint32_t *)(baseptr) = old_data;
 
 exception_return_device:
+          val_memory_unmap(baseptr);
           if (IS_TEST_FAIL(val_get_status(index))) {
               val_print(ERROR, "\n       Device memory access failed for Bdf: 0x%x", bdf);
               /* Setting the status to Pass to enable test for next BDF.
