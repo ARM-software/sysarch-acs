@@ -160,11 +160,11 @@ payload(uint32_t num_pe)
   /* This will return invalid parameter */
   if (status != DRTM_ACS_MEM_PROTECT_INVALID) {
     val_print(ERROR, "\n       Incorrect Status. Expected = -6 Found = %d", status);
+    val_set_status(index, RESULT_FAIL(7));
     if (status == DRTM_ACS_SUCCESS) {
       status = val_drtm_unprotect_memory();
       if (status < DRTM_ACS_SUCCESS) {
         val_print(ERROR, "\n       DRTM Unprotect Memory failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(7));
         val_set_status(index, RESULT_FAIL(8));
       }
     }

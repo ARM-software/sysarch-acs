@@ -21,6 +21,12 @@
 
 .equ DRTM_FN_DYNAMIC_LAUNCH, 0xC4000114
 
+GCC_ASM_EXPORT (DrtmReadDaif)
+
+ASM_PFX(DrtmReadDaif):
+  mrs   x0, daif           // read DAIF
+  ret
+
 /*
  * void __asm_dcache_level(level)
  *

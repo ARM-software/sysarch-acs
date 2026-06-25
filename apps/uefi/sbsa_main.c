@@ -168,10 +168,10 @@ execute_tests()
         goto exit_acs;
     }
 
-    val_print(ERROR, "\n\n SBSA Architecture Compliance Suite\n");
-    val_print(ERROR, "    Version %d.", SBSA_ACS_MAJOR_VER);
-    val_print(ERROR, "%d.", SBSA_ACS_MINOR_VER);
-    val_print(ERROR, "%d\n", SBSA_ACS_SUBMINOR_VER);
+    val_print(INFO, "\n\n SBSA Architecture Compliance Suite\n");
+    val_print(INFO, "    Version %d.", SBSA_ACS_MAJOR_VER);
+    val_print(INFO, "%d.", SBSA_ACS_MINOR_VER);
+    val_print(INFO, "%d\n", SBSA_ACS_SUBMINOR_VER);
 
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
               SBSA_LEVEL_FR), ctx->level_value);

@@ -102,7 +102,7 @@ interface010_entry(uint32_t num_pe)
 
   if (status != ACS_STATUS_SKIP) {
       if (val_gic_its_configure() != ACS_STATUS_PASS)
-          return TEST_SKIP;
+          return RESULT_SKIP(0);
       /* execute payload, which will execute relevant functions on current and other PEs */
       payload(num_pe);
   }

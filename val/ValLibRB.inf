@@ -45,8 +45,8 @@
   src/acs_mmu.c
   src/acs_smmu.c
   src/acs_test_infra.c
+  src/acs_timer_infra.c
   src/acs_timer.c
-  src/acs_timer_support.c
   src/acs_wd.c
   src/acs_wakeup.c
   src/acs_peripherals.c
@@ -93,4 +93,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=armv8.6-a+sve+profile
-  GCC:*_*_*_CC_FLAGS   =  -march=armv8.6-a+sve+profile+lse $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI -DCOMPILE_RB_EXE
+  GCC:*_*_*_CC_FLAGS   =  -march=armv8.6-a+sve+sve2+sme+profile+lse $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI -DCOMPILE_RB_EXE

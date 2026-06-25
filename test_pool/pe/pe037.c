@@ -50,7 +50,7 @@ void payload(void)
     if (data == 0)
         /* SPE Not Implemented Skip the test */
         val_set_status(index, RESULT_SKIP(03));
-    if (data == 1)
+    else if (data == 1)
         /* SPE Implemented but SPEv1p1 not implemented. Fail the test*/
         val_set_status(index, RESULT_FAIL(01));
     else

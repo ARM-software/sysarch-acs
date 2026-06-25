@@ -607,7 +607,7 @@
 #define BASE_ADDRESS_REGISTER_BIT_OFFSET 0x0
 #define BASE_ADDRESS_ADDRESS_SIZE        0x3
 #define BASE_ADDRESS_ADDRESS             0x2A400000
-#define INTERFACE_TYPE                   8
+#define INTERFACE_TYPE                   0x3
 #define UART_IRQ                         0
 #define UART_BAUD_RATE                   0x7
 #define UART_BAUD_RATE_BPS               115200

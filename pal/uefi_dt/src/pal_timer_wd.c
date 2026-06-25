@@ -17,6 +17,7 @@
 
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
 
@@ -47,6 +48,27 @@ static char wd_dt_arr[][WD_COMPATIBLE_STR_LEN] = {
 
 UINT64
 pal_get_gtdt_ptr();
+
+UINT64
+pal_get_platform_time_us (
+  VOID
+  )
+{
+  EFI_STATUS Status;
+  EFI_TIME Time;
+  UINT64 TimeUs;
+
+  Status = gRT->GetTime(&Time, NULL);
+  if (EFI_ERROR(Status)) {
+    pal_print_msg(ACS_PRINT_WARN, " GetTime failed: %x\n", Status);
+    return ~0ULL;
+  }
+
+  TimeUs = (((UINT64)Time.Hour * 60 + Time.Minute) * 60 + Time.Second) * 1000000ULL;
+  TimeUs += (UINT64)Time.Nanosecond / 1000ULL;
+
+  return TimeUs;
+}
 
 /**
   @brief This API overrides the timer specified by TimerTable

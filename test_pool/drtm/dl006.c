@@ -20,7 +20,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_DRTM_DL_TEST_NUM_BASE  +  6)
-#define TEST_RULE  ""
+#define TEST_RULE  "R45300, R48000"
 #define TEST_DESC  "Check DRTM event log                  "
 
 static
@@ -163,6 +163,10 @@ payload(uint32_t num_pe)
   uint32_t digest_index, i;
   uint8_t  *digest_buffer;
   uint8_t  *data;
+  uint8_t  arm_separator = 0;
+  uint8_t  drtm_hash_valid = 1;
+  uint64_t tpm_fw_hash = g_drtm_features.tpm_features.value & DRTM_GET_FEATURES_MASK_FW_HASH_ALG;
+
   EVENT_DATA           *event_data;
   DRTM_DLME_DATA_HDR   *dlme_data_head;
   TCG_PCR_EVENT        *event_log_head;
@@ -251,11 +255,36 @@ payload(uint32_t num_pe)
     val_print(DEBUG, "\n         Event Type      : 0x%x",  event->event_type);
     val_print(DEBUG, "\n         Digest Count    : 0x%x",  event->digests.count);
 
+    if (event->event_type == DRTM_EVTYPE_ARM_SEPARATOR) {
+      arm_separator++;
+    }
+
     /* Print Digest values for all hash algorithms */
     digest = (TPMT_HA *)&event->digests.digests[0];
     for (digest_index = 0; digest_index < event->digests.count; digest_index++) {
       val_print(DEBUG, "\n         Hash Alg        : 0x%x",
                                              digest[digest_index].hashalg);
+      /* R48000 : Validate the hash algorithm used for DRTM event measurements
+       * based on TPM capabilities */
+      if (event->event_type == DRTM_EVTYPE_ARM_DCE) {
+        if (tpm_fw_hash >= DRTM_TPM_ALG_SHA384) {
+          /* TPM supports SHA-384 or stronger */
+          if (digest[digest_index].hashalg >= tpm_fw_hash)
+            val_print(DEBUG,
+                "\n       DRTM event measurement uses SHA-384 or stronger");
+        } else {
+          /* TPM does not support SHA-384, allow SHA-256 or stronger */
+          if (digest[digest_index].hashalg >= DRTM_TPM_ALG_SHA256)
+            val_print(DEBUG,
+                "\n       DRTM event measurement uses SHA-256 or stronger");
+          else {
+            val_print(DEBUG, "\n       DRTM event measurement expected SHA-256 or ");
+            val_print(DEBUG, "stronger, but a weaker algorithm was used");
+            drtm_hash_valid = 0;
+          }
+        }
+      }
+
       val_print(DEBUG, "\n         Digest(%02d)      :",  digest_index);
       digest_buffer = (uint8_t *)(digest[digest_index].digest);
       for (i = 0; i < SHA256_DIGEST_SIZE; i++) {
@@ -286,8 +315,23 @@ payload(uint32_t num_pe)
     event_log_size = event_log_size - event2_size;
     event = event2;
   }
+  /* R45300 : EVTYPE_ARM_SEPARATOR is must in in event log */
+  if (!arm_separator) {
+    val_print(ERROR, "\n         Event type EVTYPE_ARM_SEPARATOR Not found");
+    val_set_status(index, RESULT_FAIL(7));
+  }
 
-  val_set_status(index, RESULT_PASS);
+  /* R48000 : Validate the hash algorithm used for DRTM event measurements
+  * based on TPM capabilities */
+  if (!drtm_hash_valid) {
+    val_print(ERROR, "\n         Invalid hash algorithm used in DRTM measurement");
+    val_set_status(index, RESULT_FAIL(8));
+    goto free_dlme_region;
+  }
+
+  if (arm_separator && drtm_hash_valid) {
+    val_set_status(index, RESULT_PASS);
+  }
 
 free_dlme_region:
   val_memory_free_aligned((void *)drtm_params->dlme_region_address);

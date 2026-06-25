@@ -474,11 +474,11 @@ The checklist provides information about:
       <td>L5</td>
       <td>S_L5TI_01</td>
       <td>S_L5TI_01</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>406</td>
+      <td>Check OS visible counter reports 1GHz</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -1060,12 +1060,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>907</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>RCiEP, RCEC, iEP RP, iEP EP</td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -1078,12 +1078,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_04</td>
-      <td>847</td>
-      <td>NP type-1 pcie only support 32-bit</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_05</td>
@@ -1865,7 +1865,7 @@ The checklist provides information about:
       <td>PCI_IN_13</td>
       <td></td>
       <td>Check RootPort NP Memory Access</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
@@ -1944,12 +1944,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>907</td>
+      <td>PCIe Device Memory mapping support</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>RCiEP, RCEC, iEP RP, iEP EP</td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -1962,12 +1962,12 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_04</td>
-      <td>847</td>
-      <td>NP type-1 pcie only support 32-bit</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>RCiEP, RCEC, iEP RP, iEP EP,</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_05</td>
@@ -3266,11 +3266,11 @@ The checklist provides information about:
       <td>Version 8.0</td>
       <td>S_L8TI_01</td>
       <td>S_L8TI_01</td>
-      <td>406</td>
-      <td>Check Minimum Counter Frequency 50MHz</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3675,6 +3675,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated PCI_MM_02 coverage with test 907.
 - Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
 
 ### v26.03_SBSA_8.0.1

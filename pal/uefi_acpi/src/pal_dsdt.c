@@ -49,13 +49,13 @@ typedef VOID (*PAL_ACPI_RECORD_FN)(VOID *context,
                                    CONST CHAR8 *dev_name);
 
 STATIC UINT32
-pal_acpi_parse_pkg_length(CONST UINT8 * data,
+pal_acpi_parse_pkg_length(CONST UINT8 *data,
                           UINT32 length,
                           UINT32 *pkg_length,
                           UINT32 *consumed);
 
 STATIC UINT32
-pal_acpi_parse_data_object(CONST UINT8 * data,
+pal_acpi_parse_data_object(CONST UINT8 *data,
                            UINT32 length,
                            PAL_AML_DATA_TYPE *type,
                            UINT64 *value,

@@ -243,7 +243,6 @@ uint32_t p039_entry(uint32_t num_pe);
 uint32_t p042_entry(uint32_t num_pe);
 uint32_t p045_entry(uint32_t num_pe); /* Linux test */
 uint32_t p046_entry(uint32_t num_pe); /* Linux test */
-uint32_t p047_entry(uint32_t num_pe);
 uint32_t p048_entry(uint32_t num_pe);
 uint32_t p049_entry(uint32_t num_pe);
 uint32_t p050_entry(uint32_t num_pe);
@@ -281,7 +280,6 @@ uint32_t p087_entry(uint32_t num_pe);
 uint32_t p088_entry(uint32_t num_pe);
 uint32_t p089_entry(uint32_t num_pe);
 uint32_t p090_entry(uint32_t num_pe);
-uint32_t p091_entry(uint32_t num_pe); /* Linux test */
 uint32_t p092_entry(uint32_t num_pe);
 uint32_t p093_entry(uint32_t num_pe);
 uint32_t p094_entry(uint32_t num_pe); /* Linux test */
@@ -294,5 +292,7 @@ uint32_t p100_entry(uint32_t num_pe);
 uint32_t p103_entry(uint32_t num_pe); /* Linux test */
 uint32_t p104_entry(uint32_t num_pe); /* Linux test */
 uint32_t p105_entry(uint32_t num_pe); /* Linux test */
+uint32_t p106_entry(uint32_t num_pe); /* Linux test */
+uint32_t p107_entry(uint32_t num_pe); /* Linux test */
 
 #endif

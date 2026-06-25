@@ -32,6 +32,19 @@ extern const PLATFORM_OVERRIDE_MEMORY_INFO_TABLE  platform_mem_cfg;
 extern const PCIE_INFO_TABLE                      platform_pcie_cfg;
 extern const WD_INFO_TABLE                        platform_wd_cfg;
 
+/** Timer API **/
+/**
+  @brief  Platform defined method to read time in microseconds from an independent timer source
+
+  @return PAL_STATUS_NOT_IMPLEMENTED - API not implemented, Other values - Success
+**/
+uint64_t
+pal_get_platform_time_us(void)
+{
+  pal_warn_not_implemented(__func__);
+  return PAL_STATUS_NOT_IMPLEMENTED;
+}
+
 /** SMMU API's **/
 /**
   @brief  Platform defined method to check if CATU is behind an ETR device
@@ -149,7 +162,9 @@ pal_ras_setup_error(RAS_ERR_IN_t in_param, RAS_ERR_OUT_t *out_param)
   /* Platform Defined way of setting up the Error Environment */
 
   (void) in_param;
-  (void) out_param;
+
+  if (out_param)
+    out_param->is_pfg_check = 0;
 
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;

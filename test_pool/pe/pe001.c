@@ -23,13 +23,18 @@
 #define TEST_RULE  "B_PE_01"
 #define TEST_DESC  "Check Arch symmetry across PE         "
 
-#define NUM_OF_REGISTERS  37
+#define NUM_OF_REGISTERS  43
 
 #define RAS               1
 #define SPE               2
 #define LOR               3
 #define AA32              4
 #define PMUV3             5
+#define SVE               6
+#define SVE2              7
+#define MPAM              8
+#define SME               9
+#define AA64              10
 
 #define MASK_AA64MMFR0    0xF
 #define MASK_MIDR         0x00F0FFFF
@@ -72,6 +77,12 @@ reg_details reg_list[] = {
     {ID_AA64MMFR2_EL1, 0x0,            "ID_AA64MMFR2_EL1", 0x0 },
     {ID_AA64ISAR0_EL1, 0x0,            "ID_AA64ISAR0_EL1", 0x0 },
     {ID_AA64ISAR1_EL1, 0x0,            "ID_AA64ISAR1_EL1", 0x0 },
+    {ID_AA64ZFR0_EL1,  0x0,            "ID_AA64ZFR0_EL1 ", SVE },
+    {ID_AA64ZFR1_EL1,  0x0,            "ID_AA64ZFR1_EL1 ", SVE2},
+    {ID_AA64SMFR0_EL1, 0x0,            "ID_AA64SMFR0_EL1", SME },
+    {ID_AA64PFR2_EL1,  0x0,            "ID_AA64PFR2_EL1 ", AA64 },
+    {PE_MPAMIDR_EL1,   0x0,            "MPAMIDR_EL1      ", MPAM},
+    {CNTFRQ_EL0,       0x0,            "CNTFRQ_EL0       ", 0x0 },
     {PMCEID0_EL0,      0x0,            "PMCEID0_EL0     ", PMUV3},
     {PMCEID1_EL0,      0x0,            "PMCEID1_EL0     ", PMUV3},
     {PMCR_EL0,         0x0,            "PMCR_EL0        ", PMUV3},
@@ -97,6 +108,18 @@ reg_details reg_list[] = {
     {MVFR1_EL1,        0x0,            "MVFR1_EL1       ", AA32},
     {MVFR2_EL1,        0x0,            "MVFR2_EL1       ", AA32}
 };
+
+/* Helper: check whether FEAT_MPAM is implemented */
+static uint32_t
+is_feat_mpam_implemented(void)
+{
+    /* ID_AA64PFR0_EL1.MPAM bits[43:40] > 0 or
+       ID_AA64PFR1_EL1.MPAM_frac bits[19:16] > 0 indicates implementation */
+    if ((VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 40, 43) > 0) ||
+        (VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR1_EL1), 16, 19) > 0))
+        return 1;
+    return 0;
+}
 
 uint64_t
 return_reg_value(uint32_t reg, uint8_t dependency)
@@ -155,6 +178,53 @@ return_reg_value(uint32_t reg, uint8_t dependency)
         temp = val_pe_reg_read(ID_AA64DFR0_EL1);
         temp = (temp >> 8) & 0xf;
         if (temp != 0 && temp != 0xf)
+            return val_pe_reg_read(reg);
+        else
+            return 0;
+        break;
+
+    case SVE: // If SVE is not supported, then skip register check
+        temp = val_pe_reg_read(ID_AA64PFR0_EL1);
+        temp = (temp >> 32) & 0xf;
+        if (temp != 0)
+            return val_pe_reg_read(reg);
+        else
+            return 0;
+        break;
+
+    case SVE2: // If SVE2 is not supported, then skip register check
+        temp = val_pe_reg_read(ID_AA64PFR0_EL1);
+        temp = (temp >> 32) & 0xf;
+        if (temp == 0)
+            return 0;
+        temp = val_pe_reg_read(ID_AA64ZFR0_EL1);
+        temp = (temp & 0xf);
+        if (temp > 0)
+            return val_pe_reg_read(reg);
+        else
+            return 0;
+        break;
+
+    case MPAM: // If MPAM is not supported, then skip register check
+        if (is_feat_mpam_implemented())
+            return val_pe_reg_read(reg);
+        else
+            return 0;
+        break;
+
+    case SME: // If SME is not supported, then skip register check
+        temp = val_pe_reg_read(ID_AA64PFR1_EL1);
+        temp = (temp >> 24) & 0xf;
+        if (temp != 0)
+            return val_pe_reg_read(reg);
+        else
+            return 0;
+        break;
+
+    case AA64: // If AArch64 EL1 is not implemented, then skip register check
+        temp = val_pe_reg_read(ID_AA64PFR0_EL1);
+        temp = (temp >> 4) & 0xf;
+        if (temp != EL_IMPL_NONE)
             return val_pe_reg_read(reg);
         else
             return 0;

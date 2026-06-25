@@ -90,6 +90,8 @@
   ../../test_pool/peripherals/d001.c
   ../../test_pool/peripherals/d002.c
   ../../test_pool/peripherals/d003.c
+  ../../test_pool/peripherals/d005.c
+  ../../test_pool/memory_map/m001.c
   ../../test_pool/memory_map/m002.c
   ../../test_pool/memory_map/m003.c
   ../../test_pool/power_wakeup/u001.c
@@ -194,6 +196,7 @@
   ../../test_pool/gic/g016.c
   ../../test_pool/timer/t006.c
   ../../test_pool/timer/t008.c
+  ../../test_pool/timer/t009.c
   ../../test_pool/watchdog/w003.c
   ../../test_pool/smmu/i008.c
   ../../test_pool/smmu/i009.c
@@ -216,8 +219,8 @@
   ../../test_pool/pcie/p005.c
   ../../test_pool/pcie/p007.c
   ../../test_pool/pcie/p010.c
+  ../../test_pool/pcie/p045.c
   ../../test_pool/pcie/p046.c
-  ../../test_pool/pcie/p047.c
   ../../test_pool/pcie/p048.c
   ../../test_pool/pcie/p049.c
   ../../test_pool/pcie/p050.c
@@ -253,9 +256,9 @@
   ../../test_pool/pcie/p088.c
   ../../test_pool/pcie/p089.c
   ../../test_pool/pcie/p090.c
-  ../../test_pool/pcie/p091.c
   ../../test_pool/pcie/p092.c
   ../../test_pool/pcie/p093.c
+  ../../test_pool/pcie/p094.c
   ../../test_pool/exerciser/e003.c
   ../../test_pool/exerciser/e007.c
   ../../test_pool/exerciser/e008.c
@@ -359,4 +362,4 @@
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS+  = -march=armv8.5-a+lse+ls2
-  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+profile+lse -DPC_BSA $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI
+  GCC:*_*_*_CC_FLAGS   =  -O0 -march=armv8.6-a+sve+sve2+sme+profile+lse -DPC_BSA $(ACS_CORE_INCLUDE_FLAGS) $(ACS_GIC_INCLUDE_FLAGS) $(ACS_PCIE_INCLUDE_FLAGS) -DTARGET_UEFI

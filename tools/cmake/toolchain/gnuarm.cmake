@@ -34,6 +34,9 @@ endif()
 
 message(STATUS "[ACS] : TARGET_SWITCH is set to ${TARGET_SWITCH}")
 
+# Expose the selected target as a string macro for binaries to report.
+add_compile_definitions(ACS_TARGET="${TARGET}")
+
 if(${ENABLE_PIE})
     set(COMPILE_PIE_SWITCH "-fpie")
     add_definitions(-DENABLE_PIE)

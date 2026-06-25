@@ -588,7 +588,7 @@ pal_get_tpm2_ptr(void)
 }
 
 STATIC UINT32
-pal_acpi_string_equal(CONST CHAR8 * left, CONST CHAR8 * right)
+pal_acpi_string_equal(CONST CHAR8 *left, CONST CHAR8 *right)
 {
   UINT32 idx = 0u;
 
@@ -605,7 +605,7 @@ pal_acpi_string_equal(CONST CHAR8 * left, CONST CHAR8 * right)
 }
 
 STATIC UINT32
-pal_acpi_parse_numeric_string(CONST CHAR8 * text, UINT32 *value_out)
+pal_acpi_parse_numeric_string(CONST CHAR8 *text, UINT32 *value_out)
 {
   UINT32 value = 0u;
   UINT32 base = 10u;
@@ -639,7 +639,7 @@ pal_acpi_parse_numeric_string(CONST CHAR8 * text, UINT32 *value_out)
 }
 
 STATIC VOID
-pal_acpi_decode_eisa_id(UINT32 encoded, CHAR8 * out, UINT32 out_len)
+pal_acpi_decode_eisa_id(UINT32 encoded, CHAR8 *out, UINT32 out_len)
 {
   /* Decode EISA IDs (PNPxxxx) from numeric _HID values. */
   if ((out == NULL) || (out_len < 8u))
@@ -659,7 +659,7 @@ pal_acpi_decode_eisa_id(UINT32 encoded, CHAR8 * out, UINT32 out_len)
 }
 
 STATIC UINT32
-pal_acpi_is_pci_hid(PAL_AML_DATA_TYPE data_type, UINT64 value, CONST CHAR8 * text)
+pal_acpi_is_pci_hid(PAL_AML_DATA_TYPE data_type, UINT64 value, CONST CHAR8 *text)
 {
   /* Accept PCI root bridge HIDs expressed as strings or numeric EISA IDs. */
   if (data_type == AML_DATA_STRING) {
@@ -783,9 +783,9 @@ pal_acpi_parse_name_string(CONST UINT8 *data, UINT32 length, CHAR8 name[5])
 STATIC UINT32
 pal_acpi_parse_data_object(CONST UINT8 *data,
                            UINT32 length,
-                           PAL_AML_DATA_TYPE *type,
+                           PAL_AML_DATA_TYPE * type,
                            UINT64 *value,
-                           CHAR8 * text,
+                           CHAR8 *text,
                            UINT32 text_len,
                            UINT32 *consumed)
 {

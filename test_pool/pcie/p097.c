@@ -121,6 +121,8 @@ payload (void)
   uint64_t current_dev_bdf;
   uint64_t next_dev_bdf;
   uint32_t test_skip = 1;
+  bool skip_due_to_flag = false;
+  bool skip_flag = acs_policy_get_pcie_skip_dp_nic_ms();
   pcie_device_bdf_table *bdf_tbl_ptr;
   uint32_t tbl_index = 0;
   uint32_t tbl_index_next = 0;
@@ -146,11 +148,13 @@ payload (void)
        * descriptors is causing an exception and for the devices
        * with base class codes greater than 13h as they
        * are reserved */
-      if ((acs_policy_get_pcie_skip_dp_nic_ms() &&
+      bool skip_by_flag = (skip_flag &&
           ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
-          || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)))
-          || (base_cc > RES_CC))
+          || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)));
+      if (skip_by_flag || (base_cc > RES_CC))
       {
+        if (skip_by_flag)
+          skip_due_to_flag = true;
         tbl_index++;
         val_print(DEBUG, "\n        Skipping DP/NIC/MAS/RES device.");
         continue;
@@ -191,11 +195,13 @@ payload (void)
                 * descriptors is causing an exception and for the devices
                 * with base class codes greater than 13h as they
                 * are reserved */
-                if ((acs_policy_get_pcie_skip_dp_nic_ms() &&
+                skip_by_flag = (skip_flag &&
                     ((base_cc == UNCLAS_CC) || (base_cc == CNTRL_CC)
-                    || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)))
-                    || (base_cc > RES_CC))
+                    || (base_cc == DP_CNTRL_CC) || (base_cc == MAS_CC)));
+                if (skip_by_flag || (base_cc > RES_CC))
                 {
+                  if (skip_by_flag)
+                    skip_due_to_flag = true;
                   val_print(DEBUG, "\n        Skipping DP/NIC/MAS/RES device.");
                   tbl_index_next++;
                   continue;
@@ -247,8 +253,18 @@ payload (void)
   }
 
   if (test_skip) {
-    val_print(ERROR, "\n       No MSI vectors found ");;
-    val_set_status (index, RESULT_SKIP(01));
+    if (skip_flag && skip_due_to_flag) {
+      val_print(WARN,
+        "\n       DP/NIC/MAS/RES devices are skipped.");
+      val_print(WARN,
+        "\n       Please individually run the test without");
+      val_print(WARN,
+        "\n       --skip-dp-nic-ms to check the compliance.");
+      val_set_status (index, RESULT_WARNING(01));
+    } else {
+      val_print(ERROR, "\n       No MSI vectors found ");
+      val_set_status (index, RESULT_SKIP(01));
+    }
   } else  if (!status) {
     val_set_status (index, RESULT_PASS);
   }

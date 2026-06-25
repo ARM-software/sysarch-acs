@@ -784,6 +784,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PER_TEST_NUM_BASE + 6,
         },
+        [B_PER_07] = {
+            .test_entry_id    = D005_ENTRY,
+            .module_id        = PERIPHERAL,
+            .rule_desc        = "Check UART Non-secure register access",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PER_TEST_NUM_BASE + 5,
+        },
         [B_PER_08] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = PCIE,
@@ -820,7 +828,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = M001_ENTRY,
             .module_id        = MEM_MAP,
             .rule_desc        = "Memory Access to Un-Populated addr",
-            .platform_bitmask = PLATFORM_BAREMETAL,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_MEMORY_MAP_TEST_NUM_BASE + 1,
         },
@@ -1404,13 +1412,12 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
-        [B_TIME_02] = {
-            .test_entry_id    = T007_ENTRY,
+        [B_TIME_05] = {
+            .test_entry_id    = B_WAK_03_07_ENTRY,
             .module_id        = TIMER,
-            .rule_desc        = "Check System Counter Frequency",
+            .rule_desc        = "Check sys cnt visible to PE timers",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
-            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
         },
         [B_TIME_06] = {
             .test_entry_id    = T002_ENTRY,
@@ -1444,10 +1451,18 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 5,
         },
-        [S_L8TI_01] = {
+        [B_TIME_10] = {
+            .test_entry_id    = T009_ENTRY,
+            .module_id        = TIMER,
+            .rule_desc        = "Check Non-secure timer frame access",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_TIMER_TEST_NUM_BASE + 10,
+        },
+        [S_L5TI_01] = {
             .test_entry_id    = T006_ENTRY,
             .module_id        = TIMER,
-            .rule_desc        = "Check Minimum Counter Frequency 50MHz",
+            .rule_desc        = "Check OS visible counter reports 1GHz",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 6,
@@ -1867,7 +1882,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_entry_id    = PCI_IN_13_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check RootPort NP Memory Access",
-            .platform_bitmask = PLATFORM_BAREMETAL,
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
         [PCI_IN_16] = {
@@ -1936,20 +1951,19 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
         },
+        [PCI_MM_02] = {
+            .test_entry_id    = PCI_MM_02_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "PCIe Non-Cacheable Memory mapping support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .flag             = BASE_RULE,
+        },
         [PCI_MM_03] = {
             .test_entry_id    = PCI_MM_03_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "PCIe Normal Memory mapping support",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
             .flag             = BASE_RULE,
-        },
-        [PCI_MM_04] = {
-            .test_entry_id    = P047_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "NP type-1 pcie only support 32-bit",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 47,
         },
         [PCI_MM_05] = {
             .test_entry_id    = P095_ENTRY,
@@ -2180,7 +2194,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_PCIe_02] = {
             .test_entry_id    = P086_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "Check RootPort P&NP Memory Access",
+            .rule_desc        = "Check PCIe P&NP Memory Access",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 86,
@@ -2224,14 +2238,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 30,
-        },
-        [B_PCIe_11] = {
-            .test_entry_id    = P091_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Steering Tag value properties",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_LINUX,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 91,
         },
         [BJLPB] = {
             .test_entry_id    = P100_ENTRY,
@@ -2611,14 +2617,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_TIMER_TEST_NUM_BASE + 1,
         },
-        [V_L1TM_02] = {
-            .test_entry_id    = T007_ENTRY,
-            .module_id        = TIMER,
-            .rule_desc        = "Check Virt and Phy counter min freq",
-            .platform_bitmask = PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_TIMER_TEST_NUM_BASE + 7,
-        },
+
         [V_L1TM_04] = {
             .test_entry_id    = T008_ENTRY,
             .module_id        = TIMER,
@@ -3035,9 +3034,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [B_PER_04] = {
             .module_id        = PERIPHERAL,
         },
-        [B_PER_07] = {
-            .module_id        = PERIPHERAL,
-        },
         [B_PER_11] = {
             .module_id        = PERIPHERAL,
         },
@@ -3131,19 +3127,19 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [P_L1SM_01] = {
             .module_id        = SMMU,
         },
+        [B_TIME_02] = {
+            .module_id        = TIMER,
+        },
         [B_TIME_03] = {
             .module_id        = TIMER,
         },
         [B_TIME_04] = {
             .module_id        = TIMER,
         },
-        [B_TIME_05] = {
+        [S_L8TI_01] = {
             .module_id        = TIMER,
         },
-        [B_TIME_10] = {
-            .module_id        = TIMER,
-        },
-        [S_L5TI_01] = {
+        [V_L1TM_02] = {
             .module_id        = TIMER,
         },
         [B_WD_04] = {
@@ -3202,6 +3198,9 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         },
         [P_L1TP_04] = {
             .module_id        = TPM,
+        },
+        [B_PCIe_11] = {
+            .module_id        = PCIE,
         },
         [IE_BAR_1] = {
             .module_id        = PCIE,
@@ -3290,7 +3289,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [PCI_LI_04] = {
             .module_id        = PCIE,
         },
-        [PCI_MM_02] = {
+        [PCI_MM_04] = {
             .module_id        = PCIE,
         },
         [PCI_MM_06] = {
@@ -3442,12 +3441,14 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #if defined(TARGET_LINUX)
     [P001_ENTRY] = p001_entry,
     [P045_ENTRY] = p045_entry, // used in wrapper.
-    [P091_ENTRY] = p091_entry, // used in wrapper.
     [P103_ENTRY] = p103_entry, // used in wrapper.
+    [P106_ENTRY] = p106_entry, // used in wrapper.
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P104_ENTRY] = p104_entry, // used in wrapper.
+    [P107_ENTRY] = p107_entry, // used in wrapper.
     [PCI_LI_02_ENTRY] = pci_li_02_entry,
     [PCI_MM_01_ENTRY] = pci_mm_01_entry,
+    [PCI_MM_02_ENTRY] = pci_mm_02_entry,
     [PCI_MM_03_ENTRY] = pci_mm_03_entry,
     [PCI_MSI_2_ENTRY] = pci_msi_2_entry,
     [D004_ENTRY] = d004_entry,
@@ -3472,6 +3473,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [D001_ENTRY] = d001_entry,
     [D002_ENTRY] = d002_entry,
     [D003_ENTRY] = d003_entry,
+    [D005_ENTRY] = d005_entry,
     [D006_ENTRY] = d006_entry,
     [D008_ENTRY] = d008_entry,
     [E001_ENTRY] = e001_entry, // used in wrapper.
@@ -3554,6 +3556,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_LI_02_ENTRY]  = pci_li_02_entry,
     [PCI_LI_03_ENTRY]  = pci_li_03_entry,
     [PCI_MM_01_ENTRY]  = pci_mm_01_entry,
+    [PCI_MM_02_ENTRY]  = pci_mm_02_entry,
     [PCI_MM_03_ENTRY]  = pci_mm_03_entry,
     [PCI_MSI_2_ENTRY]  = pci_msi_2_entry,
     [PCI_PP_04_ENTRY]  = pci_pp_04_entry,
@@ -3566,6 +3569,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [CXL_11_ENTRY]     = cxl_11_entry,
     [CXL_12_ENTRY]     = cxl_12_entry,
     [CXL_13_ENTRY]     = cxl013_entry,
+    [T006_ENTRY] = t006_entry,
     [G013_ENTRY] = g013_entry,
     [G014_ENTRY] = g014_entry,
     [G015_ENTRY] = g015_entry,
@@ -3606,6 +3610,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [ITS003_ENTRY] = its003_entry,
     [ITS004_ENTRY] = its004_entry,
     [ITS005_ENTRY] = its005_entry,
+    [M001_ENTRY] = m001_entry,
     [M002_ENTRY] = m002_entry,
     [M003_ENTRY] = m003_entry,
     [M005_ENTRY] = m005_entry,
@@ -3653,7 +3658,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P038_ENTRY] = p038_entry,
     [P039_ENTRY] = p039_entry,
     [P042_ENTRY] = p042_entry,
-    [P047_ENTRY] = p047_entry,
+    [P045_ENTRY] = p045_entry,
     [P048_ENTRY] = p048_entry, // used in wrapper.
     [P049_ENTRY] = p049_entry, // used in wrapper.
     [P050_ENTRY] = p050_entry, // used in wrapper.
@@ -3693,10 +3698,13 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P090_ENTRY] = p090_entry,
     [P092_ENTRY] = p092_entry,
     [P093_ENTRY] = p093_entry,
+    [P094_ENTRY] = p094_entry,
     [P096_ENTRY] = p096_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,
+    [P103_ENTRY] = p103_entry,
+    [P104_ENTRY] = p104_entry,
     [PE001_ENTRY] = pe001_entry,
     [PE002_ENTRY] = pe002_entry,
     [PE003_ENTRY] = pe003_entry,
@@ -3809,9 +3817,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
-    [T006_ENTRY] = t006_entry,
-    [T007_ENTRY] = t007_entry,
     [T008_ENTRY] = t008_entry,
+    [T009_ENTRY] = t009_entry,
     [U001_ENTRY] = u001_entry, // used in wrapper.
     [U002_ENTRY] = u002_entry, // used in wrapper.
     [U003_ENTRY] = u003_entry, // used in wrapper.
@@ -3926,12 +3933,13 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T005_ENTRY] = t005_entry,
-    [T007_ENTRY] = t007_entry,
+    [T009_ENTRY] = t009_entry,
     [W001_ENTRY] = w001_entry,
     [W002_ENTRY] = w002_entry,
     [D001_ENTRY] = d001_entry,
     [D002_ENTRY] = d002_entry,
     [D003_ENTRY] = d003_entry,
+    [D005_ENTRY] = d005_entry,
     [D004_ENTRY] = d004_entry,
     [D006_ENTRY] = d006_entry,
     [D007_ENTRY] = d007_entry,
@@ -3965,7 +3973,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P042_ENTRY] = p042_entry,
     [P045_ENTRY] = p045_entry, // used in wrapper.
     [P046_ENTRY] = p046_entry,
-    [P047_ENTRY] = p047_entry,
     [P064_ENTRY] = p064_entry, // used in wrapper.
     [P068_ENTRY] = p068_entry, // used in wrapper.
     [P071_ENTRY] = p071_entry, // used in wrapper.
@@ -3978,6 +3985,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P103_ENTRY] = p103_entry, // used in wrapper.
     [P104_ENTRY] = p104_entry, // used in wrapper.
+    [P106_ENTRY] = p106_entry, // used in wrapper.
+    [P107_ENTRY] = p107_entry, // used in wrapper.
     [P105_ENTRY] = p105_entry,
     [PCI_IC_11_ENTRY] = pci_ic_11_entry,
     [PCI_IN_04_ENTRY] = pci_in_04_entry,
@@ -3989,6 +3998,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_LI_02_ENTRY] = pci_li_02_entry,
     [PCI_LI_03_ENTRY] = pci_li_03_entry,
     [PCI_MM_01_ENTRY] = pci_mm_01_entry,
+    [PCI_MM_02_ENTRY] = pci_mm_02_entry,
     [PCI_MM_03_ENTRY] = pci_mm_03_entry,
     [PCI_MSI_2_ENTRY] = pci_msi_2_entry,
     [PCI_PP_04_ENTRY] = pci_pp_04_entry,
@@ -4023,6 +4033,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #else
 /* Drop compiling entries not required for Bare Metal BSA compliance */
 #ifndef BAREMETAL_BSA_BUILD
+    [T006_ENTRY] = t006_entry,
     [G012_ENTRY] = g012_entry,
     [G013_ENTRY] = g013_entry,
     [G016_ENTRY] = g016_entry,
@@ -4063,7 +4074,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE065_ENTRY] = pe065_entry,
     [M005_ENTRY] = m005_entry,
     [M008_ENTRY] = m008_entry,
-    [T006_ENTRY] = t006_entry,
     [ETE008_ENTRY] = ete008_entry,
     [ETE007_ENTRY] = ete007_entry,
     [ETE002_ENTRY] = ete002_entry,
@@ -4176,7 +4186,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P015_ENTRY] = p015_entry,
     [P016_ENTRY] = p016_entry,
     [P027_ENTRY] = p027_entry, // used in wrapper.
-    [P047_ENTRY] = p047_entry,
     [P048_ENTRY] = p048_entry, // used in wrapper.
     [P049_ENTRY] = p049_entry, // used in wrapper.
     [P050_ENTRY] = p050_entry, // used in wrapper.
@@ -4208,7 +4217,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P084_ENTRY] = p084_entry,
     [P085_ENTRY] = p085_entry,
     [P088_ENTRY] = p088_entry, // used in wrapper.
-    [P091_ENTRY] = p091_entry,
     [P092_ENTRY] = p092_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
@@ -4241,6 +4249,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_LI_02_ENTRY]  = pci_li_02_entry,
     [PCI_LI_03_ENTRY]  = pci_li_03_entry,
     [PCI_MM_01_ENTRY]  = pci_mm_01_entry,
+    [PCI_MM_02_ENTRY]  = pci_mm_02_entry,
     [PCI_MM_03_ENTRY]  = pci_mm_03_entry,
     [PCI_MSI_2_ENTRY]  = pci_msi_2_entry,
     [PCI_PP_04_ENTRY]  = pci_pp_04_entry,
@@ -4299,8 +4308,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T003_ENTRY] = t003_entry,
     [T004_ENTRY] = t004_entry,
     [T001_ENTRY] = t001_entry,
-    [T007_ENTRY] = t007_entry,
     [T002_ENTRY] = t002_entry,
+    [T009_ENTRY] = t009_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
     [E035_ENTRY] = e035_entry,
     [E013_ENTRY] = e013_entry,
@@ -4325,6 +4334,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [U002_ENTRY] = u002_entry, // used in wrapper.
     [U001_ENTRY] = u001_entry, // used in wrapper.
     [D003_ENTRY] = d003_entry,
+    [D005_ENTRY] = d005_entry,
     [D006_ENTRY] = d006_entry,
     [D002_ENTRY] = d002_entry,
     [D004_ENTRY] = d004_entry,
@@ -4363,6 +4373,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P018_ENTRY] = p018_entry, // used in wrapper.
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P104_ENTRY] = p104_entry, // used in wrapper.
+    [P106_ENTRY] = p106_entry, // used in wrapper.
+    [P107_ENTRY] = p107_entry, // used in wrapper.
     [P009_ENTRY] = p009_entry,
     [P095_ENTRY] = p095_entry,
     [P020_ENTRY] = p020_entry, // used in wrapper.
@@ -4708,6 +4720,15 @@ RULE_ID_e b_per_08_rule_list[] = {
     PCI_PAS_1,
     /* E.13 - PCIe Precision Time Measurement */
     PCI_PTM_1,
+
+    /* BSA Section H */
+    /* H.1 - ITS Groups */
+    ITS_01, ITS_02, ITS_03, ITS_04,
+    ITS_05, ITS_06, ITS_07, ITS_08,
+    /* H.2 - Generation of DeviceID Values */
+    ITS_DEV_1, ITS_DEV_2, ITS_DEV_3,
+    ITS_DEV_4, ITS_DEV_5, ITS_DEV_6,
+    ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,
 
     RULE_ID_SENTINEL
 };

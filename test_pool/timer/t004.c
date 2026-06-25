@@ -17,7 +17,7 @@
 #include "acs_val.h"
 #include "acs_gic.h"
 #include "gic_v3.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 #include "acs_wakeup.h"
 #include "val_interface.h"
 

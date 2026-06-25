@@ -347,10 +347,10 @@ The checklist provides information about:
       <td>L1</td>
       <td><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1tm_02--check-virt-and-phy-counter-min-freq">V_L1TM_02</td>
       <td></td>
-      <td>402</td>
-      <td>Check Virt and Phy counter min freq</td>
-      <td>✅</td>
-      <td>❌</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td>Related rules from other specifications: B_TIME_02 (BSA)</td>
     </tr>
     <tr>
@@ -772,17 +772,17 @@ The checklist provides information about:
       <td>PCI_IN_13</td>
       <td>804</td>
       <td>Check RootPort NP Memory Access</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>This test is run only on Baremetal environment in BSA ACS</td>
+      <td></td>
     </tr>
     <tr>
       <td></td>
       <td>805</td>
       <td>Check RootPort P Memory Access</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>This test is run only on Baremetal environment in BSA ACS</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_14</td>
@@ -898,10 +898,10 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_MM_04</td>
-      <td>847</td>
-      <td>NP type-1 pcie only support 32-bit</td>
-      <td>✅</td>
-      <td>❌</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>

@@ -52,7 +52,7 @@ static void payload(void)
     status = val_drtm_features(invalid_fid, &feat1, &feat2);
     if (status != DRTM_ACS_NOT_SUPPORTED) {
         val_print(WARN,
-                    "\n       Function ID Rsvd Bits:[62:32] not zero, status=%d", status);
+                    "\n       Func ID Rsvd Bits[62:32] not zero, status=%d", status);
     }
 
     val_set_status(index, RESULT_PASS);

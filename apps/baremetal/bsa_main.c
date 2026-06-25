@@ -148,6 +148,7 @@ ShellAppMainbsa()
     val_print(INFO, "\n          Version %d.", BSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", BSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", BSA_ACS_SUBMINOR_VER);
+    val_print(INFO, " Built for target: %s\n", ACS_TARGET);
 
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
                 BSA_LEVEL_FR), ctx->level_value);

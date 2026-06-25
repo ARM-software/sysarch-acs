@@ -122,6 +122,15 @@ if(DEFINED ACS_ENABLE_MMU)
     add_compile_definitions(ACS_ENABLE_MMU=${ACS_ENABLE_MMU})
 endif()
 
+if(NOT DEFINED CHIP_ID)
+    set(CHIP_ID 0 CACHE STRING "Default CHIP_ID value" FORCE)
+    message(STATUS "[ACS] : Defaulting CHIP_ID to ${CHIP_ID}")
+else()
+    set(CHIP_ID "${CHIP_ID}" CACHE STRING "CHIP_ID is set to ${CHIP_ID}" FORCE)
+    message(STATUS "[ACS] : CHIP_ID is set to ${CHIP_ID}")
+endif()
+add_compile_definitions(CHIP_ID=${CHIP_ID})
+
 # Propagate ACS_VERBOSE_LEVEL into compiler definitions for all sources
 if(DEFINED ACS_VERBOSE_LEVEL)
     message(STATUS "[ACS] : ACS_VERBOSE_LEVEL (compile defs) = ${ACS_VERBOSE_LEVEL}")
@@ -132,6 +141,43 @@ if(DEFINED ACS_VERBOSE_LEVEL)
         elseif(${ACS_VERBOSE_LEVEL} LESS 1)
             message(WARNING "[ACS] : ACS_VERBOSE_LEVEL=${ACS_VERBOSE_LEVEL} is below the expected range; would be floored to 1")
         endif()
+    endif()
+endif()
+
+# Propagate ACS_LEVEL into compiler definitions for all sources.
+# This selects the compliance level for the active ACS suite at compile
+# time, overriding the PLATFORM_OVERRIDE_<ACS>_LEVEL value supplied by
+# the platform header. Valid values:
+#   - A positive integer: sets ctx->level_value = <n> and selects
+#     LVL_FILTER_MAX (run all rules with level <= n).
+#   - "fr" / "FR": selects LVL_FILTER_FR (future-requirements mode);
+#     ctx->level_value is left at the platform default.
+# Per-ACS valid numeric ranges:
+#   bsa    : 1
+#   sbsa   : 3..7
+#   pc_bsa : 1
+# Usage:
+#   cmake -DACS_LEVEL=7 ...
+#   cmake -DACS_LEVEL=fr ...
+if(DEFINED ACS_LEVEL)
+    string(TOUPPER "${ACS_LEVEL}" _ACS_LEVEL_UC)
+    if("${_ACS_LEVEL_UC}" STREQUAL "FR")
+        message(STATUS "[ACS] : ACS_LEVEL=fr -> selecting LVL_FILTER_FR (compile defs: ACS_LEVEL_FR)")
+        add_compile_definitions(ACS_LEVEL_FR)
+    elseif("${ACS_LEVEL}" MATCHES "^[0-9]+$")
+        message(STATUS "[ACS] : ACS_LEVEL (compile defs) = ${ACS_LEVEL}")
+        if("${ACS}" STREQUAL "sbsa")
+            if(${ACS_LEVEL} LESS 3 OR ${ACS_LEVEL} GREATER 7)
+                message(WARNING "[ACS] : ACS_LEVEL=${ACS_LEVEL} is outside the supported SBSA range (3..7); runtime will clamp it")
+            endif()
+        elseif("${ACS}" STREQUAL "bsa" OR "${ACS}" STREQUAL "pc_bsa")
+            if(NOT ${ACS_LEVEL} EQUAL 1)
+                message(WARNING "[ACS] : ACS_LEVEL=${ACS_LEVEL} is not the only supported level for ${ACS} (1); runtime will clamp it")
+            endif()
+        endif()
+        add_compile_definitions(ACS_LEVEL=${ACS_LEVEL})
+    else()
+        message(FATAL_ERROR "[ACS] : ACS_LEVEL must be a positive integer or 'fr' (got '${ACS_LEVEL}')")
     endif()
 endif()
 
@@ -173,10 +219,19 @@ if(DEFINED ACS_ENABLE_MMU)
     list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_ENABLE_MMU=${ACS_ENABLE_MMU})
 endif()
 
+#   cmake -DCHIP_ID=0
+list(APPEND DEFAULT_OVERRIDE_ARGS -DCHIP_ID=${CHIP_ID})
+
 #   cmake -DACS_VERBOSE_LEVEL=1 ...
 if(DEFINED ACS_VERBOSE_LEVEL)
     message(STATUS "[ACS] : ACS_VERBOSE_LEVEL (top-level) = ${ACS_VERBOSE_LEVEL}")
     list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_VERBOSE_LEVEL=${ACS_VERBOSE_LEVEL})
+endif()
+
+#   cmake -DACS_LEVEL=7 ...
+if(DEFINED ACS_LEVEL)
+    message(STATUS "[ACS] : ACS_LEVEL (top-level) = ${ACS_LEVEL}")
+    list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_LEVEL=${ACS_LEVEL})
 endif()
 
 # Enable fast-path optimizations for simulation/emulation builds.

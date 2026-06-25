@@ -637,7 +637,7 @@
 
 #define UART_ADDRESS                     0xF98DFE18  /* Non-zero if UART is present              */
 #define BASE_ADDRESS_ADDRESS             0x2A400000  /* UART MMIO base                           */
-#define INTERFACE_TYPE                   8           /* UART interface type                      */
+#define INTERFACE_TYPE                   0x3         /* Arm PL011 UART interface type           */
 #define UART_BAUD_RATE                   0x7        /* Baud-rate enum (as per SPCR table)        */
 #define UART_BAUD_RATE_BPS               115200     /* Actual bits-per-second                    */
 #define UART_CLK_IN_HZ                   24000000   /* Reference clock input                     */

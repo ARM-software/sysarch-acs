@@ -49,8 +49,8 @@ payload(void)
 
   if (test_fails)
       val_set_status(pe_index, RESULT_FAIL(1));
-
-  val_set_status(pe_index, RESULT_PASS);
+  else
+      val_set_status(pe_index, RESULT_PASS);
 }
 
 uint32_t

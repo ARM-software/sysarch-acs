@@ -720,10 +720,10 @@ execute_tests()
   VOID               *branch_label;
   UINT32             Status;
 
-  val_print(ERROR, "\n\n SBSA Architecture Compliance Suite\n");
-  val_print(ERROR, "    Version %d.", SBSA_ACS_MAJOR_VER);
-  val_print(ERROR, "%d.", SBSA_ACS_MINOR_VER);
-  val_print(ERROR, "%d\n", SBSA_ACS_SUBMINOR_VER);
+  val_print(INFO, "\n\n SBSA Architecture Compliance Suite\n");
+  val_print(INFO, "    Version %d.", SBSA_ACS_MAJOR_VER);
+  val_print(INFO, "%d.", SBSA_ACS_MINOR_VER);
+  val_print(INFO, "%d\n", SBSA_ACS_SUBMINOR_VER);
 
   val_print(INFO, SBSA_LEVEL_PRINT_FORMAT(g_sbsa_level, g_sbsa_only_level),
                                    (g_sbsa_level > SBSA_MAX_LEVEL_SUPPORTED) ? 0 : g_sbsa_level);

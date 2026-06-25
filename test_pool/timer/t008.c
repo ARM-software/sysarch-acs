@@ -16,8 +16,8 @@
 **/
 
 #include "acs_val.h"
+#include "acs_timer_infra.h"
 #include "acs_timer.h"
-#include "acs_timer_support.h"
 #include "acs_pe.h"
 #include "val_interface.h"
 

@@ -29,6 +29,7 @@
   src/AArch64/AcsTestInfra.S
   src/AArch64/ModuleEntryPoint.S
   src/pal_misc.c
+  src/pal_drtm.c
   src/pal_acpi.c
   src/pal_pe.c
   src/pal_gic.c

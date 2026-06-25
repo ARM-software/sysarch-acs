@@ -25,6 +25,7 @@
 #include "acs_execution_policy.h"
 #include "val_status.h"
 #include "val_libc.h"
+#include "acs_timer.h"
 
 #define ACS_STATUS_ERR       0xEDCB1234  //some impropable value?
 #define ACS_STATUS_NIST_PASS 0x1
@@ -34,9 +35,18 @@
 #define ACS_STATUS_PASS    STATUS_SUCCESS
 #define ACS_STATUS_SKIP    STATUS_SKIP
 #define ACS_STATUS_UNKNOWN STATUS_UNKNOWN
-/*Note: val_print can be overriden in platform_override_fvp.h, to
-enable implementation specific prints in PAL*/
-#ifndef val_print
+/*
+ * Note: val_print can be overridden by defining FAST_PRINT_ENABLE in
+ * platform_override_fvp.h, provided a FASTPRINT implementation is available
+ * in the PAL layer.
+ */
+#if defined(TARGET_BAREMETAL) && defined(FAST_PRINT_ENABLE)
+#define val_print(level, ...)                         \
+    do {                                              \
+        if ((level) >= acs_policy_get_print_level())  \
+            pal_vfastprint(__VA_ARGS__);              \
+    } while (0)
+#else
 #define val_print(level, ...)                     \
     do {                                          \
         if ((level) >= acs_policy_get_print_level()) \
@@ -111,6 +121,7 @@ void val_print_acs_test_status_summary(void);
 
 uint32_t execute_tests(void);
 uint64_t val_time_delay_ms(uint64_t time_ms);
+uint64_t val_get_platform_time_us(void);
 
 /* VAL PE APIs */
 typedef enum {
@@ -232,14 +243,10 @@ typedef enum {
 #define BSA_TIMER_FLAG_ALWAYS_ON 0x4
 void     val_timer_create_info_table(uint64_t *timer_info_table);
 void     val_timer_free_info_table(void);
-void     val_timer_set_phy_el1(uint32_t timeout);
-void     val_timer_set_vir_el1(uint32_t timeout);
 void     val_platform_timer_get_entry_index(uint64_t instance, uint32_t *block, uint32_t *index);
 uint64_t val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance);
 uint64_t val_get_phy_el2_timer_count(void);
 uint32_t val_bsa_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
-void     val_timer_set_phy_el2(uint32_t timeout);
-void     val_timer_set_vir_el2(uint32_t timeout);
 void     val_timer_set_system_timer(addr_t cnt_base_n, uint32_t timeout);
 void     val_timer_disable_system_timer(addr_t cnt_base_n);
 uint32_t val_timer_skip_if_cntbase_access_not_allowed(uint64_t index);
@@ -412,7 +419,6 @@ typedef enum {
     BSA_POWER_SEM_I
 } BSA_POWER_SEM_e;
 
-void     val_debug_brk(uint32_t data);
 uint32_t val_power_enter_semantic(BSA_POWER_SEM_e semantic);
 uint32_t val_bsa_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 
@@ -459,6 +465,16 @@ void     val_peripheral_dump_info(void);
 uint64_t val_peripheral_get_info(PERIPHERAL_INFO_e info_type, uint32_t index);
 uint32_t val_peripheral_is_pcie(uint32_t bdf);
 void     val_peripheral_uart_setup(void);
+void     val_peripheral_uart_reg_write(uint64_t addr, uint32_t width_mask, uint32_t data);
+uint32_t val_peripheral_uart_reg_read(uint64_t addr, uint32_t width_mask);
+void     val_peripheral_uart_16550_reg_write(uint64_t uart_base, uint32_t offset,
+                                             uint32_t reg_shift, uint32_t width_mask,
+                                             uint32_t data);
+uint32_t val_peripheral_uart_16550_reg_read(uint64_t uart_base, uint32_t offset,
+                                            uint32_t reg_shift, uint32_t width_mask);
+uint32_t val_peripheral_uart_16550_width_to_access(uint32_t access_width,
+                                                   uint32_t *reg_shift,
+                                                   uint32_t *width_mask);
 uint32_t val_bsa_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 
 /* Memory Tests APIs */
@@ -709,56 +725,8 @@ typedef struct __attribute__((packed)) {
 extern DRTM_ACS_DL_RESULT      *g_drtm_acs_dl_result;
 extern DRTM_ACS_DL_SAVED_STATE *g_drtm_acs_dl_saved_state;
 
-int64_t val_drtm_features(uint64_t fid, uint64_t *feat1, uint64_t *feat2);
-uint32_t val_drtm_get_version(void);
-int64_t val_drtm_simulate_dl(DRTM_PARAMETERS *drtm_params);
-int64_t val_drtm_dynamic_launch(DRTM_PARAMETERS *drtm_params);
-int64_t val_drtm_close_locality(uint32_t locality);
-int64_t val_drtm_unprotect_memory(void);
-int64_t val_drtm_get_error(uint64_t *feat1);
-int64_t val_drtm_set_tcb_hash(uint64_t tcb_hash_table_addr);
-int64_t val_drtm_lock_tcb_hashes(void);
-uint32_t val_drtm_reserved_bits_check_is_zero(uint32_t reserved_bits);
-uint32_t val_drtm_get_psci_ver(void);
-uint32_t val_drtm_get_smccc_ver(void);
-
-uint32_t val_drtm_create_info_table(void);
-int64_t val_drtm_check_dl_result(uint64_t dlme_base_addr, uint64_t dlme_data_offset);
-int64_t val_drtm_init_drtm_params(DRTM_PARAMETERS *drtm_params);
-uint64_t val_drtm_get_feature(uint64_t feature_type);
-
 uint32_t val_drtm_execute_interface_tests(uint32_t num_pe);
 uint32_t val_drtm_execute_dl_tests(uint32_t num_pe);
-
-uint32_t interface001_entry(uint32_t num_pe);
-uint32_t interface002_entry(uint32_t num_pe);
-uint32_t interface003_entry(uint32_t num_pe);
-uint32_t interface004_entry(uint32_t num_pe);
-uint32_t interface005_entry(uint32_t num_pe);
-uint32_t interface006_entry(uint32_t num_pe);
-uint32_t interface007_entry(uint32_t num_pe);
-uint32_t interface008_entry(uint32_t num_pe);
-uint32_t interface009_entry(uint32_t num_pe);
-uint32_t interface010_entry(uint32_t num_pe);
-uint32_t interface011_entry(uint32_t num_pe);
-uint32_t interface012_entry(uint32_t num_pe);
-uint32_t interface013_entry(uint32_t num_pe);
-uint32_t interface014_entry(uint32_t num_pe);
-uint32_t interface015_entry(uint32_t num_pe);
-
-uint32_t dl001_entry(uint32_t num_pe);
-uint32_t dl002_entry(uint32_t num_pe);
-uint32_t dl003_entry(uint32_t num_pe);
-uint32_t dl004_entry(uint32_t num_pe);
-uint32_t dl005_entry(uint32_t num_pe);
-uint32_t dl006_entry(uint32_t num_pe);
-uint32_t dl007_entry(uint32_t num_pe);
-uint32_t dl008_entry(uint32_t num_pe);
-uint32_t dl009_entry(uint32_t num_pe);
-uint32_t dl010_entry(uint32_t num_pe);
-uint32_t dl011_entry(uint32_t num_pe);
-uint32_t dl012_entry(uint32_t num_pe);
-
 
 #define ACS_MPAM_REGISTER_TEST_NUM_BASE     0
 #define ACS_MPAM_CACHE_TEST_NUM_BASE        100
@@ -773,6 +741,7 @@ uint32_t dl012_entry(uint32_t num_pe);
 #define SIZE_1K    1024ULL
 #define SIZE_16K   4 * SIZE_4K
 #define SIZE_1M    SIZE_1K * SIZE_1K
+#define SIZE_32M   32 * SIZE_1M
 #define SIZE_1G    SIZE_1M * SIZE_1K
 
 #define SOFTLIMIT_DIS 0x0

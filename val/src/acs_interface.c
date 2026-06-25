@@ -117,6 +117,37 @@ uint32_t                g_drtm_acs_dlme_mmu_off[] = {
 
 uint64_t g_drtm_acs_dlme_mmu_off_size = sizeof(g_drtm_acs_dlme_mmu_off);
 
+int
+val_drtm_is_range_valid(uint8_t *start, uint8_t *end, uint8_t *ptr, uint64_t len)
+{
+    if (ptr < start || ptr > end)
+        return 0;
+
+    if (len > (uint64_t)(end - ptr))
+        return 0;
+
+    return 1;
+}
+
+static
+uint16_t
+val_drtm_get_spec_digest_size(const DRTM_EVENT_LOG_STATE *event_log, uint16_t hash_alg)
+{
+    uint32_t index;
+    TCG_EFI_SPECID_EVENT_ALGO_SIZE *digest_sizes;
+
+    if (event_log == NULL || event_log->event_spec == NULL)
+        return 0;
+
+    digest_sizes = (TCG_EFI_SPECID_EVENT_ALGO_SIZE *)&event_log->event_spec->digest_sizes[0];
+    for (index = 0; index < event_log->event_spec->number_of_algorithms; index++) {
+        if (digest_sizes[index].algorithm_id == hash_alg)
+            return digest_sizes[index].digest_size;
+    }
+
+    return 0;
+}
+
 int64_t val_invoke_drtm_fn(unsigned long function_id, unsigned long arg1,
               unsigned long arg2, unsigned long arg3,
               unsigned long arg4, unsigned long arg5,
@@ -604,10 +635,324 @@ uint64_t val_drtm_get_feature(uint64_t feature_type)
         feature = ((g_drtm_features.tpm_features.value >>
             DRTM_GET_FEATURES_SHIFT_TPM_BASED_HASHING) & DRTM_GET_FEATURES_MASK_TPM_BASED_HASHING);
     break;
+    case DRTM_DRTM_FEATURES_FW_HASH_ALGOROTHM:
+        feature = (g_drtm_features.tpm_features.value & DRTM_GET_FEATURES_MASK_FW_HASH_ALG);
+    break;
     default:
         feature = ACS_STATUS_ERR;
     break;
     }
 
     return feature;
+}
+
+/**
+  @brief  Get digest size for given TPM hash algorithm
+  @param TPM algorithm identifier
+
+  @return digest size in bytes, or 0 if unsupported.
+ **/
+uint32_t val_drtm_get_digest_size(uint16_t hash_alg)
+{
+    switch (hash_alg) {
+    case DRTM_TPM_ALG_SHA256:
+        return 32;
+    case DRTM_TPM_ALG_SHA384:
+        return 48;
+    case DRTM_TPM_ALG_SHA512:
+        return 64;
+    default:
+        return 0;
+    }
+}
+
+/**
+  @brief Determine if DCE and DRTM images are distinct
+
+  @return non-zero if the images are distinct, otherwise zero.
+**/
+uint32_t val_drtm_are_dce_and_drtm_images_distinct(void)
+{
+    return pal_drtm_are_dce_and_drtm_images_distinct();
+}
+
+/**
+  @brief Initialize DRTM event log state
+
+  @param pointer to DRTM parameters
+  @param pointer to event log state structure to initialize
+
+  @return ACS_STATUS_FAIL on failure, otherwise status code.
+**/
+int32_t val_drtm_event_log_init(DRTM_PARAMETERS *drtm_params, DRTM_EVENT_LOG_STATE *event_log)
+{
+    int32_t  event_log_size;
+    int32_t  event_head_size;
+    uint64_t algo_size;
+    uint64_t vendor_info_size;
+    uint64_t dlme_event_log_start_offset;
+    DRTM_DLME_DATA_HDR   *dlme_data_head;
+    TCG_PCR_EVENT        *event_log_head;
+    TCG_EFI_SPECID_EVENT *event_spec;
+    VENDOR_INFO          *vendor_info;
+    TCG_PCR_EVENT2       *event;
+    uint8_t              *event_log_start;
+    uint8_t              *event_log_end;
+
+    if (drtm_params == NULL || event_log == NULL)
+        return ACS_STATUS_FAIL;
+
+    val_memory_set(event_log, sizeof(*event_log), 0);
+
+    dlme_data_head = (DRTM_DLME_DATA_HDR *)(drtm_params->dlme_region_address +
+                                            drtm_params->dlme_data_offset);
+    event_log_size = dlme_data_head->drtm_event_log_size;
+    if (event_log_size <= 0)
+        return ACS_STATUS_FAIL;
+
+    /* Validate event_log_size doesn't exceed remaining DLME region */
+    dlme_event_log_start_offset = (uint64_t)dlme_data_head->size +
+                                           dlme_data_head->protected_regions_size +
+                                           dlme_data_head->address_map_size;
+    if (dlme_event_log_start_offset + event_log_size > drtm_params->dlme_region_size) {
+        val_print(ERROR, "\n       Event log size exceeds DLME region bounds");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Get Event Log Header address from DLME Data */
+    event_log_head = (TCG_PCR_EVENT *)((uint8_t *)dlme_data_head + dlme_event_log_start_offset);
+
+    /* Validate event log head is within dlme data bounds */
+    if ((uint8_t *)event_log_head >= ((uint8_t *)drtm_params->dlme_region_address +
+                                                        drtm_params->dlme_region_size)) {
+        val_print(ERROR, "\n       Event log head out of bounds");
+        return ACS_STATUS_FAIL;
+    }
+
+    if ((event_log_head->pcr_index != 0) || (event_log_head->event_type != EV_NO_ACTION)) {
+        val_print(ERROR, "\n       Event Log header invalid");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Get Event Log Header size */
+    event_spec = (TCG_EFI_SPECID_EVENT *)(event_log_head + 1);
+    event_log_start = (uint8_t *)event_log_head;
+    event_log_end = event_log_start + event_log_size;
+
+    if (!val_drtm_is_range_valid(event_log_start, event_log_end,
+                                 (uint8_t *)event_spec, sizeof(TCG_EFI_SPECID_EVENT))) {
+        val_print(ERROR, "\n       Event log data truncated at event spec header");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate event spec structure is within bounds */
+    if (event_spec->number_of_algorithms >
+        (DRTM_UINT32_MAX / sizeof(TCG_EFI_SPECID_EVENT_ALGO_SIZE))) {
+        val_print(ERROR, "\n       Event spec num algorithms overflow");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate algorithm sizes are within bounds */
+    algo_size = event_spec->number_of_algorithms * sizeof(TCG_EFI_SPECID_EVENT_ALGO_SIZE);
+    if (!val_drtm_is_range_valid(event_log_start, event_log_end,
+                                 (uint8_t *)&event_spec->digest_sizes[0], algo_size)) {
+        val_print(ERROR, "\n       Event spec digest sizes overflow");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate vendor info is within bounds */
+    vendor_info = (VENDOR_INFO *)((uint8_t *)&event_spec->digest_sizes[0] + algo_size);
+    if (!val_drtm_is_range_valid(event_log_start, event_log_end,
+                                 (uint8_t *)vendor_info, sizeof(uint8_t))) {
+        val_print(ERROR, "\n       Vendor info header overflow");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate vendor info size is within bounds */
+    vendor_info_size = (uint64_t)sizeof(uint8_t) + vendor_info->vendor_info_size;
+    if (!val_drtm_is_range_valid(event_log_start, event_log_end,
+                                 (uint8_t *)vendor_info, vendor_info_size)) {
+        val_print(ERROR, "\n       Vendor info overflow");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate event start is within bounds */
+    event = (TCG_PCR_EVENT2 *)((uint8_t *)vendor_info + vendor_info_size);
+    if (!val_drtm_is_range_valid(event_log_start, event_log_end,
+                                 (uint8_t *)event, sizeof(uint32_t) * 3)) {
+        val_print(ERROR, "\n       Event start pointer overflow");
+        return ACS_STATUS_FAIL;
+    }
+
+    /* Validate event header size is within bounds */
+    event_head_size = (uint8_t *)event - (uint8_t *)event_log_head;
+    if (event_head_size >= event_log_size) {
+        val_print(ERROR, "\n       Event log data truncated");
+        return ACS_STATUS_FAIL;
+    }
+
+    event_log->event_log_start = event_log_start;
+    event_log->event_log_end = event_log_end;
+    event_log->next_event = (uint8_t *)event;
+    event_log->remaining_size = event_log_size - event_head_size;
+    event_log->event_spec = event_spec;
+
+    return ACS_STATUS_PASS;
+}
+
+/**
+  @brief   Iterate to the next event log entry.
+
+  @param   event_log   Pointer to the current event log state.
+  @param   entry       Pointer to the event log entry structure to populate.
+
+  @return  ACS_STATUS_PASS if the next event entry was found and parsed successfully.
+           DRTM_ACS_NOT_FOUND if there are no more event entries.
+           ACS_STATUS_FAIL if a parsing or validation error occurred.
+**/
+int32_t val_drtm_event_log_next(DRTM_EVENT_LOG_STATE *event_log, DRTM_EVENT_LOG_ENTRY *entry)
+{
+    uint32_t digest_index;
+    uint16_t hash_alg;
+    uint16_t digest_size;
+    uint8_t *digest_data;
+    uint8_t *next_event;
+    TCG_PCR_EVENT2 *event;
+
+    if (event_log == NULL || entry == NULL) {
+        val_print(ERROR, "\n       Invalid event log or entry");
+        return ACS_STATUS_FAIL;
+    }
+
+    if (event_log->remaining_size == 0) {
+        val_print(DEBUG, "\n       No remaining event log data");
+        return DRTM_ACS_NOT_FOUND;
+    }
+
+    event = (TCG_PCR_EVENT2 *)event_log->next_event;
+    if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                 (uint8_t *)event, sizeof(uint32_t) * 3)) {
+        val_print(ERROR, "\n       Event log entry header out of range");
+        return ACS_STATUS_FAIL;
+    }
+
+    if ((event->pcr_index == 0) && (event->event_type == 0) && (event->digests.count == 0)) {
+        val_print(ERROR, "\n       Empty event log entry");
+        return DRTM_ACS_NOT_FOUND;
+    }
+
+    digest_data = (uint8_t *)&event->digests.digests[0];
+    for (digest_index = 0; digest_index < event->digests.count; digest_index++) {
+        if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                     digest_data, sizeof(hash_alg))) {
+            val_print(ERROR, "\n       Digest data out of range");
+            return ACS_STATUS_FAIL;
+        }
+
+        val_memcpy(&hash_alg, digest_data, sizeof(hash_alg));
+        digest_size = val_drtm_get_spec_digest_size(event_log, hash_alg);
+        if (digest_size == 0) {
+            val_print(ERROR, "\n       Unsupported digest algorithm: %u", hash_alg);
+            return ACS_STATUS_FAIL;
+        }
+
+        if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                     digest_data, sizeof(hash_alg) + digest_size)) {
+            val_print(ERROR, "\n       Digest entry out of range");
+            return ACS_STATUS_FAIL;
+        }
+
+        digest_data += sizeof(hash_alg) + digest_size;
+    }
+
+    if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                 digest_data, sizeof(uint32_t))) {
+        val_print(ERROR, "\n       Event data size header out of range");
+        return ACS_STATUS_FAIL;
+    }
+
+    entry->event = event;
+    entry->digest_data = (uint8_t *)&event->digests.digests[0];
+    entry->event_data = (EVENT_DATA *)digest_data;
+
+    if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                 (uint8_t *)entry->event_data,
+                                 sizeof(entry->event_data->event_size) +
+                                 entry->event_data->event_size)) {
+        val_print(ERROR, "\n       Event data out of range");
+        return ACS_STATUS_FAIL;
+    }
+
+    next_event = (uint8_t *)entry->event_data + sizeof(entry->event_data->event_size) +
+                 entry->event_data->event_size;
+    if (next_event <= (uint8_t *)event ||
+        (uint32_t)(next_event - (uint8_t *)event) > event_log->remaining_size) {
+        val_print(ERROR, "\n       Event record size exceeds remaining event log size");
+        return ACS_STATUS_FAIL;
+    }
+
+    event_log->remaining_size -= (uint32_t)(next_event - (uint8_t *)event);
+    event_log->next_event = next_event;
+
+    return ACS_STATUS_PASS;
+}
+
+int32_t val_drtm_event_log_get_digest(const DRTM_EVENT_LOG_STATE *event_log,
+                                      const DRTM_EVENT_LOG_ENTRY *entry, uint16_t hash_alg,
+                                      uint8_t **digest, uint16_t *digest_size)
+{
+    uint32_t digest_index;
+    uint16_t digest_hash_alg;
+    uint16_t current_digest_size;
+    uint8_t *digest_data;
+
+    if (event_log == NULL || entry == NULL || digest == NULL || digest_size == NULL) {
+        val_print(ERROR, "\n       Invalid parameters passed");
+        return ACS_STATUS_FAIL;
+    }
+
+    digest_data = entry->digest_data;
+    for (digest_index = 0; digest_index < entry->event->digests.count; digest_index++) {
+        if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                     digest_data, sizeof(digest_hash_alg))) {
+            val_print(ERROR, "\n       Digest data out of range");
+            return ACS_STATUS_FAIL;
+        }
+
+        val_memcpy(&digest_hash_alg, digest_data, sizeof(digest_hash_alg));
+        current_digest_size = val_drtm_get_spec_digest_size(event_log, digest_hash_alg);
+        if (current_digest_size == 0) {
+            val_print(ERROR,
+                "\n       Unsupported digest hash algorithm: 0x%04x", digest_hash_alg);
+            return ACS_STATUS_FAIL;
+        }
+
+        if (!val_drtm_is_range_valid(event_log->event_log_start, event_log->event_log_end,
+                                     digest_data + sizeof(digest_hash_alg), current_digest_size)) {
+            val_print(ERROR, "\n       Digest value out of range");
+            return ACS_STATUS_FAIL;
+        }
+
+        if (digest_hash_alg == hash_alg) {
+            *digest = digest_data + sizeof(digest_hash_alg);
+            *digest_size = current_digest_size;
+            return ACS_STATUS_PASS;
+        }
+
+        digest_data += sizeof(digest_hash_alg) + current_digest_size;
+    }
+
+    return DRTM_ACS_NOT_FOUND;
+}
+
+/**
+  @brief   This API provides a 'C' interface to call DAIF register reads
+           1. Caller       -  Test Suite
+           2. Prerequisite -  None
+  @return  the value read from the DAIF register.
+**/
+uint64_t
+val_drtm_read_daif(void)
+{
+    return DrtmReadDaif();
 }

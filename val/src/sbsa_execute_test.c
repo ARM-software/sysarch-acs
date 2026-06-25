@@ -31,7 +31,7 @@
 #include "acs_ras.h"
 #include "acs_nist.h"
 #include "acs_ete.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 
 extern uint32_t pcie_bdf_table_list_flag;
 extern pcie_device_bdf_table *g_pcie_bdf_table;
@@ -240,7 +240,7 @@ val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe)
 {
   uint32_t status = ACS_STATUS_PASS, i;
 
-  if (!(((level > 7) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 8)))
+  if (!(((level > 4) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 5)))
       return ACS_STATUS_SKIP;
 
   for (i = 0; i < g_num_skip; i++) {
@@ -260,7 +260,7 @@ val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe)
   val_print_test_start("Timer");
   g_curr_module = 1 << TIMER_MODULE;
 
-  if (((level > 7) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 8))
+  if (((level > 4) && (g_sbsa_only_level == 0)) || (g_sbsa_only_level == 5))
       status |= t006_entry(num_pe);
 
   val_print_test_end(status, "Timer");
@@ -391,7 +391,6 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p027_entry(num_pe);
       status |= p037_entry(num_pe);
       status |= p038_entry(num_pe);
-      status |= p047_entry(num_pe);
       status |= p048_entry(num_pe);
       status |= p049_entry(num_pe);
       status |= p050_entry(num_pe); /* iEP/RP only */

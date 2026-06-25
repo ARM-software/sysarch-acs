@@ -85,6 +85,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
+          per_info->irq   = 0;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
           pal_print_msg(ACS_PRINT_INFO,
                         "  Found a USB controller %4x\n",
@@ -111,6 +112,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
+          per_info->irq   = 0;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
           pal_print_msg(ACS_PRINT_INFO,
                         "  Found a SATA controller %4x\n",
@@ -303,6 +305,7 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
       Status = EFI_OUT_OF_RESOURCES;
       return;
     }
+    MemoryMapSize = EFI_PAGES_TO_SIZE (Pages);
     Status = gBS->GetMemoryMap (&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
   }
 

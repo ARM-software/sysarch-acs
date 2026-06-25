@@ -162,6 +162,12 @@ SYSOP_TYPE_PARAM_FUNC(tlbi, vae3is)
 SYSOP_TYPE_PARAM_FUNC(tlbi, vale3is)
 #endif
 
+/* EL-aware stage-1 VA invalidation (helper in SystemReg.S) */
+void tlbi_stage1_vaeis(uint64_t v);
+void tlbi_stage2_ipas2e1is(uint64_t v);
+void tlbi_sync_before(void);
+void tlbi_sync_after(void);
+
 /*******************************************************************************
  * Cache maintenance accessor prototypes
  ******************************************************************************/
@@ -447,7 +453,11 @@ RENAME_SYSREG_RW_FUNCS(mpamhcr_el2, MPAMHCR_EL2)
 RENAME_SYSREG_WRITE_FUNC(zcr_el3, ZCR_EL3)
 RENAME_SYSREG_WRITE_FUNC(zcr_el2, ZCR_EL2)
 
+#if defined(__ARM_FEATURE_SME)
 RENAME_SYSREG_READ_FUNC(id_aa64smfr0_el1, ID_AA64SMFR0_EL1)
+#else
+RENAME_SYSREG_READ_FUNC(id_aa64smfr0_el1, S3_0_C0_C4_5)
+#endif
 RENAME_SYSREG_RW_FUNCS(svcr, SVCR)
 RENAME_SYSREG_RW_FUNCS(tpidr2_el0, TPIDR2_EL0)
 RENAME_SYSREG_RW_FUNCS(smcr_el2, SMCR_EL2)

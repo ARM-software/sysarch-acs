@@ -177,6 +177,11 @@ payload(void)
 
   }
 
+  if (test_skip == 1) {
+      val_set_status(pe_index, RESULT_SKIP(01));
+      goto test_clean;
+  }
+
   val_set_status(pe_index, RESULT_PASS);
   goto test_clean;
 
@@ -184,10 +189,6 @@ test_fail:
   val_set_status(pe_index, RESULT_FAIL(02));
 
 test_clean:
-
-  if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(01));
-
   /* Remove all address mappings for each exerciser */
   for (instance = 0; instance < num_exercisers; ++instance)
   {
@@ -225,7 +226,7 @@ e030_entry(uint32_t num_pe)
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return TEST_SKIP;
+          return val_exerciser_get_init_result(TEST_RULE);
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
 

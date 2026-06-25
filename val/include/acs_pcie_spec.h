@@ -130,6 +130,8 @@
 #define BAR_BASE_MASK   0xfffffff
 
 /*BAR offset */
+#define BAR_32B_OFFSET            4
+#define BAR_64B_OFFSET            8
 #define BAR0_OFFSET               0x10
 #define BAR_TYPE_0_MAX_OFFSET     0x24
 #define BAR_TYPE_1_MAX_OFFSET     0x14
@@ -140,6 +142,7 @@
 #define BAR_VALUE_PREFETCH_MASK   0x8
 #define BAR_VALUE_IO_MASK         0x1
 #define BAR_REG(bar_reg_value)    ((bar_reg_value >> 2) & 0x1)
+#define BAR_MEM(bar_reg_value)    ((bar_reg_value & 0xF) >> 3)
 
 #define TYPE0_MAX_BARS  6
 #define TYPE1_MAX_BARS  2

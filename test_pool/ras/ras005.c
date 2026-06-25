@@ -28,8 +28,10 @@
 
 #define IS_NOT_SPI_PPI(int_id) ((int_id < 16) || (int_id > 1019))
 
-static uint64_t int_id;
-static uint32_t intr_pending = 1;
+static volatile uint64_t int_id;
+static volatile uint32_t intr_pending = 1;
+static volatile uint32_t intr_node_index;
+static volatile uint8_t intr_is_pfg_check;
 
 static
 void
@@ -37,9 +39,10 @@ intr_handler(void)
 {
   intr_pending = 0;
 
-  /* Clear the interrupt pending state */
+  /* Clear the RAS source before the common IRQ wrapper EOIs the interrupt. */
+  val_ras_clear_error_status(intr_node_index, intr_is_pfg_check);
 
-  val_print(TRACE, "\n       Received interrupt %x       ");
+  val_print(TRACE, "\n       Received interrupt 0x%lx", int_id);
   val_gic_end_of_interrupt(int_id);
   return;
 }
@@ -120,7 +123,9 @@ payload()
       err_in_params.rec_index = rec_index;
       err_in_params.node_index = node_index;
       err_in_params.ras_error_type = ERR_CE;
-      err_in_params.is_pfg_check = 0;
+      /* Pass the selected interrupt type so common RAS setup can enable FHI or ERI. */
+      err_in_params.intr_type = (fhi_id) ? RAS_INTR_TYPE_FHI : RAS_INTR_TYPE_ERI;
+      intr_node_index = node_index;
 
       /* Install handler for interrupt */
       val_gic_install_isr(int_id, intr_handler);
@@ -135,6 +140,8 @@ payload()
         fail_cnt++;
         break;
       }
+      /* Preserve PAL/VAL-selected PFG mode for interrupt-source cleanup. */
+      intr_is_pfg_check = err_out_params.is_pfg_check;
 
       /* Inject error in an implementation defined way */
       status = val_ras_inject_error(err_in_params, &err_out_params);

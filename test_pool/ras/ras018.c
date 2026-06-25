@@ -134,7 +134,7 @@ payload()
         err_in_params.ras_error_type = ERR_CONTAINABLE; /* containable error */
         err_in_params.error_pa = dev_addr;              /* address of the location where error
                                                                needs to be injected */
-        err_in_params.is_pfg_check = 0;                 /* not a pseudo fault check */
+        err_in_params.intr_type = RAS_INTR_TYPE_NONE;
 
         /* Setup error in an implementation defined way */
         status = val_ras_setup_error(err_in_params, &err_out_params);

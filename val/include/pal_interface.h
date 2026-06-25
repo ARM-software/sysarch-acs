@@ -126,6 +126,7 @@
 /* The following are common across all platform unless guarded explicitly */
 
 #define ONE_MILLISECOND 1000
+#define PAL_TIME_US_INVALID (~0ULL)
 
 #define PCIE_SUCCESS            0x00000000  /* Operation completed successfully */
 #define PCIE_NO_MAPPING         0x10000001  /* A mapping to a Function does not exist */
@@ -805,6 +806,7 @@ void    *pal_mem_virt_to_phys(void *va);
 void    *pal_mem_phys_to_virt(uint64_t pa);
 
 uint64_t pal_time_delay_ms(uint64_t time_ms);
+uint64_t pal_get_platform_time_us(void);
 void     pal_mem_allocate_shared(uint32_t num_pe, uint32_t sizeofentry);
 void     pal_mem_free_shared(void);
 uint64_t pal_mem_get_shared_addr(void);
@@ -1360,17 +1362,22 @@ typedef enum {
     ERR_CONTAINABLE  /* Containable Error */
 } RAS_ERROR_TYPE;
 
+#define RAS_INTR_TYPE_FHI   0x0  /* Fault Handling Interrupt */
+#define RAS_INTR_TYPE_ERI   0x1  /* Error Recovery Interrupt */
+#define RAS_INTR_TYPE_NONE  0xFF /* No ERI/FHI selected */
+
 typedef struct {
    RAS_ERROR_TYPE ras_error_type;   /* Error Type */
    uint64_t error_pa;                 /* Error Phy Address */
    uint32_t rec_index;                /* Error Record Index */
    uint32_t node_index;               /* Error Node Index in Info table */
-   uint8_t is_pfg_check;              /* Pseudo Fault Check or not */
+   uint32_t intr_type;                /* Interrupt type used for common PFG setup */
 } RAS_ERR_IN_t;
 
 typedef struct {
    uint32_t intr_id;        /* Interrupt ID */
    uint32_t error_record;   /* Error Record Number */
+   uint8_t is_pfg_check;    /* Pseudo Fault Check or not */
 } RAS_ERR_OUT_t;
 
 typedef enum {
@@ -1439,6 +1446,7 @@ long pal_invoke_drtm_fn(unsigned long function_id, unsigned long arg1,
             unsigned long arg4, unsigned long arg5,
             unsigned long *ret1, unsigned long *ret2,
             unsigned long *ret3);
+uint32_t pal_drtm_are_dce_and_drtm_images_distinct(void);
 
 typedef struct drtm_log_control {
     int print_level;

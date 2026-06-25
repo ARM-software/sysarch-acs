@@ -22,8 +22,9 @@
 #include "val_interface.h"
 #include "pal_interface.h"
 #include "val_interface.h"
+#include "val_sysreg_mpam.h"
 #include "acs_std_smc.h"
-#include "acs_timer_support.h"
+#include "acs_timer.h"
 
 /**
   @brief   Pointer to the memory location of the PE Information table
@@ -214,20 +215,36 @@ val_pe_reg_read(uint32_t reg_id)
           return read_dbgbcr15_el1();
       case ID_AA64ZFR0_EL1:
           return read_id_aa64zfr0_el1();
+      case ID_AA64ZFR1_EL1:
+          return read_id_aa64zfr1_el1();
+      case PE_MPAMIDR_EL1:
+          return read_mpamidr_el1();
+      case CNTFRQ_EL0:
+          return read_cntfrq_el0();
+      case ID_AA64SMFR0_EL1:
+          return read_id_aa64smfr0_el1();
+      case ID_AA64PFR2_EL1:
+          return read_id_aa64pfr2_el1();
       case BRBIDR0_EL1:
           return read_brbidr0_el1();
       case TRBIDR_EL1:
           return read_trbidr_el1();
       case TRCIDR0:
           return read_trcidr0();
-       case TRCIDR4:
+      case TRCIDR4:
           return read_trcidr4();
-       case TRCIDR5:
+      case TRCIDR5:
           return read_trcidr5();
-       case HCR_EL2:
+      case HCR_EL2:
           return read_hcr_el2();
-       case VTCR_EL2:
+      case VTCR_EL2:
           return read_vtcr_el2();
+      case ZCR_EL1:
+          return read_zcr_el1();
+      case CPTR_EL2:
+          return read_cptr_el2();
+      case CPACR_EL1:
+          return read_cpacr_el1();
       default:
            val_report_status(val_pe_get_index_mpid(val_pe_get_mpid()),
                                                  RESULT_FAIL(0xFF), NULL);
@@ -267,6 +284,15 @@ val_pe_reg_write(uint32_t reg_id, uint64_t write_data)
           break;
       case PMINTENCLR_EL1:
           write_pmintenclr_el1(write_data);
+          break;
+      case CPTR_EL2:
+          write_cptr_el2(write_data);
+          break;
+      case CPACR_EL1:
+          write_cpacr_el1(write_data);
+          break;
+      case ZCR_EL1:
+          write_zcr_el1(write_data);
           break;
       case MDCR_EL2:
           write_mdcr_el2(write_data);

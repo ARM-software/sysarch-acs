@@ -383,7 +383,7 @@ uint64_t val_pgt_ioremap_attr(pgt_descriptor_t pgt_desc,
     }
 
     /* Ensure page table writes are visible before TLBI */
-    asm volatile("dsb ishst" ::: "memory");
+    tlbi_sync_before();
 
     /* Invalidate only the modified VA range */
     for (uint64_t a = va; a < va + size; a += page_size) {
@@ -391,14 +391,13 @@ uint64_t val_pgt_ioremap_attr(pgt_descriptor_t pgt_desc,
         uint64_t arg = tlbi_by_va_arg(a_aligned, page_size_log2);     /* VA bits according to TG */
 
         if (pgt_desc.stage == PGT_STAGE2)
-            asm volatile("tlbi ipas2e1is, %0" :: "r"(arg) : "memory");
+            tlbi_stage2_ipas2e1is(arg);
         else
-            asm volatile("tlbi vae2is, %0" :: "r"(arg) : "memory");
+            tlbi_stage1_vaeis(arg);
     }
 
     /* Synchronize completion of TLBI */
-    asm volatile("dsb ish" ::: "memory");
-    asm volatile("isb");
+    tlbi_sync_after();
     if (flag) {
        /*Adding to list to revert back the attribute during unmap*/
        IOREMMAP_LIST *lst = val_memory_alloc(sizeof(IOREMMAP_LIST));

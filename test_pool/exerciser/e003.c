@@ -372,7 +372,7 @@ payload(void)
   barspace_transactions_order_check();
 
   if (warn_cnt)
-    val_set_status(pe_index, RESULT_WARNING(1));
+    val_set_status(pe_index, RESULT_WARNING(2));
   else if (!run_flag)
     val_set_status(pe_index, RESULT_SKIP(2));
   else if (fail_cnt)
@@ -394,7 +394,7 @@ e003_entry(uint32_t num_pe)
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
   if (status != ACS_STATUS_SKIP) {
       if (val_exerciser_test_init() != ACS_STATUS_PASS)
-          return RESULT_SKIP(1);
+          return val_exerciser_get_init_result(TEST_RULE);
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
   }
 

@@ -41,6 +41,43 @@ Examples
    cmake .. -DACS_VERBOSE_LEVEL=1
 
 -------------------------------------
+Compliance Level Control (ACS_LEVEL)
+-------------------------------------
+You can override the target compliance level of the active ACS suite at
+CMake configure time. When ``ACS_LEVEL`` is defined it takes precedence
+over the per-platform ``PLATFORM_OVERRIDE_<ACS>_LEVEL`` value supplied by
+``pal/baremetal/target/<TARGET>/include/platform_override_fvp.h``.
+
+**Default:** value of ``PLATFORM_OVERRIDE_<ACS>_LEVEL`` from the platform
+header, with ``LVL_FILTER_MAX`` filter mode.
+
+**Set Level:** define ``ACS_LEVEL=<value>`` at CMake configure time.
+
+Accepted values:
+
+- A positive integer ``<n>`` — sets ``ctx->level_value = <n>`` and
+  selects ``LVL_FILTER_MAX`` (run all rules with level ``<=`` n).
+- ``fr`` (or ``FR``) — selects ``LVL_FILTER_FR`` (future-requirements
+  mode). ``ctx->level_value`` is left at the platform default.
+
+Per-ACS valid numeric ranges:
+
+- ``-DACS=bsa``    : ``1``
+- ``-DACS=sbsa``   : ``3..7``
+- ``-DACS=pc_bsa`` : ``1``
+
+Numeric values outside the supported range are clamped to the nearest
+valid level at runtime, with a console warning.
+
+Examples
+~~~~~~~~
+.. code-block:: bash
+
+   cmake --preset sbsa -DACS_LEVEL=7
+   cmake --preset sbsa -DACS_LEVEL=fr
+   cmake --preset bsa  -DACS_LEVEL=1
+
+-------------------------------------
 MMU Control (ACS_ENABLE_MMU)
 -------------------------------------
 

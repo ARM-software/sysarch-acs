@@ -51,7 +51,6 @@ payload()
       if (!num_blocks) {
           val_print(ERROR, "\n       No valid ITS Blocks found in group %d  ", i);
           val_set_status(index, RESULT_FAIL(2));
-          val_set_status(index, RESULT_FAIL(3));
           return;
       }
       val_print(DEBUG, "\n       Number of ITS Blocks = %d        "

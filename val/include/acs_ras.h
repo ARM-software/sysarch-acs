@@ -43,6 +43,8 @@
 
 #define ERR_CTLR_CLEAR_MASK     0x3FFD
 #define ERR_CTLR_ED_ENABLE      0x1
+#define ERR_CTLR_FHI_ENABLE     0x108ULL  /* Enable Fault Handling Interrupt */
+#define ERR_CTLR_ERI_ENABLE     0x4ULL    /* Enable Error Recovery Interrupt */
 
 #define ERR_ADDR_AI_SHIFT 61
 
@@ -51,6 +53,7 @@
 #define ERR_PFGCTL_CE_NON_ENABLE  (0x1ull << 6)
 #define ERR_PFGCTL_CI_ENABLE      (0x1ull << 8)
 #define ERR_PFGCTL_CDNEN_ENABLE   (0x1ull << 31)
+#define ERR_PFGCTL_TRIGGER_ALL    0x40001FFFULL  /* Trigger all supported PFG classes */
 
 #define ERR_FR_OFFSET           0x000
 #define ERR_CTLR_OFFSET         0x008
@@ -112,6 +115,7 @@ uint32_t val_ras_check_plat_poison_support(void);
 
 uint64_t val_ras_reg_read(uint32_t node_index, uint32_t reg, uint32_t err_rec_idx);
 void val_ras_reg_write(uint32_t node_index, uint32_t reg, uint64_t write_data);
+void val_ras_clear_error_status(uint32_t node_index, uint8_t is_pfg_check);
 
 uint32_t ras001_entry(uint32_t num_pe);
 uint32_t ras002_entry(uint32_t num_pe);
@@ -124,7 +128,6 @@ uint32_t ras008_entry(uint32_t num_pe);
 uint32_t ras009_entry(uint32_t num_pe);
 uint32_t ras010_entry(uint32_t num_pe);
 uint32_t ras011_entry(uint32_t num_pe);
-uint32_t ras012_entry(uint32_t num_pe);
 uint32_t ras013_entry(uint32_t num_pe);
 uint32_t ras014_entry(uint32_t num_pe);
 uint32_t ras015_entry(uint32_t num_pe);

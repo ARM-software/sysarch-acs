@@ -24,7 +24,7 @@
 #include "acs_memory.h"
 #include "acs_peripherals.h"
 #include "acs_smmu.h"
-#include "acs_timer.h"
+#include "acs_timer_infra.h"
 #include "acs_wd.h"
 #include "acs_gic_support.h"
 #include "acs_common.h"
@@ -352,7 +352,6 @@ val_bsa_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           status |= t003_entry(num_pe);
           status |= t004_entry(num_pe);
           status |= t005_entry(num_pe);
-          status |= t007_entry(num_pe);
       }
   }
 
@@ -547,12 +546,6 @@ val_bsa_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 #endif
       }
 
-#if defined(TARGET_LINUX) || defined(TARGET_BAREMETAL)
-    if (g_bsa_level > 1 || g_bsa_only_level == 2) {
-        status |= p091_entry(num_pe);
-    }
-#endif
-
 #ifndef TARGET_LINUX
     if (g_bsa_level > 1 || g_bsa_only_level == 2) {
         status |= p100_entry(num_pe);
@@ -612,6 +605,7 @@ val_bsa_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           status |= d001_entry(num_pe);
           status |= d002_entry(num_pe);
           status |= d003_entry(num_pe);
+          status |= d005_entry(num_pe);
           status |= d006_entry(num_pe);
           status |= d008_entry(num_pe);
 #endif

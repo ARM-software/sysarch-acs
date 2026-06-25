@@ -39,8 +39,8 @@ payload()
   uint32_t enable_grp1ns;
   uint32_t data;
   uint32_t are_ns = val_gic_get_info(GIC_INFO_AFFINITY_NS);
-  uint32_t index, mpid;
-  uint64_t pe_rdbase;
+  uint32_t index;
+  uint64_t pe_rdbase, mpid;
 
   mpid = val_pe_get_mpid();
   val_print(DEBUG, "\n       PE MPIDR 0x%x", mpid);

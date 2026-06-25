@@ -80,6 +80,9 @@
 #define BSA_TCR_PS_SHIFT   16
 #define BSA_TCR_PS_MASK    (0x7ull << BSA_TCR_PS_SHIFT)
 
+#define ZCR_EL1_LEN_SHIFT 0
+#define ZCR_EL1_LEN_MASK   (0xFULL << ZCR_EL1_LEN_SHIFT)
+
 /* MPIDR macros */
 #define PAL_MPIDR_AFFLVL_MASK    0xffull
 #define PAL_MPIDR_AFFINITY_BITS  8
@@ -187,6 +190,11 @@ typedef enum {
   DBGBCR14_EL1,
   DBGBCR15_EL1,
   ID_AA64ZFR0_EL1,
+  ID_AA64ZFR1_EL1,
+  PE_MPAMIDR_EL1,
+  CNTFRQ_EL0,
+  ID_AA64SMFR0_EL1,
+  ID_AA64PFR2_EL1,
   ID_AA64ISAR2_EL1,
   BRBIDR0_EL,
   BRBIDR0_EL1,
@@ -195,7 +203,10 @@ typedef enum {
   TRCIDR4,
   TRCIDR5,
   HCR_EL2,
-  VTCR_EL2
+  VTCR_EL2,
+  CPTR_EL2,
+  CPACR_EL1,
+  ZCR_EL1,
 } BSA_ACS_PE_REGS;
 
 uint64_t AA64WriteSp(uint64_t write_data);

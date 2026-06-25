@@ -39,6 +39,13 @@ static acs_test_status_counters_t g_rule_test_stats;
 void
 val_log_context(char8_t *file, char8_t *func, uint32_t line)
 {
+#ifndef COMPILE_RB_EXE
+  /* Skip printing log context when built for Rule-Based execution. */
+  (void)file;
+  (void)func;
+  (void)line;
+  return;
+#else
   char8_t *trimmed_file;
   char8_t *marker;
   /* Substring to locate in full file path */
@@ -66,6 +73,7 @@ val_log_context(char8_t *file, char8_t *func, uint32_t line)
   val_print(DEBUG, "%d", line);
   val_print(DEBUG, " ");
   val_print(DEBUG, func);
+#endif /* COMPILE_RB_EXE */
 }
 
 /**
@@ -835,20 +843,6 @@ val_pe_get_far(void *context)
 }
 
 /**
-  @brief  Write to an address, meant for debugging purpose
-
-  @param  data Data to be written
-
-  @return None
-**/
-void
-val_debug_brk(uint32_t data)
-{
-   addr_t address = 0x9000F000; // address = pal_get_debug_address();
-   *(addr_t *)address = data;
-}
-
-/**
   Stalls the CPU for the number of microseconds specified by MicroSeconds.
 
   @param  MicroSeconds  The minimum number of microseconds to delay.
@@ -860,6 +854,12 @@ uint64_t
 val_time_delay_ms(uint64_t timer_ms)
 {
   return pal_time_delay_ms(timer_ms);
+}
+
+uint64_t
+val_get_platform_time_us(void)
+{
+  return pal_get_platform_time_us();
 }
 
 /**

@@ -660,6 +660,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
+          per_info->irq   = 0;
           pal_print_msg(ACS_PRINT_INFO,
                         "  Found a USB controller %4x\n",
                         per_info->base0);
@@ -690,6 +691,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
                   break;
           }
           per_info->bdf   = DeviceBdf;
+          per_info->irq   = 0;
           pal_print_msg(ACS_PRINT_INFO,
                         "  Found a SATA controller %4x\n",
                         per_info->base0);
