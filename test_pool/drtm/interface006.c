@@ -37,7 +37,7 @@ payload(uint32_t num_pe)
     return;
   }
 
-  /*Status grater than zero indicates availability of feature bits in return value*/
+  /*Status greater than zero indicates availability of feature bits in return value*/
   if (status > DRTM_ACS_SUCCESS) {
     if ((val_drtm_reserved_bits_check_is_zero(VAL_EXTRACT_BITS(features_tpm, 16, 31))
              != ACS_STATUS_PASS) && (val_drtm_reserved_bits_check_is_zero(

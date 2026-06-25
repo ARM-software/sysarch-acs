@@ -21,7 +21,7 @@
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 16)
 #define TEST_RULE  "S_L5GI_01"
-#define TEST_DESC  "Check Non standard GICv3 implmentation"
+#define TEST_DESC  "Check Non standard GICv3 implementation"
 
 static
 void

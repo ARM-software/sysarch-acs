@@ -236,7 +236,7 @@ inject_error(uint32_t e_bdf, uint32_t instance, uint32_t aer_offset)
                 {
                     val_gic_free_irq(irq_pending, 0);
                     val_print(ERROR,
-                              "\n       Intr not trigerred on err injection bdf 0x%x", e_bdf);
+                              "\n       Intr not triggered on err injection bdf 0x%x", e_bdf);
                     return 1;
                 }
             }
@@ -244,7 +244,7 @@ inject_error(uint32_t e_bdf, uint32_t instance, uint32_t aer_offset)
 
         /* Check if error injected is correctable or uncorrectable*/
         if (status == ERR_CORR) {
-            val_print(TRACE, "\n       Correctable error recieved");
+            val_print(TRACE, "\n       Correctable error received");
             res = correctable_err_status_chk(e_bdf, aer_offset, value);
             if (res) {
                 val_print(ERROR,
@@ -254,7 +254,7 @@ inject_error(uint32_t e_bdf, uint32_t instance, uint32_t aer_offset)
         }
 
         else if (status == ERR_UNCORR) {
-            val_print(TRACE, "\n       UnCorrectable error recieved");
+            val_print(TRACE, "\n       Uncorrectable error received");
             res = uncorrectable_error_chk(e_bdf, aer_offset, value);
             if (res) {
                 val_print(ERROR,

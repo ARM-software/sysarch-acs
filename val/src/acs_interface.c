@@ -395,7 +395,7 @@ int64_t val_drtm_init_drtm_params(DRTM_PARAMETERS *drtm_params)
 
     val_memory_set((void *)drtm_params, sizeof(DRTM_PARAMETERS), 0);
 
-    /*Status grater than zero indicates availability of feature bits in return value*/
+    /*Status greater than zero indicates availability of feature bits in return value*/
     dlme_data_region_size =
         DRTM_SIZE_4K * VAL_EXTRACT_BITS(g_drtm_features.min_memory_req.value, 0, 31);
 

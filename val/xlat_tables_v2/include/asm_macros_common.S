@@ -97,7 +97,7 @@
      * This macro declares an array of 1 or more stacks, properly
      * aligned and in the requested section
      */
-#define DEFAULT_STACK_ALIGN    (1 << 6)   /* In case the caller doesnt provide alignment */
+#define DEFAULT_STACK_ALIGN    (1 << 6)   /* In case the caller does not provide alignment */
 
     .macro declare_stack _name, _section, _size, _count, _align=DEFAULT_STACK_ALIGN
     count_tz \_align, 0

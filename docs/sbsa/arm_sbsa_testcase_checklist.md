@@ -400,7 +400,7 @@ The checklist provides information about:
       <td>S_L5GI_01</td>
       <td>S_L5GI_01</td>
       <td>216</td>
-      <td>Check Non standard GICv3 implmentation</td>
+      <td>Check Non standard GICv3 implementation</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1133,7 +1133,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_LI_01</td>
       <td></td>
-      <td>Check Legacy Intrrupt is SPI</td>
+      <td>Check Legacy Interrupt is SPI</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2017,7 +2017,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_LI_01</td>
       <td></td>
-      <td>Check Legacy Intrrupt is SPI</td>
+      <td>Check Legacy Interrupt is SPI</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>

@@ -138,7 +138,7 @@ uint32_t val_exerciser_get_info(EXERCISER_INFO_TYPE type)
   @param   value1       - Parameter 1 that needs to be set
   @param   value2       - Parameter 2 that needs to be set
   @param   instance     - Stimulus hardware instance number
-  @return  status       - SUCCESS if the input paramter type is successfully written
+  @return  status       - SUCCESS if the input parameter type is successfully written
 **/
 uint32_t val_exerciser_set_param(EXERCISER_PARAM_TYPE type, uint64_t value1, uint64_t value2,
                                  uint32_t instance)
@@ -185,7 +185,7 @@ uint32_t val_exerciser_get_exerciser_instance(uint32_t rc_index)
   @param   value1       - Parameter 1 that is read from hardware
   @param   value2       - Parameter 2 that is read from hardware
   @param   instance     - Stimulus hardware instance number
-  @return  status       - SUCCESS if the requested paramter type is successfully read
+  @return  status       - SUCCESS if the requested parameter type is successfully read
 **/
 uint32_t val_exerciser_get_param(EXERCISER_PARAM_TYPE type, uint64_t *value1, uint64_t *value2,
                                  uint32_t instance)

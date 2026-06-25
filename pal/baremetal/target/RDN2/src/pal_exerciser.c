@@ -223,7 +223,7 @@ pal_is_bdf_exerciser(uint32_t bdf)
   @param   Value1       - Parameter 1 that needs to be set
   @param   Value2       - Parameter 2 that needs to be set
   @param   Instance     - Stimulus hardware instance number
-  @return  Status       - SUCCESS if the input paramter type is successfully written
+  @return  Status       - SUCCESS if the input parameter type is successfully written
 **/
 uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uint64_t Value2, uint32_t Bdf)
 {
@@ -404,7 +404,7 @@ uint32_t pal_exerciser_start_dma_direction (uint64_t Base, EXERCISER_DMA_ATTR Di
   @param   Value1       - Parameter 1 that is read from hardware
   @param   Value2       - Parameter 2 that is read from hardware
   @param   Instance     - Stimulus hardware instance number
-  @return  Status       - SUCCESS if the requested paramter type is successfully read
+  @return  Status       - SUCCESS if the requested parameter type is successfully read
 **/
 uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE Type, uint64_t *Value1, uint64_t *Value2, uint32_t Bdf)
 {

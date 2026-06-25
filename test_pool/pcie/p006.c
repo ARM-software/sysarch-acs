@@ -23,7 +23,7 @@
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 6)
 #define TEST_RULE  "PCI_LI_01"
-#define TEST_DESC  "Check Legacy Intrrupt is SPI          "
+#define TEST_DESC  "Check Legacy Interrupt is SPI         "
 
 static
 void

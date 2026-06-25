@@ -24,7 +24,7 @@
 
 static const
 test_config_t test_entries[] = {
-        { ACS_PCIE_TEST_NUM_BASE + 27, "Check Legacy Intrrupt is SPI          ", "PCI_LI_01"},
+        { ACS_PCIE_TEST_NUM_BASE + 27, "Check Legacy Interrupt is SPI         ", "PCI_LI_01"},
         { ACS_PCIE_TEST_NUM_BASE + 78, "Check Legacy Intr SPI level sensitive ", "PCI_LI_03"}
     };
 

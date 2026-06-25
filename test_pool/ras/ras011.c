@@ -59,10 +59,10 @@ esr(uint64_t interrupt_type, void *context)
 }
 
 /*
- * This tests checks for Poison is stored and forwarded in case
+ * This test checks if Poison is stored and forwarded in case
  * of error if platform supports Poison Storage and forwarding
  * supported by the implementation. This test expects Poison bits
- * in the status register to be set after error has occured.
+ * in the status register to be set after error has occurred.
  */
 static
 void
@@ -263,9 +263,9 @@ exception_return:
 }
 
 /*
- * This tests is run if platform does not supports Poison Storage
+ * This test is run if platform does not support Poison Storage
  * and forwarding. This test expects an exception to be raised
- * when an error is occured.
+ * when an error occurs.
  */
 static
 void

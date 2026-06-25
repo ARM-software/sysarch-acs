@@ -163,7 +163,7 @@ payload(void *arg)
 disable_ro:
       /* Check 2: Disable Relaxed ordering by setting RO = 0 and
        * Send a set of staggered writes to address. The transactions
-       * must be recieved in the same order in which it was initiated
+       * must be received in the same order in which they were initiated
        */
 
       /*Disable Relaxed Ordering*/

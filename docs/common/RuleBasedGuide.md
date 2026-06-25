@@ -36,7 +36,7 @@ Bsa.efi/Sbsa.efi/PCBsa.efi -r "<rule id>"` **or** `Bsa.efi/Sbsa.efi/PCBsa.efi -r
   ```
 
 * To run by passing a text file which contains rule list:
-  - The rule must be comma seperated
+  - The rule must be comma separated
 
   ```bash
   # rule.txt which contains B_PE_01,B_PE_02,B_GIC_01

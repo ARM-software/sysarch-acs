@@ -110,7 +110,7 @@ val_gic_is_valid_lpi(uint32_t int_id)
   max_lpi_id = val_its_get_max_lpi();
 
   if ((int_id < LPI_MIN_ID) || (int_id > max_lpi_id)) {
-    /* Not Vaild LPI */
+    /* Not Valid LPI */
     return 0;
   }
 

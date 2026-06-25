@@ -214,7 +214,7 @@ val_gic_get_pe_rdbase(uint64_t mpidr)
   @brief   This API returns the base address of the GIC Redistributor
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
-  @param   rdbase_len - To Store the Lenght of the Redistributor
+  @param   rdbase_len - To Store the Length of the Redistributor
   @param   gicr_rd_index - Used to obtain correct GICR RD base structure
                            address for cases when system has multiple GICR RD structure.
   @return  Address of GIC Redistributor

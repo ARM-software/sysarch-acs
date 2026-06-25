@@ -1393,7 +1393,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_LI_01</td>
       <td>806</td>
-      <td>Check Legacy Intrrupt is SPI</td>
+      <td>Check Legacy Interrupt is SPI</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2466,7 +2466,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_LI_01</td>
       <td>806</td>
-      <td>Check Legacy Intrrupt is SPI</td>
+      <td>Check Legacy Interrupt is SPI</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3350,7 +3350,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_LI_01</td>
       <td>806</td>
-      <td>Check Legacy Intrrupt is SPI</td>
+      <td>Check Legacy Interrupt is SPI</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>

@@ -244,7 +244,7 @@ payload(uint32_t num_pe)
   event_head_size = (uint8_t *)event - (uint8_t *)event_log_head;
 
   event_log_size = event_log_size - event_head_size;
-  /* Loop untill Event Log size is grater than zero and print event data */
+  /* Loop until Event Log size is greater than zero and print event data */
   while (event_log_size > 0) {
     /* Check for zeroed which indicates end of log */
     if ((event->pcr_index == 0) && (event->event_type == 0) && (event->digests.count == 0)) {

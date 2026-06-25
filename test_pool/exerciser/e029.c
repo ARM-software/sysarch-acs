@@ -142,7 +142,7 @@ exception_return:
        */
       val_print(DEBUG, "       bar_data %x ", bar_data);
       if (!(exception)) {
-          val_print(ERROR, "\n       External Abort isnt recieved, BDF %x", e_bdf);
+          val_print(ERROR, "\n       External Abort is not received, BDF %x", e_bdf);
           val_set_status(pe_index, RESULT_FAIL(03));
       }
 

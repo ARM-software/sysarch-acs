@@ -117,7 +117,7 @@ payload()
   val_pe_reg_write(PMCR_EL0, pmcr_value);
 exception_taken:
   if (timeout == 0) {
-      val_print(ERROR, "\n       Interrupt not recieved within timeout");
+      val_print(ERROR, "\n       Interrupt not received within timeout");
       val_set_status(index, RESULT_FAIL(2));
   }
 }

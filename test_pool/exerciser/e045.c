@@ -117,7 +117,7 @@ payload(void)
 
     status = val_exerciser_set_param(GENERATE_MEFN_VDM, 0, e_bdf, instance);
     if (status != ACS_STATUS_PASS) {
-      val_print(ERROR, "\n       MEFN trigger not succesful BDF 0x%x", e_bdf);
+      val_print(ERROR, "\n       MEFN trigger not successful BDF 0x%x", e_bdf);
       continue;
     }
 

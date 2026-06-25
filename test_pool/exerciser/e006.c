@@ -53,7 +53,7 @@ static void intr_handler(void)
         return;
     }
 
-    /* Deassert the interupt line */
+    /* Deassert the interrupt line */
     val_exerciser_ops(CLEAR_INTR, e_intr_line, instance);
 
     /* Return the interrupt */

@@ -310,7 +310,7 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
     - PCI_MM_03
     - PCI_MM_04
 
-- E.3 - PCI Express deivce view of memory
+- E.3 - PCI Express device view of memory
 
     - PCI_MM_05
     - PCI_MM_06

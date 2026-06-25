@@ -37,7 +37,7 @@ payload(uint32_t num_pe)
     return;
   }
 
-  /*Status grater than zero indicates availability of feature bits in return value*/
+  /*Status greater than zero indicates availability of feature bits in return value*/
   if (status > DRTM_ACS_SUCCESS) {
     val_print(DEBUG, "\n       Minimum size of DLME data 0x%X 4KB pages",
                  VAL_EXTRACT_BITS(features_mem_req, 0, 31));

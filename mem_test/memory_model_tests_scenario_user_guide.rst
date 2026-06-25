@@ -284,7 +284,7 @@ Test Suite Overview
       | which has a pick control dependency followed by an isb from the
       | preceding LDR.
 
-Analysing litmus tests log ouput
+Analysing litmus tests log output
 ================================
 
 Each litmus test outputs a result log in a format similar to the following snippet. The log of the 2+2W+dmb.sys test is taken as an example in the interest

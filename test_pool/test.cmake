@@ -83,7 +83,7 @@ foreach(FILE_NAME ${FILE_NAMES})
 	    endif()
     endforeach()
     if(NOT FILE_FOUND)
-	    message(STATUS "File doesnt exists: ${FILE_PATH}")
+	    message(STATUS "File does not exist: ${FILE_PATH}")
     endif()
 endforeach()
 

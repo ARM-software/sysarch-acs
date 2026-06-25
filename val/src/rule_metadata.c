@@ -692,7 +692,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L5GI_01] = {
             .test_entry_id    = G016_ENTRY,
             .module_id        = GIC,
-            .rule_desc        = "Check Non standard GICv3 implmentation",
+            .rule_desc        = "Check Non standard GICv3 implementation",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_GIC_TEST_NUM_BASE + 16,
@@ -4922,7 +4922,7 @@ RULE_ID_e v_l1pr_02_rule_list[]   = {
                                      /* E.2 - PCI Express memory space (Except PCI_MM_02) */
                                      PCI_MM_01, PCI_MM_03, PCI_MM_04,
 
-                                     /* E.3 - PCI Express deivce view of memory */
+                                     /* E.3 - PCI Express device view of memory */
                                      PCI_MM_05, PCI_MM_06, PCI_MM_07,
 
                                      /* E.4 - Message Signaled Interrupts */
