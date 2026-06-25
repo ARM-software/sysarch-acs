@@ -39,7 +39,10 @@ freeAcsMeM(void)
       acs_is_module_enabled(RAS)          ||
       acs_is_module_enabled(ETE)          ||
       acs_is_module_enabled(PMU))
+    {
        val_gic_free_info_table();
+       val_smbios_free_info_table();
+    }
 
     if (acs_is_module_enabled(TIMER)       ||
         acs_is_module_enabled(GIC)         ||
@@ -288,6 +291,9 @@ ShellAppMainsbsa()
 
     if (acs_is_module_enabled(CXL))
         createCxlInfoTable();
+
+    if (acs_is_module_enabled(PE))
+        createSmbiosInfoTable();
 
     val_allocate_shared_mem();
 
