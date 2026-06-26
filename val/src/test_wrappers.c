@@ -31,7 +31,6 @@
 #include "rule_based_execution.h"
 
 extern test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL];
-extern RULE_ID_e g_base_rule;
 
 /* Helper to execute test entries  */
 static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_pe)
@@ -194,7 +193,7 @@ uint32_t
 pci_in_04_entry(uint32_t num_pe)
 {
 
-    if (g_base_rule == B_PER_08) {
+    if (rule_reference_path_contains(B_PER_08)) {
         TEST_ENTRY_ID_e tst_entry_list[] = {P003_ENTRY, TEST_ENTRY_SENTINEL};
         return run_test_entries(tst_entry_list, num_pe);
     }
@@ -216,7 +215,7 @@ pci_li_02_entry(uint32_t num_pe)
 uint32_t
 pci_li_03_entry(uint32_t num_pe)
 {
-    if (g_base_rule == B_PER_08) {
+    if (rule_reference_path_contains(B_PER_08)) {
         TEST_ENTRY_ID_e tst_entry_list[] = {P023_ENTRY, TEST_ENTRY_SENTINEL};
         return run_test_entries(tst_entry_list, num_pe);
     }
@@ -295,7 +294,7 @@ pci_in_19_entry(uint32_t num_pe)
 uint32_t
 pci_li_01_entry(uint32_t num_pe)
 {
-    if (g_base_rule == B_PER_08) {
+    if (rule_reference_path_contains(B_PER_08)) {
         TEST_ENTRY_ID_e tst_entry_list[] = {P006_ENTRY, TEST_ENTRY_SENTINEL};
         return run_test_entries(tst_entry_list, num_pe);
     }
@@ -421,7 +420,7 @@ pci_in_17_entry(uint32_t num_pe)
 
     TEST_ENTRY_ID_e e_list[] = { E015_ENTRY, TEST_ENTRY_SENTINEL };
 
-    if (g_base_rule == B_PER_08) {
+    if (rule_reference_path_contains(B_PER_08)) {
         TEST_ENTRY_ID_e p_list[] = {P036_ENTRY, TEST_ENTRY_SENTINEL};
         return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
     }

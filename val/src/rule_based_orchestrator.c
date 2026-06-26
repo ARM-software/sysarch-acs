@@ -23,10 +23,9 @@
 
 extern uint8_t g_current_pal;
 extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
-extern alias_rule_map_t alias_rule_map[];
+extern const alias_rule_map_t alias_rule_map[];
 extern test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL];
 extern char *rule_id_string[RULE_ID_SENTINEL];
-extern RULE_ID_e g_base_rule;
 
 /**
  * @brief Check PAL support for a rule and report if unsupported.
@@ -94,6 +93,236 @@ static bool is_rule_skipped(const acs_run_request_t *ctx, RULE_ID_e rule_id)
     }
 
     return 0;
+}
+
+/**
+ * @brief Finalize aggregated status for an alias rule.
+ *
+ * Applies the alias aggregation overrides used when child rules produce mixed
+ * PASS/SKIP/WARN or PASS/not-supported outcomes.
+ *
+ * @param aggregated_status Current aggregated status across child rules.
+ * @param test_ns_flag      True if any child rule was not supported.
+ * @param test_pass_flag    True if any child rule passed.
+ * @param test_warn_flag    True if any child rule warned.
+ *
+ * @return Final alias result after applying partial-coverage/warn overrides.
+ */
+static uint32_t finalize_alias_status(uint32_t aggregated_status,
+                                      bool test_ns_flag,
+                                      bool test_pass_flag,
+                                      bool test_warn_flag)
+{
+    /* If an alias saw a mix of PASS and SKIP/WARN (or PASS plus unsupported
+       children), surface it as partial coverage instead of just the max state. */
+    if ((test_pass_flag &&
+         ((GET_STATE(aggregated_status) == TEST_SKIP) ||
+          (GET_STATE(aggregated_status) == TEST_WARNING))) ||
+        (test_ns_flag &&
+         (GET_STATE(aggregated_status) == TEST_PASS))) {
+        aggregated_status = RESULT_PARTIAL_COVERED;
+    }
+
+    if (test_warn_flag && (GET_STATE(aggregated_status) == TEST_SKIP)) {
+        aggregated_status = RESULT_WARNING(0);
+    }
+
+    return aggregated_status;
+}
+
+/**
+ * @brief Print alias traversal banner at start/end of child execution.
+ *
+ * @param rule_id Alias rule identifier.
+ * @param indent  Indentation to use for the banner.
+ * @param start   True for start banner, false for end banner.
+ */
+static void print_alias_walk_banner(RULE_ID_e rule_id, uint32_t indent, bool start)
+{
+    uint32_t i;
+
+    val_print(INFO, "\n\n");
+    for (i = 0; i < indent; i++) {
+        val_print(INFO, "    ");
+    }
+
+    val_print(INFO, "  === ");
+    if (start) {
+        val_print(INFO, "Start");
+    } else {
+        val_print(INFO, "End");
+    }
+    val_print(INFO, " tests for rules referenced by ");
+    val_print(INFO, rule_id_string[rule_id]);
+    val_print(INFO, " ===");
+    if (!start) {
+        val_print(INFO, "\n");
+    }
+}
+
+/**
+ * @brief Execute a rule, recursively resolving alias rules.
+ *
+ * The top-level caller is responsible for printing/reporting the top-level
+ * rule. Recursive child invocations set @p report_self so child rules print
+ * their own headers/status. All recursive descendants use a fixed indentation
+ * level to keep logs tidy while still surfacing intermediate alias rules.
+ *
+ * @param ctx           Run request containing CLI selections.
+ * @param rule_id       Rule to execute.
+ * @param indent        Indentation for child rule logging.
+ * @param num_pe        Number of PEs in the system.
+ * @param report_self   True if this invocation should print its own start/end.
+ *
+ * @return Rule execution status.
+ */
+static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
+                                       RULE_ID_e rule_id,
+                                       uint32_t indent,
+                                       uint32_t num_pe,
+                                       bool report_self)
+{
+    bool test_ns_flag;
+    bool test_pass_flag;
+    bool test_warn_flag;
+    bool pushed = 0;
+    uint32_t j;
+    uint32_t alias_rule_map_index;
+    uint32_t rule_test_status = TEST_STATE_UNKNOWN;
+    uint32_t child_rule_status;
+    uint32_t precheck_status;
+    uint32_t rule_support_status;
+    RULE_ID_e child_rule_id;
+    const RULE_ID_e *child_rule_list;
+
+    /* Detect accidental alias cycles such as A -> B -> A before descending */
+    if (rule_reference_path_contains(rule_id)) {
+        val_print(ERROR, " Recursive alias reference detected for rule: ");
+        val_print(ERROR, rule_id_string[rule_id]);
+        return RESULT_FAIL(1);
+    }
+
+    if (!rule_reference_path_push(rule_id)) {
+        val_print(ERROR, " Rule reference path depth exceeded for rule: ");
+        val_print(ERROR, rule_id_string[rule_id]);
+        return RESULT_FAIL(1);
+    }
+    pushed = 1;
+
+    /* Print rule start if report_self is true */
+    if (report_self) {
+        rule_support_status = check_rule_support(rule_id);
+
+#ifdef TARGET_LINUX
+        /* Workaround for linux apps, to skip rule silently */
+        if (rule_support_status != TEST_SUPPORTED) {
+            rule_test_status = TEST_STATE_UNKNOWN;
+            report_self = 0;
+            goto exit_rule;
+        }
+#endif
+
+        print_rule_test_start(rule_id, indent);
+
+        if (rule_support_status != TEST_SUPPORTED) {
+            rule_test_status = rule_support_status;
+            goto exit_rule;
+        }
+    }
+
+    if (rule_test_map[rule_id].flag == ALIAS_RULE) {
+        alias_rule_map_index = alias_rule_map_get_index(rule_id);
+        if (alias_rule_map_index == INVALID_IDX) {
+            val_print(ERROR, " alias map index not found for rule id: 0x%x", rule_id);
+            rule_test_status = RESULT_FAIL(1);
+            goto exit_rule;
+        }
+
+        /* Execute any precheck required by the alias rule */
+        if (rule_test_map[rule_id].test_entry_id != NULL_ENTRY) {
+            precheck_status =
+                test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+
+            if (GET_STATE(precheck_status) == TEST_FAIL) {
+                rule_test_status = RESULT_SKIP(0);
+                goto exit_rule;
+            }
+        }
+
+        test_ns_flag = 0;
+        test_pass_flag = 0;
+        test_warn_flag = 0;
+        child_rule_list = alias_rule_map[alias_rule_map_index].child_rule_list;
+
+        /* Print alias rule banner */
+        print_alias_walk_banner(rule_id, indent, 1);
+
+        for (j = 0; child_rule_list[j] != RULE_ID_SENTINEL; j++) {
+            child_rule_id = child_rule_list[j];
+
+            if (is_rule_skipped(ctx, child_rule_id)) {
+                continue;
+            }
+
+            /* Always recurse with indent == 1 for descendants. This keeps logs
+               readable while still showing child and intermediate alias nodes. */
+            child_rule_status = execute_rule_recursive(ctx, child_rule_id, 1, num_pe, 1);
+
+#ifdef TARGET_LINUX
+            if (child_rule_status == TEST_STATE_UNKNOWN) {
+                continue;
+            }
+#endif
+
+            if ((GET_STATE(child_rule_status) == TEST_PAL_NOT_SUPPORTED) ||
+                (GET_STATE(child_rule_status) == TEST_NOT_IMPLEMENTED)) {
+                test_ns_flag = 1;
+                /* Unsupported children are tracked for partial coverage, but
+                   should not dominate the aggregated alias status. */
+                continue;
+            }
+            if (GET_STATE(child_rule_status) == TEST_PASS) {
+                test_pass_flag = 1;
+            }
+            if (GET_STATE(child_rule_status) == TEST_WARNING) {
+                test_warn_flag = 1;
+            }
+
+            if ((child_rule_status > rule_test_status) ||
+                (rule_test_status == TEST_STATE_UNKNOWN)) {
+                rule_test_status = child_rule_status;
+            }
+        }
+
+        rule_test_status = finalize_alias_status(rule_test_status, test_ns_flag,
+                                                 test_pass_flag, test_warn_flag);
+
+        print_alias_walk_banner(rule_id, indent, 0);
+    } else if (rule_test_map[rule_id].flag == BASE_RULE) {
+        if (test_entry_func_table[rule_test_map[rule_id].test_entry_id] != NULL) {
+            rule_test_status =
+                test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+        } else {
+            val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
+            rule_test_status = RESULT_FAIL(1);
+        }
+    } else {
+        rule_test_status = RESULT_FAIL(1);
+    }
+
+exit_rule:
+    if (pushed) {
+        rule_reference_path_pop();
+    }
+
+    if (report_self) {
+        /* Child rules report themselves inside the recursive walk. Top-level
+           rules are still reported exactly once by run_tests(). */
+        rule_status_map[rule_id] = rule_test_status;
+        print_rule_test_status(rule_id, indent, rule_test_status);
+    }
+
+    return rule_test_status;
 }
 
 /**
@@ -393,25 +622,17 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
  *
  * Assumes the list has already been filtered for CLI selections (-skip, -m,
  * -skipmodule). Sorts for module-wise execution, checks PAL support, and for
- * alias rules executes their base rules while aggregating status. Records and
- * prints status per rule.
+ * alias rules recursively executes their child rules while aggregating status.
+ * Records and prints status per rule.
  *
  */
 void
 run_tests(const acs_run_request_t *ctx)
 {
-    bool test_ns_flag;
-    bool test_pass_flag;
-    bool test_warn_flag;
-    uint32_t i, j;
-    uint32_t alias_rule_map_index;
+    uint32_t i;
     uint32_t rule_test_status = 0;
-    uint32_t base_rule_status = 0;
-    uint32_t precheck_status;
     uint32_t rule_support_status;
     uint32_t num_pe;
-    RULE_ID_e base_rule_id;
-    RULE_ID_e *base_rule_list;
     RULE_ID_e *rule_list;
     uint32_t list_size;
 
@@ -433,13 +654,7 @@ run_tests(const acs_run_request_t *ctx)
     quick_sort_rule_list(rule_list, list_size);
 
     for (i = 0 ; i < list_size; i++) {
-        /* Invalid  rule_test_map entry check */
-        // if (rule_test_map[rule_list[i]].flag == INVALID_ENTRY) {
-        //     val_print(ERROR, "\n");
-        //     val_print(ERROR, rule_id_string[rule_list[i]]);
-        //     val_print(ERROR, " has invalid rule_test_map[] entry.");
-        //     continue;
-        // }
+        rule_reference_path_reset();
 
         /* Check for the rule support in current PAL/ACS */
         rule_support_status = check_rule_support(rule_list[i]);
@@ -460,143 +675,7 @@ run_tests(const acs_run_request_t *ctx)
             goto report_status;
         }
 
-        g_base_rule = rule_list[i];
-
-        /* Check if rule id is alias, if yes do the table walk to find base rules */
-        if (rule_test_map[rule_list[i]].flag == ALIAS_RULE) {
-            /* Get base rules for the alias rule */
-            /* Use the actual rule id value, not loop index */
-            alias_rule_map_index = alias_rule_map_get_index(rule_list[i]);
-
-            /* Validate lookup result before dereferencing the map */
-            if (alias_rule_map_index == INVALID_IDX) {
-                val_print(ERROR, " alias map index not found for rule id: 0x%x",
-                          rule_list[i]);
-                /* Skip executing base rules for an unknown alias */
-                continue;
-            }
-
-            /* If a precheck exists then use rule_test_map.test_entry_id to mention enum to entry
-               function to do the precheck, if NULL_ENTRY then consider no precheck for
-               the ALIAS */
-            if (rule_test_map[rule_list[i]].test_entry_id != NULL_ENTRY) {
-                precheck_status =
-                    test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id](num_pe);
-
-                /* If precheck fails, report alias rule status as SKIP as it wont be applicable */
-                if ((GET_STATE(precheck_status) == TEST_FAIL)) {
-                    rule_test_status = RESULT_SKIP(0);
-                    goto report_status;
-                }
-            }
-
-            /* reset rule test status to unknown */
-            rule_test_status = TEST_STATE_UNKNOWN;
-            /* init a flag to track partial coverage */
-            test_ns_flag = 0;
-            /* track whether any base rule completed with PASS */
-            test_pass_flag = 0;
-            /* track whether any base rule completed with WARN */
-            test_warn_flag = 0;
-            /* convenience alias to the base rule list for this alias */
-            base_rule_list = alias_rule_map[alias_rule_map_index].base_rule_list;
-
-            /* Print start header for alias rule */
-            val_print(INFO, "\n\n  === Start tests for rules referenced by ");
-            val_print(INFO, rule_id_string[rule_list[i]]);
-            val_print(INFO, " ===");
-
-            /* Run the base rules required by the alias; list is sentinel-terminated */
-            for (j = 0; base_rule_list[j] != RULE_ID_SENTINEL; j++) {
-                /* Check if test for the base rule is present in current PAL */
-                rule_support_status = check_rule_support(base_rule_list[j]);
-#ifdef TARGET_LINUX
-                /* Workaround for linux apps, to skip rule silently */
-                if (rule_support_status != TEST_SUPPORTED) {
-                    continue;
-                }
-#endif
-                /* -skip and -skipmodule only apply to initial rule list; ensure
-                   base rules of an alias honor these selections here. */
-                if (is_rule_skipped(ctx, base_rule_list[j])) {
-                    /* Skip executing this base rule as per CLI selection */
-                    continue;
-                }
-
-                /* Print base rule header */
-                print_rule_test_start(base_rule_list[j], 1);
-
-                if (rule_support_status != TEST_SUPPORTED) {
-                    /* set a flag to track partial coverage */
-                    test_ns_flag = 1;
-                    base_rule_status = rule_support_status;
-                    /* record base rule status */
-                    rule_status_map[base_rule_list[j]] = base_rule_status;
-                    print_rule_test_status(base_rule_list[j], 1,  base_rule_status);
-                    continue;
-                }
-
-                /* Run the base rule */
-                base_rule_id = alias_rule_map[alias_rule_map_index].base_rule_list[j];
-                if (test_entry_func_table[rule_test_map[base_rule_id].test_entry_id] != NULL)
-                {
-                    base_rule_status =
-                        test_entry_func_table[rule_test_map[base_rule_id].test_entry_id](num_pe);
-                }
-                else
-                {
-                    val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
-                    base_rule_status = RESULT_FAIL(1);
-                }
-                /* record base rule status */
-                rule_status_map[base_rule_id] = base_rule_status;
-                if (GET_STATE(base_rule_status) == TEST_PASS)
-                    test_pass_flag = 1;
-                if (GET_STATE(base_rule_status) == TEST_WARNING)
-                    test_warn_flag = 1;
-                /* report status of base rule run */
-                print_rule_test_status(base_rule_list[j], 1, base_rule_status);
-                /* update overall alias rule status */
-                if ((base_rule_status > rule_test_status)
-                                      || (rule_test_status == TEST_STATE_UNKNOWN)) {
-                    rule_test_status = base_rule_status;
-                }
-            }
-            /* Post-check:
-               1) If any base rule PASSed but the aggregated alias status is
-                  WARN or SKIP, report partial coverage.
-               2) If any base rule was not supported and the aggregated alias
-                  status is PASS, report partial coverage. */
-	    if ((test_pass_flag &&
-                 ((GET_STATE(rule_test_status) == TEST_SKIP) ||
-                  (GET_STATE(rule_test_status) == TEST_WARNING))) ||
-                (test_ns_flag &&
-                (GET_STATE(rule_test_status) == TEST_PASS))) {
-                  rule_test_status = RESULT_PARTIAL_COVERED;
-             }
-	    /* If the alias only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
-            if (test_warn_flag && (GET_STATE(rule_test_status) == TEST_SKIP)) {
-                rule_test_status = RESULT_WARNING(0);
-            }
-
-            /* Print end header for alias rule */
-            val_print(INFO, "\n\n  === End tests for rules referenced by ");
-            val_print(INFO, rule_id_string[rule_list[i]]);
-            val_print(INFO, " ===\n");
-
-        } else if (rule_test_map[rule_list[i]].flag == BASE_RULE) {
-            /* Base rule would have single test entry, could be wrapper too */
-           if (test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id] != NULL)
-            {
-                rule_test_status =
-                    test_entry_func_table[rule_test_map[rule_list[i]].test_entry_id](num_pe);
-            }
-            else
-            {
-                val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
-                rule_test_status = RESULT_FAIL(1);
-            }
-        }
+        rule_test_status = execute_rule_recursive(ctx, rule_list[i], 0, num_pe, 0);
 report_status:
         /* Record and print overall rule status */
         rule_status_map[rule_list[i]] = rule_test_status;
