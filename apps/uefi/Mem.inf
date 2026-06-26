@@ -149,6 +149,7 @@
   ../../test_pool/exerciser/e033.c
   ../../test_pool/exerciser/e035.c
   ../../test_pool/exerciser/e039.c
+  ../../test_pool/exerciser/e046.c
   ../../mem_test/litmus-tests/2+2W+dmb.sys.c
   ../../mem_test/litmus-tests/CO-MIXED-20cc+H.c
   ../../mem_test/litmus-tests/CoRR.c

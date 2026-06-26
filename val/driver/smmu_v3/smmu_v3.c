@@ -1293,6 +1293,7 @@ void val_smmu_unmap(smmu_master_attributes_t master_attr)
 uint32_t
 val_smmu_is_iova_mapped(uint32_t smmu_index, uint32_t streamid, uint64_t iova)
 {
+#ifndef TARGET_LINUX
     smmu_master_t *master;
     pgt_descriptor_t pgt_desc;
     uint64_t attr;
@@ -1337,6 +1338,12 @@ val_smmu_is_iova_mapped(uint32_t smmu_index, uint32_t streamid, uint64_t iova)
         return 1;
 
     return 0;
+#else
+    (void)smmu_index;
+    (void)streamid;
+    (void)iova;
+    return NOT_IMPLEMENTED;
+#endif
 }
 
 static uint32_t smmu_init(smmu_dev_t *smmu)

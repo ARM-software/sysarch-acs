@@ -3986,7 +3986,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P104_ENTRY] = p104_entry, // used in wrapper.
     [P106_ENTRY] = p106_entry, // used in wrapper.
     [P107_ENTRY] = p107_entry, // used in wrapper.
-    [P105_ENTRY] = p105_entry,
     [PCI_IC_11_ENTRY] = pci_ic_11_entry,
     [PCI_IN_04_ENTRY] = pci_in_04_entry,
     [PCI_IN_05_ENTRY] = pci_in_05_entry,
@@ -4029,6 +4028,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [G009_ENTRY] = g009_entry, // used in wrapper.
     [G010_ENTRY] = g010_entry, // used in wrapper.
     [G011_ENTRY] = g011_entry, // used in wrapper.
+    [E046_ENTRY] = e046_entry,
+    [PCI_MM_07_ENTRY]  = pci_mm_07_entry,
 #else
 /* Drop compiling entries not required for Bare Metal BSA compliance */
 #ifndef BAREMETAL_BSA_BUILD
