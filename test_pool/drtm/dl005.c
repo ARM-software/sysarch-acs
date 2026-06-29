@@ -229,6 +229,7 @@ payload(uint32_t num_pe)
     goto free_dlme_region;
   }
   /* R314060 : Check if Address Map size is not zero */
+  /* R45260  : Check if the address map is populated by the DCE */
   if (dlme_data_header->address_map_size == 0) {
     val_print(ERROR, "\n       DLME Data Address Map Size is 0");
     val_set_status(index, RESULT_FAIL(8));

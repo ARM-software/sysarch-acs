@@ -118,8 +118,11 @@
 #define DRTM_LAUNCH_FEAT_SHIFT_DLME_IMG_AUTH      6
 
 #define DRTM_NS_EXECPTION_SHIFT_AIF               6
+#define DRTM_DEBUG_EXECPTION_SHIFT_AIF            9
 #define DRTM_NS_EXECPTION_MASK_AIF                0x7
+#define DRTM_DEBUG_EXECPTION_MASK_AIF             0x1
 #define DRTM_NON_SECURE_EXCP_MASKED               0x7
+#define DRTM_DEBUG_EXCP_MASKED                    0x1
 
 #define DRTM_CACHEABILITY_NOT_CACHEABLE           0x0UL
 #define DRTM_CACHEABILITY_WRITE_COMBINE           0x1UL
@@ -436,6 +439,7 @@ uint32_t dl014_entry(uint32_t num_pe);
 uint32_t dl015_entry(uint32_t num_pe);
 uint32_t dl016_entry(uint32_t num_pe);
 uint32_t dl017_entry(uint32_t num_pe);
+uint32_t dl018_entry(uint32_t num_pe);
 
 
 #endif /* __VAL_SPECIFICATION_H */
