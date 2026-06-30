@@ -9,15 +9,7 @@
 
 #include <stdint.h>
 
-/* FIRME return codes (DEN0149). */
-#define FIRME_SUCCESS               0
-#define FIRME_NOT_SUPPORTED         -1
-#define FIRME_INVALID_PARAMETERS    -2
-#define FIRME_ABORTED               -3
-#define FIRME_INCOMPLETE            -4
-#define FIRME_DENIED                -5
-#define FIRME_RETRY                 -6
-#define FIRME_INVALID_REQUEST       -7
+#include "val_firme_abi.h"
 
 /* GPI encodings (Target GPI field values) */
 #define FIRME_GPI_SECURE    0x8U

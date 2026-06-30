@@ -16,6 +16,24 @@
  */
 /* Chapter selection is controlled by build-time macros (from CMake/Make). */
 
+#if FIRME_ENABLE_BASE
+extern int firme_base_service_version_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_version_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_version_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_feature_registers_run_secure(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_base_service_feature_registers_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_base_service_feature_registers_run_ns(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_base_service_features_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_features_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_features_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_mandatory_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_mandatory_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_mandatory_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+#endif
+
 #if FIRME_ENABLE_GPT
 extern int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *out);
@@ -26,6 +44,76 @@ extern int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res
 
 /* Global, self-describing registry (ordered by chapter). */
 const firme_test_case_t g_firme_test_cases[] = {
+#if FIRME_ENABLE_BASE
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0038,
+        .rule_str = "R0038",
+        .suite = "firme",
+        .test_name = "service_version",
+        .desc = "FIRME_SERVICE_VERSION returns service version or NOT_SUPPORTED",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "FIRME_SERVICE_VERSION from Secure world",
+        .check_realm = "FIRME_SERVICE_VERSION from Realm world",
+        .check_ns = "FIRME_SERVICE_VERSION from NS world",
+        .run_ns = firme_base_service_version_run_ns,
+        .run_secure = firme_base_service_version_run_secure,
+        .run_realm = firme_base_service_version_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0051,
+        .rule_str = "R0051",
+        .suite = "firme",
+        .test_name = "service_feature_registers",
+        .desc = "Base service feature registers match Table 2.8 encodings",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Base feature-register encoding from Secure world",
+        .check_realm = "Base feature-register encoding from Realm world",
+        .check_ns = "Base feature-register encoding from NS world",
+        .run_ns = firme_base_service_feature_registers_run_ns,
+        .run_secure = firme_base_service_feature_registers_run_secure,
+        .run_realm = firme_base_service_feature_registers_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0053,
+        .rule_str = "R0053",
+        .suite = "firme",
+        .test_name = "service_features",
+        .desc = "FIRME_SERVICE_FEATURES returns requested register or NOT_SUPPORTED",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "FIRME_SERVICE_FEATURES from Secure world",
+        .check_realm = "FIRME_SERVICE_FEATURES from Realm world",
+        .check_ns = "FIRME_SERVICE_FEATURES from NS world",
+        .run_ns = firme_base_service_features_run_ns,
+        .run_secure = firme_base_service_features_run_secure,
+        .run_realm = firme_base_service_features_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0055,
+        .rule_str = "R0055",
+        .suite = "firme",
+        .test_name = "base_service_mandatory",
+        .desc = "Base service discovery ABIs are mandatory at every FIRME instance",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Mandatory Base service ABIs from Secure world",
+        .check_realm = "Mandatory Base service ABIs from Realm world",
+        .check_ns = "Mandatory Base service ABIs from NS world",
+        .run_ns = firme_base_service_mandatory_run_ns,
+        .run_secure = firme_base_service_mandatory_run_secure,
+        .run_realm = firme_base_service_mandatory_run_realm,
+    },
+#endif
 #if FIRME_ENABLE_GPT
     {
         .chapter = FIRME_CHAPTER_GPT,
@@ -112,6 +200,8 @@ const firme_test_case_t *val_firme_suite_find(firme_rule_id_t rule_id)
 **/
 const char *val_firme_chapter_str(firme_chapter_id_t chapter)
 {
+    if (chapter == FIRME_CHAPTER_BASE)
+        return "Base service";
     if (chapter == FIRME_CHAPTER_GPT)
         return "GPT management";
     if (chapter == FIRME_CHAPTER_MEC)

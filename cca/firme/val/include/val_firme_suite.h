@@ -16,6 +16,7 @@
 #define FIRME_ACS_VERSION_STR "FIRME Alpha1 ACS v0.5 Alpha"
 
 typedef enum {
+    FIRME_CHAPTER_BASE = 5,
     FIRME_CHAPTER_GPT = 1,
     FIRME_CHAPTER_MEC = 2,
     FIRME_CHAPTER_IDE = 3,

@@ -21,6 +21,35 @@ static int is_pass_or_skip(uint64_t s)
 }
 
 /**
+ *   @brief    - Combine a per-world rule result into an overall rule result.
+ *   @param    - overall    : Overall result record to update.
+ *   @param    - candidate  : Per-world result to include.
+ *   @param    - have_result: Whether an earlier result was included.
+ *   @return   - void
+**/
+static void combine_rule_result(firme_acs_call_res_t *overall,
+                                const firme_acs_call_res_t *candidate,
+                                uint32_t *have_result)
+{
+    if (!overall || !candidate || !have_result)
+        return;
+
+    if (*have_result == 0U) {
+        *overall = *candidate;
+        *have_result = 1U;
+        return;
+    }
+
+    if (!is_pass_or_skip(candidate->x0)) {
+        *overall = *candidate;
+        return;
+    }
+
+    if (overall->x0 == (uint64_t)ACS_STATUS_SKIP)
+        *overall = *candidate;
+}
+
+/**
  *   @brief    - Map an internal status code to a printable string.
  *   @param    - s : Status code (ACS_STATUS_*).
  *   @return   - Status string.
@@ -136,11 +165,22 @@ static void run_test_case(const firme_test_case_t *tc,
     firme_acs_call_res_t res_ns = {0};
     firme_acs_call_res_t res_sec = {0};
     firme_acs_call_res_t res_realm = {0};
-    firme_acs_call_res_t overall;
+    firme_acs_call_res_t overall = {0};
     uint32_t check_idx = 1;
+    uint32_t have_result = 0U;
+    uint32_t secure_required = 0U;
+    uint32_t realm_required = 0U;
+    uint32_t ns_required = 0U;
 
     if (!tc)
         return;
+
+    secure_required = ((tc->required_worlds_mask & FIRME_WORLD_MASK_SECURE) != 0U) ?
+                      VAL_TRUE : VAL_FALSE;
+    realm_required = ((tc->required_worlds_mask & FIRME_WORLD_MASK_REALM) != 0U) ?
+                     VAL_TRUE : VAL_FALSE;
+    ns_required = ((tc->required_worlds_mask & FIRME_WORLD_MASK_NS) != 0U) ?
+                  VAL_TRUE : VAL_FALSE;
 
     print_test_begin(tc->suite, tc->test_name, tc->rule_str, tc->desc);
 
@@ -159,10 +199,29 @@ static void run_test_case(const firme_test_case_t *tc,
                          (unsigned long long)res_sec.x3);
             }
         } else {
-            res_sec.x0 = (uint64_t)ACS_STATUS_SKIP;
-            LOG_WARN(NULL, "Check %u: Secure world not available (SPMD/SPMC not wired)",
-                     (unsigned)check_idx);
+            res_sec.x0 = secure_required ? (uint64_t)ACS_STATUS_ERR :
+                         (uint64_t)ACS_STATUS_SKIP;
+            res_sec.x1 = FIRME_WORLD_MASK_SECURE;
+            if (secure_required) {
+                LOG_ERROR(NULL, "Check %u: required Secure world not available",
+                          (unsigned)check_idx);
+            } else {
+                LOG_WARN(NULL, "Check %u: Secure world not available",
+                         (unsigned)check_idx);
+            }
         }
+        if (!is_pass_or_skip(res_sec.x0)) {
+            overall = res_sec;
+            log_rule_status(tc->rule_str, &overall);
+            print_test_end();
+            update_counts(overall.x0, total, passed, failed, skipped);
+            return;
+        }
+        check_idx++;
+    } else if (secure_required) {
+        res_sec.x0 = (uint64_t)ACS_STATUS_ERR;
+        res_sec.x1 = FIRME_WORLD_MASK_SECURE;
+        LOG_ERROR(NULL, "Check %u: required Secure body missing", (unsigned)check_idx);
         check_idx++;
     }
 
@@ -181,14 +240,33 @@ static void run_test_case(const firme_test_case_t *tc,
                          (unsigned long long)res_realm.x3);
             }
         } else {
-            res_realm.x0 = (uint64_t)ACS_STATUS_SKIP;
-            LOG_WARN(NULL, "Check %u: Realm world not available (RMMD forwarding not wired)",
-                     (unsigned)check_idx);
+            res_realm.x0 = realm_required ? (uint64_t)ACS_STATUS_ERR :
+                           (uint64_t)ACS_STATUS_SKIP;
+            res_realm.x1 = FIRME_WORLD_MASK_REALM;
+            if (realm_required) {
+                LOG_ERROR(NULL, "Check %u: required Realm world not available",
+                          (unsigned)check_idx);
+            } else {
+                LOG_WARN(NULL, "Check %u: Realm world not available",
+                         (unsigned)check_idx);
+            }
         }
+        if (!is_pass_or_skip(res_realm.x0)) {
+            overall = res_realm;
+            log_rule_status(tc->rule_str, &overall);
+            print_test_end();
+            update_counts(overall.x0, total, passed, failed, skipped);
+            return;
+        }
+        check_idx++;
+    } else if (realm_required) {
+        res_realm.x0 = (uint64_t)ACS_STATUS_ERR;
+        res_realm.x1 = FIRME_WORLD_MASK_REALM;
+        LOG_ERROR(NULL, "Check %u: required Realm body missing", (unsigned)check_idx);
         check_idx++;
     }
 
-    /* NS world body (required for all current tests). */
+    /* NS world body. */
     if (tc->run_ns) {
         firme_rule_res_t out = {0};
         const uint64_t base_pa = val_firme_gpt_base_for_world(FIRME_ACS_WORLD_NSEL2);
@@ -210,18 +288,39 @@ static void run_test_case(const firme_test_case_t *tc,
                      (unsigned long long)res_ns.x3);
         }
     } else {
-        res_ns.x0 = (uint64_t)ACS_STATUS_SKIP;
-        LOG_WARN(NULL, "NS body missing for %s", tc->rule_str ? tc->rule_str : "?");
+        res_ns.x0 = ns_required ? (uint64_t)ACS_STATUS_ERR : (uint64_t)ACS_STATUS_SKIP;
+        res_ns.x1 = FIRME_WORLD_MASK_NS;
+        if (ns_required) {
+            LOG_ERROR(NULL, "Check %u: required NS body missing", (unsigned)check_idx);
+        } else {
+            LOG_WARN(NULL, "Check %u: NS body missing", (unsigned)check_idx);
+        }
     }
 
-    /* Combine: fail if any required/available world fails. */
-    overall = res_ns;
+    /* Combine: fail if any required or executed world fails; otherwise prefer PASS over SKIP. */
+    if (tc->run_secure || secure_required)
+        combine_rule_result(&overall, &res_sec, &have_result);
+    if (tc->run_realm || realm_required)
+        combine_rule_result(&overall, &res_realm, &have_result);
+    if (tc->run_ns || ns_required)
+        combine_rule_result(&overall, &res_ns, &have_result);
+    if (have_result == 0U)
+        overall.x0 = (uint64_t)ACS_STATUS_SKIP;
 
+    /* A required rule-body SKIP keeps the overall result from becoming PASS. */
     if (is_pass_or_skip(overall.x0)) {
-        if (tc->run_secure && !is_pass_or_skip(res_sec.x0))
+        if (((tc->required_worlds_mask & FIRME_WORLD_MASK_SECURE) != 0U) &&
+            (tc->run_secure || secure_required) &&
+            (res_sec.x0 == (uint64_t)ACS_STATUS_SKIP))
             overall = res_sec;
-        if (tc->run_realm && !is_pass_or_skip(res_realm.x0))
+        if (((tc->required_worlds_mask & FIRME_WORLD_MASK_REALM) != 0U) &&
+            (tc->run_realm || realm_required) &&
+            (res_realm.x0 == (uint64_t)ACS_STATUS_SKIP))
             overall = res_realm;
+        if (((tc->required_worlds_mask & FIRME_WORLD_MASK_NS) != 0U) &&
+            (tc->run_ns || ns_required) &&
+            (res_ns.x0 == (uint64_t)ACS_STATUS_SKIP))
+            overall = res_ns;
     }
 
     log_rule_status(tc->rule_str, &overall);

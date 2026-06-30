@@ -19,7 +19,7 @@ FIRME_ARTIFACT_DIR ?= $(ACS_DIR)/build
 # Logging verbosity: 1=TRACE, 2=DEBUG, 3=TEST(default), 4=WARN, 5=ERROR.
 ACS_PRINT_LEVEL ?= 3
 
-# Suite selection: all (default) | gpt | mec | ide | attest
+# Suite selection: all (default) | base | gpt | mec | ide | attest
 SUITE ?= all
 
 # PAL selection (default: baremetal+fvp).

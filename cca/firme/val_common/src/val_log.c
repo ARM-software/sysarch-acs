@@ -139,6 +139,9 @@ print_verbosity_t val_log_get_verbosity(void)
 **/
 static uint32_t putc_count(char c)
 {
+    if (g_uart_inited == 0u)
+        return 0;
+
     pal_uart_pl011_putc(&g_uart, c);
     return 1;
 }

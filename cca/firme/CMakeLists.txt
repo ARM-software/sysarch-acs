@@ -13,21 +13,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Suite selection (build-time).
 # - Default is "all": build all available FIRME chapters/tests.
-# - To build a specific chapter only: -DSUITE=gpt|mec|ide|attest
-set(SUITE "all" CACHE STRING "FIRME suite to build: all|gpt|mec|ide|attest")
+# - To build a specific chapter only: -DSUITE=base|gpt|mec|ide|attest
+set(SUITE "all" CACHE STRING "FIRME suite to build: all|base|gpt|mec|ide|attest")
 string(TOLOWER "${SUITE}" _suite)
 
 # Internal enable switches derived from SUITE.
+set(FIRME_ENABLE_BASE OFF)
 set(FIRME_ENABLE_GPT OFF)
 set(FIRME_ENABLE_MEC OFF)
 set(FIRME_ENABLE_IDE OFF)
 set(FIRME_ENABLE_ATTEST OFF)
 
 if(_suite STREQUAL "all")
+  set(FIRME_ENABLE_BASE ON)
   set(FIRME_ENABLE_GPT ON)
   set(FIRME_ENABLE_MEC ON)
   set(FIRME_ENABLE_IDE ON)
   set(FIRME_ENABLE_ATTEST ON)
+elseif(_suite STREQUAL "base")
+  set(FIRME_ENABLE_BASE ON)
 elseif(_suite STREQUAL "gpt")
   set(FIRME_ENABLE_GPT ON)
 elseif(_suite STREQUAL "mec")
@@ -37,7 +41,7 @@ elseif(_suite STREQUAL "ide")
 elseif(_suite STREQUAL "attest")
   set(FIRME_ENABLE_ATTEST ON)
 else()
-  message(FATAL_ERROR "Invalid SUITE='${SUITE}' (expected all|gpt|mec|ide|attest).")
+  message(FATAL_ERROR "Invalid SUITE='${SUITE}' (expected all|base|gpt|mec|ide|attest).")
 endif()
 
 # Default artifact output directory matches the existing scripts.
@@ -94,6 +98,7 @@ add_library(firme_common_obj OBJECT
     val/src/val_firme_abi.c
     val/src/val_firme_transport.c
     val/src/val_firme_gpt.c
+    val/src/val_firme_service.c
     val/src/val_platform.c
     val/src/val_firme_suite.c
     val/src/val_firme_diag.c
@@ -106,11 +111,21 @@ target_compile_options(firme_common_obj PRIVATE ${FIRME_COMMON_CFLAGS})
 target_compile_definitions(firme_common_obj PRIVATE ACS_PRINT_LEVEL=${ACS_PRINT_LEVEL})
 
 target_compile_definitions(firme_common_obj PRIVATE
+  FIRME_ENABLE_BASE=$<BOOL:${FIRME_ENABLE_BASE}>
   FIRME_ENABLE_GPT=$<BOOL:${FIRME_ENABLE_GPT}>
   FIRME_ENABLE_MEC=$<BOOL:${FIRME_ENABLE_MEC}>
   FIRME_ENABLE_IDE=$<BOOL:${FIRME_ENABLE_IDE}>
   FIRME_ENABLE_ATTEST=$<BOOL:${FIRME_ENABLE_ATTEST}>
 )
+
+if(FIRME_ENABLE_BASE)
+  target_sources(firme_common_obj PRIVATE
+    test/base/service_version.c
+    test/base/service_feature_registers.c
+    test/base/service_features.c
+    test/base/base_service_mandatory.c
+  )
+endif()
 
 if(FIRME_ENABLE_GPT)
   target_sources(firme_common_obj PRIVATE
@@ -130,6 +145,7 @@ function(add_firme_payload target_name out_base link_script)
   target_compile_options(${target_name}.elf PRIVATE ${FIRME_COMMON_CFLAGS})
   target_compile_definitions(${target_name}.elf PRIVATE ACS_PRINT_LEVEL=${ACS_PRINT_LEVEL})
   target_compile_definitions(${target_name}.elf PRIVATE
+    FIRME_ENABLE_BASE=$<BOOL:${FIRME_ENABLE_BASE}>
     FIRME_ENABLE_GPT=$<BOOL:${FIRME_ENABLE_GPT}>
     FIRME_ENABLE_MEC=$<BOOL:${FIRME_ENABLE_MEC}>
     FIRME_ENABLE_IDE=$<BOOL:${FIRME_ENABLE_IDE}>

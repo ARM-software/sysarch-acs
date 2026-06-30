@@ -34,6 +34,69 @@ Testcase checklist
 
   * -
 
+      `service_version <../test/base/service_version.c>`_
+
+    -
+
+      R0038: ``FIRME_SERVICE_VERSION`` returns the requested service version or ``NOT_SUPPORTED``.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the Base service.
+      2. Expect SUCCESS and verify the returned major version matches the supported FIRME major version.
+      3. Iterate over all unallocated 8-bit service IDs.
+      4. Expect ``NOT_SUPPORTED`` for every unallocated service ID.
+
+  * -
+
+      `service_feature_registers <../test/base/service_feature_registers.c>`_
+
+    -
+
+      R0051: Base service feature registers report architected fields and encodings.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 0.
+      2. Expect SUCCESS and verify the mandatory Base ABI bits are set.
+      3. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 1.
+      4. Expect SUCCESS and verify the shared-buffer size encoding is allocated.
+      5. Verify the service-list bits contain only services permitted by Table 2.3 for the caller world.
+      6. Do not require every optional Table 2.3 service to be present.
+
+  * -
+
+      `service_features <../test/base/service_features.c>`_
+
+    -
+
+      R0053: ``FIRME_SERVICE_FEATURES`` returns the requested feature register or ``NOT_SUPPORTED``.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_FEATURES`` for valid Base feature register indices 0 and 1.
+      2. Expect SUCCESS for each implemented Base feature register.
+      3. Iterate over all unallocated Base feature register indices.
+      4. Expect ``NOT_SUPPORTED`` for every unallocated Base feature register index.
+      5. Iterate over all unallocated 8-bit service IDs and expect ``NOT_SUPPORTED``.
+
+  * -
+
+      `base_service_mandatory <../test/base/base_service_mandatory.c>`_
+
+    -
+
+      R0055: Base service discovery ABIs are mandatory at every implemented FIRME instance.
+
+    -
+
+      1. From each caller world, invoke ``FIRME_SERVICE_VERSION`` for the Base service.
+      2. Expect SUCCESS.
+      3. From each caller world, invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 0.
+      4. Expect SUCCESS.
+
+  * -
+
       `gpt_transition_feat_rme <../test/gpt/gpt_transition_feat_rme.c>`_
 
     -
