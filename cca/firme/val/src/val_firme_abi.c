@@ -161,3 +161,22 @@ void val_firme_gm_gpi_set(uint64_t base_address, uint64_t granule_count, uint64_
         out->x3 = res.x3;
     }
 }
+
+/**
+ *   @brief    - Invoke FIRME_MEC_REFRESH from the current world.
+ *   @param    - mec_params : Encoded MEC params input value.
+ *   @param    - out        : Returned registers (x0-x3).
+ *   @return   - void (SMC status is returned in out->x0).
+ **/
+void val_firme_mec_refresh(uint64_t mec_params, firme_res_t *out)
+{
+    smccc_res_t res;
+
+    val_smccc_smc_call(FIRME_FID_MEC_REFRESH, mec_params, 0, 0, 0, 0, 0, 0, &res);
+    if (out) {
+        out->x0 = res.x0;
+        out->x1 = res.x1;
+        out->x2 = res.x2;
+        out->x3 = res.x3;
+    }
+}

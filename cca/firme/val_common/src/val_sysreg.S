@@ -15,8 +15,10 @@
  * `ID_AA64MMFR4_EL1`, so use an explicit encoding via a macro.
  *
  * ID_AA64MMFR4_EL1 == S3_0_C0_C7_4.
+ * MECIDR_EL2       == S3_4_C10_C8_7.
  */
 #define VAL_SYSREG_ID_AA64MMFR4_EL1 S3_0_C0_C7_4
+#define VAL_SYSREG_MECIDR_EL2       S3_4_C10_C8_7
 
     .global read_currentel
 read_currentel:
@@ -36,6 +38,11 @@ read_id_aa64pfr0_el1:
     .global read_id_aa64mmfr4_el1
 read_id_aa64mmfr4_el1:
     mrs x0, VAL_SYSREG_ID_AA64MMFR4_EL1
+    ret
+
+    .global read_mecidr_el2
+read_mecidr_el2:
+    mrs x0, VAL_SYSREG_MECIDR_EL2
     ret
 
     .global read_cptr_el2

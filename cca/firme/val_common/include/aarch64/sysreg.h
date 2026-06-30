@@ -20,6 +20,7 @@ uint64_t read_currentel(void);
 uint64_t read_mpidr_el1(void);
 uint64_t read_id_aa64pfr0_el1(void);
 uint64_t read_id_aa64mmfr4_el1(void);
+uint64_t read_mecidr_el2(void);
 
 uint64_t read_cptr_el2(void);
 void write_cptr_el2(uint64_t v);

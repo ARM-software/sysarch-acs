@@ -53,6 +53,9 @@ export SUITE=gpt                 # all (default) | base | gpt | mec | ide | atte
 export BUILD_MODE=auto           # auto (default) | always | never
 export BUILD_TFA=auto            # auto (default) | always | never
 export TFA_LOG_LEVEL=40          # 10..50 (ERROR..VERBOSE)
+export FVP_ENABLE_MEC=1          # enable FVP MEC/MPE model parameters for MEC tests
+export FVP_MECID_WIDTH=16        # default MECID width for FVP MEC runs
+export FVP_ENABLE_SMMU_MEC=1     # optional SMMU MECID plumbing for future device-side MEC scenarios
 ```
 
 ## 3. Adding new tests

@@ -25,18 +25,53 @@ FVP_ENABLE_TELNET="${FVP_ENABLE_TELNET:-1}"
 FVP_TELNET_PORTS="${FVP_TELNET_PORTS:-5000,5001,5002,5003}"
 FVP_TELNET_LOG_DIR="${FVP_TELNET_LOG_DIR:-${ACS_DIR}/build-fvp-telnet}"
 FVP_TELNET_MERGED_LOG="${FVP_TELNET_MERGED_LOG:-${FVP_TELNET_LOG_DIR}/merged.log}"
+SUITE="${SUITE:-all}"
+SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
+
+case "${SUITE}" in
+    all|base|gpt|mec|ide|attest)
+        ;;
+    *)
+        echo "ERROR: unknown SUITE='${SUITE}' (expected all|base|gpt|mec|ide|attest)" >&2
+        exit 1
+        ;;
+esac
+
 FVP_ENABLE_RME="${FVP_ENABLE_RME:-1}"
 FVP_RME_SUPPORT_LEVEL="${FVP_RME_SUPPORT_LEVEL:-2}"
+if [[ -z "${FVP_ENABLE_MEC+x}" ]]; then
+    case "${SUITE}" in
+        all|mec)
+            FVP_ENABLE_MEC=1
+            ;;
+        *)
+            FVP_ENABLE_MEC=0
+            ;;
+    esac
+fi
+FVP_MEC_SUPPORT_LEVEL="${FVP_MEC_SUPPORT_LEVEL:-2}"
+FVP_MECID_WIDTH="${FVP_MECID_WIDTH:-16}"
+FVP_ENABLE_SMMU_MEC="${FVP_ENABLE_SMMU_MEC:-0}"
+if [[ -z "${FVP_CACHE_STATE_MODELLED+x}" ]]; then
+    if [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
+        FVP_CACHE_STATE_MODELLED=0
+    else
+        FVP_CACHE_STATE_MODELLED=1
+    fi
+fi
 BUILD_MODE="${BUILD_MODE:-auto}" # auto|always|never
 
 BUILD_PLAT="${BUILD_BASE}/${PLAT}/${BUILD_TYPE}"
+BUILD_STAMP="${BUILD_PLAT}/firme-build.stamp"
 
 need_build_auto() {
-    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" <<'PY'
+    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" <<'PY'
 import os, sys
 
 acs_dir = sys.argv[1]
 fip = sys.argv[2]
+stamp = sys.argv[3]
+suite = sys.argv[4]
 
 SOURCE_SUFFIXES = {
     ".c", ".h", ".S", ".s", ".ld", ".mk", ".make", ".json", ".dts", ".dtsi",
@@ -75,6 +110,17 @@ except FileNotFoundError:
     print("1")
     sys.exit(0)
 
+try:
+    with open(stamp, "r", encoding="utf-8") as stamp_file:
+        stamp_lines = stamp_file.read().splitlines()
+except FileNotFoundError:
+    print("1")
+    sys.exit(0)
+
+if f"SUITE={suite}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+
 print("1" if latest > fip_mtime else "0")
 PY
 }
@@ -102,8 +148,10 @@ if [[ "${DO_BUILD}" == "1" ]]; then
         exit 1
     fi
     TFA_DIR="${TFA_DIR}" PLAT="${PLAT}" BUILD_BASE="${BUILD_BASE}" BUILD_TYPE="${BUILD_TYPE}" \
+        SUITE="${SUITE}" \
         BUILD_TFA="${BUILD_TFA:-auto}" \
         bash "${ACS_DIR}/tools/scripts/build_tfa_fvp.sh"
+    printf 'SUITE=%s\n' "${SUITE}" > "${BUILD_STAMP}"
 else
     echo "[run] Skipping build (BUILD_MODE=${BUILD_MODE})"
 fi
@@ -129,8 +177,12 @@ echo "  UART1_LOG  : ${UART1_LOG}"
 echo "  UART2_LOG  : ${UART2_LOG}"
 echo "  UART3_LOG  : ${UART3_LOG}"
 echo "  MODEL_LOG  : ${MODEL_LOG}"
+echo "  SUITE      : ${SUITE}"
 echo "  TELNET     : ${FVP_ENABLE_TELNET} (ports ${FVP_TELNET_PORTS})"
 echo "  TELNET_DIR : ${FVP_TELNET_LOG_DIR}"
+echo "  RME        : ${FVP_ENABLE_RME} (support level ${FVP_RME_SUPPORT_LEVEL})"
+echo "  MEC        : ${FVP_ENABLE_MEC} (support level ${FVP_MEC_SUPPORT_LEVEL}, MECID width ${FVP_MECID_WIDTH})"
+echo "  SMMU MEC   : ${FVP_ENABLE_SMMU_MEC}"
 
 mkdir -p "$(dirname "${UART_LOG}")"
 mkdir -p "$(dirname "${UART1_LOG}")"
@@ -146,7 +198,7 @@ FVP_ARGS=(
     -C bp.tzc_400.diagnostics=1
     -C cluster0.NUM_CORES=4
     -C cluster1.NUM_CORES=4
-    -C cache_state_modelled=1
+    -C cache_state_modelled="${FVP_CACHE_STATE_MODELLED}"
     -C bp.secureflashloader.fname="${BL1_BIN}"
     -C bp.flashloader0.fname="${FIP_BIN}"
     -C bp.pl011_uart0.uart_enable=1
@@ -185,6 +237,41 @@ if [[ "${FVP_ENABLE_RME}" == "1" ]]; then
         -C cluster0.restriction_on_speculative_execution_aarch32=2
         -C cluster1.restriction_on_speculative_execution_aarch32=2
     )
+fi
+
+if [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
+    mec_output_attrs="ExtendedID[62:55]=MPAM_PMG,ExtendedID[38]=MPAM_SP[0],ExtendedID[37]=MPAM_SP[1],UserFlags[31:16]=MECID"
+    FVP_ARGS+=(
+        -C cluster0.mec_support_level="${FVP_MEC_SUPPORT_LEVEL}"
+        -C cluster1.mec_support_level="${FVP_MEC_SUPPORT_LEVEL}"
+        -C bp.mpe.block_size_in_bytes=4096
+        -C bp.mpe.corruption_strategy=0
+        -C bp.mpe.enable=1
+        -C bp.mpe.ignore_mecid=0
+        -C bp.mpe.non_secure_pas_enc_key=34
+        -C bp.mpe.realm_pas_enc_key=136
+        -C bp.mpe.root_pas_enc_key=68
+        -C bp.mpe.secure_pas_enc_key=17
+        -C "bp.mpe.output_attributes_parameter_of_core=${mec_output_attrs}"
+        -C "cluster0.output_attributes=${mec_output_attrs}"
+        -C "cluster1.output_attributes=${mec_output_attrs}"
+        -C "gic_distributor.output_attributes=${mec_output_attrs}"
+        -C "elfloader.output_attributes_parameter_of_core=${mec_output_attrs}"
+        -C cluster0.rme_mecid_width="${FVP_MECID_WIDTH}"
+        -C cluster1.rme_mecid_width="${FVP_MECID_WIDTH}"
+    )
+
+    if [[ "${FVP_ENABLE_SMMU_MEC}" == "1" ]]; then
+        FVP_ARGS+=(
+            # Device-side MECID plumbing is optional for the current
+            # FIRME_MEC_REFRESH ABI tests. Some FVP revisions reject these
+            # parameters unless the PCI SMMU Realm interface is also enabled.
+            # Keep it opt-in for future IDE/MEC memory-correlation scenarios.
+            -C pci.pci_smmuv3.mmu.SMMU_R_IDR3=0x18000
+            -C pci.pci_smmuv3.mmu.SMMU_R_MECIDR=15
+            -C 'pci.pci_smmuv3.mmu.mec_attribute_transform=UserFlags[31:16]=MECID[15:0]'
+        )
+    fi
 fi
 
 echo "[run] Launching FVP (Ctrl-C to stop)."

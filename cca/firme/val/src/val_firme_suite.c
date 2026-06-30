@@ -34,6 +34,13 @@ extern int firme_base_service_mandatory_run_realm(uint64_t base_pa, firme_rule_r
 extern int firme_base_service_mandatory_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 #endif
 
+#if FIRME_ENABLE_MEC
+extern int firme_mec_common_mecid_width_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+#endif
+
 #if FIRME_ENABLE_GPT
 extern int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *out);
@@ -112,6 +119,39 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_ns = firme_base_service_mandatory_run_ns,
         .run_secure = firme_base_service_mandatory_run_secure,
         .run_realm = firme_base_service_mandatory_run_realm,
+    },
+#endif
+#if FIRME_ENABLE_MEC
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0206,
+        .rule_str = "R0206",
+        .suite = "firme",
+        .test_name = "mec_common_mecid_width",
+        .desc = "MECID management uses the common MECID width",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Common MECID width enforcement from Realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_mec_common_mecid_width_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0208,
+        .rule_str = "R0208",
+        .suite = "firme",
+        .test_name = "mec_refresh_abi",
+        .desc = "FIRME_MEC_REFRESH return status and parameter checks",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "FIRME_MEC_REFRESH from Secure world",
+        .check_realm = "FIRME_MEC_REFRESH from Realm world",
+        .check_ns = "FIRME_MEC_REFRESH from NS world",
+        .run_ns = firme_mec_refresh_abi_run_ns,
+        .run_secure = firme_mec_refresh_abi_run_secure,
+        .run_realm = firme_mec_refresh_abi_run_realm,
     },
 #endif
 #if FIRME_ENABLE_GPT

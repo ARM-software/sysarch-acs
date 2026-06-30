@@ -17,6 +17,7 @@
 #define FIRME_FID_SERVICE_VERSION  0xC4000400ULL
 #define FIRME_FID_SERVICE_FEATURES 0xC4000401ULL
 #define FIRME_FID_GM_GPI_SET       0xC4000402ULL
+#define FIRME_FID_MEC_REFRESH      0xC4000407ULL
 
 /* Backward-compatible aliases used by older diagnostics. */
 #define FIRME_FID_VERSION  FIRME_FID_SERVICE_VERSION
@@ -79,6 +80,22 @@
 #define FIRME_BASE_SERVICE_LIST_SHIFT      16U
 #define FIRME_BASE_SERVICE_LIST_MASK       0xFFFFU
 
+
+/* FIRME_MEC_REFRESH parameter encoding. */
+#define FIRME_MEC_REFRESH_REASON_CREATE  UINT64_C(0)
+#define FIRME_MEC_REFRESH_REASON_DESTROY UINT64_C(1)
+#define FIRME_MEC_REFRESH_REASON_MASK    UINT64_C(1)
+#define FIRME_MEC_REFRESH_MECID_SHIFT    32U
+#define FIRME_MEC_REFRESH_MECID_WIDTH    16U
+#define FIRME_MEC_REFRESH_MECID_MASK     UINT64_C(0xffff)
+
+/* FIRME MECID management service feature register fields. */
+#define FIRME_MECID_FEATURE_REG0_INDEX           0U
+#define FIRME_MECID_FEATURE_REG0_MEC_REFRESH_BIT (UINT64_C(1) << 0)
+#define FIRME_MECID_FEATURE_REG1_INDEX 1U
+#define FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTH_SHIFT 0U
+#define FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTH_MASK  0xfU
+
 typedef struct {
     uint64_t x0;
     uint64_t x1;
@@ -93,6 +110,7 @@ void val_firme_service_features(uint64_t service_id, uint64_t feature_reg_index,
                                 firme_res_t *out);
 void val_firme_gm_gpi_set(uint64_t base_address, uint64_t granule_count, uint64_t attributes,
                           firme_res_t *out);
+void val_firme_mec_refresh(uint64_t mec_params, firme_res_t *out);
 int64_t val_firme_status_to_i64(uint64_t value);
 int val_firme_status_is_architected(int64_t status);
 uint64_t val_firme_base_service_list_bit(uint32_t service_id);

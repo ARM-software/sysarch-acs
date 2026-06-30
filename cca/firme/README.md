@@ -20,14 +20,14 @@ same hosting model.
 ## ACS release details
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
-- **Current coverage:** Base service (R0038, R0051, R0053, R0055) and GPT Management (R0085, R0086, R0089)
+- **Current coverage:** Base service (R0038, R0051, R0053, R0055), MECID management (R0206, R0208), and GPT Management (R0085, R0086, R0089)
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
 ## FIRME spec version mapping
 
 | FIRME-ACS version | Git tag | FIRME spec version |
 |---|---|---|
-| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Base service + GPT management coverage |
+| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Base service, MECID management, and GPT management coverage |
 
 ## How it works (high level)
 1. TF-A boots three ACS payload images: **Secure shim** (BL32), **Realm shim**
@@ -100,6 +100,9 @@ Useful knobs:
 - `BUILD_MODE=auto|always|never` (controls rebuilds of TF-A + FIRME-ACS)
 - `BUILD_TFA=auto|always|never` (controls TF-A rebuilds only)
 - `FVP_TIMEOUT_SECS=240` (auto-terminate the model)
+- `FVP_ENABLE_MEC=1` (enable FVP MEC/MPE parameters for MECID management tests)
+- `FVP_MECID_WIDTH=16` (default MECID width when MEC is enabled)
+- `FVP_ENABLE_SMMU_MEC=1` (optional device-side SMMU MECID plumbing; not required for current MEC ABI tests)
 - `UART_LOG=cca/firme/build-fvp-uart.log`, `MODEL_LOG=cca/firme/build-fvp-model.log`
 
 ### TF-A Secure Partition layout file (`tools/config/sp_layout.json`)

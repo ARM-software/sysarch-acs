@@ -23,6 +23,8 @@ typedef enum {
     FIRME_RULE_R0085 = 85,
     FIRME_RULE_R0086 = 86,
     FIRME_RULE_R0089 = 89,
+    FIRME_RULE_R0206 = 206,
+    FIRME_RULE_R0208 = 208,
 } firme_rule_id_t;
 
 typedef struct {

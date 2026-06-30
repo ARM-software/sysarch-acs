@@ -97,6 +97,44 @@ Testcase checklist
 
   * -
 
+      `mec_common_mecid_width <../test/mec/mec_common_mecid_width.c>`_
+
+    -
+
+      R0206: MECID management uses the common MECID width.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the MECID management service.
+      2. If the service is not implemented on the platform, report SKIP.
+      3. Derive the ACS expected common MECID width from independently discovered requesters.
+      4. The complete check requires the minimum width across all PEs and MEC-capable requesters such as SMMUs.
+      5. If full requester discovery is unavailable, do not claim system common-width coverage.
+      6. Read the DUT-advertised ``COMMON_MECID_WIDTH`` only when the applicable specification revision defines its feature-register encoding.
+      7. Compare the DUT-advertised width against the ACS-derived expected width and fail on mismatch.
+      8. Invoke ``FIRME_MEC_REFRESH`` with the largest MECID inside the common width and expect ``SUCCESS``.
+      9. If encodable, invoke ``FIRME_MEC_REFRESH`` with the first MECID outside the common width.
+      10. Expect ``INVALID_PARAMETERS``.
+
+  * -
+
+      `mec_refresh_abi <../test/mec/mec_refresh_abi.c>`_
+
+    -
+
+      R0208: ``FIRME_MEC_REFRESH`` returns architected status codes for caller and MECID-bound checks.
+
+    -
+
+      1. Invoke ``FIRME_MEC_REFRESH`` from NS and Secure callers.
+      2. Expect ``NOT_SUPPORTED`` because MECID management is Realm-only.
+      3. From Realm, derive the effective common MECID width only when the applicable specification revision defines the discovery encoding.
+      4. Invoke valid create and destroy refresh requests and expect ``SUCCESS`` after BUSY retry.
+      5. If the common MECID width is less than 16, invoke with the first encodable MECID outside that width.
+      6. Expect ``INVALID_PARAMETERS`` for the out-of-range MECID; skip this negative check when width is 16.
+
+  * -
+
       `gpt_transition_feat_rme <../test/gpt/gpt_transition_feat_rme.c>`_
 
     -

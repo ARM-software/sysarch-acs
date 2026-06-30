@@ -14,6 +14,19 @@
 #include "pal_platform.h"
 
 /**
+ *   @brief    - Check whether a value is an ACS rule status.
+ *   @param    - status : Candidate ACS_STATUS_* value.
+ *   @return   - 1 if the value is an ACS status, 0 otherwise.
+**/
+static int val_firme_is_rule_status(uint64_t status)
+{
+    return (status == (uint64_t)ACS_STATUS_PASS) ||
+           (status == (uint64_t)ACS_STATUS_FAIL) ||
+           (status == (uint64_t)ACS_STATUS_SKIP) ||
+           (status == (uint64_t)ACS_STATUS_ERR);
+}
+
+/**
  *   @brief    - Call into the Secure world shim using SPMD direct messaging.
  *   @param    - ns_id   : NS endpoint ID.
  *   @param    - dst_id  : Destination endpoint ID (Secure shim logical endpoint).
@@ -118,12 +131,26 @@ int val_firme_world_call(firme_acs_world_t world, firme_acs_cmd_t cmd,
             return VAL_ERROR;
         }
         if (res) {
-            /* RMMD forwarding convention already matches: x0=status, x1..x4=payload results. */
-            res->x0 = out.x0;
-            res->x1 = out.x1;
-            res->x2 = out.x2;
-            res->x3 = out.x3;
-            res->x4 = out.x4;
+            /*
+             * Normalize the RMMD-safe result layout to x0=status and
+             * x1..x2=payload. In TF-A RMMD V1 compatibility mode, only Realm
+             * x1-x5 are forwarded, so ACS must not reconstruct payload from
+             * non-returned Realm x6/x7 values.
+             */
+            if ((out.x0 == 0ULL) && (out.x1 == 0ULL) &&
+                val_firme_is_rule_status(out.x2)) {
+                res->x0 = out.x2;
+                res->x1 = out.x3;
+                res->x2 = out.x4;
+                res->x3 = 0;
+                res->x4 = 0;
+            } else {
+                res->x0 = (uint64_t)ACS_STATUS_FAIL;
+                res->x1 = out.x0;
+                res->x2 = out.x1;
+                res->x3 = out.x2;
+                res->x4 = out.x3;
+            }
         }
         return VAL_SUCCESS;
     }

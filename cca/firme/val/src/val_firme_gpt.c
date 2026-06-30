@@ -57,14 +57,17 @@ int val_firme_mem_read64_world(firme_acs_world_t world,
         /*
          * Use volatile stores to avoid paired stores (stp) to potentially
          * misaligned addresses when alignment checking is enabled.
+         * Cross-world memory probes use a compact payload format:
+         * x1=faulted, x2=ESR when faulted or read value when not faulted.
+         * Realm transport only guarantees two payload words through RMMD.
          */
         volatile uint64_t *dst = (volatile uint64_t *)(void *)out_fault;
         dst[0] = res.x1; /* faulted */
-        dst[1] = res.x2; /* esr */
-        dst[2] = res.x3; /* far */
+        dst[1] = (res.x1 != 0ULL) ? res.x2 : 0; /* esr */
+        dst[2] = 0; /* far is not part of the compact transport payload */
     }
     if (out_value) {
-        *out_value = res.x4; /* value (0 when faulted) */
+        *out_value = (res.x1 == 0ULL) ? res.x2 : 0; /* value */
     }
     return VAL_SUCCESS;
 }

@@ -72,7 +72,7 @@ int val_firme_diag_run(uint64_t test_id, uint64_t a0, uint64_t a1, uint64_t a2, 
 
         if (out) {
             out->x0 = (uint64_t)(rc != 0 ? 1u : 0u); /* faulted */
-            out->x1 = fi.esr;
+            out->x1 = (rc != 0) ? fi.esr : v;
             out->x2 = fi.far;
             out->x3 = (rc == 0) ? v : 0;
         }

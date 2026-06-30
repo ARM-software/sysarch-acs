@@ -33,7 +33,7 @@
  *   x1=cmd, x2..x5=payload args
  *
  * Return to Normal world (after RMMD forwarding):
- *   x0=status, x1..x4=implementation-defined payload results
+ *   x0=RMI_SUCCESS, x1=RMI_SUCCESS, x2=ACS_STATUS_*, x3..x4=payload results
  */
 #define FIRME_ACS_RMI_DISPATCH 0xC40001D0U
 

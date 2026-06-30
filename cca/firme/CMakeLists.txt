@@ -83,27 +83,27 @@ set(FIRME_COMMON_LDFLAGS
     -nostdlib -nostartfiles
 )
 
+file(GLOB FIRME_PAL_SRC CONFIGURE_DEPENDS
+    "${FIRME_PAL_DIR}/src/*.c"
+    "${FIRME_PAL_DIR}/src/*.S"
+)
+
+file(GLOB FIRME_COMMON_VAL_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/val_common/src/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val_common/src/*.S"
+)
+
+file(GLOB FIRME_VAL_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/val/src/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val/src/*.S"
+    "${CMAKE_CURRENT_LIST_DIR}/val/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val/*.S"
+)
+
 add_library(firme_common_obj OBJECT
-    "${FIRME_PAL_DIR}/src/pal_uart_pl011.c"
-
-    val_common/src/val_log.c
-    val_common/src/val_arch_init.c
-    val_common/src/val_fault.c
-    val_common/src/val_mmu.c
-    val_common/src/val_gicv3.c
-    val_common/src/val_mem.c
-    val_common/src/val_smccc.S
-    val_common/src/val_sysreg.S
-
-    val/src/val_firme_abi.c
-    val/src/val_firme_transport.c
-    val/src/val_firme_gpt.c
-    val/src/val_firme_service.c
-    val/src/val_platform.c
-    val/src/val_firme_suite.c
-    val/src/val_firme_diag.c
-    val/src/val_firme_rules_dispatch.c
-    val/val_firme_test.c
+    ${FIRME_PAL_SRC}
+    ${FIRME_COMMON_VAL_SRC}
+    ${FIRME_VAL_SRC}
 )
 
 target_include_directories(firme_common_obj PRIVATE ${FIRME_COMMON_INCLUDES})
@@ -118,26 +118,36 @@ target_compile_definitions(firme_common_obj PRIVATE
   FIRME_ENABLE_ATTEST=$<BOOL:${FIRME_ENABLE_ATTEST}>
 )
 
+file(GLOB FIRME_BASE_TEST_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/test/base/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/base/*.S"
+)
+
+file(GLOB FIRME_GPT_TEST_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/test/gpt/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/gpt/*.S"
+)
+
+file(GLOB FIRME_MEC_TEST_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/test/mec/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/mec/*.S"
+)
+
 if(FIRME_ENABLE_BASE)
-  target_sources(firme_common_obj PRIVATE
-    test/base/service_version.c
-    test/base/service_feature_registers.c
-    test/base/service_features.c
-    test/base/base_service_mandatory.c
-  )
+  target_sources(firme_common_obj PRIVATE ${FIRME_BASE_TEST_SRC})
 endif()
 
 if(FIRME_ENABLE_GPT)
-  target_sources(firme_common_obj PRIVATE
-    test/gpt/gpt_transition_feat_rme.c
-    test/gpt/gpt_transition_feat_gpc2.c
-    test/gpt/gpt_transition_feat_gdi.c
-  )
+  target_sources(firme_common_obj PRIVATE ${FIRME_GPT_TEST_SRC})
 endif()
 
-# Future chapters (MEC/IDE/ATTEST) should follow the same pattern:
+if(FIRME_ENABLE_MEC)
+  target_sources(firme_common_obj PRIVATE ${FIRME_MEC_TEST_SRC})
+endif()
+
+# Future chapters should follow the same pattern:
 # - add rule sources under test/<module>/
-# - add them here behind FIRME_ENABLE_* gates
+# - add a module glob and include it behind the SUITE-derived enable switch
 
 function(add_firme_payload target_name out_base link_script)
   add_executable(${target_name}.elf ${ARGN} $<TARGET_OBJECTS:firme_common_obj>)
@@ -172,34 +182,40 @@ function(add_firme_payload target_name out_base link_script)
   )
 endfunction()
 
+file(GLOB FIRME_HOST_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/val/host/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val/host/*.S"
+)
+
+file(GLOB FIRME_SECURE_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/val/secure/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val/secure/*.S"
+)
+
+file(GLOB FIRME_REALM_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/val/realm/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/val/realm/*.S"
+)
+
 add_firme_payload(
   nsel2
   nsel2
   "tools/linker/host.ld"
-  val/host/val_host_main.c
-  val/host/val_host_dispatcher.c
-  val/host/val_host_entry.S
-  val/host/val_host_vectors.S
+  ${FIRME_HOST_SRC}
 )
 
 add_firme_payload(
   secure
   secure
   "tools/linker/secure.ld"
-  val/secure/val_secure_spmc.c
-  val/secure/val_secure_entry.S
-  val/secure/val_secure_vectors.S
-  val/secure/val_secure_sel1_entry.S
+  ${FIRME_SECURE_SRC}
 )
 
 add_firme_payload(
   rel2
   rel2
   "tools/linker/realm.ld"
-  val/realm/val_realm_main.c
-  val/realm/val_realm_rmi_dispatch.c
-  val/realm/val_realm_entry.S
-  val/realm/val_realm_vectors.S
+  ${FIRME_REALM_SRC}
 )
 
 add_custom_target(firme_payloads ALL DEPENDS nsel2.elf secure.elf rel2.elf)
