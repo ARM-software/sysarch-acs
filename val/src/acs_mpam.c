@@ -310,7 +310,7 @@ val_srat_get_info(SRAT_INFO_e type, uint64_t data)
 /**
   @brief   This API returns proximity domain mapped to the memory range.
 
-  @param   none
+  @param   mem_range_index memory range index
   @return  proximity domain
 **/
 uint64_t
@@ -328,7 +328,7 @@ val_srat_get_prox_domain(uint64_t mem_range_index)
       return SRAT_INVALID_INFO;
   }
 
-  for (i = 0; i < g_srat_info_table->num_of_mem_ranges; i++) {
+  for (i = 0; i < g_srat_info_table->num_of_srat_entries; i++) {
       if (g_srat_info_table->srat_info[i].node_type == SRAT_NODE_MEM_AFF) {
           if (mem_range_index == 0)
               return g_srat_info_table->srat_info[i].node_data.mem_aff.prox_domain;
