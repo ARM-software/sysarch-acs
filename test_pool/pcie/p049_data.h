@@ -108,7 +108,7 @@ pcie_cfgreg_bitfield_entry bf_info_table49[] = {
         10,                                      // Start bit position
         10,                                      // End bit position
         0,                                       // Hardwired to 0b
-        READ_ONLY,                               // Attribute is Read-only
+        READ_WRITE,                              // Attribute is Read-Write
         "CR ID value mismatch",                  // Interrupt disable invalid configured value
         "CR ID attribute mismatch"               // Interrupt disable invalid attribute
     },
