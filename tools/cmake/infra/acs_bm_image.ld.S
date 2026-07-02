@@ -1,7 +1,7 @@
 /** @file
- * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
-
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,9 @@
 
 #include "acs.h"
 
+/*
+ * Shared bare-metal ACS image layout used by all firmware payloads.
+ */
 IMAGE_BASE = PLATFORM_HOST_IMAGE_BASE;
 OUTPUT_FORMAT(elf64-littleaarch64)
 OUTPUT_ARCH(aarch64)

@@ -36,7 +36,7 @@ set(GNUARM_OBJDUMP_FLAGS    "-dSx")
 set(GNUARM_OBJCOPY_FLAGS    "-Obinary")
 
 function (create_executable EXE_NAME OUTPUT_DIR TEST)
-	set(SCATTER_INPUT_FILE "${ROOT_DIR}/tools/cmake/infra/${EXE_NAME}_image.ld.S")
+	set(SCATTER_INPUT_FILE "${ROOT_DIR}/tools/cmake/infra/acs_bm_image.ld.S")
     set(SCATTER_OUTPUT_FILE "${OUTPUT_DIR}/${EXE_NAME}_image.ld")
 
     add_custom_command(OUTPUT CPP-LD--${EXE_NAME}${TEST}
