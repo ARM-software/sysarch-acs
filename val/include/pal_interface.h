@@ -924,7 +924,8 @@ typedef enum {
     START_TXN_MONITOR    = 0xb,
     STOP_TXN_MONITOR     = 0xc,
     ATS_TXN_REQ          = 0xd,
-    INJECT_ERROR         = 0xe
+    ATS_TXN_CLEAR        = 0xe,
+    INJECT_ERROR         = 0xf
 } EXERCISER_OPS;
 
 typedef enum {

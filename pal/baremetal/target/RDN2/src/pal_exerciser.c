@@ -624,9 +624,14 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS Ops, uint64_t Param, uint32_t Bdf)
         pal_mmio_write(Base + ATSCTL, ATS_TRIGGER);
         return !(pal_mmio_read(Base + ATSCTL) & ATS_STATUS);
 
+    case ATS_TXN_CLEAR:
+        pal_mmio_write(Base + ATSCTL, ATS_TXN_CLEAR_BIT);
+        return 0;
+
     case START_TXN_MONITOR:
         pal_mmio_write(Base + TXN_CTRL_BASE, TXN_START);
         return 0;
+
     case STOP_TXN_MONITOR:
         pal_mmio_write(Base + TXN_CTRL_BASE, TXN_STOP);
         return 0;

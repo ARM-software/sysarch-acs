@@ -823,6 +823,7 @@
 #define RID_VALUE_MASK         0xFFFF
 #define RID_VALID_MASK         (1ul << 31)
 #define ATS_TRIGGER            1
+#define ATS_TXN_CLEAR_BIT      (1ul << 5)
 #define ATS_STATUS             (1ul << 7)
 
 /* Memory config */

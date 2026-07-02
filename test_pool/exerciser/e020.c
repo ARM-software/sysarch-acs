@@ -369,6 +369,8 @@ test_clean:
       val_pgt_destroy(pgt_desc);
     }
 
+    val_exerciser_ops(ATS_TXN_CLEAR, 0, instance);
+
     if (val_pcie_find_capability(e_bdf, PCIE_ECAP, ECID_ATS, &cap_base) == PCIE_SUCCESS)
     {
         val_pcie_read_cfg(e_bdf, cap_base + ATS_CTRL, &reg_value);

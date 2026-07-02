@@ -71,6 +71,7 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
   uint64_t ttbr;
   uint32_t device_id;
   uint32_t its_id;
+  uint32_t test_status = ACS_STATUS_FAIL;
   void *dram_buf_virt = NULL;
   void *dram_buf_out_virt;
   uint64_t dram_buf_phys;
@@ -222,26 +223,13 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
     goto test_fail;
   }
 
-  if (smmu_mapped)
-    val_smmu_unmap(master);
-
-  if (smmu_enabled)
-    val_smmu_disable(master.smmu_index);
-
-  if (pgt_desc.pgt_base)
-    val_pgt_destroy(pgt_desc);
-
-  if (ats_enabled) {
-    val_pcie_read_cfg(e_bdf, cap_base + ATS_CTRL, &reg_value);
-    reg_value &= ATS_CACHING_DIS;
-    val_pcie_write_cfg(e_bdf, cap_base + ATS_CTRL, reg_value);
-  }
-
-  if (dram_buf_virt)
-    val_memory_free_pages(dram_buf_virt, TEST_DATA_NUM_PAGES);
-  return ACS_STATUS_PASS;
+  test_status = ACS_STATUS_PASS;
+  goto test_clean;
 
 test_fail:
+  test_status = ACS_STATUS_FAIL;
+
+test_clean:
   if (smmu_mapped)
     val_smmu_unmap(master);
 
@@ -257,9 +245,10 @@ test_fail:
     val_pcie_write_cfg(e_bdf, cap_base + ATS_CTRL, reg_value);
   }
 
+  val_exerciser_ops(ATS_TXN_CLEAR, 0, instance);
   if (dram_buf_virt)
     val_memory_free_pages(dram_buf_virt, TEST_DATA_NUM_PAGES);
-  return ACS_STATUS_FAIL;
+  return test_status;
 }
 
 static

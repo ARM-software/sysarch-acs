@@ -887,8 +887,9 @@
 #define RID_VALID_MASK (1ul << 31)
 #define RID_VALID      1
 #define RID_NOT_VALID  0
-#define ATS_TRIGGER    1
-#define ATS_STATUS     (1ul << 7)
+#define ATS_TRIGGER        1
+#define ATS_TXN_CLEAR_BIT  (1ul << 5)
+#define ATS_STATUS         (1ul << 7)
 #define TXN_INVALID    0xFFFFFFFF
 #define TXN_START      1
 #define TXN_STOP       0
