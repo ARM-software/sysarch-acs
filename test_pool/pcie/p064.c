@@ -24,24 +24,28 @@
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 64)
 #define TEST_DESC  "Check ARI forwarding support rule     "
 #define TEST_RULE  "IE_REG_4"
+#define ARI_FW_STATUS(val) ((val) ? "supports ARI Forwarding" : "does not support ARI Forwarding")
 
 static
 void
 payload(void)
 {
 
-  uint32_t bdf;
+  uint32_t ep_bdf;
   uint32_t rp_bdf;
   uint32_t pe_index;
   uint32_t tbl_index;
   uint32_t reg_value;
   uint32_t dp_type;
-  uint32_t cap_base;
-  uint32_t ari_frwd_support;
+  uint32_t rp_cap_base;
+  uint32_t ep_cap_base;
+  uint32_t rp_ari_support;
   uint32_t test_fails;
-  uint32_t test_skip = 1;
+  uint32_t test_status = TEST_SKIP;
+  uint32_t ep_ari_support = 1;
   pcie_device_bdf_table *bdf_tbl_ptr;
-
+  uint32_t reg_overwrite_value;
+  uint32_t afs_mask;
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
@@ -50,41 +54,65 @@ payload(void)
   /* Check for all the function present in bdf table */
   for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
   {
-      bdf = bdf_tbl_ptr->device[tbl_index].bdf;
-      dp_type = val_pcie_device_port_type(bdf);
-
+      ep_bdf = bdf_tbl_ptr->device[tbl_index].bdf;
+      dp_type = val_pcie_device_port_type(ep_bdf);
+      ep_ari_support = 1;
       /* Check entry is iEP */
       if (dp_type == iEP_EP)
       {
-          val_print(DEBUG, "\n       BDF - 0x%x", bdf);
-          /* Check ARI capability support */
-          if (val_pcie_find_capability(bdf, PCIE_ECAP, ECID_ARICS, &cap_base) ==
-              PCIE_CAP_NOT_FOUND)
-              continue;
-
+          val_print(DEBUG, "\n       BDF - 0x%x", ep_bdf);
           /* Get the rootport of ARI device */
           rp_bdf = bdf_tbl_ptr->device[tbl_index].rp_bdf;
 
-          /* Read the ARI forwarding bit */
-          val_pcie_find_capability(rp_bdf, PCIE_CAP, CID_PCIECS, &cap_base);
-          val_pcie_read_cfg(rp_bdf, cap_base + DCAP2R_OFFSET, &reg_value);
-          ari_frwd_support = (reg_value >> DCAP2R_AFS_SHIFT) & DCAP2R_AFS_MASK;
+          val_pcie_disable_eru(rp_bdf);
 
+          /* Check ARI capability support */
+          if (val_pcie_find_capability(ep_bdf, PCIE_ECAP, ECID_ARICS, &ep_cap_base) ==
+              PCIE_CAP_NOT_FOUND)
+              ep_ari_support = 0;
+
+          /* Derive bit-field of interest from the register value */
+          val_pcie_find_capability(rp_bdf, PCIE_CAP, CID_PCIECS, &rp_cap_base);
+          val_pcie_read_cfg(rp_bdf, rp_cap_base + DCAP2R_OFFSET, &reg_value);
+
+          rp_ari_support = (reg_value >> DCAP2R_AFS_SHIFT) & DCAP2R_AFS_MASK;
           /* If test runs for atleast an endpoint */
-          test_skip = 0;
+          test_status = TEST_START;
 
-          /* If root port not support ARI forwarding, fail the test */
-          if (!ari_frwd_support) {
-            val_print(ERROR, "\n       BDF - 0x%x does not support ARI Forwarding. ", bdf);
+          afs_mask = DCAP2R_AFS_MASK << DCAP2R_AFS_SHIFT;
+          reg_overwrite_value = reg_value ^ afs_mask;
+
+          /* Bit 5 (AFS) is RO: attempt to toggle and ensure it remains unchanged */
+          val_pcie_write_cfg(rp_bdf, rp_cap_base + DCAP2R_OFFSET, reg_overwrite_value);
+          val_pcie_read_cfg(rp_bdf, rp_cap_base + DCAP2R_OFFSET, &reg_overwrite_value);
+
+          if ((reg_overwrite_value & afs_mask) != (reg_value & afs_mask)) {
+            val_print(ERROR,
+                      "\n       RP_BDF - 0x%x Bit 5 (AFS) should be read-only ", rp_bdf);
             test_fails++;
+            /* Restore original value in case the write was accepted */
+            val_pcie_write_cfg(rp_bdf, rp_cap_base + DCAP2R_OFFSET, reg_value);
+          }
+
+          /* If endpoint supports ARI, AFS must be 1 */
+          if ((ep_ari_support == 1) && (rp_ari_support == 0)) {
+            val_print(ERROR,
+                        "\n     RP_BDF 0x%x Bit 5 (AFS) should be 1 when EP supports ARI",
+                        rp_bdf);
+            test_fails++;
+          }
+          else if (rp_ari_support !=  ep_ari_support) {
+            val_print(WARN, "\n      Endpoint 0x%0x %s Root Port 0x%x %s ",
+                        ep_bdf, ARI_FW_STATUS(ep_ari_support),
+                        rp_bdf, ARI_FW_STATUS(rp_ari_support));
           }
 
       }
   }
 
-  if (test_skip == 1) {
+  if (test_status == TEST_SKIP) {
       val_print(DEBUG,
-                "\n       No iEP_EP found with ARI Capability Support. Skipping test");
+                "\n       No iEP_EP Found. Skipping test");
       val_set_status(pe_index, RESULT_SKIP(01));
   }
   else if (test_fails)

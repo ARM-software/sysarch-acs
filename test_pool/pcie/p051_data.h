@@ -207,22 +207,6 @@ pcie_cfgreg_bitfield_entry bf_info_table51[] = {
         "FLRC attribute mismatch"                // FLRC invalid attribute
     },
 
-    // Bit-field entry 2: Device Capabilities Register 2, bit[5] ARI Forwarding Support
-    // WARNING
-    {
-        PCIE_CAP,                                // Part of PCIe capability register
-        0x10,                                    // Capability id
-        0,                                       // Not applicable
-        0x24,                                    // Offset from capability id base
-        iEP_RP,                                  // Applicable to integrated root ports
-        5,                                       // Start bit position
-        5,                                       // End bit position
-        0,                                       // Hardwired to 0b
-        READ_ONLY,                               // Attribute is Read-only
-        "WARNING AFS value mismatch",            // AFS invalid configured value
-        "WARNING AFS attribute mismatch"         // AFS invalid attribute
-    },
-
     // Bit-field entry 4: Device Capabilities Register 2, bit[6] AtomicOp Routing Supported
     // WARNING
     {
