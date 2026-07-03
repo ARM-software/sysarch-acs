@@ -2624,7 +2624,7 @@ The checklist provides information about:
       <td>1301</td>
       <td>NIST Statistical Test Suite</td>
       <td>Yes</td>
-      <td>Yes</td>
+      <td>No</td>
       <td>No</td>
       <td></td>
     </tr>
