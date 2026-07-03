@@ -156,6 +156,7 @@ payload5()
           */
           wakeup_clear_failsafe();
           if (!(g_timer_int_rcvd || g_failsafe_int_rcvd)) {
+              val_timer_disable_system_timer((addr_t)cnt_base_n);
               intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
               val_gic_clear_interrupt(intid);
               val_set_status(index, RESULT_SKIP(4));
