@@ -153,6 +153,7 @@ val_drtm_execute_dl_tests(uint32_t num_pe)
   status |= dl016_entry(num_pe);
   status |= dl017_entry(num_pe);
   status |= dl018_entry(num_pe);
+  status |= dl019_entry(num_pe);
 
   val_print_test_end(status, "Dynamic Launch");
 

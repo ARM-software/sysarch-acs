@@ -37,6 +37,7 @@ payload(uint32_t num_pe)
   uint32_t pcr18_events[256];
   uint32_t pcr18_count = 0;
   uint32_t event_idx = 0;
+  uint32_t secure_int_disabled = 0;
 
   DRTM_PARAMETERS      *drtm_params;
   DRTM_EVENT_LOG_STATE event_log;
@@ -79,8 +80,11 @@ payload(uint32_t num_pe)
   drtm_params->launch_features |= (DRTM_LAUNCH_FEAT_REQ_DLME_IMG_AUTH <<
                     DRTM_LAUNCH_FEAT_SHIFT_DLME_IMG_AUTH);
 
-  /* TODO - Enable below line after implementing DRTM_ENABLE_SECURE_INTERRUPTS function */
-  /* drtm_params->launch_features |= DRTM_LAUNCH_FEAT_SECURE_INT_DISABLE; */
+  /* Request secure interrupt disable during dynamic launch when supported. */
+  if (g_drtm_features.enable_secure_interrupts == DRTM_ACS_SUCCESS) {
+    drtm_params->launch_features |= DRTM_LAUNCH_FEAT_SECURE_INT_DISABLE;
+    secure_int_disabled = 1;
+  }
 
   /* Invoke DRTM Dynamic Launch, This will return only in case of error */
   status = val_drtm_dynamic_launch(drtm_params);
@@ -91,18 +95,28 @@ payload(uint32_t num_pe)
     goto free_dlme_region;
   }
 
+  /* Re-enable secure interrupts after a successful dynamic launch. */
+  if (secure_int_disabled) {
+    status = val_drtm_enable_secure_interrupts();
+    if (status != DRTM_ACS_SUCCESS) {
+      val_print(ERROR, "\n       DRTM Enable Secure Interrupts failed err=%d", status);
+      val_set_status(index, RESULT_FAIL(4));
+      goto unprotect_memory;
+    }
+  }
+
   /* Call DRTM Unprotect Memory */
   status = val_drtm_unprotect_memory();
   if (status < DRTM_ACS_SUCCESS) {
     val_print(ERROR, "\n       DRTM Unprotect Memory failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(4));
+    val_set_status(index, RESULT_FAIL(5));
     goto free_dlme_region;
   }
 
   status = val_drtm_event_log_init(drtm_params, &event_log);
   if (status != ACS_STATUS_PASS) {
     val_print(ERROR, "\n       Event log initialization failed");
-    val_set_status(index, RESULT_FAIL(5));
+    val_set_status(index, RESULT_FAIL(6));
     goto free_dlme_region;
   }
 
@@ -110,7 +124,7 @@ payload(uint32_t num_pe)
   while ((status = val_drtm_event_log_next(&event_log, &entry)) != DRTM_ACS_NOT_FOUND) {
     if (status != ACS_STATUS_PASS) {
       val_print(ERROR, "\n       Event log parsing failed");
-      val_set_status(index, RESULT_FAIL(6));
+      val_set_status(index, RESULT_FAIL(7));
       goto free_dlme_region;
     }
 
@@ -126,7 +140,7 @@ payload(uint32_t num_pe)
   /* DCE Image required*/
   if ((event_idx >= pcr17_count) || (pcr17_events[event_idx] != DRTM_EVTYPE_ARM_DCE)) {
     val_print(ERROR, "\n       PCR[17] DCE event not found or out of order");
-    val_set_status(index, RESULT_FAIL(7));
+    val_set_status(index, RESULT_FAIL(8));
     goto free_dlme_region;
   }
   event_idx++;
@@ -134,7 +148,7 @@ payload(uint32_t num_pe)
   /* PCR_SCHEMA required */
   if (event_idx >= pcr17_count || pcr17_events[event_idx] != DRTM_EVTYPE_ARM_PCR_SCHEMA) {
     val_print(ERROR, "\n       PCR[17] PCR_SCHEMA not found or out of order");
-    val_set_status(index, RESULT_FAIL(8));
+    val_set_status(index, RESULT_FAIL(9));
     goto free_dlme_region;
   }
   event_idx++;
@@ -147,15 +161,24 @@ payload(uint32_t num_pe)
   while (event_idx < pcr17_count && pcr17_events[event_idx] == DRTM_EVTYPE_ARM_DCE_SECONDARY)
     event_idx++;
 
-  /* SECURE_INT_DISABLE optional */
-  /* TODO - Change this to required after enabling DRTM_EVTYPE_ARM_SECURE_INT_DISABLE */
-  if (event_idx < pcr17_count && pcr17_events[event_idx] == DRTM_EVTYPE_ARM_SECURE_INT_DISABLE)
+  /* SECURE_INT_DISABLE event is required when secure interrupts were disabled. */
+  if (secure_int_disabled) {
+    if (event_idx >= pcr17_count ||
+        pcr17_events[event_idx] != DRTM_EVTYPE_ARM_SECURE_INT_DISABLE) {
+      val_print(ERROR, "\n       PCR[17] SECURE_INT_DISABLE not found or out of order");
+      val_set_status(index, RESULT_FAIL(10));
+      goto free_dlme_region;
+    }
     event_idx++;
+  } else if (event_idx < pcr17_count &&
+             pcr17_events[event_idx] == DRTM_EVTYPE_ARM_SECURE_INT_DISABLE) {
+    event_idx++;
+  }
 
   /* SEPARATOR required */
   if (event_idx >= pcr17_count || pcr17_events[event_idx] != DRTM_EVTYPE_ARM_SEPARATOR) {
     val_print(ERROR, "\n       PCR[17] SEPARATOR not found or out of order");
-    val_set_status(index, RESULT_FAIL(9));
+    val_set_status(index, RESULT_FAIL(11));
     goto free_dlme_region;
   }
   event_idx++;
@@ -163,7 +186,7 @@ payload(uint32_t num_pe)
   /* No more events */
   if (event_idx != pcr17_count) {
     val_print(ERROR, "\n       PCR[17] extra events after SEPARATOR");
-    val_set_status(index, RESULT_FAIL(10));
+    val_set_status(index, RESULT_FAIL(12));
     goto free_dlme_region;
   }
 
@@ -172,7 +195,7 @@ payload(uint32_t num_pe)
   /* PCR_SCHEMA required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_PCR_SCHEMA) {
     val_print(ERROR, "\n       PCR[18] PCR_SCHEMA not found or out of order");
-    val_set_status(index, RESULT_FAIL(11));
+    val_set_status(index, RESULT_FAIL(13));
     goto free_dlme_region;
   }
   event_idx++;
@@ -184,7 +207,7 @@ payload(uint32_t num_pe)
   /* DLME_PUBKEY required if auth succeeds */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME_PUBKEY) {
     val_print(ERROR, "\n       PCR[18] DLME_PUBKEY not found or out of order");
-    val_set_status(index, RESULT_FAIL(12));
+    val_set_status(index, RESULT_FAIL(14));
     goto free_dlme_region;
   }
   event_idx++;
@@ -196,7 +219,7 @@ payload(uint32_t num_pe)
   /* DLME_ENTRY_POINT required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME_ENTRY_POINT) {
     val_print(ERROR, "\n       PCR[18] DLME_ENTRY_POINT not found or out of order");
-    val_set_status(index, RESULT_FAIL(13));
+    val_set_status(index, RESULT_FAIL(15));
     goto free_dlme_region;
   }
   event_idx++;
@@ -204,15 +227,15 @@ payload(uint32_t num_pe)
   /* DEBUG_CONFIG required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DEBUG_CONFIG) {
     val_print(ERROR, "\n       PCR[18] DEBUG_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(14));
+    val_set_status(index, RESULT_FAIL(16));
     goto free_dlme_region;
   }
   event_idx++;
-
   /* NONSECURE_CONFIG required */
-  if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_NONSECURE_CONFIG) {
+  if (event_idx >= pcr18_count ||
+      pcr18_events[event_idx] != DRTM_EVTYPE_ARM_NONSECURE_CONFIG) {
     val_print(ERROR, "\n       PCR[18] NONSECURE_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(15));
+    val_set_status(index, RESULT_FAIL(17));
     goto free_dlme_region;
   }
   event_idx++;
@@ -220,7 +243,7 @@ payload(uint32_t num_pe)
   /* SEPARATOR required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_SEPARATOR) {
     val_print(ERROR, "\n       PCR[18] SEPARATOR not found or out of order");
-    val_set_status(index, RESULT_FAIL(16));
+    val_set_status(index, RESULT_FAIL(18));
     goto free_dlme_region;
   }
   event_idx++;
@@ -228,11 +251,17 @@ payload(uint32_t num_pe)
   /* No more events */
   if (event_idx != pcr18_count) {
     val_print(ERROR, "\n       PCR[18] extra events after SEPARATOR");
-    val_set_status(index, RESULT_FAIL(17));
+    val_set_status(index, RESULT_FAIL(19));
     goto free_dlme_region;
   }
 
   val_set_status(index, RESULT_PASS);
+  goto free_dlme_region;
+
+unprotect_memory:
+  status = val_drtm_unprotect_memory();
+  if (status < DRTM_ACS_SUCCESS)
+    val_print(ERROR, "\n       DRTM Unprotect Memory failed err=%d", status);
 
 free_dlme_region:
   if (drtm_params->dlme_region_address)

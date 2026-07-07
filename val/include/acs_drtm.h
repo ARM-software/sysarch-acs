@@ -46,6 +46,7 @@
 #define DRTM_1_0_FN_DRTM_SET_ERROR          DRTM_1_0_FN(0x07)
 #define DRTM_1_0_FN_DRTM_SET_TCB_HASH       DRTM_1_0_FN(0x08)
 #define DRTM_1_0_FN_DRTM_LOCK_TCB_HASH      DRTM_1_0_FN(0x09)
+#define DRTM_1_0_FN_DRTM_ENABLE_SECURE_INTERRUPTS DRTM_1_0_FN(0x0A)
 
 #define DRTM_1_0_FEAT_ID_BIT                ((uint64_t)0x1 << 63)
 #define DRTM_1_0_FEAT_ID(n)                 (DRTM_1_0_FEAT_ID_BIT | (n))
@@ -219,6 +220,7 @@ typedef struct {
     int64_t               set_error;
     int64_t               set_tcb_hash;
     int64_t               lock_tcb_hashes;
+    int64_t               enable_secure_interrupts;
 } DRTM_ACS_FEATURES;
 
 extern DRTM_ACS_FEATURES g_drtm_features;
@@ -386,6 +388,7 @@ int64_t val_drtm_unprotect_memory(void);
 int64_t val_drtm_get_error(uint64_t *feat1);
 int64_t val_drtm_set_tcb_hash(uint64_t tcb_hash_table_addr);
 int64_t val_drtm_lock_tcb_hashes(void);
+int64_t val_drtm_enable_secure_interrupts(void);
 uint32_t val_drtm_reserved_bits_check_is_zero(uint32_t reserved_bits);
 uint32_t val_drtm_get_psci_ver(void);
 uint32_t val_drtm_get_smccc_ver(void);
@@ -440,6 +443,7 @@ uint32_t dl015_entry(uint32_t num_pe);
 uint32_t dl016_entry(uint32_t num_pe);
 uint32_t dl017_entry(uint32_t num_pe);
 uint32_t dl018_entry(uint32_t num_pe);
+uint32_t dl019_entry(uint32_t num_pe);
 
 
 #endif /* __VAL_SPECIFICATION_H */

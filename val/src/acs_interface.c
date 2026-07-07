@@ -281,6 +281,17 @@ int64_t val_drtm_lock_tcb_hashes(void)
 }
 
 /**
+ *  @brief   Calls DRTM Enable Secure Interrupts function
+ *
+ *  @return  status
+ */
+int64_t val_drtm_enable_secure_interrupts(void)
+{
+    return val_invoke_drtm_fn(DRTM_1_0_FN_DRTM_ENABLE_SECURE_INTERRUPTS, 0, 0, 0, 0, 0,
+                              NULL, NULL, NULL);
+}
+
+/**
   @brief   This function checks if reserved_bits received are zero
   @param   reserved_bits reserved bits value received
   @return  status
@@ -607,6 +618,8 @@ uint32_t val_drtm_create_info_table(void)
         val_drtm_features(DRTM_1_0_FN_DRTM_SET_TCB_HASH, &feat1, &feat2);
     g_drtm_features.lock_tcb_hashes  =
         val_drtm_features(DRTM_1_0_FN_DRTM_LOCK_TCB_HASH, &feat1, &feat2);
+    g_drtm_features.enable_secure_interrupts =
+        val_drtm_features(DRTM_1_0_FN_DRTM_ENABLE_SECURE_INTERRUPTS, &feat1, &feat2);
 
     return 0;
 }
