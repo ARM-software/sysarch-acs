@@ -714,10 +714,10 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_IN_06</td>
-      <td>Not covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>901</td>
+      <td>Check config read for dev</td>
+      <td>✅</td>
+      <td>❌</td>
       <td></td>
     </tr>
     <tr>

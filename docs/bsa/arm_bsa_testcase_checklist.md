@@ -1127,11 +1127,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_IN_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>901</td>
+      <td>Check config read for dev under RP</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
@@ -3140,11 +3140,11 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>PCI_IN_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>901</td>
+      <td>Check config read for dev under RP</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
     </tr>
     <tr>
