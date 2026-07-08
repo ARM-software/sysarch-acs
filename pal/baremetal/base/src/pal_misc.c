@@ -19,10 +19,381 @@
 #include <stdarg.h>
 #include "pal_pcie_enum.h"
 #include "pal_common_support.h"
+#include "platform_image_def.h"
 #include "pal_pl011_uart.h"
 
 extern void* g_sbsa_log_file_handle;
 uint8_t   *gSharedMemory;
+
+static MEM_BLOCK_HEADER *g_free_list;
+static uint64_t          heap_base;
+static uint64_t          heap_top;
+static uint8_t           heap_init_done;
+
+/**
+  @brief  Check whether a value is a power of two.
+
+  @param  value  Value to check.
+
+  @return 1 if value is a power of two, 0 otherwise.
+**/
+static uint32_t
+is_power_of_2(size_t value)
+{
+  return value && ((value & (value - 1)) == 0);
+}
+
+/*
+ * Heap allocator overview:
+ * - The heap is represented as address-ordered blocks. Each block has a
+ *   header at the start and a footer at the end.
+ * - Free blocks are also linked through g_free_list, so allocation scans only
+ *   currently free blocks.
+ * - mem_alloc() finds a free block, places the payload after the header and
+ *   hidden owner pointer, aligns the payload, and splits any usable remainder
+ *   into a new free block.
+ * - mem_free() recovers the owning block from the hidden pointer stored before
+ *   the payload, validates header/footer metadata, marks the block free, then
+ *   coalesces adjacent free blocks before reinserting the final block into
+ *   g_free_list.
+ */
+
+/**
+  @brief  Initialize the baremetal heap allocator state.
+
+  @param  None
+
+  @return 1 if heap initialization succeeds, 0 otherwise.
+**/
+static uint32_t mem_alloc_init(void)
+{
+  uintptr_t aligned_heap_base;
+  uintptr_t aligned_heap_top;
+  size_t    heap_size;
+  MEM_BLOCK_FOOTER *footer;
+
+  aligned_heap_base = ADDR_ALIGN(PLATFORM_HEAP_REGION_BASE, MEM_MIN_ALIGNMENT);
+  aligned_heap_top = (PLATFORM_HEAP_REGION_BASE + PLATFORM_HEAP_REGION_SIZE) &
+                     ~((uintptr_t)MEM_MIN_ALIGNMENT - 1U);
+
+  g_free_list = NULL;
+  heap_base = aligned_heap_base;
+  heap_top = aligned_heap_top;
+
+  if (aligned_heap_top <= aligned_heap_base) {
+    return HEAP_INIT_FAILED;
+  }
+
+  heap_size = aligned_heap_top - aligned_heap_base;
+  if (heap_size < MEM_MIN_BLOCK_SIZE) {
+    return HEAP_INIT_FAILED;
+  }
+
+  g_free_list = (MEM_BLOCK_HEADER *)aligned_heap_base;
+  g_free_list->signature = MEM_BLOCK_SIGNATURE;
+  g_free_list->is_free = 1;
+  g_free_list->size = heap_size;
+  g_free_list->payload = 0;
+  g_free_list->prev_phys = NULL;
+  g_free_list->next_phys = NULL;
+  g_free_list->prev_free = NULL;
+  g_free_list->next_free = NULL;
+
+  footer = (MEM_BLOCK_FOOTER *)(aligned_heap_base + heap_size -
+                                sizeof(MEM_BLOCK_FOOTER));
+  footer->signature = MEM_FOOT_SIGNATURE;
+  footer->reserved = 0;
+  footer->size = g_free_list->size;
+
+  heap_init_done = HEAP_INITIALISED;
+  return HEAP_INIT_SUCCESS;
+}
+
+/**
+  @brief  Allocates contiguous memory of requested size and alignment.
+
+  @param  alignment  Alignment for the returned address. It must be a power of two.
+  @param  size       Size of the memory region to allocate. It must not be zero.
+
+  @return Allocated memory base address if successful, otherwise NULL.
+ **/
+void *mem_alloc(size_t alignment, size_t size)
+{
+  MEM_BLOCK_HEADER *block;
+  MEM_BLOCK_HEADER *remainder;
+  MEM_BLOCK_FOOTER *footer;
+  size_t           alloc_size;
+  size_t           remainder_size;
+  size_t           reserve_size;
+  uintptr_t        block_start;
+  uintptr_t        block_end;
+  uintptr_t        payload;
+  uintptr_t        payload_base;
+  uintptr_t        footer_end;
+  uintptr_t        used_end;
+
+  if ((size == 0) || !is_power_of_2(alignment)) {
+    return NULL;
+  }
+
+  if (alignment < MEM_MIN_ALIGNMENT) {
+    alignment = MEM_MIN_ALIGNMENT;
+  }
+
+  if (size > (SIZE_MAX - alignment)) {
+    return NULL;
+  }
+
+  reserve_size = size + alignment;
+
+  if (heap_init_done != HEAP_INITIALISED) {
+    if (mem_alloc_init() != HEAP_INIT_SUCCESS) {
+      return NULL;
+    }
+  }
+
+  for (block = g_free_list; block != NULL; block = block->next_free) {
+    block_start = (uintptr_t)block;
+    if (block->size > (UINTPTR_MAX - block_start)) {
+      continue;
+    }
+
+    block_end = block_start + block->size;
+
+    /*
+     * Payload is placed after the block header and a hidden back pointer.
+     * mem_free() uses that back pointer to recover the owning block.
+     */
+    if ((block_start > (UINTPTR_MAX - sizeof(MEM_BLOCK_HEADER))) ||
+        ((block_start + sizeof(MEM_BLOCK_HEADER)) >
+         (UINTPTR_MAX - sizeof(MEM_BLOCK_HEADER *)))) {
+      continue;
+    }
+
+    payload_base = block_start + sizeof(MEM_BLOCK_HEADER) +
+                   sizeof(MEM_BLOCK_HEADER *);
+    if (payload_base > (UINTPTR_MAX - (alignment - 1U))) {
+      continue;
+    }
+
+    payload = ADDR_ALIGN(payload_base, alignment);
+
+    if ((reserve_size > (UINTPTR_MAX - payload)) ||
+        ((payload + reserve_size) > (UINTPTR_MAX - sizeof(MEM_BLOCK_FOOTER)))) {
+      continue;
+    }
+
+    footer_end = payload + reserve_size + sizeof(MEM_BLOCK_FOOTER);
+    if (footer_end > (UINTPTR_MAX - (MEM_MIN_ALIGNMENT - 1U))) {
+      continue;
+    }
+
+    used_end = ADDR_ALIGN(footer_end, MEM_MIN_ALIGNMENT);
+    if (used_end > block_end) {
+      continue;
+    }
+
+    alloc_size = used_end - block_start;
+
+    /* The selected free block is now owned by this allocation. */
+    if (block->prev_free != NULL) {
+      block->prev_free->next_free = block->next_free;
+    } else {
+      g_free_list = block->next_free;
+    }
+
+    if (block->next_free != NULL) {
+      block->next_free->prev_free = block->prev_free;
+    }
+
+    block->prev_free = NULL;
+    block->next_free = NULL;
+
+    remainder_size = block->size - alloc_size;
+    if (remainder_size >= MEM_MIN_BLOCK_SIZE) {
+      /* Keep the unused tail as a free block for later allocations. */
+      remainder = (MEM_BLOCK_HEADER *)((uintptr_t)block + alloc_size);
+      remainder->signature = MEM_BLOCK_SIGNATURE;
+      remainder->is_free = 1;
+      remainder->size = remainder_size;
+      remainder->payload = 0;
+      remainder->prev_phys = block;
+      remainder->next_phys = block->next_phys;
+      remainder->prev_free = NULL;
+      remainder->next_free = NULL;
+      if (remainder->next_phys != NULL) {
+        remainder->next_phys->prev_phys = remainder;
+      }
+
+      block->size = alloc_size;
+      block->next_phys = remainder;
+
+      /* Footer is used to validate and coalesce the free block. */
+      footer = (MEM_BLOCK_FOOTER *)((uintptr_t)remainder + remainder->size -
+                                    sizeof(MEM_BLOCK_FOOTER));
+      footer->signature = MEM_FOOT_SIGNATURE;
+      footer->reserved = 0;
+      footer->size = remainder->size;
+
+      remainder->next_free = g_free_list;
+      if (g_free_list != NULL) {
+        g_free_list->prev_free = remainder;
+      }
+      g_free_list = remainder;
+    }
+
+    block->payload = payload;
+    block->is_free = 0;
+    block->prev_free = NULL;
+    block->next_free = NULL;
+
+    /* Store footer metadata for validation during free. */
+    footer = (MEM_BLOCK_FOOTER *)((uintptr_t)block + block->size -
+                                  sizeof(MEM_BLOCK_FOOTER));
+    footer->signature = MEM_FOOT_SIGNATURE;
+    footer->reserved = 0;
+    footer->size = block->size;
+
+    /* Store owning block immediately before the returned payload. */
+    ((MEM_BLOCK_HEADER **)payload)[-1] = block;
+    return (void *)payload;
+  }
+
+  return NULL;
+}
+
+/**
+  @brief  Free memory allocated by mem_alloc.
+
+  @param  ptr  Pointer returned by mem_alloc.
+
+  @return None
+ **/
+void mem_free(void *ptr)
+{
+  MEM_BLOCK_HEADER *block;
+  MEM_BLOCK_HEADER *next;
+  MEM_BLOCK_HEADER *prev;
+  MEM_BLOCK_FOOTER *footer;
+  uintptr_t        ptr_addr;
+
+  if (ptr == NULL) {
+    return;
+  }
+
+  if (heap_init_done != HEAP_INITIALISED) {
+    return;
+  }
+
+  ptr_addr = (uintptr_t)ptr;
+
+  /* Reject invalid heap range or alignment before reading the back pointer. */
+  if ((ptr_addr < (heap_base + sizeof(MEM_BLOCK_HEADER *))) ||
+      (ptr_addr >= heap_top) ||
+      ((ptr_addr & (MEM_MIN_ALIGNMENT - 1U)) != 0)) {
+    return;
+  }
+
+  /* Recover and validate the block that produced this exact payload pointer. */
+  block = ((MEM_BLOCK_HEADER **)ptr)[-1];
+  if ((block == NULL) ||
+      ((uintptr_t)block < heap_base) ||
+      ((uintptr_t)block >= heap_top) ||
+      (block->signature != MEM_BLOCK_SIGNATURE) ||
+      (block->size < MEM_MIN_BLOCK_SIZE) ||
+      (block->size > (heap_top - (uintptr_t)block)) ||
+      (block->payload != ptr_addr)) {
+    return;
+  }
+
+  /* Header/footer agreement protects the free list from stale/corrupt input. */
+  footer = (MEM_BLOCK_FOOTER *)((uintptr_t)block + block->size -
+                                sizeof(MEM_BLOCK_FOOTER));
+  if ((footer->signature != MEM_FOOT_SIGNATURE) ||
+      (footer->size != block->size)) {
+    return;
+  }
+
+  if (block->is_free) {
+    return;
+  }
+
+  block->payload = 0;
+
+  block->is_free = 1;
+  footer->signature = MEM_FOOT_SIGNATURE;
+  footer->reserved = 0;
+  footer->size = block->size;
+
+  if ((block->prev_phys != NULL) && block->prev_phys->is_free) {
+    prev = block->prev_phys;
+
+    /* Remove previous block from free list before merging with it. */
+    if (prev->prev_free != NULL) {
+      prev->prev_free->next_free = prev->next_free;
+    } else {
+      g_free_list = prev->next_free;
+    }
+
+    if (prev->next_free != NULL) {
+      prev->next_free->prev_free = prev->prev_free;
+    }
+
+    prev->prev_free = NULL;
+    prev->next_free = NULL;
+
+    prev->size += block->size;
+    prev->next_phys = block->next_phys;
+    if (prev->next_phys != NULL) {
+      prev->next_phys->prev_phys = prev;
+    }
+    block = prev;
+
+    footer = (MEM_BLOCK_FOOTER *)((uintptr_t)block + block->size -
+                                  sizeof(MEM_BLOCK_FOOTER));
+    footer->signature = MEM_FOOT_SIGNATURE;
+    footer->reserved = 0;
+    footer->size = block->size;
+  }
+
+  next = block->next_phys;
+  if ((next != NULL) && next->is_free) {
+    /* Remove next block from free list before merging with it. */
+    if (next->prev_free != NULL) {
+      next->prev_free->next_free = next->next_free;
+    } else {
+      g_free_list = next->next_free;
+    }
+
+    if (next->next_free != NULL) {
+      next->next_free->prev_free = next->prev_free;
+    }
+
+    next->prev_free = NULL;
+    next->next_free = NULL;
+
+    block->size += next->size;
+    block->next_phys = next->next_phys;
+    if (block->next_phys != NULL) {
+      block->next_phys->prev_phys = block;
+    }
+
+    footer = (MEM_BLOCK_FOOTER *)((uintptr_t)block + block->size -
+                                  sizeof(MEM_BLOCK_FOOTER));
+    footer->signature = MEM_FOOT_SIGNATURE;
+    footer->reserved = 0;
+    footer->size = block->size;
+  }
+
+  /* Insert the final free/coalesced block at the head of the free list. */
+  block->is_free = 1;
+  block->prev_free = NULL;
+  block->next_free = g_free_list;
+  if (g_free_list != NULL) {
+    g_free_list->prev_free = block;
+  }
+  g_free_list = block;
+}
 
 #define get_num_va_args(_args, _lcount)             \
     (((_lcount) > 1)  ? va_arg(_args, long long int) :  \
@@ -350,6 +721,105 @@ pal_mem_calloc(uint32_t num, uint32_t Size)
     pal_mem_set(ptr, num * Size, 0);
   }
   return ptr;
+}
+
+/**
+  @brief  Returns the memory page size.
+
+  @param  None
+
+  @return Page size being used.
+**/
+uint32_t
+pal_mem_page_size(void)
+{
+  return PLATFORM_PAGE_SIZE;
+}
+
+/**
+  @brief  Allocates contiguous pages.
+
+  @param  NumPages  Number of pages to allocate.
+
+  @return Start address of base page.
+**/
+void *
+pal_mem_alloc_pages(uint32_t NumPages)
+{
+  size_t alloc_size;
+
+  if (NumPages == 0U) {
+    return NULL;
+  }
+
+  alloc_size = (size_t)NumPages * (size_t)PLATFORM_PAGE_SIZE;
+  /* Reject wrapped page-count multiplication. */
+  if ((alloc_size / (size_t)PLATFORM_PAGE_SIZE) != (size_t)NumPages) {
+    return NULL;
+  }
+
+  return (void *)mem_alloc(MEM_ALIGN_4K, alloc_size);
+}
+
+/**
+  @brief  Frees contiguous pages starting at PageBase.
+
+  @param  PageBase  Base address of the page range to free.
+  @param  NumPages  Number of pages to free.
+
+  @return None.
+**/
+void
+pal_mem_free_pages(void *PageBase, uint32_t NumPages)
+{
+  (void) NumPages;
+  mem_free(PageBase);
+}
+
+/**
+  @brief  Allocates memory with the given alignment.
+
+  @param  alignment  Requested alignment.
+  @param  size       Requested allocation size.
+
+  @return Pointer to the allocated memory.
+**/
+void *
+pal_aligned_alloc(uint32_t alignment, uint32_t size)
+{
+  return (void *)mem_alloc(alignment, size);
+}
+
+/**
+  @brief  Frees aligned memory allocated by pal_aligned_alloc.
+
+  @param  Buffer  Base address of the aligned memory range.
+
+  @return None.
+**/
+void
+pal_mem_free_aligned(void *Buffer)
+{
+  mem_free(Buffer);
+}
+
+/**
+  @brief  Frees cacheable memory.
+
+  @param  Bdf   BDF of the requesting PCIe device.
+  @param  Size  Size of the memory region to free.
+  @param  Va    Virtual address of the memory to free.
+  @param  Pa    Physical address of the memory to free.
+
+  @return None.
+**/
+void
+pal_mem_free_cacheable(uint32_t Bdf, uint32_t Size, void *Va, void *Pa)
+{
+  (void) Bdf;
+  (void) Size;
+  (void) Pa;
+  mem_free(Va);
 }
 
 

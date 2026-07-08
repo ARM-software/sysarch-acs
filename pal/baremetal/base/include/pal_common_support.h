@@ -39,6 +39,39 @@ extern uint32_t g_enable_module;
 #define MEM_ALIGN_32K      0x8000
 #define MEM_ALIGN_64K      0x10000
 
+#define MEM_BLOCK_SIGNATURE  0x4D424C4B  /* MBLK */
+#define MEM_FOOT_SIGNATURE   0x4D465452  /* MFTR */
+#define MEM_MIN_ALIGNMENT    sizeof(void *)
+#define HEAP_INIT_FAILED     0U
+#define HEAP_INIT_SUCCESS    1U
+
+#define __ADDR_ALIGN_MASK(a, mask)  (((uintptr_t)(a) + (uintptr_t)(mask)) & \
+                                     ~((uintptr_t)(mask)))
+#define ADDR_ALIGN(a, b)            __ADDR_ALIGN_MASK(a, (uintptr_t)(b) - 1U)
+
+typedef struct mem_block_header {
+  uint32_t                 signature;
+  uint32_t                 is_free;
+  size_t                   size;
+  uintptr_t                payload;
+  struct mem_block_header  *prev_phys;
+  struct mem_block_header  *next_phys;
+  struct mem_block_header  *prev_free;
+  struct mem_block_header  *next_free;
+} MEM_BLOCK_HEADER;
+
+typedef struct {
+  uint32_t  signature;
+  uint32_t  reserved;
+  size_t    size;
+} MEM_BLOCK_FOOTER;
+
+#define MEM_MIN_BLOCK_SIZE          ADDR_ALIGN(sizeof(MEM_BLOCK_HEADER) + \
+                                               sizeof(MEM_BLOCK_HEADER *) + \
+                                               sizeof(MEM_BLOCK_FOOTER) + \
+                                               MEM_MIN_ALIGNMENT, \
+                                               MEM_MIN_ALIGNMENT)
+
 #define EL1SKIPTRAP_PMSIDR   (1u << 0)
 #define EL1SKIPTRAP_CNTPCT   (1u << 1)
 #define EL1SKIPTRAP_DEVMEM   (1u << 2)
@@ -61,6 +94,7 @@ void *pal_aligned_alloc( uint32_t alignment, uint32_t size );
 #define PCIE_MAX_FUNC    8
 
 void *mem_alloc(size_t alignment, size_t size);
+void mem_free(void *ptr);
 void pal_warn_not_implemented(const char *api_name);
 
 #define PCIE_CREATE_BDF(Seg, Bus, Dev, Func) ((Seg << 24) | (Bus << 16) | (Dev << 8) | Func)
