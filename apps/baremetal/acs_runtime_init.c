@@ -51,6 +51,35 @@ acs_list_contains(const uint32_t *list, uint32_t count, uint32_t value)
   return false;
 }
 
+static uint32_t
+acs_clamp_level_for_arch(uint32_t requested_level)
+{
+  uint32_t min_level = 0;
+  uint32_t max_level = 0;
+
+#if  defined(BSA)
+  min_level = BSA_MIN_LEVEL_SUPPORTED;
+  max_level = (uint32_t)BSA_LEVEL_FR;
+#elif defined(SBSA)
+  min_level = SBSA_MIN_LEVEL_SUPPORTED;
+  max_level = (uint32_t)SBSA_LEVEL_FR;
+#elif defined(PC_BSA)
+  min_level = PCBSA_MIN_LEVEL_SUPPORTED;
+  max_level = (uint32_t)PCBSA_LEVEL_FR;
+#else
+  return requested_level;
+#endif
+
+  if (requested_level < min_level || requested_level > max_level) {
+      val_print(WARN,
+              "ACS Level (EL3 parameter) %d is not supported maxing it to level FR\n",
+              requested_level);
+	  return max_level;
+  }
+
+  return requested_level;
+}
+
 bool
 acs_is_module_enabled(uint32_t module_base)
 {
@@ -260,7 +289,7 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
     ctx->bsa_sw_view_mask = params->software_view_filter;
     policy->pcie_cache_present  = params->cache;
     policy->sys_last_lvl_cache  = params->sys_cache;
-    ctx->level_value = params->level;
+    ctx->level_value = acs_clamp_level_for_arch((uint32_t)params->level);
 
     if (params->level_selection >= LVL_FILTER_NONE &&
        params->level_selection <= LVL_FILTER_FR)
