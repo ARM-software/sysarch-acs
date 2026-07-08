@@ -36,9 +36,10 @@
 #define PCBSA_MAX_LEVEL_SUPPORTED 1
 
 #define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
-    ((filter_mode == LVL_FILTER_ONLY && level == fr_level) ? \
-    "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
+    "\n Starting tests for level FR " : \
     ((filter_mode == LVL_FILTER_ONLY) ? \
-    "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
+    ((level == fr_level) ? "\n Starting tests for only level FR " \
+    : "\n Starting tests for only level %2d ") : \
+    ((level == fr_level) ? "\n Starting tests for level FR " : "\n Starting tests for level %2d ")))
 
 #endif /* __ACS_APP_DEFS_H__ */
