@@ -1899,6 +1899,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
+        [PCI_IN_06] = {
+            .test_entry_id    = P101_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check config read for device",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PCIE_TEST_NUM_BASE + 101,
+        },
         [PCI_IN_11] = {
             .test_entry_id    = E010_ENTRY,
             .module_id        = PCIE,
@@ -3300,9 +3308,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [PCI_IC_18] = {
             .module_id        = PCIE,
         },
-        [PCI_IN_06] = {
-            .module_id        = PCIE,
-        },
         [PCI_IN_07] = {
             .module_id        = PCIE,
         },
@@ -3748,6 +3753,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,
+    [P101_ENTRY] = p101_entry,
     [P103_ENTRY] = p103_entry,
     [P104_ENTRY] = p104_entry,
     [PE001_ENTRY] = pe001_entry,
@@ -4030,6 +4036,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P095_ENTRY] = p095_entry,
     [P096_ENTRY] = p096_entry, // used in wrapper.
     [P097_ENTRY] = p097_entry, // used in wrapper.
+    [P101_ENTRY] = p101_entry,
     [P087_ENTRY] = p087_entry,
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P103_ENTRY] = p103_entry, // used in wrapper.
@@ -4449,6 +4456,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P004_ENTRY] = p004_entry, // used in wrapper.
     [P026_ENTRY] = p026_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,
+    [P101_ENTRY] = p101_entry,
     [PCI_MM_07_ENTRY] = pci_mm_07_entry,
     [PCI_MM_05_ENTRY] = pci_mm_05_entry,
 #endif /* TARGET_PC_BAREMETAL */

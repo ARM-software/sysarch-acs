@@ -967,6 +967,7 @@ typedef enum {
     P096_ENTRY,
     P097_ENTRY,
     P100_ENTRY,
+    P101_ENTRY,
     P104_ENTRY,
     GPU_04_ENTRY,
     PFDI001_ENTRY,
