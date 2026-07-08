@@ -65,12 +65,14 @@ freeAcsMeM(void)
 
     if (acs_is_module_enabled(PCIE)        ||
         acs_is_module_enabled(GIC)         ||
+        acs_is_module_enabled(GPU)         ||
         acs_is_module_enabled(SMMU))
        val_pcie_free_info_table();
 
    if (acs_is_module_enabled(SMMU)         ||
        acs_is_module_enabled(GIC)          ||
        acs_is_module_enabled(MEM_MAP)      ||
+       acs_is_module_enabled(GPU)          ||
        acs_is_module_enabled(PCIE))
        val_iovirt_free_info_table();
 
@@ -254,12 +256,14 @@ ShellAppMainsbsa()
 
     if (acs_is_module_enabled(PCIE)       ||
         acs_is_module_enabled(GIC)        ||
+        acs_is_module_enabled(GPU)        ||
         acs_is_module_enabled(SMMU))
         createPcieInfoTable();
 
     if (acs_is_module_enabled(GIC)        ||
         acs_is_module_enabled(PCIE)       ||
         acs_is_module_enabled(MEM_MAP)    ||
+        acs_is_module_enabled(GPU)        ||
         acs_is_module_enabled(SMMU))
         createIoVirtInfoTable();
 
