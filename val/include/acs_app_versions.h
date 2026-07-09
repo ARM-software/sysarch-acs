@@ -26,7 +26,7 @@
 /* SBSA Release versions */
 #define SBSA_ACS_MAJOR_VER         8
 #define SBSA_ACS_MINOR_VER         0
-#define SBSA_ACS_SUBMINOR_VER      1
+#define SBSA_ACS_SUBMINOR_VER      2
 
 /* PC BSA Release versions */
 #define PC_BSA_ACS_MAJOR_VER       1
