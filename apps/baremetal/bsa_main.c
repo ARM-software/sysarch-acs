@@ -42,6 +42,7 @@ freeAcsMeM(void)
         acs_is_module_enabled(POWER_WAKEUP))
             val_timer_free_info_table();
     if (acs_is_module_enabled(WATCHDOG)     ||
+        acs_is_module_enabled(TIMER)        ||
         acs_is_module_enabled(POWER_WAKEUP))
             val_wd_free_info_table();
     if (acs_is_module_enabled(PCIE)         ||
@@ -204,6 +205,7 @@ ShellAppMainbsa()
             createTimerInfoTable();
 
     if (acs_is_module_enabled(WATCHDOG)    ||
+        acs_is_module_enabled(TIMER)       ||
         acs_is_module_enabled(POWER_WAKEUP))
             createWatchdogInfoTable();
 
