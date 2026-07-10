@@ -408,9 +408,17 @@ print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status)
  */
 void rule_status_map_reset(void)
 {
-    uint32_t i;
-    for (i = 0; i < RULE_ID_SENTINEL; i++) {
-        rule_status_map[i] = TEST_STATE_UNKNOWN;
+    const uint64_t reset_status =
+        ((uint64_t)TEST_STATE_UNKNOWN << 32) | TEST_STATE_UNKNOWN;
+    uint64_t *rule_status_map_64 = (uint64_t *)(void *)rule_status_map;
+    uint32_t pairs = RULE_ID_SENTINEL / 2U;
+
+    for (uint32_t i = 0; i < pairs; i++) {
+        rule_status_map_64[i] = reset_status; /* two statuses per store */
+    }
+
+    if (RULE_ID_SENTINEL & 1U) {
+        rule_status_map[RULE_ID_SENTINEL - 1] = TEST_STATE_UNKNOWN;
     }
 }
 

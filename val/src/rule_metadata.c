@@ -47,7 +47,7 @@
  * TEST_SKIP, TEST_WARN etc). Use rule_status_map_reset() to initialize all
  * entries to TEST_STATUS_UNKNOWN before a run.
  */
-uint32_t rule_status_map[RULE_ID_SENTINEL] = { 0 };
+uint32_t rule_status_map[RULE_ID_SENTINEL] __attribute__((aligned(8))) = { 0 };
 
 /* Following structure has every test entry that was is sysarch-acs on 23/07/25 */
 rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
