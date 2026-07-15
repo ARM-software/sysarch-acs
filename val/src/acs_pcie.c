@@ -22,6 +22,9 @@
 #include "acs_pcie.h"
 #include "acs_memory.h"
 #include "pcie.h"
+#ifdef COMPILE_RB_EXE
+#include "rule_based_execution.h"
+#endif
 
 #define WARN_STR_LEN 7
 
@@ -894,6 +897,32 @@ uint32_t
 val_pcie_is_onchip_peripheral(uint32_t bdf)
 {
   return pal_pcie_is_onchip_peripheral(bdf);
+}
+
+/**
+  @brief  Return the effective RCiEP/iEP device scope for the current RI rule
+
+  Shared RI_* rules are referenced by both B_REP_1 and B_IEP_1. When rule-based
+  execution is active, use the current alias path to avoid reporting an RCiEP
+  failure under B_IEP_1, or an iEP failure under B_REP_1. Non-rule-based and
+  direct RI_* execution preserve the original broad scope.
+
+  @param  default_scope  Device-type mask for standalone execution of this RI rule
+  @return Device-type mask narrowed to the current alias path
+**/
+uint32_t
+val_pcie_get_ri_device_scope(uint32_t default_scope)
+{
+#ifdef COMPILE_RB_EXE
+  if (rule_reference_path_contains(B_REP_1))
+      return (default_scope & RCiEP);
+
+  if (rule_reference_path_contains(B_IEP_1)) {
+      return (default_scope & (iEP_EP | iEP_RP));
+  }
+#endif
+
+  return default_scope;
 }
 
 /**

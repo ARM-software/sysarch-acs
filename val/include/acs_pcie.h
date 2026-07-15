@@ -84,6 +84,10 @@
 /* Allows storage of 2048 valid BDFs */
 #define PCIE_DEVICE_BDF_TABLE_SZ 8192
 
+#define RI_SCOPE_RCIEP_IEP_EP   (RCiEP | iEP_EP)
+#define RI_SCOPE_RCIEP_IEP_PAIR (RCiEP | iEP_EP | iEP_RP)
+#define RI_SCOPE_RCIEP_IEP_RCEC (RCiEP | iEP_EP | iEP_RP | RCEC)
+
 typedef enum {
   HEADER = 0,
   PCIE_CAP = 1,
@@ -197,6 +201,7 @@ uint32_t val_is_transaction_pending_set(uint32_t bdf);
 uint32_t val_pcie_multifunction_support(uint32_t bdf);
 uint32_t val_pcie_get_rp_transaction_frwd_support(uint32_t bdf);
 uint32_t val_pcie_is_cache_present(uint32_t bdf);
+uint32_t val_pcie_get_ri_device_scope(uint32_t default_scope);
 uint32_t val_pcie_link_cap_support(uint32_t bdf);
 uint32_t val_pcie_scan_bridge_devices_and_check_memtype(uint32_t bdf);
 uint32_t val_pcie_get_atomicop_requester_capable(uint32_t bdf);

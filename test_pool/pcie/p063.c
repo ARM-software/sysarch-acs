@@ -62,6 +62,7 @@ payload(void)
   uint32_t tbl_index;
   uint32_t reg_value;
   uint32_t dp_type;
+  uint32_t rule_dp_type;
   uint32_t cap_base;
   uint32_t flr_cap;
   uint32_t base_cc;
@@ -82,6 +83,7 @@ payload(void)
 
   tbl_index = 0;
   test_fails = 0;
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_EP);
 
   /* Check for all the function present in bdf table */
   while (tbl_index < bdf_tbl_ptr->num_entries)
@@ -105,8 +107,8 @@ payload(void)
           continue;
       }
 
-      /* Check entry is  RCiEP or iEP endpoint */
-      if ((dp_type == RCiEP) || (dp_type == iEP_EP))
+      /* Check entry is RCiEP or iEP endpoint in the current alias scope */
+      if ((rule_dp_type & dp_type))
       {
           /* Read FLR capability bit value */
           val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base);

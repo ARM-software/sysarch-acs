@@ -37,6 +37,7 @@ payload(void)
   uint32_t base_lower;
   uint32_t base_upper;
   uint32_t dp_type;
+  uint32_t rule_dp_type;
   uint32_t pe_index;
   uint32_t tbl_index;
   uint32_t fail_cnt;
@@ -51,12 +52,13 @@ payload(void)
 
   fail_cnt = 0;
   tbl_index = 0;
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_PAIR);
 
   while (tbl_index < bdf_tbl_ptr->num_entries)
   {
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
-      if (dp_type == RCiEP || dp_type == iEP_EP || dp_type == iEP_RP)
+      if ((rule_dp_type & dp_type))
       {
           /* If test runs for atleast an endpoint */
           test_skip = 0;

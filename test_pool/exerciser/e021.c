@@ -277,11 +277,13 @@ cfgspace_transactions_order_check(void)
   uint32_t bdf;
   char *baseptr;
   uint32_t cid_offset, dp_type;
+  uint32_t rule_dp_type;
   uint64_t bdf_addr;
   uint32_t status;
 
   /* Read the number of excerciser cards */
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_PAIR);
 
   while (instance-- != 0) {
 
@@ -293,8 +295,8 @@ cfgspace_transactions_order_check(void)
     bdf = val_exerciser_get_bdf(instance);
     dp_type = val_pcie_device_port_type(bdf);
 
-    /* Check entry is RCiEP/ iEP. Else move to next BDF. */
-    if ((dp_type != RCiEP) && (dp_type != iEP_EP))
+    /* Check entry is RCiEP or iEP endpoint in the current alias scope. */
+    if (!(rule_dp_type & dp_type))
         continue;
 
     val_print(DEBUG, "\n       Exerciser BDF - 0x%x", bdf);
@@ -354,9 +356,11 @@ barspace_transactions_order_check(void)
   char *baseptr;
   uint32_t status;
   uint32_t bdf, dp_type;
+  uint32_t rule_dp_type;
 
   /* Read the number of excerciser cards */
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_EP);
 
   while (instance-- != 0) {
 
@@ -368,8 +372,8 @@ barspace_transactions_order_check(void)
     bdf = val_exerciser_get_bdf(instance);
     dp_type = val_pcie_device_port_type(bdf);
 
-    /* Check entry is RCiEP/ iEP. Else move to next BDF. */
-    if ((dp_type != RCiEP) && (dp_type != iEP_EP))
+    /* Check entry is RCiEP or iEP endpoint in the current alias scope. */
+    if (!(rule_dp_type & dp_type))
         continue;
 
     /* Get BAR 0 details for this instance */

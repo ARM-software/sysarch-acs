@@ -96,6 +96,7 @@ payload(void)
   uint32_t device_id, its_id;
   uint32_t page_size;
   uint32_t dp_type;
+  uint32_t rule_dp_type;
   uint32_t test_data_blk_size;
 
   memory_region_descriptor_t mem_desc_array[2], *mem_desc;
@@ -160,6 +161,7 @@ payload(void)
     goto test_fail;
 
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_EP);
 
   while (instance-- != 0) {
     clear_dram_buf(dram_buf_base_virt, test_data_blk_size * 2);
@@ -173,7 +175,7 @@ payload(void)
 
     dp_type = val_pcie_device_port_type(e_bdf);
 
-    if ((dp_type != RCiEP) && (dp_type != iEP_EP))
+    if (!(rule_dp_type & dp_type))
         continue;
 
     val_print(DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);

@@ -38,6 +38,7 @@ payload(void)
   uint32_t addr_type;
   uint32_t bar_index;
   uint32_t  dp_type;
+  uint32_t rule_dp_type;
   uint32_t test_fails;
   uint32_t test_skip = 1;
   pcie_device_bdf_table *bdf_tbl_ptr;
@@ -47,6 +48,7 @@ payload(void)
 
   tbl_index = 0;
   test_fails = 0;
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_PAIR);
 
   /* Check for all the function present in bdf table */
   while (tbl_index < bdf_tbl_ptr->num_entries)
@@ -54,8 +56,8 @@ payload(void)
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
 
-      /* Check for RCiEP, iEP_EP and iEP_RP type devices */
-      if (dp_type == RCiEP || dp_type == iEP_EP || dp_type == iEP_RP)
+      /* Check for RI rule devices in the current alias scope */
+      if ((rule_dp_type & dp_type))
       {
           val_print(DEBUG, "\n       BDF - 0x%x ", bdf);
           /* Extract Hdr Type */

@@ -34,6 +34,7 @@ payload(void)
   uint32_t pe_index;
   uint32_t tbl_index;
   uint32_t dp_type;
+  uint32_t rule_dp_type;
   uint32_t cap_base;
   uint32_t test_fails;
   bool     test_skip = 1;
@@ -45,6 +46,7 @@ payload(void)
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
   test_fails = 0;
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_PAIR);
 
   /* Check for all the function present in bdf table */
   for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
@@ -56,8 +58,8 @@ payload(void)
       if (val_pcie_is_host_bridge(bdf))
         continue;
 
-      /* Check entry is iEP pair or RCiEP based on the rule the test covers */
-      if ((dp_type == RCiEP) || (dp_type == iEP_EP) || (dp_type == iEP_RP))
+      /* Check entry is iEP pair or RCiEP in the current alias scope */
+      if ((rule_dp_type & dp_type))
       {
          val_print(DEBUG, "\n       BDF - 0x%x", bdf);
 

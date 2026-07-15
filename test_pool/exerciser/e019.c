@@ -73,6 +73,7 @@ payload(void)
   uint32_t e_bdf;
   uint32_t bdf;
   uint32_t dp_type;
+  uint32_t rule_dp_type;
   uint32_t test_skip = 1;
   void *dram_buf_in_virt;
   void *dram_buf_out_virt;
@@ -156,16 +157,18 @@ payload(void)
   for (instance = 0; instance < num_smmus; ++instance)
      val_smmu_enable(instance);
 
+  rule_dp_type = val_pcie_get_ri_device_scope(RI_SCOPE_RCIEP_IEP_PAIR);
+
   for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
   {
     bdf = bdf_tbl_ptr->device[tbl_index].bdf;
     dp_type = val_pcie_device_port_type(bdf);
-    if ((dp_type != RCiEP) && (dp_type != iEP_EP) && (dp_type != iEP_RP)) {
-        val_print(DEBUG, "\n       BDF - 0x%x not an RCiEP/iEP device", bdf);
+    if (!(rule_dp_type & dp_type)) {
+        val_print(DEBUG, "\n       BDF - 0x%x is not of type 0x%x", bdf, rule_dp_type);
         continue;
     }
 
-    val_print(DEBUG, "\n      RCiEP/iEP BDF - 0x%x ", bdf);
+    val_print(DEBUG, "\n      BDF - 0x%x ", bdf);
 
     /* Get rc index of RCiEP/iEP in IOVIRT mapping*/
     rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));

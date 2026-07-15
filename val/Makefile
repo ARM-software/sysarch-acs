@@ -37,8 +37,7 @@ ccflags-y = \
     -DTARGET_LINUX \
     -DSTATIC_ASSERT_CHECKS \
     -Wall \
-    -Werror \
-    -DCOMPILE_RB_EXE
+    -Werror
 
 ccflags-y += \
     -I$(PWD)/$(PAL_COMMON_INC)
@@ -51,6 +50,7 @@ ccflags-y += \
     -I$(PWD)/$(ACS_DIR)/driver/pcie
 
 ifeq ($(ACS), bsa)
+ccflags-y += -DCOMPILE_RB_EXE
 obj-m += bsa_acs_val.o
 bsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_peripherals.o $(VAL_SRC)/acs_dma.o  $(VAL_SRC)/acs_smmu.o \
@@ -68,6 +68,7 @@ bsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/rule_enum_string_map.o
 ccflags-y += -DBSA_LINUX_BUILD
 else ifeq ($(ACS), sbsa)
+ccflags-y += -DCOMPILE_RB_EXE
 obj-m += sbsa_acs_val.o
 sbsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_peripherals.o  $(VAL_SRC)/acs_smmu.o $(VAL_SRC)/acs_dma.o \
