@@ -47,7 +47,7 @@ include(${ROOT_DIR}/tools/cmake/toolchain/default.cmake)
 ### Valid value range for command line argument ###
 
 list(APPEND ARM_ARCH_MAJOR_LIST 8 9)
-list(APPEND ACS_LIST "bsa" "sbsa" "pc_bsa")
+list(APPEND ACS_LIST "bsa" "sbsa" "pc_bsa" "mpam")
 
 ###
 # Prefer the toolchain file to validate and set `CROSS_COMPILE`.

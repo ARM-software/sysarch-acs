@@ -93,6 +93,10 @@ Notes:
 * version 2 includes rule skip
 * version 3 includes module skip and other global variable overrides
 * Any combination of tests, modules, or skip list may be provided.
+* Non rule-based binaries (for example the MPAM bare-metal build) use a
+  reduced ``acs_el3_params`` layout: ``version``, ``test_array_*``,
+  ``module_array_*``, ``skip_test_array_*``, and ``verbose``. Arrays are
+  interpreted as legacy test or module numbers rather than ``RULE_ID_e`` IDs.
 
 Module and Rule IDs
 -------------------

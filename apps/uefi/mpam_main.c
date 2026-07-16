@@ -446,13 +446,13 @@ execute_tests()
     val_pe_initialize_default_exception_handler(val_pe_default_esr);
     FlushImage();
 
-    Status |= val_mpam_execute_register_tests(val_pe_get_num());
+    Status |= val_mpam_execute_register_tests();
 
-    Status |= val_mpam_execute_cache_tests(val_pe_get_num());
+    Status |= val_mpam_execute_cache_tests();
 
-    Status |= val_mpam_execute_error_tests(val_pe_get_num());
+    Status |= val_mpam_execute_error_tests();
 
-    Status |= val_mpam_execute_membw_tests(val_pe_get_num());
+    Status |= val_mpam_execute_membw_tests();
 
     FreeMpamAcsMem();
 

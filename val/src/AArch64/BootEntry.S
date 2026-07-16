@@ -211,6 +211,8 @@ secondary_cpu_entry:
     b    ShellAppMainsbsa
 #elif defined PC_BSA
     b    ShellAppMainpcbsa
+#elif defined MPAM_ACS
+    b    ShellAppMainmpam
 #endif
 
 val_inv_icache_range:

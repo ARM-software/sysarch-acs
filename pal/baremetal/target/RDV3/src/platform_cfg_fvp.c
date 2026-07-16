@@ -20,6 +20,31 @@
 #include "platform_override_struct.h"
 #include "rule_based_execution_enum.h"
 
+/*
+ * MPAM-only, non-rulebase selection arrays.
+ *
+ * To run specific modules:
+ *   - Put module base numbers in g_module_array (see val/include/bsa_acs_common.h).
+ *   - Example: {300} runs only MPAM memory tests (ACS_MPAM_MEMORY_TEST_NUM_BASE).
+ *
+ * To run specific tests:
+ *   - Put test numbers in g_test_array (see test_pool/<module>/test.c).
+ *   - Example: {101} runs only the first MPAM cache test (ACS_MPAM_CACHE_TEST_NUM_BASE + 1).
+ *
+ * To skip tests/modules:
+ *   - Put test numbers or module bases in g_skip_array.
+ *   - Tests run = g_test_array + g_module_array - entries in g_skip_array.
+ */
+#ifndef COMPILE_RB_EXE
+uint32_t  g_skip_array[]   = {};
+uint32_t  g_test_array[]   = {};
+uint32_t  g_module_array[] = {};
+
+const uint32_t g_skip_array_len   = sizeof(g_skip_array) / sizeof(g_skip_array[0]);
+const uint32_t g_test_array_len   = sizeof(g_test_array) / sizeof(g_test_array[0]);
+const uint32_t g_module_array_len = sizeof(g_module_array) / sizeof(g_module_array[0]);
+#endif
+
 /* Following global variables can be edited by user before compilation to pass hints to framework
    as well as run compliance against subset of rules.
 

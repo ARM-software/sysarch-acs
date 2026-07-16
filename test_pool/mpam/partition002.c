@@ -38,8 +38,8 @@ typedef struct {
 } ccap_config_t;
 
 static ccap_config_t ccap_config_data[] = {
-    {"CCAP check for 75% partition size", 75, 75, TRUE},
-    {"CCAP check for 25% partition size", 25, 75, TRUE}
+    {"CCAP check for 75% partition size", 75, 75, true},
+    {"CCAP check for 25% partition size", 25, 75, true}
 };
 
 static void payload(void)

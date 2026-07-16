@@ -55,9 +55,8 @@ function(acs_add_val_library)
 
     add_library(${VAL_LIB} STATIC ${VAL_SRC})
 
-    # Define COMPILE_RB_EXE for gating few compilations in val for rule based
-    # execution infra.
-    target_compile_definitions(${VAL_LIB} PRIVATE COMPILE_RB_EXE ${VAL_EXTRA_DEFS})
+    # Apply only the per-ACS compile definitions that were collected upstream.
+    target_compile_definitions(${VAL_LIB} PRIVATE ${VAL_EXTRA_DEFS})
 
     target_include_directories(${VAL_LIB} PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}
@@ -88,35 +87,61 @@ function(acs_add_val_library_for_acs ACS_NAME)
         "${ROOT_DIR}/val/src/AArch64/Drtm.S"
         "${ROOT_DIR}/val/src/acs_pfdi.c"
         "${ROOT_DIR}/val/src/drtm_execute_test.c"
-        "${ROOT_DIR}/val/src/mpam_execute_test.c"
         "${ROOT_DIR}/val/src/pfdi_execute_test.c"
     )
     if(ACS_NAME STREQUAL "bsa")
         list(APPEND remove_sources
+            "${ROOT_DIR}/apps/baremetal/mpam_main.c"
             "${ROOT_DIR}/apps/baremetal/sbsa_main.c"
             "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
             "${ROOT_DIR}/val/src/sbsa_execute_test.c"
             "${ROOT_DIR}/val/src/pc_bsa_execute_test.c"
+            "${ROOT_DIR}/val/src/mpam_execute_test.c"
         )
         list(APPEND remove_sources ${common_remove_sources})
-        list(APPEND extra_defs BAREMETAL_BSA_BUILD)
+        list(APPEND extra_defs BAREMETAL_BSA_BUILD COMPILE_RB_EXE)
     elseif(ACS_NAME STREQUAL "sbsa")
         list(APPEND remove_sources
+            "${ROOT_DIR}/apps/baremetal/mpam_main.c"
             "${ROOT_DIR}/apps/baremetal/bsa_main.c"
             "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
             "${ROOT_DIR}/val/src/bsa_execute_test.c"
             "${ROOT_DIR}/val/src/pc_bsa_execute_test.c"
+            "${ROOT_DIR}/val/src/mpam_execute_test.c"
         )
         list(APPEND remove_sources ${common_remove_sources})
+        list(APPEND extra_defs COMPILE_RB_EXE)
     elseif(ACS_NAME STREQUAL "pc_bsa")
         list(APPEND remove_sources
+            "${ROOT_DIR}/apps/baremetal/mpam_main.c"
             "${ROOT_DIR}/apps/baremetal/bsa_main.c"
             "${ROOT_DIR}/apps/baremetal/sbsa_main.c"
             "${ROOT_DIR}/val/src/bsa_execute_test.c"
             "${ROOT_DIR}/val/src/sbsa_execute_test.c"
+            "${ROOT_DIR}/val/src/mpam_execute_test.c"
         )
         list(APPEND remove_sources ${common_remove_sources})
-        list(APPEND extra_defs BAREMETAL_PCBSA_BUILD)
+        list(APPEND extra_defs BAREMETAL_PCBSA_BUILD COMPILE_RB_EXE)
+    elseif(ACS_NAME STREQUAL "mpam")
+        list(APPEND remove_sources
+            "${ROOT_DIR}/val/src/AArch64/BsaBootEntry.S"
+            "${ROOT_DIR}/val/src/AArch64/SbsaBootEntry.S"
+            "${ROOT_DIR}/apps/baremetal/bsa_main.c"
+            "${ROOT_DIR}/apps/baremetal/sbsa_main.c"
+            "${ROOT_DIR}/apps/baremetal/pc_bsa_main.c"
+            "${ROOT_DIR}/val/src/pc_bsa_execute_test.c"
+            "${ROOT_DIR}/val/src/bsa_execute_test.c"
+            "${ROOT_DIR}/val/src/sbsa_execute_test.c"
+            "${ROOT_DIR}/val/src/rule_based_execution_helpers.c"
+            "${ROOT_DIR}/val/src/rule_based_orchestrator.c"
+            "${ROOT_DIR}/val/src/rule_enum_string_map.c"
+            "${ROOT_DIR}/val/src/rule_lookup.c"
+            "${ROOT_DIR}/val/src/rule_metadata.c"
+            "${ROOT_DIR}/val/src/acs_exerciser.c"
+            "${ROOT_DIR}/val/src/rule_based_execution_enum.h"
+        )
+        list(APPEND remove_sources ${common_remove_sources})
+        list(APPEND extra_defs BAREMETAL_MPAM_BUILD)
     else()
         message(FATAL_ERROR "Unsupported ACS value for val library: ${ACS_NAME}")
     endif()

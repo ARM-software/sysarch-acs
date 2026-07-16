@@ -150,6 +150,10 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
       curr_entry->intrf_type    = platform_mpam_cfg.msc_node[Index].intrf_type;
       curr_entry->msc_base_addr = platform_mpam_cfg.msc_node[Index].msc_base_addr;
       curr_entry->msc_addr_len  = platform_mpam_cfg.msc_node[Index].msc_addr_len;
+      curr_entry->of_intr       = platform_mpam_cfg.msc_node[Index].of_intr;
+      curr_entry->of_intr_flags = platform_mpam_cfg.msc_node[Index].of_intr_flags;
+      curr_entry->err_intr      = platform_mpam_cfg.msc_node[Index].err_intr;
+      curr_entry->err_intr_flags = platform_mpam_cfg.msc_node[Index].err_intr_flags;
       curr_entry->max_nrdy      = platform_mpam_cfg.msc_node[Index].max_nrdy;
       {
         uint32_t j = 0;

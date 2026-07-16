@@ -138,7 +138,7 @@ static void config_mpam_params(uint32_t mpam2_el2)
     return;
 }
 
-void static payload_secondary()
+static void payload_secondary(void)
 {
 
     uint32_t pe_index;
@@ -189,10 +189,10 @@ get_buffer_size(uint32_t msc_index, uint32_t rsrc_index, uint32_t num_pe_cont)
     uint64_t buf_size;
 
     mem_length = val_mpam_memory_get_size(msc_index, rsrc_index);
-    if (mem_length > (NUM_PE_CONT * MEMCPY_BUF_SIZE))
+    if (mem_length > (num_pe_cont * MEMCPY_BUF_SIZE))
         buf_size =  MEMCPY_BUF_SIZE;
     else
-        buf_size =  (mem_length / NUM_PE_CONT);
+        buf_size =  (mem_length / num_pe_cont);
 
     val_print(DEBUG, "\n       Chosen Buffer Size is 0x%llx", buf_size);
     return buf_size;

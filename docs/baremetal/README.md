@@ -21,7 +21,7 @@ Description of each directory are as follows:
 >Note: If you want to build ACS for the reference model(s) provided as part of ACS (for example, RDN2), you can directly follow the build steps below.
 If you want to build ACS for your own platform, you must first complete the PAL porting for your platform (refer to the Baremetal [PAL Porting Overview](porting-pal/overview.md)) and  fill platform-specific knobs using: [Platform override guides](porting-pal/platform-override-guides/README.md). Once the PAL porting is complete, execute the build steps below.
 
-> Note: <acs>.bin stands for either bsa.bin or sbsa.bin or pc_bsa.bin. Any platform specific changes can be done by using `TARGET_BAREMETAL` macro definition. The baremetal reference code is located in [baremetal](../../pal/baremetal/).
+> Note: <acs>.bin stands for either bsa.bin or sbsa.bin or pc_bsa.bin or mpam.bin. Any platform specific changes can be done by using `TARGET_BAREMETAL` macro definition. The baremetal reference code is located in [baremetal](../../pal/baremetal/).
 
 Run the command
 - `cd sysarch-acs`
@@ -48,6 +48,12 @@ Run the command
 &emsp; 3.3 `cmake --preset pc_bsa -DTARGET="Target platform"`\
 &emsp; 3.4 `cmake --build --preset pc_bsa`
 
+4. To compile MPAM, perform the following steps\
+&emsp; 4.1 `cd sysarch-acs`\
+&emsp; 4.2 `export CROSS_COMPILE=<path_to_the_toolchain>/bin/aarch64-none-elf-`\
+&emsp; 4.3 `cmake --preset mpam -DTARGET="Target platform"`\
+&emsp; 4.4 `cmake --build --preset mpam`
+
 </br>
 
 > **Note:**
@@ -64,7 +70,7 @@ CMake Command Line Options:
  `-DARM_ARCH_MINOR` = Arch minor version. Default value is 6.
  `-DCROSS_COMPILE`  = Cross compiler path
  `-DTARGET`         = Target platform. Should be same as folder under baremetal/target/
- `-DACS`            = To compile <bsa/sbsa/pc_bsa> ACS
+ `-DACS`            = To compile <bsa/sbsa/pc_bsa/mpam> ACS
 ```
 
 </br>

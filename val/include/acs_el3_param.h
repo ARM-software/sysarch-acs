@@ -32,7 +32,8 @@
 #define ACS_EL3_PARAM_MAGIC     0x425341454C335031ULL  /* 'BSAEL3P1' */
 #define ACS_EL3_PARAM_VERSION   0x3
 
-/* Versioned parameter block from EL3 */
+#ifdef COMPILE_RB_EXE
+/* Versioned parameter block from EL3 for rule-based binaries. */
 typedef struct {
   uint64_t version;
 
@@ -76,5 +77,28 @@ typedef struct {
                                     2 - HMAT mem-side LLC */
   uint64_t reserved :9;
 } acs_el3_params;
+#else
+/* Versioned parameter block from EL3 for non rule-based binaries (e.g. MPAM).
+ * Arrays are interpreted as legacy test/module numbers, not RULE_ID_e. */
+typedef struct {
+  uint64_t version;
+
+  /* MPAM test selection (legacy test numbers, e.g. 1001, 1002) */
+  uint64_t test_array_addr;
+  uint64_t test_array_count;
+
+  /* MPAM module selection (module bases: 0/100/200/300) */
+  uint64_t module_array_addr;
+  uint64_t module_array_count;
+
+  /* MPAM tests to skip (legacy test numbers, e.g. 1001, 1002) */
+  uint64_t skip_test_array_addr;
+  uint64_t skip_test_array_count;
+
+  /* Verbosity override for non-rulebase */
+  uint64_t verbose :3;
+  uint64_t reserved :61;
+} acs_el3_params;
+#endif /* COMPILE_RB_EXE */
 
 #endif /* ACS_EL3_PARAM_H */
