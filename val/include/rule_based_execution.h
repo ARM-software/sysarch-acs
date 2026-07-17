@@ -109,6 +109,11 @@ extern const sbsa_rule_entry_t sbsa_rule_list[];
 extern const pcbsa_rule_entry_t pcbsa_rule_list[];
 extern const vbsa_rule_entry_t vbsa_rule_list[];
 extern const pfdi_rule_entry_t pfdi_rule_list[];
+extern const uint32_t bsa_rule_list_len;
+extern const uint32_t sbsa_rule_list_len;
+extern const uint32_t pcbsa_rule_list_len;
+extern const uint32_t vbsa_rule_list_len;
+extern const uint32_t pfdi_rule_list_len;
 
 /* ------------------------------------ VAL APIs ------------------------------------------------*/
 uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx);

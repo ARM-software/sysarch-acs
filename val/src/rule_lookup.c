@@ -437,3 +437,10 @@ const pfdi_rule_entry_t pfdi_rule_list[] = {
     { R0194, PFDI_LEVEL_1 },
     { RULE_ID_SENTINEL, PFDI_LEVEL_SENTINEL }
 };
+
+/* Length helpers (exclude sentinel) */
+const uint32_t pcbsa_rule_list_len = (sizeof(pcbsa_rule_list) / sizeof(pcbsa_rule_list[0])) - 1U;
+const uint32_t sbsa_rule_list_len  = (sizeof(sbsa_rule_list)  / sizeof(sbsa_rule_list[0]))  - 1U;
+const uint32_t bsa_rule_list_len   = (sizeof(bsa_rule_list)   / sizeof(bsa_rule_list[0]))   - 1U;
+const uint32_t vbsa_rule_list_len  = (sizeof(vbsa_rule_list)  / sizeof(vbsa_rule_list[0]))  - 1U;
+const uint32_t pfdi_rule_list_len  = (sizeof(pfdi_rule_list)  / sizeof(pfdi_rule_list[0]))  - 1U;

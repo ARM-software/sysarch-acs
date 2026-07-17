@@ -366,27 +366,23 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
         uint32_t add_count = 0;
 
         if (ctx->arch_selection == ARCH_BSA) {
-            /* count BSA entries */
-            while (bsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
-                add_count++;
             bsa_tbl = bsa_rule_list;
+            add_count = bsa_rule_list_len;
         } else if (ctx->arch_selection == ARCH_SBSA) {
-            while (sbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
-                add_count++;
             sbsa_tbl = sbsa_rule_list;
+            add_count = sbsa_rule_list_len;
         } else if (ctx->arch_selection == ARCH_PCBSA) {
-            while (pcbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
-                add_count++;
             pcbsa_tbl = pcbsa_rule_list;
+            add_count = pcbsa_rule_list_len;
         } else if (ctx->arch_selection == ARCH_VBSA) {
-            while (vbsa_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
-                add_count++;
             vbsa_tbl = vbsa_rule_list;
+            add_count = vbsa_rule_list_len;
         } else if (ctx->arch_selection == ARCH_PFDI) {
-            while (pfdi_rule_list[add_count].rule_id != RULE_ID_SENTINEL)
-                add_count++;
             pfdi_tbl = pfdi_rule_list;
+            add_count = pfdi_rule_list_len;
         }
+
+        tbl_count = add_count;
 
         if (add_count > 0) {
             /* Allocate a new buffer sized for worst-case unique merge */
@@ -437,24 +433,6 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
                 ctx->rule_count = new_count;
                 ctx->rule_list_owned = true;
             }
-        }
-
-        /* Also capture the selected table pointer and count for filtering by level */
-        if (ctx->arch_selection == ARCH_BSA) {
-            bsa_tbl = bsa_rule_list;
-            while (bsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
-        } else if (ctx->arch_selection == ARCH_SBSA) {
-            sbsa_tbl = sbsa_rule_list;
-            while (sbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
-        } else if (ctx->arch_selection == ARCH_PCBSA) {
-            pcbsa_tbl = pcbsa_rule_list;
-            while (pcbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
-        } else if (ctx->arch_selection == ARCH_VBSA) {
-            vbsa_tbl = vbsa_rule_list;
-            while (vbsa_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
-        } else if (ctx->arch_selection == ARCH_PFDI) {
-            pfdi_tbl = pfdi_rule_list;
-            while (pfdi_tbl[tbl_count].rule_id != RULE_ID_SENTINEL) tbl_count++;
         }
     }
 
