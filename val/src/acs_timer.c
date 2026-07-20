@@ -244,7 +244,10 @@ ArmArchTimerWriteReg (
       break;
 
     case CntvCval:
-      write_cntv_cval_el0(*data_buf);
+      if (effective_e2h)
+        write_cntv_cval_el02(*data_buf);
+      else
+        write_cntp_cval_el0(*data_buf);
       break;
 
     case CntvOff:
