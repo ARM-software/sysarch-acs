@@ -101,8 +101,6 @@ payload()
       return;
   }
 
-  val_timer_set_system_timer((addr_t)cnt_base_n, sys_timer_ticks);
-
   irq_received = 0;
 
   intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
@@ -111,6 +109,9 @@ payload()
   intid_phy = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   val_gic_install_isr(intid_phy, isr_phy_el1);
 
+  /* Start system timer */
+  val_timer_set_system_timer((addr_t)cnt_base_n, sys_timer_ticks);
+  
   /* Start EL1 PHY timer */
   val_timer_set_phy_el1(pe_timer_ticks);
 
