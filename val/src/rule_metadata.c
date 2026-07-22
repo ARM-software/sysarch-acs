@@ -1948,7 +1948,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [PCI_IN_19] = {
             .test_entry_id    = PCI_IN_19_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "Check Cmd Reg memory space enable",
+            .rule_desc        = "Check Command,BIST,and Hdr Cap registers",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },

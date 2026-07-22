@@ -1263,7 +1263,7 @@ The checklist provides information about:
     <tr>
       <td rowspan="3">PCI_IN_19</td>
       <td>830</td>
-      <td>Check Cmd Reg memory space enable</td>
+      <td>Check Command,BIST,and Hdr Cap registers</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3260,7 +3260,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_IN_19</td>
       <td>830</td>
-      <td>Check Cmd Reg memory space enable</td>
+      <td>Check Command,BIST,and Hdr Cap registers</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>

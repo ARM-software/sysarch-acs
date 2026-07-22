@@ -835,7 +835,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_IN_19</td>
       <td>830</td>
-      <td>Check Cmd Reg memory space enable</td>
+      <td>Check Command,BIST,and Hdr Cap registers</td>
       <td>✅</td>
       <td>❌</td>
       <td></td>

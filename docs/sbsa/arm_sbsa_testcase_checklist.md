@@ -1918,7 +1918,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_IN_19</td>
       <td></td>
-      <td>Check Cmd Reg memory space enable</td>
+      <td>Check Command,BIST,and Hdr Cap registers</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
