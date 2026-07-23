@@ -38,27 +38,35 @@ Note :  Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/a
 4. BSA EFI application path
 - The EFI executable file is generated at <edk2-path>/Build/Shell/DEBUG_GCCNOLTO/AARCH64/Bsa.efi
 
-## Test suite execution on QEMU platform
-1. Fetch uefi-firmware
->          wget https://releases.linaro.org/components/kernel/uefi-linaro/16.02/release/qemu64/QEMU_EFI.fd
+## Verification on Arm Neoverse RD-V3-Cfg1 reference design
+### Software stack and model
+Follow the steps in the [RD-V3-Cfg1 platform software user guide](https://neoverse-reference-design.docs.arm.com/en/latest/platforms/rdv3cfg1.html) to obtain the RD-V3-Cfg1 FVP.
 
-2. Run QEMU model <br>
-**Note** : <br> 1. Follow steps provided in [Emulation environment with secondary-storage](../bsa/README.md#emulation-environment-with-secondary-storage) to create .img file containing Bsa.efi executable. <br> 2. Follow instructions from https://www.qemu.org/download/#source to obtain QEMU model.
+#### Prerequisites
+`sudo` permission is required to build the RD-V3-Cfg1 software stack.
 
->          IMG_PATH=<path to .img containing Bsa.efi>
->          QEMU_PATH=<path to QEMU model>
->                 e.g. /data_sda/user01/qemu/qemu-7.2.0/build/qemu-system-aarch64
->          BIOS_PATH=<pat to QEMU_EFI.fd>
+#### Software stack build instructions
+Follow the **BusyBox Boot** link under **Supported Features by RD-V3-Cfg1 platform software stack** in the RD-V3-Cfg1 platform software user guide.
 
->          $QEMU_PATH -nodefaults -machine virt -accel tcg -cpu cortex-a57 -device pci-testdev -display none -serial stdio -bios $BIOS_PATH -drive file=$IMG_PATH,if=virtio,format=raw -smp 8 -m 512 -machine virtualization=on
+### Model run command
+1. Set the `MODEL` environment variable to the absolute path of the RD-V3-Cfg1 FVP binary.
+>          export MODEL=<absolute path to the RD-V3-Cfg1 FVP binary/FVP_RD_V3_Cfg1>
 
-3. Press Esc to enter the shell prompt, and navigate to disk containing Bsa.efi, and run BSA app.
->          Bsa.efi
+2. Follow the steps provided in [Emulation environment with secondary-storage](../bsa/README.md#emulation-environment-with-secondary-storage) to create an `.img` file containing the Bsa.efi executable.
+
+3. Launch the RD-V3-Cfg1 FVP with the image containing Bsa.efi.
+>          cd <path to RD-V3-Cfg1 software stack>/model-scripts/rdinfra/platforms/rdv3cfg1
+>          ./run_model.sh -v <path to .img containing Bsa.efi>
+
+4. Press Esc to enter the shell prompt, navigate to the disk containing Bsa.efi, and run the BSA app.
+
+**Note:** Tests B_MEM_01 (102) and PCI_IN_19 (830) are known to hang on RD-V3-Cfg1 due to model limitations. These tests must be skipped for the test run to progress.
+>          Bsa.efi -skip 102,830
 
 ## Limitations
  - The kvm-unit-tests print function depends on SPCR ACPI table for UART base address and UEFI console setting must be set to "serial". In case of non-availability of SPCR,
    set `CONFIG_UART_EARLY_BASE` in `sysarch-acs/mem_test/kvm-unit-tests/lib/arm/io.c` to UART base address of system under test, after step 2 in [build steps](#steps-to-build-litmus-tests-into-bsa-acs).
- - Initializing memory model tests infra and transitioning from EL1 to EL2 is observed to be time-consuming (approximately 30 minutes) in systems with large PE caches. The duration of each test run varies, ranging from 1 minute in silicon to 40 minutes in certain emulated platforms like Arm FVP models.
+ - Initializing memory model tests infra and transitioning from EL1 to EL2 is observed to be time-consuming (approximately 30 minutes) in systems with large PE caches. Memory tests run significantly slower on Arm FVP models, with each test taking around one hour to complete depending on the host machine load.
  - The printf implementation in kvm-unit-tests works only with a serial interface. For HDMI or other outputs, a console splitter or similar device is required.
 
 ## Feedback, contributions, and support
@@ -68,4 +76,4 @@ Note :  Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/a
  - Arm licensees may contact Arm directly through their partner managers.
  - Arm welcomes code contributions through GitHub pull requests. See the GitHub documentation on how to raise pull requests.
 
-*Copyright (c) 2023-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2023-2026, Arm Limited and Contributors. All rights reserved.*
