@@ -605,14 +605,23 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>L1</td>
-      <td>B_SMMU_21</td>
-      <td>B_SMMU_21</td>
+      <td rowspan="2">L1</td>
+      <td rowspan="2">B_SMMU_21</td>
+      <td>SMMU_01</td>
       <td>307</td>
       <td>SMMUv3 Integration compliance</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>SMMU_02</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3765,12 +3774,14 @@ The checklist provides information about:
 - Updated PCI_MM_02 coverage with test 906.
 - Added direct B_PER_07 UART Non-secure register access coverage (test 605).
 - Updated B_PER_08 to include ITS Rules.
+- Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
 - Updated ITS_08, ITS_DEV_5
+- Updated B_SMMU_21
 
+### v26.03_BSA_1.2.1
 - **RI_ Added:** RI_PWR_1
 - Updated B_WD_02.
 - Updated checklist to be consistent with I-VGLFZ.
-- Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
 
 ### v25.12_BSA_1.2.0
 - Updated Rule Checklist as per BSA 1.2 Specification
