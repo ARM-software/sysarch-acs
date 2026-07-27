@@ -182,7 +182,7 @@ val_mmu_add_entry(uint64_t base_addr, uint64_t size, uint64_t attr)
   pgt_desc.oas = oas_bit_arr[pgt_desc.tcr.ps];
   pgt_desc.ias = 64 - pgt_desc.tcr.tsz;
   val_print(DEBUG, "\n   Input addr size in bits (ias) = %d", pgt_desc.ias);
-  val_print(DEBUG, "\n   Output addr size in bits (oas) = %d\n", pgt_desc.oas);
+  val_print(DEBUG, "\n       Output addr size in bits (oas) = %d", pgt_desc.oas);
 
   /* populate mem descriptor structure with addr region to be mapped and attributes */
   mem_desc.virtual_address = base_addr;
@@ -197,7 +197,7 @@ val_mmu_add_entry(uint64_t base_addr, uint64_t size, uint64_t attr)
 
   /* update translation table entry(s) for addr region defined by memory descriptor structure  */
   if (val_pgt_create(&mem_desc, &pgt_desc)) {
-      val_print(ERROR, "   Failed to create MMU translation entry(s)\n");
+      val_print(ERROR, "\n       Failed to create MMU translation entry(s)");
       return 1;
   }
   return 0;
@@ -217,7 +217,7 @@ uint32_t val_mmu_update_entry(uint64_t address, uint32_t size, uint64_t attr)
 
   /* If entry is already present return success */
   if (!val_mmu_check_for_entry(address)) {
-      val_print(DEBUG, "\n   Address is already mapped\n");
+      val_print(DEBUG, "\n       Address is already mapped");
       return 0;
   }
 
@@ -305,7 +305,7 @@ void val_setup_mair_register(void)
         val_mair_write(mair_val, currentEL);
 
     val_print(DEBUG, "\n  Previous MAIR register value 0x%lx", current_mair);
-    val_print(DEBUG, "\n  Current MAIR register value 0x%lx\n", mair_val);
+    val_print(DEBUG, "\n       Current MAIR register value 0x%lx", mair_val);
     return;
 }
 
@@ -332,8 +332,8 @@ uint32_t val_setup_mmu(void)
     pgt_desc.pgt_base = (uint64_t) tt_l0_base;
     pgt_desc.stage = PGT_STAGE1;
 
-    val_print(DEBUG, "       mmu: ias=%d\n", pgt_desc.ias);
-    val_print(DEBUG, "       mmu: oas=%d\n", pgt_desc.oas);
+    val_print(DEBUG, "\n       mmu: ias=%d", pgt_desc.ias);
+    val_print(DEBUG, "\n       mmu: oas=%d", pgt_desc.oas);
 
     /* Map regions */
 
@@ -351,7 +351,7 @@ uint32_t val_setup_mmu(void)
 
         val_print(DEBUG, "\n       Creating page table for region  : 0x%lx",
                                                                         mem_desc->virtual_address);
-        val_print(DEBUG, "- 0x%lx\n", (mem_desc->virtual_address + mem_desc->length) - 1);
+        val_print(DEBUG, "- 0x%lx", (mem_desc->virtual_address + mem_desc->length) - 1);
 
         if (val_pgt_create(mem_desc, &pgt_desc))
         {
@@ -391,8 +391,8 @@ uint32_t val_enable_mmu(void)
 
     val_tcr_write(tcr, currentEL);
 
-    val_print(DEBUG, "       val_setup_mmu: TG0=0x%x\n", TCR_TG0);
-    val_print(DEBUG, "       val_setup_mmu: tcr=0x%lx\n", tcr);
+    val_print(DEBUG, "\n       val_setup_mmu: TG0=0x%x", TCR_TG0);
+    val_print(DEBUG, "\n       val_setup_mmu: tcr=0x%lx", tcr);
 
 /* Enable MMU */
     val_sctlr_write((1 << 0) |  // M=1 Enable the stage 1 MMU
@@ -401,8 +401,8 @@ uint32_t val_enable_mmu(void)
                     val_sctlr_read(currentEL),
                     currentEL);
 
-    val_print(DEBUG, "       val_enable_mmu: successful\n");
-    val_print(DEBUG, "       System Control EL2 is %llx", val_sctlr_read(currentEL));
+    val_print(DEBUG, "\n       val_enable_mmu: successful");
+    val_print(DEBUG, "\n       System Control EL2 is %llx", val_sctlr_read(currentEL));
 
     return ACS_STATUS_PASS;
 }

@@ -31,7 +31,7 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
 
   if (CxlTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "Input CXL Table Pointer is NULL. Cannot create CXL INFO Table\n");
+                  "\n       Input CXL Table Pointer is NULL. Cannot create CXL INFO Table");
     return;
   }
 
@@ -39,7 +39,7 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
 
   if (platform_cxl_cfg.num_entries == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "Number of HB is 0. Cannot create CXL INFO\n");
+                  "\n       Number of HB is 0. Cannot create CXL INFO");
     return;
   }
 
@@ -58,7 +58,7 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
     if (window_count > max_windows) {
       window_count = max_windows;
       pal_print_msg(ACS_PRINT_WARN,
-                    "CFMWS count exceeds per-host capacity. Truncating\n");
+                    "\n       CFMWS count exceeds per-host capacity. Truncating");
     }
     CxlTable->device[i].cfmws_count = window_count;
 
@@ -88,7 +88,7 @@ pal_cxl_get_host_bridge_uid(uint32_t bdf, uint32_t *uid)
     *uid = 0;
   else
     pal_print_msg(ACS_PRINT_ERR,
-                  " %s UID pointer NULL ",
+                  "\n       %s UID pointer NULL",
                   __func__);
   return 1;
 }

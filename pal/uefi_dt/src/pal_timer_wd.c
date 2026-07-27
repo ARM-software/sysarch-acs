@@ -60,7 +60,7 @@ pal_get_platform_time_us (
 
   Status = gRT->GetTime(&Time, NULL);
   if (EFI_ERROR(Status)) {
-    pal_print_msg(ACS_PRINT_WARN, " GetTime failed: %x\n", Status);
+    pal_print_msg(ACS_PRINT_WARN, "\n       GetTime failed: %x", Status);
     return ~0ULL;
   }
 
@@ -117,7 +117,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 
   if (TimerTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Timer Table Pointer is NULL. Cannot create Timer INFO\n");
+                  "\n       Input Timer Table Pointer is NULL. Cannot create Timer INFO");
     return;
   }
 
@@ -130,7 +130,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
   gGtdtHdr = (EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *) pal_get_gtdt_ptr();
 
   pal_print_msg(ACS_PRINT_INFO,
-                " GTDT is at %x and length is %x\n",
+                "\n       GTDT is at %x and length is %x",
                 gGtdtHdr,
                 gGtdtHdr->Header.Length);
 
@@ -153,17 +153,17 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 
     if (Entry->Type == EFI_ACPI_6_1_GTDT_GT_BLOCK) {
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Found block entry\n");
+                    "\n       Found block entry");
       GtEntry->type = TIMER_TYPE_SYS_TIMER;
       GtEntry->block_cntl_base = Entry->CntCtlBase;
       GtEntry->timer_count     = Entry->GTBlockTimerCount;
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  CNTCTLBase = %llx\n",
+                    "\n       CNTCTLBase = %llx",
                     GtEntry->block_cntl_base);
       GtBlockTimer = (EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *)(((UINT8 *)Entry) + Entry->GTBlockTimerOffset);
       for (i = 0; i < GtEntry->timer_count; i++) {
         pal_print_msg(ACS_PRINT_INFO,
-                      "  Found timer entry\n");
+                      "\n       Found timer entry");
         GtEntry->frame_num[i]    = GtBlockTimer->GTFrameNumber;
         GtEntry->GtCntBase[i]    = GtBlockTimer->CntBaseX;
         GtEntry->GtCntEl0Base[i] = GtBlockTimer->CntEL0BaseX;
@@ -171,7 +171,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
         GtEntry->virt_gsiv[i]    = GtBlockTimer->GTxVirtualTimerGSIV;
         GtEntry->flags[i]        = GtBlockTimer->GTxPhysicalTimerFlags | (GtBlockTimer->GTxVirtualTimerFlags << 8) | (GtBlockTimer->GTxCommonFlags << 16);
         pal_print_msg(ACS_PRINT_DEBUG,
-                      "  CNTBaseN = %llx for sys counter = %d\n",
+                      "\n       CNTBaseN = %llx for sys counter = %d",
                       GtEntry->GtCntBase[i],
                       i);
         GtBlockTimer++;
@@ -250,7 +250,7 @@ pal_wd_create_info_table(WD_INFO_TABLE *WdTable)
 
   if (WdTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Watchdog Table Pointer is NULL. Cannot create Watchdog INFO\n");
+                  "\n       Input Watchdog Table Pointer is NULL. Cannot create Watchdog INFO");
     return;
   }
 
@@ -281,7 +281,7 @@ pal_wd_create_info_table(WD_INFO_TABLE *WdTable)
       WdEntry->wd_flags        = Entry->WatchdogTimerFlags;
       WdTable->header.num_wd++;
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Watchdog base = 0x%llx INTID = 0x%x\n",
+                    "\n       Watchdog base = 0x%llx INTID = 0x%x",
                     WdEntry->wd_ctrl_base,
                     WdEntry->wd_gsiv);
       WdEntry++;
@@ -324,7 +324,7 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " dt_ptr is NULL\n");
+                  "\n       dt_ptr is NULL");
     return;
   }
 
@@ -332,48 +332,48 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, wd_dt_arr[i]);
       if (offset < 0) {
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  WD node offset not found %d\n",
+                        "\n       WD node offset not found %d",
                         offset);
           continue; /* Search for next compatible wd*/
       }
 
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Parent Node offset %d\n",
+                    "\n       Parent Node offset %d",
                     offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  size cell %d\n",
+                    "\n       size cell %d",
                     size_cell);
       if (size_cell < 1 || size_cell > 2) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid size cell :%d\n",
+                        "\n       Invalid size cell :%d",
                         size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  addr cell %d\n",
+                    "\n       addr cell %d",
                     addr_cell);
       if (addr_cell < 1 || addr_cell > 2) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid address cell : %d\n",
+                        "\n       Invalid address cell : %d",
                         addr_cell);
           return;
       }
 
       while (offset != -FDT_ERR_NOTFOUND) {
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  WD node:%d offset:%d\n",
+                        "\n       WD node:%d offset:%d",
                         WdTable->header.num_wd,
                         offset);
 
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg_val == NULL)) {
               pal_print_msg(ACS_PRINT_ERR,
-                            "  PROPERTY reg offset %x, Error %d\n",
+                            "\n       PROPERTY reg offset %x, Error %d",
                             offset,
                             prop_len);
               return;
@@ -383,7 +383,7 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
               (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "interrupts", 10, &prop_len);
           if ((prop_len < 0) || (Pintr_val == NULL)) {
               pal_print_msg(ACS_PRINT_ERR,
-                            "  PROPERTY interrupts offset %x, Error %d\n",
+                            "\n       PROPERTY interrupts offset %x, Error %d",
                             offset,
                             prop_len);
               return;
@@ -391,11 +391,11 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
 
           interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, offset);
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  interrupt_cell  %d\n",
+                        "\n       interrupt_cell  %d",
                         interrupt_cell);
           if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
               pal_print_msg(ACS_PRINT_ERR,
-                            "  Invalid interrupt cell : %d\n",
+                            "\n       Invalid interrupt cell : %d",
                             interrupt_cell);
               return;
           }
@@ -434,7 +434,7 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
           {
             case IRQ_TYPE_NONE:
               pal_print_msg(ACS_PRINT_DEBUG,
-                            "  interrupt type none\n");
+                            "\n       interrupt type none");
               wd_mode = INTERRUPT_IS_LEVEL_TRIGGERED; /* Set default*/
               wd_polarity = INTERRUPT_IS_ACTIVE_HIGH;
               break;
@@ -456,7 +456,7 @@ pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable)
               break;
             default:
               pal_print_msg(ACS_PRINT_ERR,
-                            "  interrupt type invalid :%X\n",
+                            "\n       interrupt type invalid :%X",
                             fdt32_to_cpu(Pintr_val[2]));
               return;
           }
@@ -497,7 +497,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " dt_ptr is NULL\n");
+                    "\n       dt_ptr is NULL");
       return;
   }
 
@@ -526,16 +526,16 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   /* Return if Timer node not found*/
   if (offset < 0) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  timer node offset not found\n");
+                    "\n       timer node offset not found");
       return;
   }
   interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  interrupt_cell  %d\n",
+                "\n       interrupt_cell  %d",
                 interrupt_cell);
   if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Invalid interrupt cell : %d\n",
+                    "\n       Invalid interrupt cell : %d",
                     interrupt_cell);
       return;
   }
@@ -544,18 +544,18 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   Pintr = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "interrupts", 10, &prop_len);
   if ((prop_len < 0) || (Pintr == NULL)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  PROPERTY interrupts offset %x, Error %d\n",
+                    "\n       PROPERTY interrupts offset %x, Error %d",
                     offset,
                     prop_len);
       return;
   }
   else {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  PROPERTY Interrupts Size %d\n",
+                    "\n       PROPERTY Interrupts Size %d",
                     prop_len);
       num_interrupts = prop_len/(interrupt_cell * 4);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  No of interrupts defined in Property %d\n",
+                    "\n       No of interrupts defined in Property %d",
                     num_interrupts);
   }
 
@@ -566,7 +566,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               TimerTable->header.s_el1_timer_gsiv = fdt32_to_cpu(Pintr[index++]) + PPI_OFFSET;
           else {
               pal_print_msg(ACS_PRINT_WARN,
-                            "  Secure EL1 Phy Timer interrupt Type is not PPI\n");
+                            "\n       Secure EL1 Phy Timer interrupt Type is not PPI");
               index++;
           }
           index++; /* Skip interrupt flag*/
@@ -579,7 +579,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               TimerTable->header.ns_el1_timer_gsiv = fdt32_to_cpu(Pintr[index++]) + PPI_OFFSET;
           else {
               pal_print_msg(ACS_PRINT_WARN,
-                            "  EL1 NS phy timer interrupt Type is not PPI\n");
+                            "\n       EL1 NS phy timer interrupt Type is not PPI");
               index++;
           }
           index++; /* Skip interrupt flag*/
@@ -592,7 +592,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               TimerTable->header.virtual_timer_gsiv  = fdt32_to_cpu(Pintr[index++]) + PPI_OFFSET;
           else {
               pal_print_msg(ACS_PRINT_WARN,
-                            "  Virtual timer interrupt Type is not PPI\n");
+                            "\n       Virtual timer interrupt Type is not PPI");
               index++;
           }
           index++; /* Skip interrupt flag*/
@@ -605,7 +605,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               TimerTable->header.el2_timer_gsiv      = fdt32_to_cpu(Pintr[index++]) + PPI_OFFSET;
           else {
               pal_print_msg(ACS_PRINT_WARN,
-                            "  EL2 NS phy timer interrupt Type is not PPI\n");
+                            "\n       EL2 NS phy timer interrupt Type is not PPI");
               index++;
           }
           index++; /* Skip interrupt flag*/
@@ -618,7 +618,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               TimerTable->header.el2_virt_timer_gsiv = fdt32_to_cpu(Pintr[index++]) + PPI_OFFSET;
           else {
               pal_print_msg(ACS_PRINT_WARN,
-                            "  EL2 Virtual timer interrupt Type is not PPI\n");
+                            "\n       EL2 Virtual timer interrupt Type is not PPI");
               index++;
           }
           index++; /* Skip interrupt flag*/
@@ -660,7 +660,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   }
   else
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  PROPERTY always-on not found\n");
+                    "\n       PROPERTY always-on not found");
 
   /* Search for mem mapped timers*/
   for (i = 0; i < sizeof(memtimer_dt_arr)/MEMTIMER_COMPATIBLE_STR_LEN ; i++) {
@@ -670,34 +670,34 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   }
   if (offset < 0) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  MEM timer node offset not found\n");
+                    "\n       MEM timer node offset not found");
       return;
   }
 
   /* Get Address_cell & Size_cell length to parse reg property of timer*/
   parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  Parent Node offset %d\n",
+                "\n       Parent Node offset %d",
                 offset);
 
   size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  size cell %d\n",
+                "\n       size cell %d",
                 size_cell);
   if (size_cell < 0) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Invalid size cell :%d\n",
+                    "\n       Invalid size cell :%d",
                     size_cell);
       return;
   }
 
   addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  addr cell %d\n",
+                "\n       addr cell %d",
                 addr_cell);
   if (addr_cell < 1 || addr_cell > 2) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Invalid address cell : %d\n",
+                    "\n       Invalid address cell : %d",
                     addr_cell);
       return;
   }
@@ -706,7 +706,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   Preg = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
   if ((prop_len < 0) || (Preg == NULL)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  PROPERTY REG offset %x, Error %d\n",
+                    "\n       PROPERTY REG offset %x, Error %d",
                     offset,
                     prop_len);
       return;
@@ -722,22 +722,22 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   /* Get Address_cell & Size_cell length to parse reg property of frame*/
   size_cell = fdt_size_cells((const void *) dt_ptr, offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  size cell %d\n",
+                "\n       size cell %d",
                 size_cell);
   if (size_cell < 0) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Invalid size cell for timer node :%d\n",
+                    "\n       Invalid size cell for timer node :%d",
                     size_cell);
       return;
   }
 
   addr_cell = fdt_address_cells((const void *) dt_ptr, offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  addr cell %d\n",
+                "\n       addr cell %d",
                 addr_cell);
   if (addr_cell < 1 || addr_cell > 2) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Invalid address cell for timer node: %d\n",
+                    "\n       Invalid address cell for timer node: %d",
                     addr_cell);
       return;
   }
@@ -746,7 +746,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
   subnode_offset = fdt_subnode_offset((const void *)dt_ptr, offset, "frame");
   if (subnode_offset < 0) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  frame node offset not found %d\n",
+                    "\n       frame node offset not found %d",
                     subnode_offset);
       return;
   }
@@ -755,14 +755,14 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
       /* Get frame number*/
       frame_number = fdt_frame_number((const void *)dt_ptr, subnode_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Frame number is  %d\n",
+                    "\n       Frame number is  %d",
                     frame_number);
 
       /* Get reg property from frame to update GtCntBase */
       Preg = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, subnode_offset, "reg", 3, &prop_len);
       if ((prop_len < 0) || (Preg == NULL)) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  PROPERTY REG offset %x, Error %d\n",
+                        "\n       PROPERTY REG offset %x, Error %d",
                         offset,
                         prop_len);
           return;
@@ -773,7 +773,7 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
               fdt_getprop_namelen((void *)dt_ptr, subnode_offset, "interrupts", 10, &prop_len);
       if ((prop_len < 0) || (Pintr == NULL)) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  PROPERTY interrupts offset %x, Error %d\n",
+                        "\n       PROPERTY interrupts offset %x, Error %d",
                         offset,
                         prop_len);
           return;
@@ -781,11 +781,11 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
 
       interrupt_cell = fdt_interrupt_cells((const void *)dt_ptr, subnode_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  interrupt_cell for subnode  %d\n",
+                    "\n       interrupt_cell for subnode  %d",
                     interrupt_cell);
       if (interrupt_cell < INTERRUPT_CELLS_MIN || interrupt_cell > INTERRUPT_CELLS_MAX) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid interrupt cell subnode: %d\n",
+                        "\n       Invalid interrupt cell subnode: %d",
                         interrupt_cell);
           return;
       }
@@ -840,11 +840,11 @@ pal_timer_create_info_table_dt(TIMER_INFO_TABLE *TimerTable)
 
       subnode_offset = fdt_next_subnode((const void *)dt_ptr, subnode_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  timer-mem-fram next node offset %d\n",
+                    "\n       timer-mem-fram next node offset %d",
                     subnode_offset);
   }
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  GT block timer count %d\n",
+                "\n       GT block timer count %d",
                 GtEntry->timer_count);
   TimerTable->header.num_platform_timer = GtEntry->timer_count;
 

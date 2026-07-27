@@ -51,12 +51,12 @@ CXL_COMPONENT_ENTRY *
 val_cxl_get_component_entry(uint32_t component_index)
 {
   if (g_cxl_component_table == NULL) {
-    val_print(ERROR, " CXL: component table not initialised");
+    val_print(ERROR, "\n       CXL: component table not initialised");
     return NULL;
   }
 
   if (component_index >= g_cxl_component_table->num_entries) {
-    val_print(ERROR, " CXL: invalid component index %u", component_index);
+    val_print(ERROR, "\n       CXL: invalid component index %u", component_index);
     return NULL;
   }
 
@@ -159,7 +159,7 @@ val_cxl_print_component_summary(void)
   uint32_t idx;
 
   if (g_cxl_component_table == NULL) {
-    val_print(TRACE, " CXL_COMPONENT: Discovered 0 components");
+    val_print(TRACE, "\n       CXL_COMPONENT: Discovered 0 components");
     return;
   }
 
@@ -195,22 +195,22 @@ val_cxl_print_component_summary(void)
     }
   }
 
-  val_print(INFO, " CXL_INFO: Number of host bridges     :    %u\n",
+  val_print(INFO, "\n    CXL_INFO: Number of host bridges     :    %u",
              g_cxl_info_table->num_entries);
   val_print(INFO,
-            " CXL_INFO: Number of components       : %4u\n", (uint64_t)total);
+            "\n    CXL_INFO: Number of components       : %4u", (uint64_t)total);
   val_print(INFO,
-            " CXL_INFO: Root Ports                 : %4u\n", (uint64_t)role_root_port);
+            "\n    CXL_INFO: Root Ports                 : %4u", (uint64_t)role_root_port);
   val_print(INFO,
-            " CXL_INFO: Devices (Endpoints)        : %4u\n", (uint64_t)role_endpoint);
+            "\n    CXL_INFO: Devices (Endpoints)        : %4u", (uint64_t)role_endpoint);
   val_print(INFO,
-            " CXL_INFO: Type1 Devices              : %4u\n", (uint64_t)type1_devices);
+            "\n    CXL_INFO: Type1 Devices              : %4u", (uint64_t)type1_devices);
   val_print(INFO,
-            " CXL_INFO: Type2 Devices              : %4u\n", (uint64_t)type2_devices);
+            "\n    CXL_INFO: Type2 Devices              : %4u", (uint64_t)type2_devices);
   val_print(INFO,
-            " CXL_INFO: Type3 Devices              : %4u\n", (uint64_t)type3_devices);
+            "\n    CXL_INFO: Type3 Devices              : %4u", (uint64_t)type3_devices);
 
-  val_print(TRACE, " CXL_COMPONENT: Discovered %u components", (uint64_t)total);
+  val_print(TRACE, "\n       CXL_COMPONENT: Discovered %u components", (uint64_t)total);
 
   for (idx = 0; idx < g_cxl_component_table->num_entries; idx++) {
     const CXL_COMPONENT_ENTRY *entry = &g_cxl_component_table->component[idx];
@@ -218,17 +218,17 @@ val_cxl_print_component_summary(void)
     const char *dtype_str = val_cxl_device_type_name(entry->device_type);
 
     val_print(TRACE, "\n   Component Index : %u", (uint64_t)idx);
-    val_print(TRACE, "     BDF           : 0x%x", (uint64_t)entry->bdf);
-    val_print(TRACE, "     Role          : %a", (uint64_t)role_str);
-    val_print(TRACE, "     Device Type   : %a", (uint64_t)dtype_str);
+    val_print(TRACE, ", BDF   : 0x%x", (uint64_t)entry->bdf);
+    val_print(TRACE, ", Role  : %a", (uint64_t)role_str);
+    val_print(TRACE, ", Device Type : %a", (uint64_t)dtype_str);
 
     if (entry->component_reg_base) {
-      val_print(TRACE, "     CompReg Base  : 0x%llx", entry->component_reg_base);
-      val_print(TRACE, "     CompReg Len   : 0x%llx", entry->component_reg_length);
+      val_print(TRACE, ", CompReg Base  : 0x%llx", entry->component_reg_base);
+      val_print(TRACE, ", CompReg Len   : 0x%llx", entry->component_reg_length);
     }
 
 
-    val_print(TRACE, "   HDM Decoder Count  : %u", entry->hdm_decoder_count);
+    val_print(TRACE, ", HDM Decoder Count  : %u", entry->hdm_decoder_count);
   }
 }
 
@@ -255,7 +255,7 @@ val_cxl_find_capability(uint32_t bdf, uint32_t cid, uint32_t *cid_offset)
       dvsec_id = hdr2 & CXL_DVSEC_HDR2_ID_MASK;
       if (dvsec_id == cid)
       {
-          val_print(TRACE, " \nFound CXL DVSEC 0x%lx", dvsec_id);
+          val_print(TRACE, "\n       Found CXL DVSEC 0x%lx", dvsec_id);
           *cid_offset = next_cap_offset;
           return 0;
       }
@@ -372,7 +372,7 @@ val_cxl_get_component_info(CXL_COMPONENT_INFO_e type, uint32_t index)
 {
 
   if (g_cxl_component_table == NULL) {
-    val_print(ERROR, " GET_CXL_COMPONENT_INFO: component table not created");
+    val_print(ERROR, "\n       GET_CXL_COMPONENT_INFO: component table not created");
     return 0;
   }
 
@@ -380,7 +380,7 @@ val_cxl_get_component_info(CXL_COMPONENT_INFO_e type, uint32_t index)
     return g_cxl_component_table->num_entries;
 
   if (index >= g_cxl_component_table->num_entries) {
-    val_print(ERROR, " GET_CXL_COMPONENT_INFO: Invalid index %u", index);
+    val_print(ERROR, "\n       GET_CXL_COMPONENT_INFO: Invalid index %u", index);
     return 0;
   }
 
@@ -401,7 +401,7 @@ val_cxl_get_component_info(CXL_COMPONENT_INFO_e type, uint32_t index)
   case CXL_COMPONENT_INFO_HDM_COUNT:
     return entry->hdm_decoder_count;
   default:
-    val_print(ERROR, " GET_CXL_COMPONENT_INFO: Unsupported type %u", type);
+    val_print(ERROR, "\n       GET_CXL_COMPONENT_INFO: Unsupported type %u", type);
     break;
   }
 
@@ -644,7 +644,7 @@ void val_cxl_dump_reg_block(uint64_t base_pa,
     val_print(TRACE, (char8_t *)hdr_fmt, base_pa);
 
     if (block_len && block_len < CXL_CAP_HDR_SIZE) {
-        val_print(TRACE, " ERROR in CXL Summary :: Block length too small\n");
+        val_print(TRACE, "\n       ERROR in CXL Summary :: Block length too small");
         return;
     }
 
@@ -661,19 +661,19 @@ void val_cxl_dump_reg_block(uint64_t base_pa,
             hdr_cnt = max_cnt_by_len;
         }
 
-        val_print(TRACE, "   \nDevCap Array count=%ld", (uint64_t)hdr_cnt);
+        val_print(TRACE, "\n       DevCap Array count=%ld", (uint64_t)hdr_cnt);
         for (i = 0; i < hdr_cnt; ++i) {
         if (val_cxl_dev_cap_hdr_read(hdr_base, i, &id_local, &ver_local, &cap_off))
                 break;
             id = id_local; ver = ver_local;
-            val_print(TRACE, "   \nDevCap[%ld]: ", (uint64_t)i);
+            val_print(TRACE, "\n       DevCap[%ld]: ", (uint64_t)i);
             val_print(TRACE, "   ID=0x%x ", (uint64_t)id);
             val_print(TRACE, "   (%a) ", (uint64_t)val_cxl_dev_cap_name(id));
             val_print(TRACE, "   Ver=%d ", (uint64_t)ver);
             val_print(TRACE, "   Off=0x%x", (uint64_t)cap_off);
             /* Bounds check for capability structure */
             if (block_len && cap_off >= block_len) {
-                val_print(TRACE, " ERROR in CXL Summary:: -> Cap offset out of range");
+                val_print(TRACE, "\n       ERROR in CXL Summary:: -> Cap offset out of range");
             }
         }
         return;
@@ -684,8 +684,8 @@ void val_cxl_dump_reg_block(uint64_t base_pa,
     cap_ver      = CXL_CAP_HDR_VER(arr_hdr);
     cachemem_ver = CXL_CAP_HDR_CACHEMEM_VER(arr_hdr);
     arr_sz       = CXL_CAP_ARRAY_ENTRIES(arr_hdr);
-    val_print(TRACE,  "   \nCXL_Capability_Header: ID=0x%x", cap_id);
-    val_print(TRACE,  "   \nPrimary Array: CXL.cachemem v%ld",
+    val_print(TRACE,  "\n       CXL_Capability_Header: ID=0x%x", cap_id);
+    val_print(TRACE,  "\n       Primary Array: CXL.cachemem v%ld",
                 (uint64_t)cachemem_ver);
     val_print(TRACE,  "   CXL Cap v%ld", cap_ver);
     val_print(TRACE,  "   entries=%ld", arr_sz);
@@ -697,7 +697,7 @@ void val_cxl_dump_reg_block(uint64_t base_pa,
         ver = CXL_CAP_HDR_VER(cap_hdr);
         cap_ptr = CXL_CAP_HDR_POINTER(cap_hdr);
         cap_base = base_pa + cap_ptr;
-        val_print(TRACE, "   \nCapID=0x%x ", id);
+        val_print(TRACE, "\n       CapID=0x%x ", id);
         val_print(TRACE, "    (%a) ", (uint64_t)val_cxl_cap_name(id));
         val_print(TRACE, "    Ver=%d ", ver);
         val_print(TRACE, "    @+0x%llx", (idx * CXL_CAP_HDR_SIZE));
@@ -773,7 +773,7 @@ static void val_cxl_parse_register_locator(uint32_t bdf,
         val_cxl_assign_component_role(component, dp_type);
 
     if (val_pcie_read_cfg(bdf, ecap_off + CXL_DVSEC_HDR1_OFFSET, &dvsec_hdr1)) {
-        val_print(TRACE, " ERROR in CXL Summary :: DVSEC Header1 read failed");
+        val_print(TRACE, "\n       ERROR in CXL Summary :: DVSEC Header1 read failed");
         return;
     }
 
@@ -781,26 +781,26 @@ static void val_cxl_parse_register_locator(uint32_t bdf,
     dvsec_rev    = (dvsec_hdr1 >> CXL_DVSEC_HDR1_REV_SHIFT) & CXL_DVSEC_HDR1_REV_MASK;
     dvsec_len    = (dvsec_hdr1 >> CXL_DVSEC_HDR1_LEN_SHIFT) & CXL_DVSEC_HDR1_LEN_MASK;
 
-    val_print(TRACE, " \nDVSEC Header 1 : 0x%lx", dvsec_hdr1);
-    val_print(TRACE, "    \nVendor ID    : 0x%lx", dvsec_vendor);
+    val_print(TRACE, "\n       DVSEC Header 1 : 0x%lx", dvsec_hdr1);
+    val_print(TRACE, "\n       Vendor ID    : 0x%lx", dvsec_vendor);
     val_print(TRACE, "    Revision     : 0x%lx", dvsec_rev);
     val_print(TRACE, "    Length (B)   : 0x%lx", dvsec_len);
 
     if (dvsec_len < CXL_RL_REG_BLK_ENTRIES ||
         ((dvsec_len - CXL_RL_REG_BLK_ENTRIES) % CXL_RL_ENTRY_SIZE) != 0) {
-        val_print(TRACE, " ERROR in CXL Summary :: RL: Bad DVSEC Length 0x%lx",
+        val_print(TRACE, "\n       ERROR in CXL Summary :: RL: Bad DVSEC Length 0x%lx",
                   (uint64_t)dvsec_len);
         return;
     }
 
     num_entries = (dvsec_len - CXL_RL_REG_BLK_ENTRIES) / CXL_RL_ENTRY_SIZE;
-    val_print(TRACE, " \nRegister Locator: %ld entries", num_entries);
+    val_print(TRACE, "\n       Register Locator: %ld entries", num_entries);
 
     ent_off_cfg = ecap_off + CXL_RL_REG_BLK_ENTRIES;
     for (i = 0; i < num_entries; i++, ent_off_cfg += CXL_RL_ENTRY_SIZE) {
         if (val_pcie_read_cfg(bdf, ent_off_cfg + CXL_RL_REG_OFF_LOW, &reg0) ||
             val_pcie_read_cfg(bdf, ent_off_cfg + CXL_RL_REG_OFF_HIGH, &off)) {
-            val_print(TRACE, " ERROR in CXL Summary :: RL[%ld]: entry read failed", i);
+            val_print(TRACE, "\n       ERROR in CXL Summary :: RL[%ld]: entry read failed", i);
             continue;
         }
 
@@ -812,21 +812,21 @@ static void val_cxl_parse_register_locator(uint32_t bdf,
         {
             bar_st = val_cxl_get_mmio_bar_host_pa(bdf, bar_num, &bar_base, &bar_is64);
             if (bar_st != PCIE_SUCCESS) {
-                val_print(TRACE, " ERROR in CXL Summary :: RL[%ld]: ", i);
-                val_print(TRACE, " ERROR in CXL Summary :: BAR%ld not usable ",
+                val_print(TRACE, "\n       ERROR in CXL Summary :: RL[%ld]: ", i);
+                val_print(TRACE, "\n       ERROR in CXL Summary :: BAR%ld not usable ",
                             (uint64_t)bar_num);
                 switch (bar_st) {
                 case VAL_CXL_BAR_ERR_INVALID_INDEX:
-                    val_print(TRACE, " ERROR in CXL Summary :: Invalid BAR index");
+                    val_print(TRACE, "\n       ERROR in CXL Summary :: Invalid BAR index");
                     break;
                 case VAL_CXL_BAR_ERR_CFG_READ:
-                    val_print(TRACE, " ERROR in CXL Summary :: CFG read failed");
+                    val_print(TRACE, "\n       ERROR in CXL Summary :: CFG read failed");
                     break;
                 case VAL_CXL_BAR_ERR_NOT_MMIO:
-                    val_print(TRACE, " ERROR in CXL Summary :: BAR not MMIO type");
+                    val_print(TRACE, "\n       ERROR in CXL Summary :: BAR not MMIO type");
                     break;
                 case VAL_CXL_BAR_ERR_ZERO:
-                    val_print(TRACE, " ERROR in CXL Summary :: BAR is zero");
+                    val_print(TRACE, "\n       ERROR in CXL Summary :: BAR is zero");
                     break;
                 default:
                     break;
@@ -835,18 +835,18 @@ static void val_cxl_parse_register_locator(uint32_t bdf,
             }
         }
         block_pa = bar_base + reg_off;
-        val_print(TRACE, "  \nRL reg0=0x%lx ", reg0);
+        val_print(TRACE, "\n       RL reg0=0x%lx ", reg0);
         val_print(TRACE, "  off=0x%lx", off);
         val_print(TRACE, "  BlockID=0x%x ", block_id);
         val_print(TRACE, "  BIR=%d", CXL_RL_BAR_NUM(bir));
 
         blkname =
-            (block_id == CXL_REG_BLOCK_COMPONENT) ? "\nCXL Component Registers" :
+            (block_id == CXL_REG_BLOCK_COMPONENT) ? "\n       CXL Component Registers" :
             (block_id == CXL_REG_BLOCK_DEVICE)    ? "CXL Device Registers" :
             (block_id == CXL_REG_BLOCK_VENDOR_SPECIFIC) ? "Vendor-Specific Reg Block" :
                                                     "CXL Register Block";
 
-        val_print(TRACE, "  \nRL[%ld]: ", i);
+        val_print(TRACE, "\n       RL[%ld]: ", i);
         val_print(TRACE, "  BlockID=0x%x ", block_id);
         val_print(TRACE, "  (%a) ", (uint64_t)blkname);
         val_print(TRACE, "  BIR=%ld ", CXL_RL_BAR_NUM(bir));
@@ -957,7 +957,7 @@ val_cxl_assign_host_bridge_indices(void)
     }
 
     entry->host_bridge_index = host_index;
-    val_print(TRACE, "  \n host_index:%llx ", host_index);
+    val_print(TRACE, "\n       host_index:%llx ", host_index);
   }
 }
 
@@ -1146,7 +1146,7 @@ val_cxl_create_info_table(uint64_t *cxl_info_table)
   uint32_t window;
 
   if (cxl_info_table == NULL) {
-    val_print(ERROR, " CXL_INFO: Input table pointer is NULL ");
+    val_print(ERROR, "\n    CXL_INFO: Input table pointer is NULL ");
     return;
   }
   g_cxl_info_table = (CXL_INFO_TABLE *)cxl_info_table;
@@ -1155,7 +1155,7 @@ val_cxl_create_info_table(uint64_t *cxl_info_table)
 
   /* Print parsed informationi*/
   num_cxl_hb = g_cxl_info_table->num_entries;
-  val_print(TRACE, "\n CXL_INFO: Number of host bridges :    %u\n", num_cxl_hb);
+  val_print(TRACE, "\n    CXL_INFO: Number of host bridges :    %u", num_cxl_hb);
 
   if (num_cxl_hb == 0)
     return;
@@ -1165,24 +1165,23 @@ val_cxl_create_info_table(uint64_t *cxl_info_table)
 
     if (val_cxl_host_discover_capabilities(entry) != ACS_STATUS_PASS) {
       val_print(ERROR,
-                " CXL_INFO: Failed to map host bridge component window (UID 0x%x)",
+                "\n    CXL_INFO: Failed to map host bridge component window (UID 0x%x)",
                 entry->uid);
     }
 
-    val_print(TRACE, " \nCXL_INFO: Host Bridge[%u]\n", index);
-    val_print(TRACE, "   UID                : 0x%x\n", entry->uid);
-    val_print(TRACE, "   Structure Type     : 0x%x\n", entry->cxl_struct_type);
-    val_print(TRACE, "   Component Type     : 0x%x\n", entry->component_reg_type);
-    val_print(TRACE, "   Component Base     : 0x%llx\n", entry->component_reg_base);
-    val_print(TRACE, "   Component Length   : 0x%llx\n", entry->component_reg_length);
-    val_print(TRACE, "   Revision           : 0x%x\n", entry->cxl_version);
-
-    val_print(TRACE, "   CFMWS Count        : %u", entry->cfmws_count);
+    val_print(TRACE, "\n    CXL_INFO: Host Bridge[%u]", index);
+    val_print(TRACE, "\n       UID                : 0x%x", entry->uid);
+    val_print(TRACE, "\n       Structure Type     : 0x%x", entry->cxl_struct_type);
+    val_print(TRACE, "\n       Component Type     : 0x%x", entry->component_reg_type);
+    val_print(TRACE, "\n       Component Base     : 0x%llx", entry->component_reg_base);
+    val_print(TRACE, "\n       Component Length   : 0x%llx", entry->component_reg_length);
+    val_print(TRACE, "\n       Revision           : 0x%x", entry->cxl_version);
+    val_print(TRACE, "\n       CFMWS Count        : %u", entry->cfmws_count);
 
     for (window = 0; window < entry->cfmws_count && window < CXL_MAX_CFMWS_WINDOWS; window++) {
-      val_print(TRACE, "     CFMWS Index       : %u\n", window);
-      val_print(TRACE, "       Base            : 0x%llx\n", entry->cfmws_base[window]);
-      val_print(TRACE, "       Length          : 0x%llx\n", entry->cfmws_length[window]);
+      val_print(TRACE, "\n       CFMWS Index       : %u", window);
+      val_print(TRACE, "\n       Base            : 0x%llx", entry->cfmws_base[window]);
+      val_print(TRACE, "\n       Length          : 0x%llx", entry->cfmws_length[window]);
     }
   }
 
@@ -1215,12 +1214,12 @@ val_cxl_get_info(CXL_INFO_e type, uint32_t index)
 {
 
   if (g_cxl_info_table == NULL) {
-    val_print(ERROR, " GET_CXL_INFO: CXL info table is not created ");
+    val_print(ERROR, "\n       GET_CXL_INFO: CXL info table is not created ");
     return 0;
   }
 
   if ((type != CXL_INFO_NUM_DEVICES) && (index >= g_cxl_info_table->num_entries)) {
-    val_print(ERROR, " GET_CXL_INFO: Invalid index %d ", index);
+    val_print(ERROR, "\n       GET_CXL_INFO: Invalid index %d ", index);
     return 0;
   }
 
@@ -1242,7 +1241,7 @@ val_cxl_get_info(CXL_INFO_e type, uint32_t index)
   case CXL_INFO_VERSION:
     return g_cxl_info_table->device[index].cxl_version;
   default:
-    val_print(ERROR, " GET_CXL_INFO: Unsupported info type %d ", type);
+    val_print(ERROR, "\n       GET_CXL_INFO: Unsupported info type %d ", type);
     break;
   }
 
@@ -1356,7 +1355,7 @@ val_cxl_device_cache_capable(uint32_t bdf)
   uint32_t cxl_caps;
 
   if (val_cxl_find_capability(bdf, CXL_DVSEC_ID_DEVICE, &dvsec_off)) {
-      val_print(DEBUG, "DVSEC Capability not found for bdf 0x%x", bdf);
+      val_print(DEBUG, "\n       DVSEC Capability not found for bdf 0x%x", bdf);
       return 0;
   }
 

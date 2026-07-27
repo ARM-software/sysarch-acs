@@ -204,15 +204,14 @@ check_uart_16550()
       if (uart_is_16550(interface_type)) {
           test_skip = 0;
           val_print(DEBUG,
-              "\n         UART 16550 found with instance: %x",
+              "\n       UART 16550 found with instance: %x",
               count - 1);
 
           /* Check the I/O base address */
           uart_base = val_peripheral_get_info(UART_BASE0, count - 1);
           if (uart_base == 0)
           {
-              val_print(ERROR, "\n         UART base must be specified"
-                                       " for instance: %x", count - 1);
+              val_print(ERROR, "\n       UART base must be specified for instance: %x", count - 1);
               return TEST_FAIL;
           }
 
@@ -220,8 +219,8 @@ check_uart_16550()
           access_width = val_peripheral_get_info(UART_WIDTH, count - 1);
           if (val_peripheral_uart_16550_width_to_access(access_width, &reg_shift,
                                                         &width_mask)) {
-              val_print(ERROR, "\n         UART access width must be specified"
-                                       " for instance: %x", count - 1);
+              val_print(ERROR, "\n       UART access width must be specified for "
+                               "instance: %x", count - 1);
               return TEST_FAIL;
           }
 
@@ -231,8 +230,7 @@ check_uart_16550()
           {
               if (baud_rate != 0)
               {
-                  val_print(ERROR, "\n         Baud rate %d outside"
-                                           " supported range", baud_rate);
+                  val_print(ERROR, "\n       Baud rate %d outside supported range", baud_rate);
                   val_print(ERROR, " for instance %x", count - 1);
                   test_fail = 1;
               }
@@ -249,8 +247,8 @@ check_uart_16550()
           val_peripheral_uart_16550_reg_write(uart_base, LCR, reg_shift, width_mask, lcr_reg);
           if ((lcr_scratch2 != 0) || (lcr_scratch3 != 0xFF))
           {
-              val_print(ERROR, "\n   LCR register are not read/write"
-                                       " for instance: %x", count - 1);
+              val_print(ERROR, "\n       LCR register are not read/write for "
+                               "instance: %x", count - 1);
               test_fail = 1;
           }
 
@@ -265,8 +263,8 @@ check_uart_16550()
           val_peripheral_uart_16550_reg_write(uart_base, IER, reg_shift, width_mask, ier_reg);
           if ((ier_scratch2 != 0) || (ier_scratch3 != 0xF))
           {
-              val_print(ERROR, "\n   IER register[0:3] are not read/write"
-                                       " for instance: %x", count - 1);
+              val_print(ERROR, "\n       IER register[0:3] are not read/write for "
+                               "instance: %x", count - 1);
               test_fail = 1;
           }
 
@@ -279,8 +277,7 @@ check_uart_16550()
           val_peripheral_uart_16550_reg_write(uart_base, MCR, reg_shift, width_mask, mcr_reg);
           if ((msr_status & 0xF0) != CTS_DCD_EN)
           {
-              val_print(ERROR, "\n   Loopback test mode failed"
-                                       " for instance: %x", count - 1);
+              val_print(ERROR, "\n       Loopback test mode failed for instance: %x", count - 1);
               test_fail = 1;
           }
 

@@ -125,12 +125,12 @@ payload (void)
                 if (irq_map->legacy_irq_map[current_irq_pin].irq_list[ccnt] ==
                     irq_map->legacy_irq_map[next_irq_pin].irq_list[ncnt]) {
                   status = 7;
-                  val_print(ERROR, "\n        BDF : %x", dev_bdf);
+                  val_print(ERROR, "\n       BDF : %x", dev_bdf);
                   val_print(ERROR, " Legacy interrupt %c",
                                              pin_name(current_irq_pin));
                   val_print(ERROR, "(%d) routing", current_irq_pin);
 
-                  val_print(ERROR, "\n        is same as the %c",
+                  val_print(ERROR, "\n       is same as the %c",
                                              pin_name(next_irq_pin));
                   val_print(ERROR, "(%d) routing", next_irq_pin);
                 }

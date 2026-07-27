@@ -55,7 +55,7 @@ VOID
 pal_dump_dtb()
 {
   pal_print_msg(ACS_PRINT_ERR,
-                " DTB dump not available for platform initialized with ACPI table\n");
+                "\n       DTB dump not available for platform initialized with ACPI table");
 }
 
 /**
@@ -122,7 +122,7 @@ pal_get_madt_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -157,7 +157,7 @@ pal_get_gtdt_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -191,7 +191,7 @@ pal_get_mcfg_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -225,7 +225,7 @@ pal_get_spcr_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -259,7 +259,7 @@ pal_get_iort_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -298,7 +298,7 @@ pal_get_fadt_ptr (
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -332,7 +332,7 @@ pal_get_acpi_table_ptr(UINT32 table_signature)
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -365,7 +365,7 @@ pal_get_aest_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -398,7 +398,7 @@ pal_get_apmt_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -432,7 +432,7 @@ pal_get_hmat_ptr(void)
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -466,7 +466,7 @@ pal_get_mpam_ptr()
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -501,7 +501,7 @@ pal_get_pptt_ptr(void)
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -536,7 +536,7 @@ pal_get_srat_ptr(void)
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -570,7 +570,7 @@ pal_get_tpm2_ptr(void)
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return 0;
   }
 
@@ -1055,7 +1055,7 @@ pal_acpi_parse_root_bridges(VOID)
   else
   {
     pal_print_msg(ACS_PRINT_WARN,
-                  " DSDT not found; root bridge AML unavailable ");
+                  "\n       DSDT not found; root bridge AML unavailable");
     dsdt = NULL;
   }
 
@@ -1104,7 +1104,7 @@ pal_acpi_get_root_bridge_uid(UINT16 segment, UINT8 bbn, UINT32 *uid)
 {
   if (uid == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " pal_acpi_get_root_bridge_uid UID pointer NULL ");
+                  "\n       pal_acpi_get_root_bridge_uid UID pointer NULL");
     return 1;
   }
 

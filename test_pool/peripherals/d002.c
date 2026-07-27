@@ -54,19 +54,19 @@ payload()
           ret = val_pcie_read_cfg(bdf, 0x8, &interface);
           interface = (interface >> 8) & 0xFF;
           if (ret == PCIE_NO_MAPPING || interface != 0x01) {
-              val_print(TRACE, "       WARN: SATA CTRL ECAM access failed %x\n",
+              val_print(TRACE, "\n       WARN: SATA CTRL ECAM access failed %x",
                         interface);
-              val_print(TRACE, "       Re-checking SATA CTRL using PciIo protocol\n");
+              val_print(TRACE, "\n       Re-checking SATA CTRL using PciIo protocol");
               ret = val_pcie_io_read_cfg(bdf, 0x8, &interface);
               if (ret == PCIE_NO_MAPPING) {
-                  val_print(DEBUG, "       Reading device class code using PciIo"
-                            " protocol failed\n");
+                  val_print(DEBUG, "\n       Reading device class code using PciIo"
+                            " protocol failed");
                   val_set_status(index, RESULT_FAIL(2));
                   return;
               }
               interface = (interface >> 8) & 0xFF;
               if (interface != 0x01) {
-                  val_print(DEBUG, " Detected SATA CTRL not AHCI\n");
+                  val_print(DEBUG, "\n       Detected SATA CTRL not AHCI");
                   val_set_status(index, RESULT_FAIL(1));
                   return;
               }

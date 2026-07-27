@@ -38,7 +38,7 @@ val_ras_create_info_table(uint64_t *ras_info_table)
 {
 
   if (ras_info_table == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return ACS_STATUS_ERR;
   }
 
@@ -46,7 +46,7 @@ val_ras_create_info_table(uint64_t *ras_info_table)
 
   pal_ras_create_info_table(g_ras_info_table);
 
-  val_print(INFO, " RAS_INFO: Number of RAS nodes        : %4d\n",
+  val_print(INFO, "\n    RAS_INFO: Number of RAS nodes        : %4d",
                            g_ras_info_table->num_nodes);
 
   return ACS_STATUS_PASS;
@@ -64,7 +64,7 @@ val_ras_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_ras_info_table pointer is already NULL");
+                  "\n       g_ras_info_table pointer is already NULL");
     }
 }
 
@@ -81,7 +81,7 @@ val_ras2_create_info_table(uint64_t *ras2_info_table)
 {
 
   if (ras2_info_table == NULL) {
-      val_print(ERROR, "\nInput for RAS2 feat create info table cannot be NULL\n");
+      val_print(ERROR, "\n       RAS2 feat info table cannot be NULL");
       return;
   }
 
@@ -90,9 +90,9 @@ val_ras2_create_info_table(uint64_t *ras2_info_table)
 
   pal_ras2_create_info_table(g_ras2_info_table);
 
-  val_print(INFO, " RAS2_INFO: Number of RAS2 entries    : %4d\n",
+  val_print(INFO, "\n    RAS2_INFO: Number of RAS2 entries    : %4d",
                            g_ras2_info_table->num_all_block);
-  val_print(INFO, " RAS2_INFO: Num of RAS2 memory entries: %4d\n",
+  val_print(INFO, "\n    RAS2_INFO: Num of RAS2 memory entries: %4d",
                            g_ras2_info_table->num_of_mem_block);
 #endif
 return;
@@ -315,7 +315,7 @@ val_ras2_get_mem_info(RAS2_MEM_INFO_e type, uint32_t index)
   RAS2_BLOCK *block;
 
   if (g_ras2_info_table == NULL) {
-      val_print(ERROR, "\nRAS2_GET_MEM_INFO : ras2 info table is not created\n");
+      val_print(ERROR, "\n       RAS2 : ras2 table not created\n");
       return 0; /* imply no ras2_info entries */
   }
 
@@ -325,7 +325,7 @@ val_ras2_get_mem_info(RAS2_MEM_INFO_e type, uint32_t index)
   /* check if index in range */
   if (index > g_ras2_info_table->num_of_mem_block - 1) {
       val_print(ERROR,
-                "\nRAS2_GET_MEM_INFO: Index (%d) is greater than num of RAS2 mem blocks\n",
+                "\n       RAS2: Index (%d) greater than num of RAS2 mem blocks\n",
                  index);
       return INVALID_RAS2_INFO;
   }
@@ -343,7 +343,7 @@ val_ras2_get_mem_info(RAS2_MEM_INFO_e type, uint32_t index)
                   return block->block_info.mem_feat_info.patrol_scrub_support;
               default:
                   val_print(ERROR,
-                            "\nThis RAS2 memory info option not supported: %d\n", type);
+                            "\n       RAS2 memory info option not supported: %d\n", type);
                   return INVALID_RAS2_INFO;
               }
           }
@@ -710,7 +710,7 @@ ras_pfg_access_node(uint32_t node_index)
                 node_index);
   }
 
-  val_print(TRACE, "      Access RAS Node, CTLR : 0x%llx\n", reg_value);
+  val_print(TRACE, "\n       Access RAS Node, CTLR : 0x%llx", reg_value);
 }
 
 /**

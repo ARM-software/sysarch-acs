@@ -60,7 +60,7 @@ val_smmu_start_monitor_dev(uint32_t ctrl_index)
 
   ap = (void *)val_dma_get_info(DMA_PORT_INFO, ctrl_index);
   if (ap == NULL) {
-      val_print(ERROR, "Invalid Controller index %d\n", ctrl_index);
+      val_print(ERROR, "\n       Invalid Controller index %d", ctrl_index);
       return ACS_STATUS_ERR;
   }
 
@@ -84,7 +84,7 @@ val_smmu_stop_monitor_dev(uint32_t ctrl_index)
 
   ap = (void *)val_dma_get_info(DMA_PORT_INFO, ctrl_index);
   if (ap == NULL) {
-      val_print(ERROR, "Invalid Controller index %d\n", ctrl_index);
+      val_print(ERROR, "\n       Invalid Controller index %d", ctrl_index);
       return ACS_STATUS_ERR;
   }
 
@@ -114,10 +114,10 @@ val_smmu_check_device_iova(uint32_t ctrl_index, addr_t dma_addr)
 
   ap = (void *)val_dma_get_info(DMA_PORT_INFO, ctrl_index);
   if (ap == NULL) {
-      val_print(ERROR, "Invalid Controller index %d\n", ctrl_index);
+      val_print(ERROR, "\n       Invalid Controller index %d", ctrl_index);
       return ACS_STATUS_ERR;
   }
-  val_print(DEBUG, "Input dma addr = %lx\n", dma_addr);
+  val_print(DEBUG, "\n       Input dma addr = %lx", dma_addr);
 
   status = pal_smmu_check_device_iova(ap, dma_addr);
 

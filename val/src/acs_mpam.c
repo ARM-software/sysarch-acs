@@ -177,7 +177,7 @@ val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index)
   }
 
   if (msc_index >= g_mpam_info_table->msc_count) {
-      val_print(ERROR, "Invalid MSC index = 0x%lx ", msc_index);
+      val_print(ERROR, "\n       Invalid MSC index = 0x%lx ", msc_index);
       return 0;
   }
 
@@ -1019,8 +1019,8 @@ val_mpam_create_info_table(uint64_t *mpam_info_table)
   pal_mpam_create_info_table(g_mpam_info_table);
 
   val_print(INFO,
-                " MPAM INFO: Number of MSC nodes       :    %d\n", g_mpam_info_table->msc_count);
-  val_print(DEBUG, "Memory mapping MSC nodes\n");
+                "\n    MPAM_INFO: Number of MSC nodes     :  %d", g_mpam_info_table->msc_count);
+  val_print(DEBUG, "\n       Memory mapping MSC nodes");
 
   /* TODO - Check if MSC memory mapping requires a flag/ cmdline option */
   memory_map_msc();
@@ -1039,7 +1039,7 @@ val_mpam_update_msc_device_names(void)
 {
 #ifndef TARGET_LINUX
   if (g_mpam_info_table == NULL) {
-    val_print(ERROR, "MPAM info table is not created\n");
+    val_print(ERROR, "\n       MPAM info table is not created");
     return;
   }
   pal_mpam_parse_dsdt_info(g_mpam_info_table);
@@ -1060,7 +1060,7 @@ val_mpam_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_mpam_info_table pointer is already NULL",
+                  "\n       g_mpam_info_table pointer is already NULL",
         0);
     }
 }
@@ -1081,15 +1081,15 @@ val_mpam_get_msc_device_info(uint32_t msc_index, uint32_t *device_id, uint32_t *
   MPAM_MSC_NODE *msc_node;
 
   if (g_mpam_info_table == NULL) {
-    val_print(ERROR, "MPAM info table is not created\n");
+    val_print(ERROR, "\n       MPAM info table is not created");
     return ACS_STATUS_ERR;
   }
   if (device_id == NULL) {
-    val_print(ERROR, "MPAM info invalid params\n");
+    val_print(ERROR, "\n       MPAM info invalid params");
     return ACS_STATUS_ERR;
   }
   if (msc_index >= g_mpam_info_table->msc_count) {
-    val_print(ERROR, "MPAM info invalid MSC index %d\n", msc_index);
+    val_print(ERROR, "\n       MPAM info invalid MSC index %d", msc_index);
     return ACS_STATUS_ERR;
   }
 
@@ -1100,20 +1100,20 @@ val_mpam_get_msc_device_info(uint32_t msc_index, uint32_t *device_id, uint32_t *
   identifier = msc_node->identifier;
   device_name = msc_node->device_obj_name;
   if (device_name[0] == '\0') {
-    val_print(ERROR, "MPAM info missing device name for MSC %d\n", msc_index);
+    val_print(ERROR, "\n       MPAM info missing device name for MSC %d", msc_index);
     return ACS_STATUS_ERR;
   }
 
   uint32_t status = val_iovirt_get_named_comp_device_info(device_name,
                                                           identifier, device_id, its_id);
   if (status == 0) {
-    val_print(TRACE, " MPAM MSC Device info: idx=%d", msc_index);
+    val_print(TRACE, "\n       MPAM MSC Device info: idx=%d", msc_index);
     val_print(TRACE, " id=0x%x", identifier);
     val_print(TRACE, " dev=0x%x", *device_id);
-    val_print(TRACE, " its=0x%x\n", its_id ? *its_id : 0);
+    val_print(TRACE, " its=0x%x", its_id ? *its_id : 0);
   } else {
-    val_print(ERROR, " MPAM MSC devinfo failed: idx=%d", msc_index);
-    val_print(ERROR, " id=0x%x\n", identifier);
+    val_print(ERROR, "\n       MPAM MSC devinfo failed: idx=%d", msc_index);
+    val_print(ERROR, " id=0x%x", identifier);
   }
   return status;
 }
@@ -1130,7 +1130,7 @@ void
 val_hmat_create_info_table(uint64_t *hmat_info_table)
 {
   if (hmat_info_table == NULL) {
-    val_print(ERROR, "\n Pre-allocated memory pointer is NULL\n");
+    val_print(ERROR, "\n       Pre-allocated memory pointer is NULL");
     return;
   }
 #ifndef TARGET_LINUX
@@ -1140,7 +1140,7 @@ val_hmat_create_info_table(uint64_t *hmat_info_table)
 
   if (g_hmat_info_table->num_of_mem_prox_domain != 0)
       val_print(INFO,
-                " HMAT INFO: Number of Prox domains    :    %d\n",
+                "\n    HMAT_INFO: Number of Prox domains    :    %d",
                                     g_hmat_info_table->num_of_mem_prox_domain);
 #endif
 }
@@ -1168,7 +1168,7 @@ void
 val_srat_create_info_table(uint64_t *srat_info_table)
 {
   if (srat_info_table == NULL) {
-    val_print(ERROR, "\n Pre-allocated memory pointer is NULL\n");
+    val_print(ERROR, "\n       Pre-allocated memory pointer is NULL");
     return;
   }
 #ifndef TARGET_LINUX
@@ -1178,7 +1178,7 @@ val_srat_create_info_table(uint64_t *srat_info_table)
 
   if (g_srat_info_table->num_of_mem_ranges != 0)
       val_print(INFO,
-                " SRAT INFO: Number of Memory Ranges   :    %d\n",
+                "\n    SRAT_INFO: Number of Memory Ranges   :    %d",
                                     g_srat_info_table->num_of_mem_ranges);
 #endif
 }
@@ -1957,7 +1957,7 @@ uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uin
   buffer = (void *)val_memory_alloc(pe_count * sizeof(uint64_t));
 
   if (!buffer) {
-      val_print(ERROR, "Allocate Pool for shared memcpy buf failed\n");
+      val_print(ERROR, "\n       Allocate Pool for shared memcpy buf failed");
       return 0;
   }
 
@@ -1969,7 +1969,7 @@ uint32_t val_alloc_shared_memcpybuf(uint64_t mem_base, uint64_t buffer_size, uin
                                                     buffer_size);
 
       if (g_shared_memcpy_buffer[pe_index] == NULL) {
-          val_print(ERROR, "Alloc address for shared memcpy buffer failed %x\n", pe_index);
+          val_print(ERROR, "\n       Alloc address for shared memcpy buffer failed %x", pe_index);
           val_mem_free_shared_memcpybuf(pe_index);
           return 0;
       }

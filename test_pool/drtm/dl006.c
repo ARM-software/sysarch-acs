@@ -28,15 +28,15 @@ void
 print_dlme_region(DRTM_PARAMETERS *drtm_params)
 {
   val_print(DEBUG, "\n       DLME Region : ");
-  val_print(DEBUG, "\n         Alloc address      : 0x%lx",
+  val_print(DEBUG, "\n       Alloc address      : 0x%lx",
                             drtm_params->dlme_region_address);
-  val_print(DEBUG, "\n         Region size        : 0x%lx",
+  val_print(DEBUG, "\n       Region size        : 0x%lx",
                             drtm_params->dlme_region_size);
-  val_print(DEBUG, "\n         Free space 1 size  : 0x%lx",
+  val_print(DEBUG, "\n       Free space 1 size  : 0x%lx",
                             drtm_params->dlme_image_start);
-  val_print(DEBUG, "\n         Image size         : 0x%lx",
+  val_print(DEBUG, "\n       Image size         : 0x%lx",
                             drtm_params->dlme_image_size);
-  val_print(DEBUG, "\n         Data size          : 0x%lx\n",
+  val_print(DEBUG, "\n       Data size          : 0x%lx",
                            (drtm_params->dlme_region_size - drtm_params->dlme_data_offset));
 }
 
@@ -45,23 +45,23 @@ void
 print_dlme_data_header(DRTM_DLME_DATA_HDR *dlme_data_header)
 {
   val_print(DEBUG, "\n       DLME Data Header :");
-  val_print(DEBUG, "\n         Revision                   : 0x%08lx",
+  val_print(DEBUG, "\n       Revision                   : 0x%08lx",
                                                 dlme_data_header->revision);
-  val_print(DEBUG, "\n         Size                       : %d Bytes",
+  val_print(DEBUG, "\n       Size                       : %d Bytes",
                                                 dlme_data_header->size);
-  val_print(DEBUG, "\n         DLME_data_size             : %d Bytes",
+  val_print(DEBUG, "\n       DLME_data_size             : %d Bytes",
                                                 dlme_data_header->dlme_data_size);
-  val_print(DEBUG, "\n         Protected Regions Size     : %d Bytes",
+  val_print(DEBUG, "\n       Protected Regions Size     : %d Bytes",
                                                 dlme_data_header->protected_regions_size);
-  val_print(DEBUG, "\n         Address Map Size           : %d Bytes",
+  val_print(DEBUG, "\n       Address Map Size           : %d Bytes",
                                                 dlme_data_header->address_map_size);
-  val_print(DEBUG, "\n         DRTM Event Log Size        : %d Bytes",
+  val_print(DEBUG, "\n       DRTM Event Log Size        : %d Bytes",
                                                 dlme_data_header->drtm_event_log_size);
-  val_print(DEBUG, "\n         TCB Hash Table Size        : %d Bytes",
+  val_print(DEBUG, "\n       TCB Hash Table Size        : %d Bytes",
                                                 dlme_data_header->tcb_hash_table_size);
-  val_print(DEBUG, "\n         ACPI Table Region Size     : %d Bytes",
+  val_print(DEBUG, "\n       ACPI Table Region Size     : %d Bytes",
                                                 dlme_data_header->acpi_table_region_size);
-  val_print(DEBUG, "\n        Implementation Region Size : %d Bytes\n",
+  val_print(DEBUG, "\n       Implementation Region Size : %d Bytes",
                                                 dlme_data_header->implementation_region_size);
 }
 
@@ -75,40 +75,40 @@ print_event_spec(TCG_EFI_SPECID_EVENT *event_spec)
   uint8_t *vendor_data;
 
   val_print(DEBUG, "\n       TCG Spec ID :");
-  val_print(DEBUG, "\n         Signature            : %a",
+  val_print(DEBUG, "\n       Signature            : %a",
                                          (uint64_t)event_spec->signature);
-  val_print(DEBUG, "\n         Platform Class       : 0x%x", event_spec->platform_class);
-  val_print(DEBUG, "\n         Spec Version Minor   : %d",
+  val_print(DEBUG, "\n       Platform Class       : 0x%x", event_spec->platform_class);
+  val_print(DEBUG, "\n       Spec Version Minor   : %d",
                                          event_spec->spec_version_minor);
-  val_print(DEBUG, "\n         Spec Version Major   : %d",
+  val_print(DEBUG, "\n       Spec Version Major   : %d",
                                          event_spec->spec_version_major);
-  val_print(DEBUG, "\n         Spec Errata          : %d", event_spec->spec_errata);
-  val_print(DEBUG, "\n         Uintn Size           : %d", event_spec->uintn_size);
-  val_print(DEBUG, "\n         Number Of Algorithms : %d\n",
+  val_print(DEBUG, "\n       Spec Errata          : %d", event_spec->spec_errata);
+  val_print(DEBUG, "\n       Uintn Size           : %d", event_spec->uintn_size);
+  val_print(DEBUG, "\n       Number Of Algorithms : %d",
                               event_spec->number_of_algorithms);
 
   /* Check Event Signature */
   if (val_strncmp((char8_t *)event_spec->signature, "Spec ID Event03", EVENT_SPEC_ID_STR_LEN)) {
-    val_print(ERROR, " Event Specification mismatch");
+    val_print(ERROR, "\n       Event Specification mismatch");
     return ACS_STATUS_FAIL;
   }
 
   digest_algo = (TCG_EFI_SPECID_EVENT_ALGO_SIZE *)event_spec->digest_sizes;
   for (index = 0; index < event_spec->number_of_algorithms; index++) {
-    val_print(DEBUG, "\n         Digest(%d)",   index);
-    val_print(DEBUG, "\n           Algorithm Id       : %d",
+    val_print(DEBUG, "\n       Digest(%d)",   index);
+    val_print(DEBUG, "\n       Algorithm Id       : %d",
                                            digest_algo[index].algorithm_id);
-    val_print(DEBUG, "\n           Digest Size        : %d\n",
+    val_print(DEBUG, "\n       Digest Size        : %d",
                                       digest_algo[index].digest_size);
   }
 
   vendor_info = (VENDOR_INFO *)(&digest_algo[event_spec->number_of_algorithms]);
 
-  val_print(DEBUG, "\n         Vendor Info Size     : %d",
+  val_print(DEBUG, "\n       Vendor Info Size     : %d",
                                          vendor_info->vendor_info_size);
 
   vendor_data = (uint8_t *)&vendor_info->vendor_info[0];
-  val_print(DEBUG, "\n         Vendor Info          : ");
+  val_print(DEBUG, "\n       Vendor Info          : ");
   for (index = 0; index < vendor_info->vendor_info_size; index++) {
     val_print(DEBUG, "%c",   vendor_data[index]);
   }
@@ -124,25 +124,25 @@ print_tcg_event_header(TCG_PCR_EVENT *event_head)
   uint32_t index;
 
   val_print(DEBUG, "\n       EVENT LOG HEADER:");
-  val_print(DEBUG, "\n         PCR Index         : %d",    event_head->pcr_index);
+  val_print(DEBUG, "\n       PCR Index         : %d",    event_head->pcr_index);
   /* Check Event Log Header PCRIndex should be zero */
   if (event_head->pcr_index != 0) {
     val_print(ERROR, "\n       Event Log Header should have PCRIndex as zero");
     return ACS_STATUS_FAIL;
   }
 
-  val_print(DEBUG, "\n         Event Type        : 0x%x",  event_head->event_type);
+  val_print(DEBUG, "\n       Event Type        : 0x%x",  event_head->event_type);
   /* Check Event Log Header EventType should be EV_NO_ACTION */
   if (event_head->event_type != EV_NO_ACTION) {
     val_print(ERROR, "\n       Event Log Header should have EventType as EV_NO_ACTION");
     return ACS_STATUS_FAIL;
   }
 
-  val_print(DEBUG, "\n         Digest - ");
+  val_print(DEBUG, "\n       Digest - ");
   for (index = 0; index < sizeof(TCG_DIGEST); index++) {
     val_print(DEBUG, "%02x ",  event_head->digest.digest[index]);
   }
-  val_print(DEBUG, "\n         Event Size        : 0x%x\n",  event_head->event_size);
+  val_print(DEBUG, "\n       Event Size        : 0x%x",  event_head->event_size);
 
   return ACS_STATUS_PASS;
 }
@@ -251,9 +251,9 @@ payload(uint32_t num_pe)
       break;
     }
     val_print(DEBUG, "\n       EVENT2 : ");
-    val_print(DEBUG, "\n         PCR Index       : %d",    event->pcr_index);
-    val_print(DEBUG, "\n         Event Type      : 0x%x",  event->event_type);
-    val_print(DEBUG, "\n         Digest Count    : 0x%x",  event->digests.count);
+    val_print(DEBUG, "\n       PCR Index       : %d",    event->pcr_index);
+    val_print(DEBUG, "\n       Event Type      : 0x%x",  event->event_type);
+    val_print(DEBUG, "\n       Digest Count    : 0x%x",  event->digests.count);
 
     if (event->event_type == DRTM_EVTYPE_ARM_SEPARATOR) {
       arm_separator++;
@@ -262,7 +262,7 @@ payload(uint32_t num_pe)
     /* Print Digest values for all hash algorithms */
     digest = (TPMT_HA *)&event->digests.digests[0];
     for (digest_index = 0; digest_index < event->digests.count; digest_index++) {
-      val_print(DEBUG, "\n         Hash Alg        : 0x%x",
+      val_print(DEBUG, "\n       Hash Alg        : 0x%x",
                                              digest[digest_index].hashalg);
       /* R48000 : Validate the hash algorithm used for DRTM event measurements
        * based on TPM capabilities */
@@ -285,11 +285,11 @@ payload(uint32_t num_pe)
         }
       }
 
-      val_print(DEBUG, "\n         Digest(%02d)      :",  digest_index);
+      val_print(DEBUG, "\n       Digest(%02d)      :",  digest_index);
       digest_buffer = (uint8_t *)(digest[digest_index].digest);
       for (i = 0; i < SHA256_DIGEST_SIZE; i++) {
         if ((!(i % 8)) && (i != 0))
-          val_print(DEBUG, "\n                          ");
+          val_print(DEBUG, "\n       ");
         val_print(DEBUG, " %02x",  digest_buffer[i]);
       }
     }
@@ -300,8 +300,8 @@ payload(uint32_t num_pe)
     }
 
     event_data = (EVENT_DATA *)((uint8_t *)&digest[--digest_index].digest[SHA256_DIGEST_SIZE]);
-    val_print(DEBUG, "\n         Event Size      : 0x%x",  event_data->event_size);
-    val_print(DEBUG, "\n         Event Data      : ");
+    val_print(DEBUG, "\n       Event Size      : 0x%x",  event_data->event_size);
+    val_print(DEBUG, "\n       Event Data      : ");
     data = (uint8_t *)((uint8_t *)event_data + sizeof(uint32_t));
     for (i = 0; i < event_data->event_size; i++) {
       val_print(DEBUG, " %x",  data[i]);
@@ -317,14 +317,14 @@ payload(uint32_t num_pe)
   }
   /* R45300 : EVTYPE_ARM_SEPARATOR is must in in event log */
   if (!arm_separator) {
-    val_print(ERROR, "\n         Event type EVTYPE_ARM_SEPARATOR Not found");
+    val_print(ERROR, "\n       Event type EVTYPE_ARM_SEPARATOR Not found");
     val_set_status(index, RESULT_FAIL(7));
   }
 
   /* R48000 : Validate the hash algorithm used for DRTM event measurements
   * based on TPM capabilities */
   if (!drtm_hash_valid) {
-    val_print(ERROR, "\n         Invalid hash algorithm used in DRTM measurement");
+    val_print(ERROR, "\n       Invalid hash algorithm used in DRTM measurement");
     val_set_status(index, RESULT_FAIL(8));
     goto free_dlme_region;
   }

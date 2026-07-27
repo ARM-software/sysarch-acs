@@ -55,7 +55,7 @@ static void payload_all_pe_version_check(void *arg)
   /* Allocate memory to save all PFDI Versions or status for all PE's */
   g_pfdi_version_details = (PFDI_RET_PARAMS *) val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_version_details == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Version Details Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Version Details Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

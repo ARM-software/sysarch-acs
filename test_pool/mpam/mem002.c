@@ -77,7 +77,7 @@ static int wait_for_secondary_off(uint32_t primary_pe_index)
         for (pe_index = 0; pe_index < num_pe_cont; pe_index++) {
 
             if ((pe_index != primary_pe_index) && IS_RESULT_PENDING(val_get_status(pe_index))) {
-                val_print(ERROR, " Secondary PE %x OFF time-out \n", pe_index);
+                val_print(ERROR, "\n       Secondary PE %x OFF time-out", pe_index);
             }
         }
         return 1;

@@ -99,7 +99,7 @@ pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable)
   apmt = (APMT_TABLE *)pal_get_apmt_ptr();
   if (apmt == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " APMT table not found\n");
+                    "\n       APMT table not found");
       return;
   }
 

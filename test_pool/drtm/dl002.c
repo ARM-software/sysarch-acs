@@ -85,7 +85,7 @@ payload(uint32_t num_pe)
     val_set_status(index, RESULT_FAIL(6));
     goto free_dlme_region;
   }
-  val_print(TRACE, "\n       Get Error code 0x%x\n", feat1);
+  val_print(TRACE, "\n       Get Error code 0x%x", feat1);
 
   /* Part 3 : Call unprotect memory again, it should return DENIED as no memory protected */
   status = val_drtm_unprotect_memory();

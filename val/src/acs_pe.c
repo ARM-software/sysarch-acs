@@ -523,7 +523,7 @@ void
 val_cache_create_info_table(uint64_t *cache_info_table)
 {
   if (cache_info_table == NULL) {
-      val_print(ERROR, "\n   Pre-allocated memory pointer is NULL\n");
+      val_print(ERROR, "\n       Pre-allocated memory pointer is NULL");
       return;
   }
 
@@ -533,7 +533,7 @@ val_cache_create_info_table(uint64_t *cache_info_table)
 
   if (g_cache_info_table->num_of_cache != 0) {
       val_print(INFO,
-                " CACHE_INFO: Number of cache nodes    : %4d\n",
+                "\n    CACHE_INFO: Number of cache nodes    : %4d",
                 g_cache_info_table->num_of_cache);
   }
 
@@ -554,7 +554,7 @@ val_cache_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_cache_info_table pointer is already NULL");
+                  "\n       g_cache_info_table pointer is already NULL");
     }
 }
 
@@ -606,7 +606,7 @@ val_cache_get_info(CACHE_INFO_e type, uint32_t cache_index)
       return entry->is_private;
   default:
       val_print(ERROR,
-                "\n      cache option not supported %d\n", type);
+                "\n       cache option not supported %d", type);
       return INVALID_CACHE_INFO;
   }
 
@@ -672,7 +672,7 @@ val_cache_get_pe_l1_cache_res(uint32_t res_index)
       return entry->level_1_res[res_index];
   else {
       val_print(ERROR,
-               "\n   Requested resource index exceeds maximum index value %d\n", MAX_L1_CACHE_RES);
+               "\n       Requested resource index exceeds maximum value %d", MAX_L1_CACHE_RES);
       return DEFAULT_CACHE_IDX;
   }
 }

@@ -84,7 +84,7 @@ static void payload_invalid_pe_test_part_count_check(void *arg)
   g_pfdi_invalid_test_part_count = (PFDI_INVAL_RETURNS *)
                             val_memory_calloc(num_pe, sizeof(PFDI_INVAL_RETURNS));
   if (g_pfdi_invalid_test_part_count == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Invalid Test Part Count Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Invalid Test Part Count Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

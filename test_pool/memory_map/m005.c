@@ -117,7 +117,8 @@ static void payload_check_peripheral_addr_64kb_apart(void)
 
             if (addr_diff < MEM_SIZE_64KB) {
                 val_print(WARN,
-                         "\n  Peripheral base addresses isn't atleast 64Kb apart %llx", addr_diff);
+                         "\n       Peripheral base addresses isn't"
+                         "atleast 64Kb apart %llx", addr_diff);
                 warn_cnt++;
             }
         }

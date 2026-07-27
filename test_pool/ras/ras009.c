@@ -79,7 +79,7 @@ payload()
 
   val_print(TRACE,
             "\n       FEAT_ANERR not implemented."
-            " Proceeding to synchronous Data Abort test.\n");
+            " Proceeding to synchronous Data Abort test.");
 
   /* get number of nodes with RAS functionality */
   status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);

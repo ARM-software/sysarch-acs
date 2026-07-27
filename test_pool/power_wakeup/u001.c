@@ -33,7 +33,7 @@ isr1()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   val_timer_set_phy_el1(0);
-  val_print(TRACE, "       Received EL1 PHY interrupt\n");
+  val_print(TRACE, "\n       Received EL1 PHY interrupt");
   g_el1phy_int_received = 1;
   val_set_status(index, RESULT_PASS);
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);

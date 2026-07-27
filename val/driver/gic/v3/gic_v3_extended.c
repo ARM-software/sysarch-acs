@@ -287,8 +287,8 @@ v3_extended_init(void)
   max_num_espi_interrupts = val_gic_max_espi_val();
   max_num_eppi_interrupts = val_gic_max_eppi_val();
 
-  val_print(DEBUG, "\n GIC_INIT: Extended SPI Interrupts %d\n", max_num_espi_interrupts);
-  val_print(DEBUG, "\n GIC_INIT: Extended PPI Interrupts %d\n", max_num_eppi_interrupts);
+  val_print(DEBUG, "\n       GIC_INIT: Extended SPI Interrupts %d", max_num_espi_interrupts);
+  val_print(DEBUG, "\n       GIC_INIT: Extended PPI Interrupts %d", max_num_eppi_interrupts);
 
 #if defined(TARGET_SIMULATION)
   /* Fast-sim: bulk disable in 32-interrupt chunks */

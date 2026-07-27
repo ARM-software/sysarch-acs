@@ -102,7 +102,7 @@ save_config_space(uint32_t rp_bdf)
       val_print(WARN, "\n WARNING: Memory is allocated only for %d devices", MAX_DEVICES);
       val_print(WARN, "\n The number of PCIe devices is %d", bdf_tbl_ptr->num_entries);
       val_print(WARN, "\n for which the additional memory is not allocated");
-      val_print(WARN, "\n and test may fail\n");
+      val_print(WARN, "\n       and test may fail");
   }
 
   while (tbl_index < bdf_tbl_ptr->num_entries)

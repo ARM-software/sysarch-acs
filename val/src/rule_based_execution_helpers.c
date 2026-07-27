@@ -249,7 +249,7 @@ print_rule_test_start(uint32_t rule_enum, uint32_t indent)
         val_print(INFO, "\n\n    ");
         if (indent)
             val_print(INFO, "    ");
-        val_print(INFO, "*** Running ");
+        val_print(INFO, "   *** Running ");
         val_print(INFO, module_name_string[curr_module]);
         val_print(INFO, " tests ***");
 

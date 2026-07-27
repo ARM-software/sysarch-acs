@@ -103,7 +103,7 @@ save_config_space(uint32_t rp_bdf)
       val_print(WARN, "\n WARNING: Memory is allocated only for %d devices", MAX_DEVICES);
       val_print(WARN, "\n The number of PCIe devices is %d", bdf_tbl_ptr->num_entries);
       val_print(WARN, "\n for which the additional memory is not allocated");
-      val_print(WARN, "\n and test may fail\n");
+      val_print(WARN, "\n       and test may fail");
   }
 
   while (tbl_index < bdf_tbl_ptr->num_entries)
@@ -255,7 +255,7 @@ err_check:
           /* Save the config space of all the devices connected to the RP
            to restore after Secondary Bus Reset (SBR)*/
           save_config_space(erp_bdf);
-          val_print(TRACE, "       EP BDF : 0x%x\n", e_bdf);
+          val_print(TRACE, "\n       EP BDF : 0x%x", e_bdf);
 
           irq_pending = 1;
           /* Enable DPC */

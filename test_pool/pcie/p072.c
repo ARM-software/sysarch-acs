@@ -110,13 +110,13 @@ payload(void)
       bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
       dp_type = val_pcie_device_port_type(bdf);
       if (dp_type == iEP_EP) {
-          val_print(DEBUG, "\n        BDF - 0x%x ", bdf);
+          val_print(DEBUG, "\n       BDF - 0x%x ", bdf);
           /* If test runs for atleast an endpoint */
           test_skip = 0;
 
           if (func_ecam_is_rp_ecam(bdf))
           {
-              val_print(ERROR, "dp_type: 0x%x ", dp_type);
+              val_print(ERROR, "\ndp_type: 0x%x ", dp_type);
               fail_cnt++;
           }
       }

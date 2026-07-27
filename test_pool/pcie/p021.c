@@ -35,7 +35,7 @@ payload(void)
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   if (val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0) == 0) {
-      val_print(DEBUG, "\n        No ECAMs discovered, Skipping test");
+      val_print(DEBUG, "\n       No ECAMs discovered, Skipping test");
       val_set_status(pe_index, RESULT_SKIP(1));
       return;
   }

@@ -104,7 +104,7 @@ pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL,
                                     &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
-    pal_print_msg(ACS_PRINT_ERR, "  No PCI devices found while populating peripheral table\n");
+    pal_print_msg(ACS_PRINT_ERR, "\n       No PCI devices found while populating peripheral table");
     return;
   }
 
@@ -200,7 +200,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
 
   if (peripheralInfoTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
+                  "\n       Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO");
     return;
   }
 
@@ -228,7 +228,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->irq   = 0;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
           pal_print_msg(ACS_PRINT_INFO,
-                        "  Found a USB controller %4x\n",
+                        "\n       Found a USB controller %4x",
                         per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
@@ -255,7 +255,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->irq   = 0;
           per_info->platform_type = PLATFORM_TYPE_ACPI;
           pal_print_msg(ACS_PRINT_INFO,
-                        "  Found a SATA controller %4x\n",
+                        "\n       Found a SATA controller %4x",
                         per_info->base0);
           peripheralInfoTable->header.num_sata++;
           peripheralInfoTable->header.num_all++;
@@ -288,10 +288,10 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   }
   else {
     pal_print_msg(ACS_PRINT_DEBUG,
-                  "  WARNING:SPCR acpi table not found\n",
+                  "\n       WARNING:SPCR acpi table not found",
                   0);
     pal_print_msg(ACS_PRINT_DEBUG,
-                  "  UEFI console setting must be set to serial\n",
+                  "\n       UEFI console setting must be set to serial",
                   0);
   }
 
@@ -427,7 +427,7 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
 
   if (memoryInfoTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Memory Table Pointer is NULL. Cannot create Memory INFO\n");
+                  "\n       Input Memory Table Pointer is NULL. Cannot create Memory INFO");
     return;
   }
 
@@ -455,7 +455,7 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
     MemoryMapPtr = MemoryMap;
     for (Index = 0; Index < (MemoryMapSize / DescriptorSize); Index++) {
           pal_print_msg(ACS_PRINT_INFO,
-                        "  Reserved region of type %d [0x%lX, 0x%lX]\n",
+                        "\n       Reserved region of type %d [0x%lX, 0x%lX]",
                         MemoryMapPtr->Type,
                         (UINTN)MemoryMapPtr->PhysicalStart,
                         (UINTN)(MemoryMapPtr->PhysicalStart +
@@ -483,7 +483,7 @@ pal_memory_create_info_table(MEMORY_INFO_TABLE *memoryInfoTable)
       i++;
       if (i >= MEM_INFO_TBL_MAX_ENTRY) {
         pal_print_msg(ACS_PRINT_DEBUG,
-                      "  Memory Info tbl limit exceeded, Skipping remaining\n",
+                      "\n       Memory Info tbl limit exceeded, Skipping remaining",
                       0);
         break;
       }
@@ -518,7 +518,7 @@ pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance)
   if (Status != EFI_SUCCESS)
   {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Failed to get GCD memory with error: %x\n",
+                  "\n       Failed to get GCD memory with error: %x",
                   Status);
     if (Status == EFI_NO_MAPPING)
     {
@@ -539,7 +539,7 @@ pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance)
           continue;
 
         pal_print_msg(ACS_PRINT_INFO,
-                      " Unpopulated region with base address 0x%lX found\n",
+                      "\n       Unpopulated region with base address 0x%lX found",
                       *addr);
         return MEM_MAP_SUCCESS;
       }

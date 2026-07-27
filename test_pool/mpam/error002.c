@@ -66,7 +66,7 @@ void payload(void)
         if (status == ACS_STATUS_SKIP) {
             /* Restore MPAM2_EL2 settings */
             val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-            val_print(WARN, "\n       MSC PARTID range exceeds PE PARTID range \n");
+            val_print(WARN, "\n       MSC PARTID range exceeds PE PARTID range");
             continue;
         }
 

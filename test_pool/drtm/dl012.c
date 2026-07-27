@@ -30,7 +30,7 @@ check_event_spec_signature(TCG_EFI_SPECID_EVENT *event_spec)
 
   /* Check Event Signature */
   if (val_strncmp((char8_t *)event_spec->signature, "Spec ID Event03", EVENT_SPEC_ID_STR_LEN)) {
-    val_print(ERROR, " Event Specification mismatch");
+    val_print(ERROR, "\nEvent Specification mismatch");
     return ACS_STATUS_FAIL;
   }
 
@@ -140,9 +140,9 @@ payload(uint32_t num_pe)
       break;
     }
     val_print(DEBUG, "\n       EVENT2 : ");
-    val_print(DEBUG, "\n         PCR Index       : %d",    event->pcr_index);
-    val_print(DEBUG, "\n         Event Type      : 0x%x",  event->event_type);
-    val_print(DEBUG, "\n         Digest Count    : 0x%x",  event->digests.count);
+    val_print(DEBUG, "\n       PCR Index       : %d",    event->pcr_index);
+    val_print(DEBUG, "\n       Event Type      : 0x%x",  event->event_type);
+    val_print(DEBUG, "\n       Digest Count    : 0x%x",  event->digests.count);
 
     if (event->event_type == DRTM_EVTYPE_ARM_DLME) {
       dlme_image_auth = ACS_STATUS_PASS;

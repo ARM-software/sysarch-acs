@@ -78,7 +78,7 @@ dump_block(IOVIRT_BLOCK *block) {
   switch(block->type) {
       case IOVIRT_NODE_ITS_GROUP:
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n ITS Group:\n Num ITS:%d\n",
+                    "\n       ITS Group:\n   Num ITS:%d",
                     (*map).id[0]);
       for(i = 0; i < block->data.its_count; i++)
           pal_print_msg(ACS_PRINT_INFO,
@@ -89,45 +89,43 @@ dump_block(IOVIRT_BLOCK *block) {
       return;
       case IOVIRT_NODE_NAMED_COMPONENT:
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Named Component:\n Device Name:%a\n",
+                    "\n       Named Component:\n   Device Name:%a",
                     block->data.named_comp.name);
       break;
       case IOVIRT_NODE_PCI_ROOT_COMPLEX:
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Root Complex:\n PCI segment number:%d\n",
+                    "\n       Root Complex:\n   PCI segment number:%d",
                     block->data.rc.segment);
       break;
       case IOVIRT_NODE_SMMU:
       case IOVIRT_NODE_SMMU_V3:
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n SMMU:\n Major Rev:%d\n Base Address:0x%llx\n",
+                    "\n       SMMU:\n       Major Rev:%d\n   Base Address:0x%llx",
                     block->data.smmu.arch_major_rev,
                     block->data.smmu.base);
       break;
       case IOVIRT_NODE_PMCG:
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n PMCG:\n Base:0x%x\n Overflow GSIV:0x%x\n Node Reference:0x%x\n",
+                    "\n       PMCG:\n       Base:0x%x\n   Overflow GSIV:0x%x\n   Node Reference:0x%x",
                     block->data.pmcg.base,
                     block->data.pmcg.overflow_gsiv,
                     block->data.pmcg.node_ref);
       break;
   }
   pal_print_msg(ACS_PRINT_INFO,
-                " Number of ID Mappings:%d\n",
+                "\n       Number of ID Mappings:%d",
                 block->num_data_map);
   for(i = 0; i < block->num_data_map; i++, map++) {
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n input_base:0x%x\n id_count:0x%x\n output_base:0x%x\n",
+                    "\n       input_base:0x%x\n   id_count:0x%x\n   output_base:0x%x",
                     (*map).map.input_base,
                     (*map).map.id_count,
                     (*map).map.output_base);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n output ref:0x%x\n",
+                    "\n       output ref:0x%x",
                     (*map).map.output_ref);
 
   }
-  pal_print_msg(ACS_PRINT_INFO,
-                "\n");
 }
 
 /**
@@ -163,7 +161,7 @@ dump_iort_table(IOVIRT_INFO_TABLE *iovirt)
   UINT32 i;
   IOVIRT_BLOCK *block = &iovirt->blocks[0];
   pal_print_msg(ACS_PRINT_INFO,
-                " Number of IOVIRT blocks = %d\n",
+                "\n       Number of IOVIRT blocks = %d",
                 iovirt->num_blocks);
   for(i = 0; i < iovirt->num_blocks; i++, block = IOVIRT_NEXT_BLOCK(block))
     dump_block(block);
@@ -224,7 +222,7 @@ check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
                key_block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
                block->flags |= (1 << IOVIRT_FLAG_DEVID_OVERLAP_SHIFT);
                pal_print_msg(ACS_PRINT_INFO,
-                             "\n Overlapping device ids %x-%x and %x-%x\n",
+                             "\n       Overlapping device ids %x-%x and %x-%x",
                              key_start,
                              key_end,
                              start,
@@ -234,7 +232,7 @@ check_mapping_overlap(IOVIRT_INFO_TABLE *iovirt)
                key_block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
                block->flags |= (1 << IOVIRT_FLAG_STRID_OVERLAP_SHIFT);
                pal_print_msg(ACS_PRINT_INFO,
-                             "\n Overlapping stream ids %x-%x and %x-%x\n",
+                             "\n       Overlapping stream ids %x-%x and %x-%x",
                              key_start,
                              key_end,
                              start,
@@ -302,7 +300,7 @@ iort_add_block(IORT_TABLE *iort, IORT_NODE *iort_node, IOVIRT_INFO_TABLE *IoVirt
   VOID *node_data = &(iort_node->node_data[0]);
 
   pal_print_msg(ACS_PRINT_INFO,
-                " IORT node offset:%x, type: %d\n",
+                "\n       IORT node offset:%x, type: %d",
                 (UINT8 *)iort_node - (UINT8 *)iort,
                 iort_node->type);
 
@@ -358,7 +356,7 @@ iort_add_block(IORT_TABLE *iort, IORT_NODE *iort_node, IOVIRT_INFO_TABLE *IoVirt
       break;
     default:
        pal_print_msg(ACS_PRINT_ERR,
-                     " Invalid IORT node type\n");
+                     "\n       Invalid IORT node type");
        return (UINT32) -1;
   }
 
@@ -472,7 +470,7 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
   for (i = 0; i < iort->node_count; i++) {
     if (iort_node >= iort_end) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Bad IORT table\n");
+                    "\n       Bad IORT table");
       return;
     }
     iort_add_block(iort, iort_node, IoVirtTable, &next_block);
@@ -581,7 +579,7 @@ pal_iovirt_get_rc_smmu_base (
                                                     (*map).map.id_count))
           {
               pal_print_msg(ACS_PRINT_DEBUG,
-                            "  find RC block->data.smmu.base : %llx",
+                            "\n       find RC block->data.smmu.base : %llx",
                             block->data.smmu.base);
               return block->data.smmu.base;
           }
@@ -592,7 +590,7 @@ pal_iovirt_get_rc_smmu_base (
    * is not behind any SMMU. Return NULL pointer
    */
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  No SMMU found behind the RootComplex with segment :%d",
+                "\n       No SMMU found behind the RootComplex with segment :%d",
                 RcSegmentNum);
   return 0;
 
@@ -626,7 +624,7 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " dt_ptr is NULL\n");
+                  "\n       dt_ptr is NULL");
     return;
   }
 
@@ -650,34 +648,34 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
 
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Parent Node offset %d\n",
+                    "\n       Parent Node offset %d",
                     offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  size cell %d\n",
+                    "\n       size cell %d",
                     size_cell);
       if (size_cell < 1) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid size cell :%d\n",
+                        "\n       Invalid size cell :%d",
                         size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  addr cell %d\n",
+                    "\n       addr cell %d",
                     addr_cell);
       if (addr_cell < 1) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid address cell : %d\n",
+                        "\n       Invalid address cell : %d",
                         addr_cell);
           return;
       }
 
       while (offset != -FDT_ERR_NOTFOUND) {
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  SMMUv3 node:%d offset:%d\n",
+                        "\n       SMMUv3 node:%d offset:%d",
                         IoVirtTable->num_smmus,
                         offset);
 
@@ -686,11 +684,11 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
           Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
           if ((prop_len > 0) && (Pstatus != NULL)) {
               pal_print_msg(ACS_PRINT_DEBUG,
-                            "  Status field length %d\n",
+                            "\n       Status field length %d",
                             prop_len);
               if (pal_strncmp(Pstatus, "disabled", 9) == 0) {
                   pal_print_msg(ACS_PRINT_DEBUG,
-                                "  SMMU instance is disabled\n");
+                                "\n       SMMU instance is disabled");
                   offset = fdt_node_offset_by_compatible((const void *)dt_ptr, offset,
                                                           smmu3_dt_arr[i]);
                   continue;
@@ -700,7 +698,7 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg_val == NULL)) {
               pal_print_msg(ACS_PRINT_ERR,
-                            "  PROPERTY reg offset %x, Error %d\n",
+                            "\n       PROPERTY reg offset %x, Error %d",
                             offset,
                             prop_len);
               return;
@@ -736,34 +734,34 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
 
       parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Parent Node offset %d\n",
+                    "\n       Parent Node offset %d",
                     offset);
 
       size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  size cell %d\n",
+                    "\n       size cell %d",
                     size_cell);
       if (size_cell < 1) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid size cell :%d\n",
+                        "\n       Invalid size cell :%d",
                         size_cell);
           return;
       }
 
       addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  addr cell %d\n",
+                    "\n       addr cell %d",
                     addr_cell);
       if (addr_cell < 1) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "  Invalid address cell : %d\n",
+                        "\n       Invalid address cell : %d",
                         addr_cell);
           return;
       }
 
       while (offset != -FDT_ERR_NOTFOUND) {
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  SMMUv2 node:%d offset:%d\n",
+                        "\n       SMMUv2 node:%d offset:%d",
                         IoVirtTable->num_smmus,
                         offset);
 
@@ -772,11 +770,11 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
           Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
           if ((prop_len > 0) && (Pstatus != NULL)) {
               pal_print_msg(ACS_PRINT_DEBUG,
-                            "  Status field length %d\n",
+                            "\n       Status field length %d",
                             prop_len);
               if (pal_strncmp(Pstatus, "disabled", 9) == 0) {
                   pal_print_msg(ACS_PRINT_DEBUG,
-                                "  SMMU instance is disabled\n");
+                                "\n       SMMU instance is disabled");
                   offset = fdt_node_offset_by_compatible((const void *)dt_ptr, offset,
                                                           smmu3_dt_arr[i]);
                   continue;
@@ -786,7 +784,7 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
           if ((prop_len < 0) || (Preg_val == NULL)) {
               pal_print_msg(ACS_PRINT_ERR,
-                            "  PROPERTY reg offset %x, Error %d\n",
+                            "\n       PROPERTY reg offset %x, Error %d",
                             offset,
                             prop_len);
               return;
@@ -817,40 +815,40 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
   offset = fdt_node_offset_by_prop_value((const void *) dt_ptr, -1, "device_type", "pci", 4);
   if (offset < 0) {
     pal_print_msg(ACS_PRINT_DEBUG,
-                  "  PCIE node not found %d\n",
+                  "\n       PCIE node not found %d",
                   offset);
     return;
   }
 
   parent_offset = fdt_parent_offset((const void *) dt_ptr, offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  NODE pcie offset %d\n",
+                "\n       NODE pcie offset %d",
                 offset);
 
   size_cell = fdt_size_cells((const void *) dt_ptr, parent_offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  NODE pcie size cell %d\n",
+                "\n       NODE pcie size cell %d",
                 size_cell);
   if (size_cell < 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "  Invalid size cell\n");
+                  "\n       Invalid size cell");
     return;
   }
 
   addr_cell = fdt_address_cells((const void *) dt_ptr, parent_offset);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  NODE pcie addr cell %d\n",
+                "\n       NODE pcie addr cell %d",
                 addr_cell);
   if (addr_cell <= 0 || addr_cell > 2) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "  Invalid address cell\n");
+                  "\n       Invalid address cell");
     return;
   }
 
   /* Perform a DT traversal till all pcie node are parsed */
   while (offset != -FDT_ERR_NOTFOUND) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  SUBNODE  offset %x\n",
+                    "\n       SUBNODE  offset %x",
                     offset);
 
       /* parse iommu-map is present */

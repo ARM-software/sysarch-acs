@@ -41,7 +41,7 @@ val_iovirt_get_smmu_info(SMMU_INFO_e type, uint32_t index)
 
   if (g_iovirt_info_table == NULL)
   {
-      val_print(ERROR, "GET_SMMU_INFO: iovirt info table is not created\n");
+      val_print(ERROR, "\n       iovirt info table is not created");
       return 0;
   }
 
@@ -66,7 +66,7 @@ val_iovirt_get_smmu_info(SMMU_INFO_e type, uint32_t index)
                   case SMMU_IOVIRT_BLOCK:
                       return (uint64_t)block;
                   default:
-                      val_print(ERROR, "This SMMU info option not supported %d\n", type);
+                      val_print(ERROR, "\n       This SMMU info option not supported %d", type);
                       return 0;
               }
           }
@@ -76,7 +76,7 @@ val_iovirt_get_smmu_info(SMMU_INFO_e type, uint32_t index)
 
   if (index > j-1)
   {
-      val_print(ERROR, "GET_SMMU_INFO: Index (%d) is greater than num of SMMU\n", index);
+      val_print(ERROR, "\n       Index (%d) is greater than num of SMMU", index);
       return 0;
   }
   return j;
@@ -99,7 +99,7 @@ val_iovirt_get_pcie_rc_info(PCIE_RC_INFO_e type, uint32_t index)
 
   if (g_iovirt_info_table == NULL)
   {
-      val_print(ERROR, "GET_PCIe_RC_INFO: iovirt info table is not created\n");
+      val_print(ERROR, "\n       GET_PCIe_RC_INFO: iovirt info table is not created");
       return 0;
   }
 
@@ -128,7 +128,7 @@ val_iovirt_get_pcie_rc_info(PCIE_RC_INFO_e type, uint32_t index)
                   case RC_SMMU_BASE:
                       return block->data.rc.smmu_base;
                   default:
-                      val_print(ERROR, "This PCIe RC info option not supported %d\n", type);
+                      val_print(ERROR, "\n       This PCIe RC info option not supported %d", type);
                       return 0;
               }
           }
@@ -137,7 +137,7 @@ val_iovirt_get_pcie_rc_info(PCIE_RC_INFO_e type, uint32_t index)
   }
   if (index > j-1)
   {
-      val_print(ERROR, "GET_PCIe_RC_INFO: Index (%d) is greater than num of PCIe-RC\n",
+      val_print(ERROR, "\n       GET_PCIe_RC_INFO: Index (%d) is greater than num of PCIe-RC",
                                                                                             index);
       return 0;
   }
@@ -270,10 +270,10 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 
   if (iovirt_info_table == NULL)
   {
-      val_print(ERROR, "\n   Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return;
   }
-  val_print(TRACE, " Creating SMMU INFO table\n");
+  val_print(TRACE, "\n       Creating SMMU INFO table");
 
   g_iovirt_info_table = (IOVIRT_INFO_TABLE *)iovirt_info_table;
 
@@ -281,7 +281,7 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 
   g_num_smmus = (uint32_t)val_iovirt_get_smmu_info(SMMU_NUM_CTRL, 0);
   val_print(INFO,
-            " SMMU_INFO: Number of SMMU CTRL       :    %d\n", g_num_smmus);
+            "\nSMMU_INFO: Number of SMMU CTRL       :    %d", g_num_smmus);
   for (i = 0; i < g_num_smmus; i++) {
 
     smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, i);
@@ -296,14 +296,13 @@ val_iovirt_create_info_table(uint64_t *iovirt_info_table)
 
     smmu_ver = val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, i);
     val_print(INFO,
-            " SMMU_INFO: SMMU index %02d ", i);
+            "\nSMMU_INFO: SMMU index %02d ", i);
     val_print(INFO, "version     :    v%d", smmu_ver);
 
     if (smmu_ver == 3) {
       smmu_minor = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_AIDR, i), 0, 3);
       val_print(INFO, ".%d", smmu_minor);
     }
-    val_print(INFO, "\n", smmu_ver);
   }
 }
 
@@ -323,7 +322,7 @@ val_iovirt_free_info_table(void)
     }
     else {
       val_print(DEBUG,
-                  "\n g_iovirt_info_table pointer is already NULL");
+                  "\n       g_iovirt_info_table pointer is already NULL");
     }
 }
 
@@ -409,7 +408,7 @@ val_iovirt_get_named_comp_info(NAMED_COMP_INFO_e type, uint32_t index)
 
   if (g_iovirt_info_table == NULL)
   {
-      val_print(ERROR, "GET_NAMED_COMP_INFO: iovirt info table is not created\n");
+      val_print(ERROR, "\n       GET_NAMED_COMP_INFO: iovirt info table is not created");
       return 0; /* imply no named components parsed */
   }
 
@@ -419,7 +418,7 @@ val_iovirt_get_named_comp_info(NAMED_COMP_INFO_e type, uint32_t index)
   /* check if index in range */
   if (index > g_iovirt_info_table->num_named_components - 1) {
       val_print(ERROR,
-                "GET_NAMED_COMP_INFO: Index (%d) is greater than num of Named components\n",
+                "\n       GET_NAMED_COMP_INFO: Index (%d) is greater than num Named components",
                  index);
       return INVALID_NAMED_COMP_INFO;
   }
@@ -445,7 +444,7 @@ val_iovirt_get_named_comp_info(NAMED_COMP_INFO_e type, uint32_t index)
                       return block->data.named_comp.smmu_base;
                   default:
                       val_print(ERROR,
-                                "This Named component info option not supported %d\n", type);
+                                "\n       Named component info option not supported %d", type);
                       return INVALID_NAMED_COMP_INFO;
               }
           }
@@ -576,7 +575,7 @@ val_iovirt_get_pmcg_info(PMCG_INFO_e type, uint32_t index)
 
   if (g_iovirt_info_table == NULL)
   {
-      val_print(ERROR, "GET_PMCG_INFO: iovirt info table is not created\n");
+      val_print(ERROR, "\n       GET_PMCG_INFO: iovirt info table not created");
       return 0;
   }
 
@@ -603,7 +602,7 @@ val_iovirt_get_pmcg_info(PMCG_INFO_e type, uint32_t index)
                   case PMCG_NODE_SMMU_BASE:
                       return block->data.pmcg.smmu_base;
                   default:
-                      val_print(ERROR, "This PMCG info option not supported %d\n", type);
+                      val_print(ERROR, "\n       PMCG info option not supported %d", type);
                       return 0;
               }
           }
@@ -613,7 +612,7 @@ val_iovirt_get_pmcg_info(PMCG_INFO_e type, uint32_t index)
 
   if (index > j-1)
   {
-      val_print(ERROR, "GET_PMCG_INFO: Index (%d) is greater than num of PMCG\n", index);
+      val_print(ERROR, "\n       GET_PMCG_INFO: Index (%d) greater than num of PMCG", index);
       return 0;
   }
   return j;
@@ -627,7 +626,7 @@ val_iovirt_get_rc_index(uint32_t rc_seg_num)
 
   if (g_iovirt_info_table == NULL)
   {
-      val_print(ERROR, "GET_PCIe_RC_INFO: iovirt info table is not created\n");
+      val_print(ERROR, "\n       GET_PCIe_RC_INFO: iovirt info table not created");
       return 0;
   }
 
@@ -646,7 +645,7 @@ val_iovirt_get_rc_index(uint32_t rc_seg_num)
   }
   if (i >=  g_iovirt_info_table->num_blocks)
   {
-      val_print(ERROR, "GET_PCIe_RC_INFO: segemnt (%d) is not valid\n", rc_seg_num);
+      val_print(ERROR, "\n       GET_PCIe_RC_INFO: segemnt (%d) is not valid", rc_seg_num);
       return ACS_INVALID_INDEX;
   }
   return j;
@@ -674,11 +673,11 @@ val_iovirt_get_its_info(
 
 
   if (g_iovirt_info_table == NULL) {
-    val_print(ERROR, "GET_ITS_INFO: iovirt info table is not created\n");
+    val_print(ERROR, "\n       GET_ITS_INFO: iovirt info table is not created");
     return ACS_STATUS_ERR;
   }
   if (!return_value) {
-      val_print(ERROR, "GET_ITS_INFO: Return pointer is NULL\n");
+      val_print(ERROR, "\n       GET_ITS_INFO: Return pointer is NULL");
       return ACS_STATUS_ERR;
   }
 
@@ -732,7 +731,7 @@ val_iovirt_get_its_info(
                   /* ITS_ID not found in current group, return error */
                   return ACS_INVALID_INDEX;
                 default:
-                  val_print(ERROR, "This ITS info option not supported %d\n", type);
+                  val_print(ERROR, "\n       This ITS info option not supported %d", type);
                   return ACS_STATUS_ERR;
               }
               break;
@@ -741,7 +740,7 @@ val_iovirt_get_its_info(
       }
   }
 
-  val_print(ERROR, "GET_ITS_INFO: ITS Group not found %d\n", group_index);
+  val_print(ERROR, "\n       GET_ITS_INFO: ITS Group not found %d", group_index);
   return ACS_INVALID_INDEX;
 }
 

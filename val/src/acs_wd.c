@@ -70,16 +70,16 @@ val_wd_create_info_table(uint64_t *wd_info_table)
 {
 
   if (wd_info_table == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return;
   }
-  val_print(TRACE, " Creating WATCHDOG INFO table\n");
+  val_print(TRACE, "\n       Creating WATCHDOG INFO table");
 
   g_wd_info_table = (WD_INFO_TABLE *)wd_info_table;
 
   pal_wd_create_info_table(g_wd_info_table);
 
-  val_print(INFO, " WATCHDOG_INFO: Number of Watchdogs   : %4d\n",
+  val_print(INFO, "\nWATCHDOG_INFO: Number of Watchdogs   : %4d",
                                                             val_wd_get_info(0, WD_INFO_COUNT));
 }
 

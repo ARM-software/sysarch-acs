@@ -867,7 +867,7 @@ val_bsa_exerciser_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
       return ACS_STATUS_SKIP;
   }
 
-  val_print(TRACE, "  Initializing SMMU\n");
+  val_print(TRACE, "\n       Initializing SMMU\n");
 
   num_smmu = (uint32_t)val_iovirt_get_smmu_info(SMMU_NUM_CTRL, 0);
   val_smmu_init();

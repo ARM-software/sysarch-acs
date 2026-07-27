@@ -83,7 +83,7 @@ uint32_t test_sequence2(void *dram_buf1_virt, void *dram_buf1_phys, uint32_t ins
 
   /* Compare the contents of ddr_buf1 and ddr_buf2 for NEW_DATA */
   if (val_memory_compare(dram_buf1_virt, dram_buf2_virt, dma_len)) {
-      val_print(ERROR, "\n        I/O coherency failure for Exerciser %4x", instance);
+      val_print(ERROR, "\n       I/O coherency failure for Exerciser %4x", instance);
       return 1;
   }
 
@@ -124,7 +124,7 @@ uint32_t test_sequence1(void *dram_buf1_virt, void *dram_buf1_phys, uint32_t ins
 
   /* Compare the contents of ddr_buf1 and ddr_buf2 for NEW_DATA */
   if (val_memory_compare(dram_buf1_virt, dram_buf2_virt, dma_len)) {
-      val_print(ERROR, "\n        I/O coherency failure for Exerciser %4x", instance);
+      val_print(ERROR, "\n       I/O coherency failure for Exerciser %4x", instance);
       return 1;
   }
 

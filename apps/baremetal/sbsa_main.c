@@ -190,7 +190,7 @@ ShellAppMainsbsa()
       return ACS_STATUS_FAIL;
   }
 #else
-  val_print(INFO, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n");
+  val_print(INFO, "\nSkipping MMU setup/enable (ACS_ENABLE_MMU=0)");
 #endif
     /* Apply any compile-time test/module overrides before we consume the run request. */
     acs_apply_compile_params(ctx, policy);
@@ -201,7 +201,7 @@ ShellAppMainsbsa()
     val_print(INFO, "    Version %d.", SBSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", SBSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", SBSA_ACS_SUBMINOR_VER);
-    val_print(INFO, " Built for target: %s\n", ACS_TARGET);
+    val_print(INFO, "\nBuilt for target: %s", ACS_TARGET);
 
 
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
@@ -209,7 +209,7 @@ ShellAppMainsbsa()
 
     val_print(INFO, "(Print level is %2d)\n\n", policy->print_level);
 
-    val_print(INFO, " Creating Platform Information Tables\n");
+    val_print(INFO, "\nCreating Platform Information Tables");
 
     Status = createPeInfoTable();
     if (Status) {

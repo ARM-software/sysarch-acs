@@ -305,7 +305,7 @@ execute_tests()
   UINT32             Status;
 
   val_print(INFO, "\n\n DRTM Architecture Compliance Suite");
-  val_print(INFO, "\n          Version %d.", DRTM_ACS_MAJOR_VER);
+  val_print(INFO, "\n        Version %d.", DRTM_ACS_MAJOR_VER);
   val_print(INFO, "%d\n", DRTM_ACS_MINOR_VER);
 
   val_print(INFO, "\n Starting tests with print level : %2d\n\n", acs_policy_get_print_level());

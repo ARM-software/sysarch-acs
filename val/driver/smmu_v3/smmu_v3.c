@@ -271,7 +271,7 @@ static uint32_t smmu_evnt_queue_init(smmu_dev_t *smmu)
     evntq_size = (evntq_size < 64)?64:evntq_size;
     evntq->base_ptr = val_memory_calloc (1, evntq_size);
     if (!evntq->base_ptr) {
-        val_print(ERROR, "\n      Failed to allocate Event queue struct.     ");
+        val_print(ERROR, "\n       Failed to allocate Event queue struct.");
         return 0;
     }
 
@@ -476,64 +476,64 @@ static int smmu_handle_evt(uint64_t *event)
 {
         switch (BITFIELD_GET(EVTQ_0_ID, event[0])) {
         case EVT_ID_UUT:
-                val_print(INFO, "\n\n    Unsupported Upstream Transaction     ");
+                val_print(INFO, "\n       Unsupported Upstream Transaction");
                 break;
         case EVT_ID_TRANSID_FAULT:
-                val_print(INFO, "\n\n    Transaction StreamID out of range     ");
+                val_print(INFO, "\n       Transaction StreamID out of range");
                 break;
         case EVT_ID_STE_FETCH_FAULT:
-                val_print(INFO, "\n\n    Fetch of STE caused external abort     ");
+                val_print(INFO, "\n       Fetch of STE caused external abort");
                 break;
         case EVT_ID_BAD_STE:
-                val_print(INFO, "\n\n    Used STE invalid     ");
+                val_print(INFO, "\n       Used STE invalid");
                 break;
         case EVT_ID_BAD_ATS_TREQ:
-                val_print(INFO, "\n\n    Address Translation Request disallowed   ");
+                val_print(INFO, "\n       Address Translation Request disallowed");
                 break;
         case EVT_ID_STREAM_DISABLED:
-                val_print(INFO, "\n\n    Non-substream transactions disabled     ");
+                val_print(INFO, "\n       Non-substream transactions disabled");
                 break;
         case EVT_ID_TRANSL_FORBIDDEN:
-                val_print(INFO, "\n\n    Forbidden translation     ");
+                val_print(INFO, "\n       Forbidden translation");
                 break;
         case EVT_ID_BAD_SSID:
-                val_print(INFO, "\n\n    Bad Substream ID     ");
+                val_print(INFO, "\n       Bad Substream ID");
                 break;
         case EVT_ID_CD_FETCH_FAULT:
-                val_print(INFO, "\n\n    Fetch of CD caused external abort     ");
+                val_print(INFO, "\n       Fetch of CD caused external abort");
                 break;
         case EVT_ID_BAD_CD:
-                val_print(INFO, "\n\n    Fetched CD invalid     ");
+                val_print(INFO, "\n       Fetched CD invalid");
                 break;
         case EVT_ID_WALK_EABT:
-                val_print(INFO, "\n\n    Fetch of TTD caused external abort");
+                val_print(INFO, "\n       Fetch of TTD caused external abort");
                 break;
         case EVT_ID_TRANSLATION_FAULT:
-                val_print(INFO, "\n\n    SMMU_FAULT_REASON_PTE_FETCH     ");
+                val_print(INFO, "\n       SMMU_FAULT_REASON_PTE_FETCH");
                 break;
         case EVT_ID_ADDR_SIZE_FAULT:
-                val_print(INFO, "\n\n    SMMU_FAULT_REASON_OOR_ADDRESS     ");
+                val_print(INFO, "\n       SMMU_FAULT_REASON_OOR_ADDRESS");
                 break;
         case EVT_ID_ACCESS_FAULT:
-                val_print(INFO, "\n\n    SMMU_FAULT_REASON_ACCESS     ");
+                val_print(INFO, "\n       SMMU_FAULT_REASON_ACCESS");
                 break;
         case EVT_ID_PERMISSION_FAULT:
-                val_print(INFO, "\n\n    SMMU_FAULT_REASON_PERMISSION     ");
+                val_print(INFO, "\n       SMMU_FAULT_REASON_PERMISSION");
                 break;
         case EVT_ID_TLB_CONFLICT:
-                val_print(INFO, "\n\n    TLB conflict occurred     ");
+                val_print(INFO, "\n       TLB conflict occurred");
                 break;
         case EVT_ID_CFG_CONFLICT:
-                val_print(INFO, "\n\n    Configuration cache conflict occurred    ");
+                val_print(INFO, "\n       Configuration cache conflict occurred");
                 break;
         case EVT_ID_PAGE_REQUEST:
-                val_print(INFO, "\n\n    Speculation Page Req hint     ");
+                val_print(INFO, "\n       Speculation Page Req hint");
                 break;
         case EVT_ID_VMS_FETCH:
-                val_print(INFO, "\n\n    Fetch of VMS caused external abort     ");
+                val_print(INFO, "\n       Fetch of VMS caused external abort");
                 break;
         default:
-                val_print(INFO, "\n\n    INVALID FAULT     ");
+                val_print(INFO, "\n       INVALID FAULT");
                 return 1;
         }
 
@@ -586,13 +586,13 @@ static uint32_t smmu_gerror_check(smmu_dev_t *smmu)
         active = gerror ^ gerrorn;
     if (active & SMMU_GERROR_MSI_EVTQ_ABT_ERR)
     {
-        val_print(DEBUG, "\n      EVTQ MSI write aborted     ");
+        val_print(DEBUG, "\n       EVTQ MSI write aborted");
         return 1;
     }
 
     if (active & SMMU_GERROR_EVTQ_ABT_ERR)
     {
-        val_print(DEBUG, "\n      EVTQ write aborted -- events may have been lost");
+        val_print(DEBUG, "\nEVTQ write aborted -- events may have been lost");
         return 1;
     }
 
@@ -610,7 +610,7 @@ static void smmu_evtq_thread(void)
     ret = smmu_gerror_check(smmu);
     if (ret)
     {
-        val_print(WARN, "\n    GERROR occurred. Eventq is not writable.     ");
+        val_print(WARN, "\n       GERROR occurred. Eventq is not writable.");
         return;
     }
 
@@ -618,23 +618,23 @@ static void smmu_evtq_thread(void)
         while (!smmu_queue_remove_raw(evntq, event)) {
             uint8_t id = BITFIELD_GET(EVTQ_0_ID, event[0]);
             ret = smmu_handle_evt(event);
-            val_print(INFO, "\n  event 0x%02x received: %d     ", id);
+            val_print(INFO, "\n       event 0x%02x received: %d", id);
             for (i = 0; i < ARRAY_SIZE(event); ++i)
             {
-                val_print(INFO, "\n  0x%016llx     ", (unsigned long long)event[i]);
+                val_print(INFO, "\n       0x%016llx", (unsigned long long)event[i]);
             }
 
-            val_print(TRACE, "\n  prod is: %x", val_mmio_read((uint64_t)evntq->prod_reg));
-            val_print(TRACE, "\n  cons is: %x", val_mmio_read((uint64_t)evntq->cons_reg));
+            val_print(TRACE, "\nprod is: %x", val_mmio_read((uint64_t)evntq->prod_reg));
+            val_print(TRACE, "\ncons is: %x", val_mmio_read((uint64_t)evntq->cons_reg));
         }
 
         if (queue_sync_prod_in(evntq))
-            val_print(WARN, "\n  EVTQ overflow detected -- events lost     ");
+            val_print(WARN, "\n       EVTQ overflow detected -- events lost");
     } while (!smmu_queue_empty(&evntq->queue));
 
     if (val_mmio_read((uint64_t)evntq->prod_reg) == val_mmio_read((uint64_t)evntq->cons_reg))
     {
-        val_print(INFO, "\n  No outstanding events in the queue. Queue Empty.\n");
+        val_print(INFO, "\n       No outstanding events in the queue. Queue Empty.");
     }
 
     evntq->queue.cons = ((queue->prod) & (1 << 31)) |
@@ -649,7 +649,7 @@ static int smmu_dev_disable(smmu_dev_t *smmu)
 
     ret = smmu_reg_write_sync(smmu, 0, SMMU_CR0_OFFSET, SMMU_CR0ACK_OFFSET);
     if (ret)
-        val_print(ERROR, "\n    failed to clear cr0     ");
+        val_print(ERROR, "\n       failed to clear cr0");
 
     return ret;
 }
@@ -713,7 +713,7 @@ static int smmu_reset(smmu_dev_t *smmu)
     ret = smmu_reg_write_sync(smmu, en, SMMU_CR0_OFFSET,
                       SMMU_CR0ACK_OFFSET);
     if (ret) {
-        val_print(ERROR, "\n      failed to enable event queue     ");
+        val_print(ERROR, "\n       failed to enable event queue");
         return ret;
     }
 
@@ -777,14 +777,14 @@ static uint32_t smmu_set_state(uint32_t smmu_index, uint32_t en)
 
     if (smmu_index >= g_num_smmus)
     {
-        val_print(ERROR, "  smmu_set_state: invalid smmu index\n");
+        val_print(ERROR, "\nsmmu_set_state: invalid smmu index");
         return 1;
     }
 
     smmu = &g_smmu[smmu_index];
     if (smmu->base == 0)
     {
-        val_print(ERROR, "  smmu_set_state: smmu unsupported\n");
+        val_print(ERROR, "\nsmmu_set_state: smmu unsupported");
         return 1;
     }
 
@@ -799,7 +799,7 @@ static uint32_t smmu_set_state(uint32_t smmu_index, uint32_t en)
                       SMMU_CR0ACK_OFFSET);
     if (ret)
     {
-        val_print(ERROR, "  smmu_set_state: failed to set SMMU state\n",
+        val_print(ERROR, "\nsmmu_set_state: failed to set SMMU state",
                                                                            0);
         return ret;
     }
@@ -863,7 +863,7 @@ static uint32_t smmu_probe(smmu_dev_t *smmu)
         smmu->supported.s2p = 1;
 
     if (!(data & (IDR0_S1P | IDR0_S2P))) {
-        val_print(ERROR, "  no translation support!\n ");
+        val_print(ERROR, "\nno translation support!");
         return 0;
     }
 
@@ -873,13 +873,13 @@ static uint32_t smmu_probe(smmu_dev_t *smmu)
     case IDR0_TTF_AARCH64:
         break;
     default:
-        val_print(ERROR, "  AArch64 table format not supported!\n");
+        val_print(ERROR, "\nAArch64 table format not supported!");
         return 0;
     }
 
     data = val_mmio_read(smmu->base + SMMU_IDR1_OFFSET);
     if (data & (IDR1_TABLES_PRESET | IDR1_QUEUES_PRESET)) {
-        val_print(ERROR, "  fixed table base addr not supported\n");
+        val_print(ERROR, "\nfixed table base addr not supported");
         return 0;
     }
 
@@ -891,8 +891,8 @@ static uint32_t smmu_probe(smmu_dev_t *smmu)
                      (BITFIELD_GET(IDR1_SIDSIZE, data)) : MAX_SID;
     smmu->ssid_bits = BITFIELD_GET(IDR1_SSIDSIZE, data);
 
-    val_print(TRACE, "  ssid_bits = %d", smmu->ssid_bits);
-    val_print(TRACE, " sid_bits = %d\n", smmu->sid_bits);
+    val_print(TRACE, "\nssid_bits = %d", smmu->ssid_bits);
+    val_print(TRACE, " sid_bits = %d", smmu->sid_bits);
 
     if (smmu->sid_bits <= STRTAB_SPLIT)
         smmu->supported.st_level_2lvl = 0;
@@ -901,15 +901,15 @@ static uint32_t smmu_probe(smmu_dev_t *smmu)
     data = val_mmio_read(smmu->base + SMMU_IDR5_OFFSET);
 
     if (BITFIELD_GET(IDR5_OAS, data) >= SMMU_OAS_MAX_IDX) {
-        val_print(ERROR, "  Unknown output address size\n");
+        val_print(ERROR, "\nUnknown output address size");
         return 0;
     }
 
     smmu->oas = smmu_oas[BITFIELD_GET(IDR5_OAS, data)];
     smmu->ias = get_max(smmu->ias, smmu->oas);
 
-    val_print(TRACE, "  ias %d-bit", smmu->ias);
-    val_print(TRACE, "  oas %d-bit\n", smmu->oas);
+    val_print(TRACE, "\nias %d-bit", smmu->ias);
+    val_print(TRACE, "  oas %d-bit", smmu->oas);
 
     return 1;
 }
@@ -931,8 +931,8 @@ static void dump_strtab(uint64_t *ste)
     int i;
 
     for (i = 0; i < 8; i++) {
-        val_print(TRACE, "ste[%d] = ", i);
-        val_print(TRACE, "%p\n", ste[i]);
+        val_print(TRACE, "\nste[%d] = ", i);
+        val_print(TRACE, "%p", ste[i]);
     }
 }
 
@@ -941,8 +941,8 @@ static void dump_cdtab(uint64_t *ctx_desc)
     int i;
 
     for (i = 0; i < 8; i++) {
-        val_print(TRACE, "ctx_desc[%d] = ", i);
-        val_print(TRACE, "%llx\n", ctx_desc[i]);
+        val_print(TRACE, "\nctx_desc[%d] = ", i);
+        val_print(TRACE, "%llx", ctx_desc[i]);
     }
 }
 
@@ -1412,16 +1412,16 @@ uint32_t val_smmu_init(void)
     g_smmu = val_memory_calloc(g_num_smmus, sizeof(smmu_dev_t));
     if (!g_smmu)
     {
-        val_print(ERROR, "\n  smmu_init memory allocation failure");
+        val_print(ERROR, "\nsmmu_init memory allocation failure");
         return ACS_STATUS_ERR;
     }
 
     for (g_smmu_index  = 0; g_smmu_index  < g_num_smmus; ++g_smmu_index) {
         smmu_version = val_iovirt_get_smmu_info(SMMU_CTRL_ARCH_MAJOR_REV, g_smmu_index);
         if (smmu_version != 3) {
-            val_print(ERROR, "  Only SMMUv3.x init supported\n");
-            val_print(ERROR, "  smmu %d version is", g_smmu_index);
-            val_print(ERROR, "  %d\n", smmu_version);
+            val_print(ERROR, "\nOnly SMMUv3.x init supported");
+            val_print(ERROR, "\nsmmu %d version is", g_smmu_index);
+            val_print(ERROR, " %d", smmu_version);
             continue;
         }
 
@@ -1429,7 +1429,7 @@ uint32_t val_smmu_init(void)
         g_smmu[g_smmu_index].page1_base = g_smmu[g_smmu_index].base + SMMU_PAGE1_BASE_OFFSET;
         if (smmu_init(&g_smmu[g_smmu_index]))
         {
-            val_print(ERROR, "  smmu_init: smmu %d init failed\n", g_smmu_index);
+            val_print(ERROR, "\nsmmu_init: smmu %d init failed", g_smmu_index);
             g_smmu[g_smmu_index].base = 0;
             return ACS_STATUS_ERR;
         }
@@ -1473,18 +1473,18 @@ val_smmu_get_info(SMMU_INFO_e type, uint32_t smmu_index)
 // This API checks if there are any outstanding events in the event queue.
 void val_smmu_dump_eventq(void)
 {
-    val_print(INFO, "\n      Eventq dump starting...    ");
+    val_print(INFO, "\n       Eventq dump starting...");
 
     for (g_smmu_index = 0; g_smmu_index < g_num_smmus; g_smmu_index++) {
         if (val_iovirt_get_smmu_info(SMMU_CTRL_ARCH_MAJOR_REV, g_smmu_index) != 3) {
-            val_print(ERROR, "\n only SMMUv3.x supported, skipping smmu %d", g_smmu_index);
+            val_print(ERROR, "\nonly SMMUv3.x supported, skipping smmu %d", g_smmu_index);
             continue;
         }
 
-        val_print(INFO, "\n      Eventq of SMMU index %x ", g_smmu_index);
+        val_print(INFO, "\n       Eventq of SMMU index %x", g_smmu_index);
         smmu_evtq_thread();
     }
 
-    val_print(INFO, "\n      Eventq dump finished...    ");
+    val_print(INFO, "\n       Eventq dump finished...");
     return;
 }

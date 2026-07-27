@@ -74,7 +74,7 @@ static void payload_invalid_run_check(void *arg)
   g_pfdi_invalid_run = (PFDI_INVAL_RETURNS *)
                             val_memory_calloc(num_pe, sizeof(PFDI_INVAL_RETURNS));
   if (g_pfdi_invalid_run == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Invalid Test Run Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Invalid Test Run Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

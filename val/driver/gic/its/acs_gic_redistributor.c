@@ -43,7 +43,7 @@ ArmGicSetItsConfigTableBase(
   Address = (uint64_t)val_aligned_alloc(SIZE_4KB, PAGES_TO_SIZE(Pages));
 
   if (!Address) {
-    val_print(ERROR,  "ITS : Could Not get Mem Config Table. Test may not pass.\n");
+    val_print(ERROR, "\nITS : Could Not get Mem Config Table. Test may not pass.");
     return 1;
   }
 
@@ -89,7 +89,7 @@ ArmGicSetItsPendingTableBase(
   Address = (uint64_t)val_aligned_alloc(SIZE_64KB, PAGES_TO_SIZE(Pages));
 
   if (!Address) {
-    val_print(ERROR, "ITS : Could Not get Memory Pending Table. Test may not pass.\n");
+    val_print(ERROR, "\nITS : Could Not get Memory Pending Table. Test may not pass.");
     return 1;
   }
 

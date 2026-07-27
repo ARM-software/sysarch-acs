@@ -50,7 +50,7 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
 
   if (Tpm2InfoTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " TPM2 Info Table pointer is NULL. Cannot create TPM2 info.\n",
+                    "\n       TPM2 Info Table pointer is NULL. Cannot create TPM2 info.",
                     0);
       return;
   }
@@ -64,7 +64,7 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
   Status = gBS->LocateProtocol(&gEfiTcg2ProtocolGuid, NULL, (VOID **)&Tcg2);
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " TCG2 Protocol Not Found\n",
+                    "\n       TCG2 Protocol Not Found",
                     0);
       status_flag = 1;
   }
@@ -73,7 +73,7 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
   gtpm2ptr = (EFI_TPM2_ACPI_TABLE *)pal_get_tpm2_ptr();
   if (gtpm2ptr == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " TPM2 ACPI Table not found\n",
+                    "\n       TPM2 ACPI Table not found",
                     0);
       status_flag = 1;
   }
@@ -87,7 +87,7 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
   Status = Tcg2->GetCapability(Tcg2, &Capability);
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Failed to retrieve TPM capability from TCG2 protocol, Status: 0x%x\n",
+                    "\n       Failed to retrieve TPM capability from TCG2 protocol, Status: 0x%x",
                     Status);
       return;
   }
@@ -102,13 +102,13 @@ pal_tpm2_create_info_table(TPM2_INFO_TABLE * Tpm2InfoTable)
 
   /* Log TPM presence and configuration */
   pal_print_msg(ACS_PRINT_INFO,
-                " TPM2 Protocol Present\n",
+                "\n       TPM2 Protocol Present",
                 0);
   pal_print_msg(ACS_PRINT_TEST,
-                " TPM2 Interface Type (StartMethod): %llx\n",
+                "\n       TPM2 Interface Type (StartMethod): %llx",
                 Tpm2InfoTable->tpm_interface);
   pal_print_msg(ACS_PRINT_TEST,
-                " TPM2 Base Address: %llx\n",
+                "\n       TPM2 Base Address: %llx",
                 Tpm2InfoTable->base);
 
 
@@ -143,7 +143,7 @@ pal_tpm2_get_version()
   Status = gBS->LocateProtocol(&gEfiTcg2ProtocolGuid, NULL, (VOID **)&Tcg2);
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "       TCG2 Protocol Not Found\n",
+                    "\n       TCG2 Protocol Not Found",
                     0);
       return Status;
   }
@@ -152,7 +152,7 @@ pal_tpm2_get_version()
   Status = gBS->AllocatePool(EfiBootServicesData, TempBufferSize, (VOID **)&TempBuffer);
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "       Failed to allocate memory for TPM capability data.\n",
+                    "\n       Failed to allocate memory for TPM capability data.",
                     0);
       return Status;
   }
@@ -178,7 +178,7 @@ pal_tpm2_get_version()
 
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "       TPM2 command submission failed\n",
+                    "\n       TPM2 command submission failed",
                     0);
       return Status;
   }
@@ -186,7 +186,7 @@ pal_tpm2_get_version()
   /* Check response status */
   if (SwapBytes32 (RecvBuffer.Header.responseCode) != TPM_RC_SUCCESS) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "       Tpm2GetCapability failed: Response Code error! 0x%08x\n",
+                    "\n       Tpm2GetCapability failed: Response Code error! 0x%08x",
                     SwapBytes32 (RecvBuffer.Header.responseCode));
       return Status;
   }
@@ -198,7 +198,7 @@ pal_tpm2_get_version()
 
   PropertyCount = SwapBytes32(cap_data->data.tpmProperties.count);
   pal_print_msg(ACS_PRINT_INFO,
-                "      TPM Property Count: %d\n",
+                "\n       TPM Property Count: %d",
                 PropertyCount);
 
   /* Search for TPM_PT_FAMILY_INDICATOR */
@@ -207,10 +207,10 @@ pal_tpm2_get_version()
       UINT32 PropertyVal = cap_data->data.tpmProperties.tpmProperty[i].value;
 
       pal_print_msg(ACS_PRINT_INFO,
-                    "       TPM Property ID   : 0x%08x\n",
+                    "\n       TPM Property ID   : 0x%08x",
                     PropertyId);
       pal_print_msg(ACS_PRINT_INFO,
-                    "       TPM Property Value: 0x%08x\n",
+                    "\n       TPM Property Value: 0x%08x",
                     PropertyVal);
 
 
@@ -220,7 +220,7 @@ pal_tpm2_get_version()
           CopyMem(family, &PropertyVal, 4);
           family[4] = '\0';
           pal_print_msg(ACS_PRINT_TEST,
-                        "       TPM Family: %a\n",
+                        "\n       TPM Family: %a",
                         family);
 
           FreePool(TempBuffer);

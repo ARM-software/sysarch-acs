@@ -60,9 +60,9 @@ payload(void)
                 (RCEC_SUB_CLASS != ((reg_value >> CC_SUB_SHIFT) & CC_SUB_MASK)) ||
                 (RCEC_PGMING_IF != ((reg_value >> CC_PGM_IF_SHIFT) & CC_PGM_IF_MASK)))
           {
-              val_print(ERROR, "       Class code mismatch for bdf: 0x%x\n", bdf);
-              val_print(ERROR, "       dp_type: 0x%x\n", dp_type);
-              val_print(ERROR, "       CCR: 0x%x\n", reg_value);
+              val_print(ERROR, "\n       Class code mismatch for bdf: 0x%x", bdf);
+              val_print(ERROR, "\n       dp_type: 0x%x", dp_type);
+              val_print(ERROR, "\n       CCR: 0x%x", reg_value);
               fail_cnt++;
           }
 

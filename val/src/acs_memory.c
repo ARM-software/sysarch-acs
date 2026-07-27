@@ -83,7 +83,7 @@ val_memory_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_memory_info_table pointer is already NULL");
+                  "\n       g_memory_info_table pointer is already NULL");
     }
 }
 
@@ -102,7 +102,7 @@ val_memory_create_info_table(uint64_t *memory_info_table)
 {
 
   g_memory_info_table = (MEMORY_INFO_TABLE *)memory_info_table;
-  val_print(TRACE, " Creating MEMORY INFO table\n");
+  val_print(TRACE, "\n       Creating MEMORY INFO table");
 
   pal_memory_create_info_table(g_memory_info_table);
 
@@ -427,7 +427,7 @@ uint32_t val_memory_region_has_52bit_addr(void)
   uint32_t index = 0;
 
   while (g_memory_info_table->info[index].type != MEMORY_TYPE_LAST_ENTRY) {
-      val_print(TRACE, " \n       Mem Phy Addr %lx",
+      val_print(TRACE, "\n       Mem Phy Addr %lx",
                                    g_memory_info_table->info[index].phy_addr);
       if (CHECK_ADDR_52BIT(g_memory_info_table->info[index].phy_addr))
           return 1;

@@ -35,7 +35,7 @@ isr_failsafe()
   uint32_t intid;
 
   val_timer_set_phy_el1(0);
-  val_print(ERROR, "       Received Failsafe interrupt\n");
+  val_print(ERROR, "\n       Received Failsafe interrupt");
   g_failsafe_int_rcvd = 1;
   /* On some system the failsafe is rcvd just after test interrupt and resulting
      in incorrect fail, to avoid this ensure set test as fail only when failsafe
@@ -59,13 +59,13 @@ isr5()
   uint64_t cnt_base_n = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
 
   val_timer_disable_system_timer((addr_t)cnt_base_n);
-  val_print(TRACE, "       Received Sys timer interrupt\n");
+  val_print(TRACE, "\n       Received Sys timer interrupt");
   g_timer_int_rcvd = 1;
   val_set_status(index, RESULT_PASS);
   intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
   val_gic_end_of_interrupt(intid);
   val_timer_set_phy_el1(0);
-  val_print(DEBUG, "       Clear Failsafe interrupt\n");
+  val_print(DEBUG, "\n       Clear Failsafe interrupt");
 }
 
 static
@@ -116,14 +116,14 @@ payload5()
       //Read CNTACR to determine whether access permission from NS state is permitted
       status = val_timer_skip_if_cntbase_access_not_allowed(timer_num);
       if (status == ACS_STATUS_SKIP) {
-          val_print(DEBUG, "       Timer cntbase can't accessed\n");
+          val_print(DEBUG, "\n       Timer cntbase can't accessed");
           val_set_status(index, RESULT_SKIP(2));
           return;
       }
 
       cnt_base_n = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
       if (cnt_base_n == 0) {
-          val_print(DEBUG, "       Timer cntbase is invalid\n");
+          val_print(DEBUG, "\n       Timer cntbase is invalid");
           val_set_status(index, RESULT_SKIP(3));
           return;
       }
@@ -174,7 +174,7 @@ payload5()
   }
 
   if (!ns_timer) {
-      val_print(WARN, "       No non-secure systimer implemented\n");
+      val_print(WARN, "\n       No non-secure systimer implemented");
       val_set_status(index, RESULT_SKIP(5));
       return;
   }

@@ -309,18 +309,18 @@ uint64_t *val_find_pte(pgt_descriptor_t pgt_desc, uint64_t virtual_address)
         val64 = tt_base_virt[index];
 
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: this_level = %d     ",
+                  "\n       val_pgt_get_attributes: this_level = %d",
                   this_level);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: index = %d     ",
+                  "\n       val_pgt_get_attributes: index = %d",
                   index);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: bits_remaining = %d     ",
+                  "\n       val_pgt_get_attributes: bits_remaining = %d",
                   bits_remaining);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: tt_base_virt = %x     ",
+                  "\n       val_pgt_get_attributes: tt_base_virt = %x",
                   (uint64_t)tt_base_virt);
-        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_get_attributes: val64 = %x     ", val64);
+        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_get_attributes: val64 = %x", val64);
         if (this_level == 3)
         {
             if (!IS_PGT_ENTRY_PAGE(val64))
@@ -371,7 +371,7 @@ uint64_t val_pgt_ioremap_attr(pgt_descriptor_t pgt_desc,
         uint64_t *pte = val_find_pte(pgt_desc, a);
 
         if (!pte) {
-            val_print(TRACE, "Cannot find PTE for 0x%lx\n", a);
+            val_print(TRACE, "\n       Cannot find PTE for 0x%lx", a);
             continue;
         }
         flag = 1;
@@ -439,12 +439,12 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
     uint64_t prefill_val;
     uint32_t i, max_entries;
 
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.level: %d     ", tt_desc.level);
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.input_base: 0x%llx     ", tt_desc.input_base);
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.input_top: 0x%llx     ", tt_desc.input_top);
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.output_base: 0x%llx     ", tt_desc.output_base);
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.size_log2: %d     ", tt_desc.size_log2);
-    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.nbits: %d     ", tt_desc.nbits);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.level: %d", tt_desc.level);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.input_base: 0x%llx", tt_desc.input_base);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.input_top: 0x%llx", tt_desc.input_top);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.output_base: 0x%llx", tt_desc.output_base);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.size_log2: %d", tt_desc.size_log2);
+    val_print(PGT_DEBUG_LEVEL, "\n       tt_desc.nbits: %d", tt_desc.nbits);
 
     if (!is_values_init) {
         setup_acs_pgt_values();
@@ -458,7 +458,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         table_index = input_address >> tt_desc.size_log2 & ((0x1ull << tt_desc.nbits) - 1);
         table_desc = &tt_desc.tt_base[table_index];
 
-        val_print(PGT_DEBUG_LEVEL, "\n       table_index = %d     ", table_index);
+        val_print(PGT_DEBUG_LEVEL, "\n       table_index = %d", table_index);
         /* Compute parent block bounds for this level, thereby prevent any overflows */
         parent_block_start = (input_address & ~(block_size - 1));
         parent_block_end   = parent_block_start + block_size - 1;
@@ -470,7 +470,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
             *table_desc = PGT_ENTRY_PAGE_MASK | PGT_ENTRY_VALID_MASK;
             *table_desc |= (output_address & ~(uint64_t)(page_size - 1));
             *table_desc |= mem_desc->attributes;
-            val_print(PGT_DEBUG_LEVEL, "\n       page_descriptor = 0x%llx     ", *table_desc);
+            val_print(PGT_DEBUG_LEVEL, "\n       page_descriptor = 0x%llx", *table_desc);
             /* Keep a count of number of L3 tables filled. If the number exceedes the limit, move
                to next L2 table and continue.  */
             increment_pgt_index(tt_desc.level, get_entries_per_level(page_size));
@@ -486,7 +486,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
             *table_desc = PGT_ENTRY_BLOCK_MASK | PGT_ENTRY_VALID_MASK;
             *table_desc |= (output_address & ~(block_size - 1));
             *table_desc |= mem_desc->attributes;
-            val_print(PGT_DEBUG_LEVEL, "\n       block_descriptor = 0x%llx     ", *table_desc);
+            val_print(PGT_DEBUG_LEVEL, "\n       block_descriptor = 0x%llx", *table_desc);
             increment_pgt_index(tt_desc.level, get_entries_per_level(page_size));
             offset = 0;
             continue;
@@ -502,7 +502,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
             if (tt_base_next_level == NULL)
             {
                 val_print(ERROR,
-                "\n       fill_translation_table: page allocation failed     ");
+                "\n       fill_translation_table: page allocation failed");
                 return ACS_STATUS_ERR;
             }
             val_memory_set(tt_base_next_level, page_size, 0);
@@ -550,8 +550,8 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         filled_tables                 = get_pgt_index(tt_desc.level + 1);
         offset                        = filled_tables * get_block_size(tt_desc.level + 1);
 
-        val_print(PGT_DEBUG_LEVEL, "       filled_tables in next level = 0x%llx", filled_tables);
-        val_print(PGT_DEBUG_LEVEL, "       offset = 0x%llx", offset);
+        val_print(PGT_DEBUG_LEVEL, "\n       filled_tables in next level = 0x%llx", filled_tables);
+        val_print(PGT_DEBUG_LEVEL, "\n       offset = 0x%llx", offset);
 
         tt_desc_next_level.input_top   = get_min(tt_desc.input_top, parent_block_end);
         tt_desc_next_level.output_base = output_address;
@@ -569,7 +569,7 @@ uint32_t fill_translation_table(tt_descriptor_t tt_desc, memory_region_descripto
         *table_desc = PGT_ENTRY_TABLE_MASK | PGT_ENTRY_VALID_MASK;
         *table_desc |= (uint64_t)val_memory_virt_to_phys(tt_base_next_level) &
                        ~(uint64_t)(page_size - 1);
-        val_print(PGT_DEBUG_LEVEL, "\n      table_descriptor = 0x%llx     ", *table_desc);
+        val_print(PGT_DEBUG_LEVEL, "\n       table_descriptor = 0x%llx", *table_desc);
 
         /* Ensure outer loop advances to next parent block boundary */
         if (step_to_next_parent <= block_size)
@@ -620,8 +620,8 @@ uint32_t val_pgt_create(memory_region_descriptor_t *mem_desc, pgt_descriptor_t *
     bits_per_level = page_size_log2 - 3;
     num_pgt_levels = (pgt_desc->ias - page_size_log2 + bits_per_level - 1)/bits_per_level;
     num_pgt_levels = (num_pgt_levels > 4)?4:num_pgt_levels;
-    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_create: nbits_per_level = %d    ", bits_per_level);
-    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_create: page_size_log2 = %d     ", page_size_log2);
+    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_create: nbits_per_level = %d", bits_per_level);
+    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_create: page_size_log2 = %d", page_size_log2);
 
     /* check whether input page descriptor has base addr of translation table
        to use. If the pgt_base member is NULL allocate a page to create a new
@@ -629,7 +629,7 @@ uint32_t val_pgt_create(memory_region_descriptor_t *mem_desc, pgt_descriptor_t *
     if (pgt_desc->pgt_base == (uint64_t) NULL) {
         tt_base = (uint64_t *) val_memory_alloc_pages(1);
         if (tt_base == NULL) {
-            val_print(ERROR, "\n      val_pgt_create: page allocation failed     ");
+            val_print(ERROR, "\n       val_pgt_create: page allocation failed");
             return ACS_STATUS_ERR;
         }
         val_memory_set(tt_base, page_size, 0);
@@ -643,23 +643,23 @@ uint32_t val_pgt_create(memory_region_descriptor_t *mem_desc, pgt_descriptor_t *
     for (mem_desc_iter = mem_desc; mem_desc_iter->length != 0; ++mem_desc_iter)
     {
         val_print(PGT_DEBUG_LEVEL,
-                  "      val_pgt_create: input addr = 0x%x     ",
+                  "\n       val_pgt_create: input addr = 0x%x",
                   mem_desc->virtual_address);
         val_print(PGT_DEBUG_LEVEL,
-                  "      val_pgt_create: output addr = 0x%x     ",
+                  "\n       val_pgt_create: output addr = 0x%x",
                   mem_desc->physical_address);
-        val_print(PGT_DEBUG_LEVEL, "      val_pgt_create: length = 0x%x\n     ", mem_desc->length);
+        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_create: length = 0x%x", mem_desc->length);
         if ((mem_desc->virtual_address & (uint64_t)(page_size - 1)) != 0 ||
             (mem_desc->physical_address & (uint64_t)(page_size - 1)) != 0)
             {
-                val_print(ERROR, "\n       val_pgt_create: addr alignment err     ");
+                val_print(ERROR, "\n       val_pgt_create: addr alignment err");
                 return ACS_STATUS_ERR;
             }
 
         if (mem_desc->physical_address >= (0x1ull << pgt_desc->oas))
         {
             val_print(ERROR,
-                      "\n       val_pgt_create: output address size error     ");
+                      "\n       val_pgt_create: output address size error");
             return ACS_STATUS_ERR;
         }
 
@@ -667,7 +667,7 @@ uint32_t val_pgt_create(memory_region_descriptor_t *mem_desc, pgt_descriptor_t *
         {
             val_print(WARN,
                       "\n       val_pgt_create: input address size error, "
-                      "truncating to %d-bits     ",
+                      "truncating to %d-bits",
                       pgt_desc->ias);
             mem_desc->virtual_address &= ((0x1ull << pgt_desc->ias) - 1);
         }
@@ -730,18 +730,18 @@ uint64_t val_pgt_get_attributes(pgt_descriptor_t pgt_desc, uint64_t virtual_addr
 
         val64 = tt_base_virt[index];
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: this_level = %d     ",
+                  "\n       val_pgt_get_attributes: this_level = %d",
                   this_level);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: index = %d     ",
+                  "\n       val_pgt_get_attributes: index = %d",
                   index);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: bits_remaining = %d     ",
+                  "\n       val_pgt_get_attributes: bits_remaining = %d",
                   bits_remaining);
         val_print(PGT_DEBUG_LEVEL,
-                  "\n       val_pgt_get_attributes: tt_base_virt = %x     ",
+                  "\n       val_pgt_get_attributes: tt_base_virt = %x",
                   (uint64_t)tt_base_virt);
-        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_get_attributes: val64 = %x     ", val64);
+        val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_get_attributes: val64 = %x", val64);
         if (this_level == 3)
         {
             if (!IS_PGT_ENTRY_PAGE(val64))
@@ -808,7 +808,7 @@ void val_pgt_destroy(pgt_descriptor_t pgt_desc)
     if (!pgt_desc.pgt_base)
         return;
 
-    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_destroy: pgt_base = %llx     ", pgt_desc.pgt_base);
+    val_print(PGT_DEBUG_LEVEL, "\n       val_pgt_destroy: pgt_base = %llx", pgt_desc.pgt_base);
     page_size = val_memory_page_size();
     page_size_log2 = log2_page_size(page_size);
     bits_per_level =  page_size_log2 - 3;

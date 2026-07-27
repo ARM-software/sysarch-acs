@@ -40,7 +40,7 @@ val_dma_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_dma_info_table pointer is already NULL");
+                  "\n       g_dma_info_table pointer is already NULL");
     }
 }
 
@@ -56,16 +56,16 @@ val_dma_create_info_table(uint64_t *dma_info_ptr)
 {
 
   if (dma_info_ptr == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return;
   }
-  val_print(TRACE, " Creating DMA INFO table\n");
+  val_print(TRACE, "\n       Creating DMA INFO table");
 
   g_dma_info_table = (DMA_INFO_TABLE *)dma_info_ptr;
 
   pal_dma_create_info_table(g_dma_info_table);
 
-  val_print(INFO, " DMA_INFO: Number of DMA CTRL in PCIe :    %x\n",
+  val_print(INFO, "\n    DMA_INFO: Number of DMA CTRL in PCIe :    %x",
                                                             val_dma_get_info(DMA_NUM_CTRL, 0));
 }
 
@@ -85,12 +85,12 @@ val_dma_get_info(DMA_INFO_e type, uint32_t index)
 
   if (g_dma_info_table == NULL)
   {
-      val_print(DEBUG, "GET_DMA_INFO: DMA info table is not created\n");
+      val_print(DEBUG, "\n       GET_DMA_INFO: DMA info table is not created");
       return 0;
   }
   if (index > g_dma_info_table->num_dma_ctrls)
   {
-      val_print(ERROR, "GET_DMA_INFO: Index (%d) is greater than num of DMA\n", index);
+      val_print(ERROR, "\n       GET_DMA_INFO: Index (%d) greater than num of DMA", index);
       return 0;
   }
 
@@ -118,7 +118,7 @@ val_dma_get_info(DMA_INFO_e type, uint32_t index)
           return ((uint64_t)g_dma_info_table->info[index].flags & (PCI_EP_MASK));
 
       default:
-          val_print(ERROR, "This DMA info option not supported %d\n", type);
+          val_print(ERROR, "\n       This DMA info option not supported %d", type);
           break;
   }
 

@@ -68,7 +68,7 @@ payload(void)
             }
             val_print(ERROR, "\n       The DMA addr allocated to device %d ",
                     target_dev_index);
-            val_print(ERROR, "\n       is not present in the SMMU IOVA table\n");
+            val_print(ERROR, "\n       is not present in the SMMU IOVA table");
             val_set_status(index, RESULT_FAIL(target_dev_index));
             return;
           }

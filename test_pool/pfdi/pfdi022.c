@@ -78,7 +78,7 @@ static void payload_invalid_pe_feature_check(void *arg)
   g_pfdi_invalid_feature = (PFDI_INVAL_RETURNS *)
                             val_memory_calloc(num_pe, sizeof(PFDI_INVAL_RETURNS));
   if (g_pfdi_invalid_feature == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Invalid Feature Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Invalid Feature Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

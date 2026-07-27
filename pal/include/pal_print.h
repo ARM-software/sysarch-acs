@@ -52,11 +52,57 @@ void pal_uart_print(int log, const char *fmt, ...);
 #elif defined(TARGET_UEFI)
 #include <Library/UefiLib.h>
 
+#define PAL_LOG_MSG_INDENT 7
+
+static inline void pal_print_log_indent(void)
+{
+    uint32_t i;
+
+    for (i = 0; i < acs_policy_get_log_indent(); i++)
+        Print(L"    ");
+}
+
+static inline void pal_print_log_prefix(uint32_t verbose)
+{
+    switch (verbose) {
+    case ACS_PRINT_INFO:
+    case ACS_PRINT_DEBUG:
+        Print(L"   ");
+        break;
+    case ACS_PRINT_WARN:
+        Print(L"   WARN : ");
+        break;
+    case ACS_PRINT_ERR:
+        Print(L"   ERROR: ");
+        break;
+    case ACS_PRINT_TEST:
+    default:
+        break;
+    }
+}
+
 #define PAL_PRINT_FORMAT(verbose, string, ...) \
     PAL_PRINT_IF((verbose), Print((string), ##__VA_ARGS__))
 
 #define PAL_PRINT_LITERAL(verbose, string, ...) \
-    PAL_PRINT_IF((verbose), Print(L"" string, ##__VA_ARGS__))
+    do { \
+        if ((verbose) >= acs_policy_get_print_level()) { \
+            const CHAR16 *_pal_fmt = L"" string; \
+            uint32_t _pal_i; \
+            bool _pal_new_record = (*_pal_fmt == L'\n'); \
+            while (*_pal_fmt == L'\n') { \
+                Print(L"\n"); \
+                _pal_fmt++; \
+            } \
+            if (_pal_new_record) { \
+                for (_pal_i = 0; _pal_i < PAL_LOG_MSG_INDENT && *_pal_fmt == L' '; _pal_i++) \
+                    _pal_fmt++; \
+                pal_print_log_indent(); \
+                pal_print_log_prefix((verbose)); \
+            } \
+            Print(_pal_fmt, ##__VA_ARGS__); \
+        } \
+    } while (0)
 #else
 #error "pal_print.h requires TARGET_BAREMETAL or TARGET_UEFI"
 #endif

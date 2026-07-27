@@ -577,8 +577,8 @@ command_init ()
 }
 
 #define BSA_LEVEL_PRINT_FORMAT(level, only) ((level > BSA_MAX_LEVEL_SUPPORTED) ? \
-    ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
+    ((only) != 0 ? "\nStarting tests for only level FR " : "\nStarting tests for level FR ") : \
+    ((only) != 0 ? "\nStarting tests for only level %2d " : "\nStarting tests for level %2d "))
 
 VOID FlushImage (VOID)
 {
@@ -709,7 +709,7 @@ execute_tests()
   UINT32             Status;
 
   val_print(INFO, "\n\n BSA Architecture Compliance Suite");
-  val_print(INFO, "\n          Version %d.", BSA_ACS_MAJOR_VER);
+  val_print(INFO, "\n        Version %d.", BSA_ACS_MAJOR_VER);
   val_print(INFO, "%d.", BSA_ACS_MINOR_VER);
   val_print(INFO, "%d\n", BSA_ACS_SUBMINOR_VER);
 

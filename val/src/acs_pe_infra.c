@@ -57,22 +57,22 @@ val_pe_create_info_table(uint64_t *pe_info_table)
       return ACS_STATUS_ERR;
 
   if (gPsciConduit == CONDUIT_UNKNOWN) {
-      val_print(WARN, " FADT not found, assuming SMC as PSCI conduit\n");
+      val_print(WARN, "\n       FADT not found, assuming SMC as PSCI conduit");
       gPsciConduit = CONDUIT_SMC;
   } else if (gPsciConduit == CONDUIT_NONE) {
-      val_print(WARN, " PSCI not supported, assuming SMC as conduit for tests\n");
-      val_print(WARN, " Multi-PE and wakeup tests likely to fail\n");
+      val_print(WARN, "\n       PSCI not supported, assuming SMC as conduit for tests");
+      val_print(WARN, "\n       Multi-PE and wakeup tests likely to fail");
       gPsciConduit = CONDUIT_SMC;
   } else if (gPsciConduit == CONDUIT_HVC) {
-      val_print(TRACE, " Using HVC as PSCI conduit\n");
+      val_print(TRACE, "\n       Using HVC as PSCI conduit");
   } else {
-      val_print(TRACE, " Using SMC as PSCI conduit\n");
+      val_print(TRACE, "\n       Using SMC as PSCI conduit");
   }
 
-  val_print(TRACE, " Creating PE INFO table\n");
+  val_print(TRACE, "\n       Creating PE INFO table");
 
   if (pe_info_table == NULL) {
-      val_print(ERROR, "Input memory for PE Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input memory for PE Info table cannot be NULL");
       return ACS_STATUS_ERR;
   }
 
@@ -81,7 +81,7 @@ val_pe_create_info_table(uint64_t *pe_info_table)
   pal_pe_create_info_table(g_pe_info_table);
   val_data_cache_ops_by_va((addr_t)&g_pe_info_table, CLEAN_AND_INVALIDATE);
 
-  val_print(INFO, " PE_INFO: Number of PE detected       : %4d\n", val_pe_get_num());
+  val_print(INFO, "\nPE_INFO: Number of PE detected       : %4d", val_pe_get_num());
 
   if (val_pe_get_num() == 0) {
       val_print(ERROR, "\n *** CRITICAL ERROR: Num PE is 0x0 ***\n");
@@ -89,7 +89,7 @@ val_pe_create_info_table(uint64_t *pe_info_table)
   }
 
 #ifndef TARGET_LINUX
-val_print(INFO, " Primary PE: MIDR_EL1                 :    0x%llx \n",
+val_print(INFO, "\nPrimary PE: MIDR_EL1                 :    0x%llx",
                                                                      val_pe_reg_read(MIDR_EL1));
 #endif
 
@@ -101,7 +101,7 @@ val_print(INFO, " Primary PE: MIDR_EL1                 :    0x%llx \n",
 
       g_primary_pe_index = val_pe_get_index_mpid(g_primary_mpidr);
   }
-  val_print(DEBUG, " PE_INFO: Primary PE index       : %4d\n",
+  val_print(DEBUG, "\nPE_INFO: Primary PE index       : %4d",
             g_primary_pe_index);
 
   return ACS_STATUS_PASS;
@@ -266,7 +266,7 @@ val_execute_on_pe(uint32_t index, void (*payload)(void), uint64_t test_input)
 
   int timeout = TIMEOUT_LARGE;
   if (index > g_pe_info_table->header.num_of_pe) {
-      val_print(ERROR, "Input Index exceeds Num of PE %x\n", index);
+      val_print(ERROR, "\n       Input Index exceeds Num of PE %x", index);
       val_report_status(index, RESULT_FAIL(0xFF), NULL);
       return;
   }
@@ -317,7 +317,7 @@ val_pe_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *))
 {
 
   if (exception_type > 3) {
-      val_print(ERROR, "Invalid Exception type %x\n", exception_type);
+      val_print(ERROR, "\n       Invalid Exception type %x", exception_type);
       return ACS_STATUS_ERR;
   }
 #ifndef TARGET_LINUX
@@ -505,17 +505,17 @@ val_pe_get_primary_index(void)
 void
 val_smbios_create_info_table(uint64_t *smbios_info_table)
 {
-  val_print(TRACE, " Creating SMBIOS INFO table\n");
+  val_print(TRACE, "\n       Creating SMBIOS INFO table");
 
   if (smbios_info_table == NULL) {
-    val_print(ERROR, "Input memory for SMBIOS Info table cannot be NULL\n");
+    val_print(ERROR, "\n       Input memory for SMBIOS Info table cannot be NULL");
     return;
   }
 
   g_smbios_info_table = (PE_SMBIOS_PROCESSOR_INFO_TABLE *)smbios_info_table;
 
   pal_smbios_create_info_table(g_smbios_info_table);
-  val_print(INFO, " SMBIOS: Num of slots                 : %4d\n",
+  val_print(INFO, "\nSMBIOS: Num of slots                 : %4d",
             g_smbios_info_table->slot_count);
 }
 

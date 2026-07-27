@@ -232,7 +232,7 @@ val_peripheral_dump_info(void)
       {
           if (pal_pcie_check_bus_valid(bus)) {
               val_print(DEBUG,
-               "       Bus 0x%x marked as invalid in Platform API...Skipping\n", bus);
+               "\n       Bus 0x%x marked as invalid in Platform API...Skipping", bus);
               continue;
           }
 
@@ -262,9 +262,9 @@ val_peripheral_dump_info(void)
   }
 
 
-  val_print(DEBUG, "\n Peripheral: Num of Network ctrl      :    %d\n", ntwk);
-  val_print(DEBUG, " Peripheral: Num of Storage ctrl      :    %d\n", strg);
-  val_print(DEBUG, " Peripheral: Num of Display ctrl      :    %d\n", dply);
+  val_print(DEBUG, "\nPeripheral: Num of Network ctrl      :    %d", ntwk);
+  val_print(DEBUG, "\nPeripheral: Num of Storage ctrl      :    %d", strg);
+  val_print(DEBUG, "\nPeripheral: Num of Display ctrl      :    %d", dply);
 
 }
 
@@ -290,15 +290,15 @@ val_peripheral_create_info_table(uint64_t *peripheral_info_table)
 {
 
   g_peripheral_info_table = (PERIPHERAL_INFO_TABLE *)peripheral_info_table;
-  val_print(TRACE, " Creating PERIPHERAL INFO table\n");
+  val_print(TRACE, "\n       Creating PERIPHERAL INFO table");
 
   pal_peripheral_create_info_table(g_peripheral_info_table);
 
-  val_print(INFO, " Peripheral: Num of USB controllers   :    %d\n",
+  val_print(INFO, "\nPeripheral: Num of USB controllers   :    %d",
     val_peripheral_get_info(NUM_USB, 0));
-  val_print(INFO, " Peripheral: Num of SATA controllers  :    %d\n",
+  val_print(INFO, "\nPeripheral: Num of SATA controllers  :    %d",
     val_peripheral_get_info(NUM_SATA, 0));
-  val_print(INFO, " Peripheral: Num of UART controllers  :    %d\n",
+  val_print(INFO, "\nPeripheral: Num of UART controllers  :    %d",
     val_peripheral_get_info(NUM_UART, 0));
 
   if (acs_policy_get_print_level() <= TRACE)

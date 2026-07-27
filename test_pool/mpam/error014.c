@@ -80,7 +80,7 @@ payload(void)
         /* CSU/MBWU monitors are required to generate the second error.
            Skip MSC if mon not present */
         if (mon_count == 0) {
-            val_print(WARN, "\n       Cannot generate second error. Skipping MSC\n");
+            val_print(WARN, "\n       Cannot generate second error. Skipping MSC");
             continue;
         }
 

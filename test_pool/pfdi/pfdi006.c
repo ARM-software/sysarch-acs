@@ -53,7 +53,7 @@ static void payload_pe_test_info_check(void *arg)
   g_pfdi_pe_test_support_info =
         (PFDI_RET_PARAMS *)val_memory_calloc(num_pe, sizeof(PFDI_RET_PARAMS));
   if (g_pfdi_pe_test_support_info == NULL) {
-      val_print(ERROR, "\n       Allocation for PFDI PE Test Support Info Failed \n");
+      val_print(ERROR, "\n       Allocation for PFDI PE Test Support Info Failed");
       return;
   }
 

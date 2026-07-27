@@ -6,8 +6,11 @@
  */
 
 #include "val_logger.h"
+#include "acs_execution_policy.h"
 
 enum { LOG_MAX_STRING_LENGTH = 90 };
+enum { LOG_MSG_INDENT = 7 };
+enum { LOG_INDENT_WIDTH = 4 };
 
 static bool collect_log_output;
 static char collected_log[LOG_MAX_STRING_LENGTH * 2];
@@ -148,6 +151,37 @@ static size_t print_raw_string(const char *str)
     }
 
     return (size_t)(c - str);
+}
+
+static void skip_log_indent(const char **msg)
+{
+    uint32_t i;
+
+    for (i = 0; i < LOG_MSG_INDENT && **msg == ' '; i++)
+        (*msg)++;
+}
+
+uint32_t val_log_get_indent(void)
+{
+    return acs_policy_get_log_indent();
+}
+
+void val_log_set_indent(uint32_t indent)
+{
+    acs_policy_set_log_indent(indent);
+}
+
+static size_t print_log_indent(void)
+{
+    static const char indent_unit[LOG_INDENT_WIDTH + 1] = "    ";
+    size_t chars_written = 0;
+    uint32_t i;
+    uint32_t indent = acs_policy_get_log_indent();
+
+    for (i = 0; i < indent; i++)
+        chars_written += print_raw_string(indent_unit);
+
+    return chars_written;
 }
 
 /**
@@ -682,27 +716,29 @@ out:
 uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
 {
     int chars_written = 0;
-    static bool lastWasNewline = true;
-    static bool prefixPrinted;
+    int log_result;
     char formatted_msg[LOG_MAX_STRING_LENGTH];
+    bool new_log_record;
     va_list args;
 
     if (msg == NULL)
+        return 0;
+
+    if (*msg == '\0')
         return 0;
 
     collect_log_output = true;
     collected_log_len = 0;
     collected_log[0] = '\0';
 
-    /* New line => allow prefix again */
-    if (lastWasNewline)
-        prefixPrinted = false;
+    new_log_record = (*msg == '\n');
 
-    /* Emit any leading blank lines cleanly (and don't prefix blank lines) */
+    /*
+     * Keep the legacy leading-newline convention. Caller-supplied newlines
+     * are explicit spacing; do not synthesize a leading newline for callers.
+     */
     while (*msg == '\n') {
-        print_raw_string("\r\n");
-        lastWasNewline = true;
-        prefixPrinted  = false;
+        chars_written += (int)print_raw_string("\r\n");
         msg++;
     }
 
@@ -714,32 +750,33 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
         return 0;
     }
 
-    /* Print prefix exactly once per logical line (supports multi-call line assembly) */
-    if (!prefixPrinted) {
+    /* Only messages that start with a caller-supplied newline start a log record. */
+    if (new_log_record) {
+        skip_log_indent(&msg);
+        chars_written += (int)print_log_indent();
+
         switch (verbosity)
         {
             case TRACE:
-                 print_raw_string("\t");
+                 chars_written += (int)print_raw_string("   ");
                  break;
             case DEBUG:
-                 print_raw_string("\t");
+                 chars_written += (int)print_raw_string("   ");
                  break;
             case INFO:
-                 print_raw_string("");
                  break;
             case WARN:
-                 print_raw_string("\tWARN : ");
+                 chars_written += (int)print_raw_string("   WARN : ");
                  break;
             case ERROR:
-                 print_raw_string("\tERROR: ");
+                 chars_written += (int)print_raw_string("   ERROR: ");
                  break;
             case FATAL:
-                 print_raw_string("\tFATAL: ");
+                 chars_written += (int)print_raw_string("   FATAL: ");
                  break;
             default:
                  break;
         }
-        prefixPrinted = true;
     }
 
     /* Bounded scan: we only safely inspect up to N-2 chars */
@@ -750,7 +787,7 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
 
     /*
      * 3 cases:
-     *  A) msg ends with '\n' convert final LF to CRLF
+     *  A) msg ends with '\n', convert final LF to CRLF
      *  B) msg is likely longer than buffer size => truncate to N-3 and force CRLF
      *  C) short msg without '\n'
      */
@@ -763,9 +800,12 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
         formatted_msg[len]     = '\n';
         formatted_msg[len + 1] = '\0';
 
-        chars_written = val_log(formatted_msg, args);
-        lastWasNewline = true;
-        prefixPrinted  = false;
+        log_result = val_log(formatted_msg, args);
+        if (log_result < 0) {
+            chars_written = log_result;
+        } else {
+            chars_written += log_result;
+        }
     }
     /* Case B: likely truncated (no '\0' found within max_scan) */
     else if (len == max_scan)
@@ -786,15 +826,17 @@ uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...)
 
         chars_written += (int)print_raw_string(trunc_msg);
 
-        lastWasNewline = true;
-        prefixPrinted  = false;  /* next line should get prefix */
      }
 
     /* Case C: short, no trailing '\n' */
     else
     {
-        chars_written = val_log(msg, args);
-        lastWasNewline = false;
+        log_result = val_log(msg, args);
+        if (log_result < 0) {
+            chars_written = log_result;
+        } else {
+            chars_written += log_result;
+        }
     }
 
     va_end(args);

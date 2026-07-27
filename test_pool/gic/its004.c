@@ -77,7 +77,7 @@ payload()
       curr_grp_its_id = 0xFFFFFFFF;
       curr_smmu_id = 0xFFFFFFFF;
       curr_seg_num = 0xFFFFFFFF;
-      val_print(TRACE, "\n   BDF is  : 0x%x\n", bdf);
+      val_print(TRACE, "\n       BDF is  : 0x%x", bdf);
 
       smmu_id = val_iovirt_get_rc_smmu_index(seg_num, PCIE_CREATE_BDF_PACKED(bdf));
       if (smmu_id == ACS_INVALID_INDEX) {

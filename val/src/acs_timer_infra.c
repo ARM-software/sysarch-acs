@@ -136,10 +136,10 @@ val_timer_create_info_table(uint64_t *timer_info_table)
   uint64_t freq_mhz;
 
   if (timer_info_table == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return;
   }
-  val_print(TRACE, " Creating TIMER INFO table\n");
+  val_print(TRACE, "\n       Creating TIMER INFO table");
 
   g_timer_info_table = (TIMER_INFO_TABLE *)timer_info_table;
 
@@ -158,13 +158,13 @@ val_timer_create_info_table(uint64_t *timer_info_table)
     freq_mhz = freq_mhz/1000;
     if (freq_mhz > 1000) {
       freq_mhz = freq_mhz/1000;
-      val_print(INFO, " TIMER_INFO: System Counter frequency :    %ld MHz\n", freq_mhz);
+      val_print(INFO, "\nTIMER_INFO: System Counter frequency :    %ld MHz", freq_mhz);
     } else {
-      val_print(INFO, " TIMER_INFO: System Counter frequency :    %ld KHz\n", freq_mhz);
+      val_print(INFO, "\nTIMER_INFO: System Counter frequency :    %ld KHz", freq_mhz);
     }
   }
 
-  val_print(INFO, " TIMER_INFO: Number of system timers  : %4d\n",
+  val_print(INFO, "\nTIMER_INFO: Number of system timers  : %4d",
                                             g_timer_info_table->header.num_platform_timer);
   timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
 
@@ -177,7 +177,7 @@ val_timer_create_info_table(uint64_t *timer_info_table)
       gt_entry = val_timer_get_info(TIMER_INFO_SYS_CNTL_BASE, timer_num);
       timer_entry = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
 
-      val_print(DEBUG, "   Add entry %lx entry in memmap", gt_entry);
+      val_print(DEBUG, "\n       Add entry %lx entry in memmap", gt_entry);
       if (val_mmu_update_entry(gt_entry, 0x10000, DEVICE_nGnRnE))
           val_print(WARN, "\n   Adding %lx entry failed", gt_entry);
 

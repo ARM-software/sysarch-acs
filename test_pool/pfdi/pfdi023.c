@@ -84,7 +84,7 @@ static void payload_invalid_pe_test_id_check(void *arg)
   g_pfdi_invalid_pe_test_id = (PFDI_INVAL_RETURNS *)
                             val_memory_calloc(num_pe, sizeof(PFDI_INVAL_RETURNS));
   if (g_pfdi_invalid_pe_test_id == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Invalid PE Test ID Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Invalid PE Test ID Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

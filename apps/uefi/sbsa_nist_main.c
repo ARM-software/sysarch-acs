@@ -50,8 +50,8 @@ SHELL_FILE_HANDLE g_acs_log_file_handle;
 UINT32  g_build_sbsa = TRUE;
 
 #define SBSA_LEVEL_PRINT_FORMAT(level, only) ((level > SBSA_MAX_LEVEL_SUPPORTED) ? \
-    ((only) != 0 ? "\n Starting tests for only level FR " : "\n Starting tests for level FR ") : \
-    ((only) != 0 ? "\n Starting tests for only level %2d " : "\n Starting tests for level %2d "))
+    ((only) != 0 ? "\nStarting tests for only level FR " : "\nStarting tests for level FR ") : \
+    ((only) != 0 ? "\nStarting tests for only level %2d " : "\nStarting tests for level %2d "))
 
 VOID FlushImage (VOID)
 {

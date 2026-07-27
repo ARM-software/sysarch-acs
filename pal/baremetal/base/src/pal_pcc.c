@@ -36,7 +36,7 @@ pal_pcc_dump_info_table(PCC_INFO_TABLE *PccInfoTable)
 
   if (PccInfoTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "\nUnable to dump PCC info table, input pointer is NULL\n");
+                    "\n       Unable to dump PCC info table, input pointer is NULL");
       return;
   }
 
@@ -106,7 +106,7 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
 
   if (PccInfoTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Unable to create PCC info table, input pointer is NULL\n");
+                  "\n       Unable to create PCC info table, input pointer is NULL");
     return;
   }
 

@@ -200,7 +200,7 @@ execute_tests()
 
     /* Print ACS header */
     val_print(INFO, "\n\nxBSA Architecture Compliance Suite");
-    val_print(INFO, "\n          Version %d.", XBSA_ACS_MAJOR_VER);
+    val_print(INFO, "\n        Version %d.", XBSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", XBSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", XBSA_ACS_SUBMINOR_VER);
     val_print(INFO, "(Print level is %2d)\n\n", acs_policy_get_print_level());

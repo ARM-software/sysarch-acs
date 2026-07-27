@@ -53,6 +53,16 @@ uint32_t acs_policy_get_print_mmio(void)
     return g_execution_policy.print_mmio;
 }
 
+uint32_t acs_policy_get_log_indent(void)
+{
+    return g_execution_policy.log_indent;
+}
+
+void acs_policy_set_log_indent(uint32_t indent)
+{
+    g_execution_policy.log_indent = indent;
+}
+
 uint32_t acs_policy_get_pcie_p2p(void)
 {
     return g_execution_policy.pcie_p2p;

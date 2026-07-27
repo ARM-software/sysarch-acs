@@ -50,12 +50,12 @@ pal_target_is_dt()
   Status = gBS->LocateProtocol (&gHardwareInterruptProtocolGuid, NULL, (VOID **)&Interrupt);
   if (EFI_ERROR(Status)) {
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Using ACS interrupt API's\n");
+                    "\n       Using ACS interrupt API's");
       return 1; /* Not able to locate HW Interrupt Protocol, use ACS interrupt handlers API */
   }
   else {
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Using F/W interrupt API's\n");
+                    "\n       Using F/W interrupt API's");
       return 0; /* Use F/W interrupt handlers */
   }
 }
@@ -77,7 +77,7 @@ pal_get_dt_ptr()
     if (CompareGuid (&gFdtTableGuid, &(gST->ConfigurationTable[Index].VendorGuid))) {
       DTB = gST->ConfigurationTable[Index].VendorTable;
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Platform DTB PTR %x\n",
+                    "\n       Platform DTB PTR %x",
                     DTB);
       break;
     }
@@ -85,13 +85,13 @@ pal_get_dt_ptr()
 
   if (!DTB) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " DTB not present in platform\n");
+                  "\n       DTB not present in platform");
     return 0; //No fdt blob addr found
   }
 
   if (fdt_check_header(DTB)) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " fdt hdr check failed\n");
+                  "\n       fdt hdr check failed");
     return 0;
   }
 
@@ -151,7 +151,7 @@ int fdt_interrupt_cells(const void *fdt, int nodeoffset)
 
   if (nodeoffset < 0) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  No interrupt cell found\n");
+                    "\n       No interrupt cell found");
       return 3; /* default value 3*/
   }
 
@@ -206,12 +206,12 @@ pal_dump_dtb()
     BufferSize = fdt_totalsize(dtb);
     if (!BufferSize) {
         pal_print_msg(ACS_PRINT_ERR,
-                      " dtb size 0\n");
+                      "\n       dtb size 0");
         return;
     }
     Status = ShellWriteFile(g_dtb_log_file_handle, &BufferSize, (VOID *)dtb);
     if (EFI_ERROR(Status))
       pal_print_msg(ACS_PRINT_ERR,
-                    " Error in writing to dtb log file\n");
+                    "\n       Error in writing to dtb log file");
   }
 }

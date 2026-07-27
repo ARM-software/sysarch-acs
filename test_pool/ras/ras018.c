@@ -110,13 +110,13 @@ payload()
 
         if (!dev_addr) {
             val_print(ERROR,
-                      "\n       Failed to obtain Device memory address.\n");
+                      "\n       Failed to obtain Device memory address.");
             val_set_status(index, RESULT_FAIL(01));
             return;
         }
 
         val_print(TRACE,
-                  "\n       Using Device memory address: 0x%llx\n", dev_addr);
+                  "\n       Using Device memory address: 0x%llx", dev_addr);
 
         /* Install sync and async handlers to handle exceptions.*/
         status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
@@ -183,7 +183,7 @@ payload()
 
     if (usable_node_cnt == 0) {
         val_print(TRACE,
-                  "\n       No usable MMIO RAS nodes -- skipping test.\n");
+                  "\n       No usable MMIO RAS nodes -- skipping test.");
         val_set_status(index, RESULT_SKIP(01));
         return;
     }

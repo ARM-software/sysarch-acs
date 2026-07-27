@@ -34,7 +34,7 @@ isr_failsafe()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   val_timer_set_phy_el1(0);
-  val_print(ERROR, "       Received Failsafe interrupt\n");
+  val_print(ERROR, "\n       Received Failsafe interrupt");
   g_failsafe_int_rcvd = 1;
   /* On some system the failsafe is rcvd just after test interrupt and resulting
      in incorrect fail, to avoid this ensure set test as fail only when failsafe
@@ -57,13 +57,13 @@ isr3()
 
   /* We received our interrupt, so disable timer from generating further interrupts */
   val_timer_set_phy_el2(0);
-  val_print(TRACE, "       Received EL2 Physical interrupt\n");
+  val_print(TRACE, "\n       Received EL2 Physical interrupt");
   g_el2phy_int_rcvd = 1;
   val_set_status(index, RESULT_PASS);
   intid = val_timer_get_info(TIMER_INFO_PHY_EL2_INTID, 0);
   val_gic_end_of_interrupt(intid);
   val_timer_set_phy_el1(0);
-  val_print(DEBUG, "       Clear Failsafe interrupt\n");
+  val_print(DEBUG, "\n       Clear Failsafe interrupt");
 }
 
 static

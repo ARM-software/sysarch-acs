@@ -59,7 +59,7 @@ static void payload_functions_check(void *arg)
   /* Allocate memory to save all PFDI features status for all PE's */
   g_pfdi_feature_details = (feature_details *) val_memory_calloc(num_pe, sizeof(feature_details));
   if (g_pfdi_feature_details == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Feature Details Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Feature Details Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

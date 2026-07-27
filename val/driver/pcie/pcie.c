@@ -50,7 +50,7 @@ uint32_t pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
         val_pcie_read_cfg(bdf, HEADER_OFFSET, &header_value);
         if (PCIE_HEADER_TYPE(header_value) == TYPE1_HEADER)
         {
-            val_print(TRACE, " TYPE1 HEADER found\n");
+            val_print(TRACE, "\nTYPE1 HEADER found");
             val_pcie_write_cfg(bdf, BUS_NUM_REG_OFFSET, BUS_NUM_REG_CFG(0xFF, sec_bus, bus));
             sub_bus = pcie_enumerate_device(sec_bus, (sec_bus+1));
             val_pcie_write_cfg(bdf, BUS_NUM_REG_OFFSET, BUS_NUM_REG_CFG(sub_bus, sec_bus, bus));
@@ -59,7 +59,7 @@ uint32_t pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
 
         if (PCIE_HEADER_TYPE(header_value) == TYPE0_HEADER)
         {
-            val_print(TRACE, " END POINT found\n");
+            val_print(TRACE, "\nEND POINT found");
             sub_bus = sec_bus - 1;
         }
 
@@ -77,6 +77,6 @@ uint32_t pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
 **/
 void val_bsa_pcie_enumerate(void)
 {
-  val_print(TRACE, "\n Starting Enumeration\n");
+  val_print(TRACE, "\n       Starting Enumeration");
   pcie_enumerate_device(PRI_BUS, SEC_BUS);
 }

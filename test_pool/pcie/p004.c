@@ -230,12 +230,12 @@ payload(void)
 
            val_pcie_bar_mem_read(bdf, new_mem_lim + MEM_OFFSET_SMALL, &value);
            ur_status = val_pcie_is_urd(bdf);
-           val_print(DEBUG, "       Value read is 0x%llx, UR status is %d", value, ur_status);
+           val_print(DEBUG, "\n       Value read is 0x%llx, UR status is %d", value, ur_status);
            if (!ur_status)
            {
                val_print(ERROR,
                      "\n       UR response not obtained for out of range access on bdf 0x%x", bdf);
-               val_print(ERROR, " Range register value 0x%x", read_value);
+               val_print(ERROR, "\n Range register value 0x%x", read_value);
                val_print(ERROR, "\n       Out of range 0x%llx",
                                     (new_mem_lim + MEM_OFFSET_SMALL));
                val_set_status(pe_index, RESULT_FAIL(03));

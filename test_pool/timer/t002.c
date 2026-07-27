@@ -43,8 +43,7 @@ payload()
         (val_timer_get_info(TIMER_INFO_VIR_EL1_FLAGS, 0) & BSA_TIMER_FLAG_ALWAYS_ON)) {
           val_set_status(index, RESULT_PASS);
       } else {
-          val_print(ERROR, "\n       PE Timers are not always-on\n"
-                                   "       And no system wake up timer");
+          val_print(ERROR, "\n       PE Timers are not always-on And no system wake up timer");
           val_set_status(index, RESULT_FAIL(1));
       }
   } else {

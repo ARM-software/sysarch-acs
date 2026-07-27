@@ -68,8 +68,8 @@ check_prerequisite_nist(void)
       snprintf(file_name[i], 20, "tmp_%d.txt", i);
       fp[i] = fopen(file_name[i], "wb");
       if (fp[i] == NULL) {
-          val_print(ERROR, "\nMax # of opened files has been reached. "
-                                   "NIST prerequistite failed: %d", i);
+          val_print(ERROR, "\n       Max # of opened files has been reached."
+                           "NIST prerequistite failed: %d", i);
           status = ACS_STATUS_FAIL;
           break;
       }
@@ -99,7 +99,7 @@ print_nist_result(void)
   fptr = fopen(filename, "r");
   if (fptr == NULL)
   {
-      val_print(ERROR, "Cannot open file\n");
+      val_print(ERROR, "\n       Cannot open file");
       return ACS_STATUS_FAIL;
   }
 
@@ -115,7 +115,7 @@ print_nist_result(void)
 
       /* Print line read on cosole*/
       //ToDo: Print using val_print
-      //val_print(INFO, "%s\n", buffer);
+      //val_print(INFO, "\n       %s", buffer);
       printf("%s\n", buffer);
   }
 

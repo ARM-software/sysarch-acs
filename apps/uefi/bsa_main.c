@@ -163,7 +163,7 @@ execute_tests()
     }
 
     val_print(INFO, "\n\n BSA Architecture Compliance Suite");
-    val_print(INFO, "\n          Version %d.", BSA_ACS_MAJOR_VER);
+    val_print(INFO, "\n        Version %d.", BSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", BSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", BSA_ACS_SUBMINOR_VER);
 

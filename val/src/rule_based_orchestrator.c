@@ -41,7 +41,7 @@ static uint32_t check_rule_support(RULE_ID_e rule_id)
 {
     uint8_t plat_bitmask = rule_test_map[rule_id].platform_bitmask;
 
-   // val_print(ERROR, "\n plat_bitmask %x", plat_bitmask);
+   // val_print(ERROR, "\n       plat_bitmask %x", plat_bitmask);
 
     if (!(g_current_pal & plat_bitmask)) {
         /* Report if rule is not supported by ACS across all available PALs*/
@@ -192,18 +192,19 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
     uint32_t child_rule_status;
     uint32_t precheck_status;
     uint32_t rule_support_status;
+    uint32_t old_log_indent;
     RULE_ID_e child_rule_id;
     const RULE_ID_e *child_rule_list;
 
     /* Detect accidental alias cycles such as A -> B -> A before descending */
     if (rule_reference_path_contains(rule_id)) {
-        val_print(ERROR, " Recursive alias reference detected for rule: ");
+        val_print(ERROR, "\n       Recursive alias reference detected for rule: ");
         val_print(ERROR, rule_id_string[rule_id]);
         return RESULT_FAIL(1);
     }
 
     if (!rule_reference_path_push(rule_id)) {
-        val_print(ERROR, " Rule reference path depth exceeded for rule: ");
+        val_print(ERROR, "\n       Rule reference path depth exceeded for rule: ");
         val_print(ERROR, rule_id_string[rule_id]);
         return RESULT_FAIL(1);
     }
@@ -233,15 +234,18 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
     if (rule_test_map[rule_id].flag == ALIAS_RULE) {
         alias_rule_map_index = alias_rule_map_get_index(rule_id);
         if (alias_rule_map_index == INVALID_IDX) {
-            val_print(ERROR, " alias map index not found for rule id: 0x%x", rule_id);
+            val_print(ERROR, "\n       alias map index not found for rule id: 0x%x", rule_id);
             rule_test_status = RESULT_FAIL(1);
             goto exit_rule;
         }
 
         /* Execute any precheck required by the alias rule */
         if (rule_test_map[rule_id].test_entry_id != NULL_ENTRY) {
+            old_log_indent = val_log_get_indent();
+            val_log_set_indent(indent);
             precheck_status =
                 test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+            val_log_set_indent(old_log_indent);
 
             if (GET_STATE(precheck_status) == TEST_FAIL) {
                 rule_test_status = RESULT_SKIP(0);
@@ -300,8 +304,11 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
         print_alias_walk_banner(rule_id, indent, 0);
     } else if (rule_test_map[rule_id].flag == BASE_RULE) {
         if (test_entry_func_table[rule_test_map[rule_id].test_entry_id] != NULL) {
+            old_log_indent = val_log_get_indent();
+            val_log_set_indent(indent);
             rule_test_status =
                 test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+            val_log_set_indent(old_log_indent);
         } else {
             val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
             rule_test_status = RESULT_FAIL(1);

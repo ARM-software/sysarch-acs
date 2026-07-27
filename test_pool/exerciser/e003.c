@@ -239,7 +239,7 @@ cfgspace_transactions_order_check(void)
     /* If exerciser doesn't have PCI_CAP skip the bdf */
     if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cid_offset) == PCIE_CAP_NOT_FOUND) {
         val_print(DEBUG,
-            "\n        PCIe Express Capability not found. Skipping exerciser 0x%x", bdf);
+            "\n       PCIe Express Capability not found. Skipping exerciser 0x%x", bdf);
         continue;
     }
 

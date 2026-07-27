@@ -100,7 +100,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
   SmbiosTable->slot_count = platform_smbios_cfg.slot_count;
   if (SmbiosTable->slot_count == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "SMBIOS Table Not Found\n",
+                  "\n       SMBIOS Table Not Found",
                   0);
     return;
   }
@@ -140,7 +140,7 @@ PalAllocateSecondaryStack(uint64_t mpidr)
       gSecondaryPeStack = pal_aligned_alloc(MEM_ALIGN_4K, NumPe * SIZE_STACK_SECONDARY_PE);
       if (gSecondaryPeStack == NULL){
           pal_print_msg(ACS_PRINT_ERR,
-                        "FATAL - Allocation for Secondary stack failed\n",
+                        "\n       FATAL - Allocation for Secondary stack failed",
                         0);
       }
       pal_pe_data_cache_ops_by_va((uint64_t)&gSecondaryPeStack, CLEAN_AND_INVALIDATE);
@@ -182,22 +182,22 @@ PalCaptureMmuConfig(void)
   }
 
   pal_print_msg(ACS_PRINT_INFO,
-                "  MMU Config captured at EL%d\n",
+                "\n       MMU Config captured at EL%d",
                 gMmuConfig.current_el);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    TTBR0: 0x%lx\n",
+                "\n       TTBR0: 0x%lx",
                 gMmuConfig.ttbr0);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    TTBR1: 0x%lx\n",
+                "\n       TTBR1: 0x%lx",
                 gMmuConfig.ttbr1);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    TCR:   0x%lx\n",
+                "\n       TCR:   0x%lx",
                 gMmuConfig.tcr);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    MAIR:  0x%lx\n",
+                "\n       MAIR:  0x%lx",
                 gMmuConfig.mair);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    SCTLR: 0x%lx\n",
+                "\n       SCTLR: 0x%lx",
                 gMmuConfig.sctlr);
 
   /* Clean cache to ensure secondary PEs see the config */

@@ -73,7 +73,7 @@ acs_clamp_level_for_arch(uint32_t requested_level)
 
   if (requested_level < min_level || requested_level > max_level) {
       val_print(WARN,
-              "ACS Level (EL3 parameter) %d is not supported maxing it to level FR\n",
+              "\nACS Level (EL3 parameter) %d is not supported maxing it to level FR",
               requested_level);
 	  return max_level;
   }
@@ -262,7 +262,7 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 
   if (!g_el3_param_addr) {
     val_print(WARN,
-              "EL3 param magic set but param address is 0, ignoring\n");
+              "\nEL3 param magic set but param address is 0, ignoring");
     return;
   }
 
@@ -271,14 +271,14 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
   /* Optional: version check (kept minimal, versioned for future proofing) */
   if ((params->version < 0x1) || (params->version > ACS_EL3_PARAM_VERSION)) {
     val_print(WARN,
-              "Unsupported EL3 param version %ld, ignoring\n", params->version);
+              "\nUnsupported EL3 param version %ld, ignoring", params->version);
     return;
   }
 
-  val_print(DEBUG, "EL3 params: tests=0x%lx", params->rule_array_addr);
+  val_print(DEBUG, "\nEL3 params: tests=0x%lx", params->rule_array_addr);
   val_print(DEBUG, " (%ld),", params->rule_array_count);
   val_print(DEBUG, " modules=0x%lx", params->module_array_addr);
-  val_print(DEBUG, " (%ld)\n", params->module_array_count);
+  val_print(DEBUG, " (%ld)", params->module_array_count);
 
   /* Override tests if provided */
   if (params->rule_array_addr && params->rule_array_count) {
@@ -328,13 +328,13 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
       ctx->level_filter_mode = params->level_selection;
     else
       val_print(WARN,
-                "Override skipped for level filter mode  %d\n", params->level_selection);
+                "\nOverride skipped for level filter mode  %d", params->level_selection);
 
     if (params->verbose >= TRACE && params->verbose <= FATAL)
       policy->print_level = params->verbose;
     else
       val_print(WARN,
-                "Override skipped for verbose  %d\n", params->verbose);
+                "\nOverride skipped for verbose  %d", params->verbose);
 
     if (params->timeout >= TIMEOUT_THRESHOLD
        && params->timeout <= TIMEOUT_MAX_THRESHOLD)
@@ -346,7 +346,7 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
     }
     else
       val_print(WARN,
-                "Override skipped for timeout  %d\n", params->timeout);
+                "\nOverride skipped for timeout  %d", params->timeout);
   }
 }
 #else
@@ -364,7 +364,7 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 
   if (!g_el3_param_addr) {
     val_print(WARN,
-              "EL3 param magic set but param address is 0, ignoring\n");
+              "\nEL3 param magic set but param address is 0, ignoring");
     return;
   }
 
@@ -372,7 +372,7 @@ acs_apply_el3_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 
   if ((params->version < 0x1) || (params->version > ACS_EL3_PARAM_VERSION)) {
     val_print(WARN,
-              "Unsupported EL3 param version %ld, ignoring\n", params->version);
+              "\nUnsupported EL3 param version %ld, ignoring", params->version);
     return;
   }
 

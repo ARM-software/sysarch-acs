@@ -41,7 +41,7 @@ pal_mmio_write8(UINT64 addr, UINT8 data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %llx  Data = %lx\n",
+                    "\n       %a Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -63,7 +63,7 @@ pal_mmio_write16(UINT64 addr, UINT16 data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %llx  Data = %lx\n",
+                    "\n       %a Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -85,7 +85,7 @@ pal_mmio_write64(UINT64 addr, UINT64 data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %llx  Data = %llx\n",
+                    "\n       %a Address = %llx  Data = %llx",
                     __func__,
                     addr,
                     data);
@@ -110,7 +110,7 @@ pal_mmio_read8(UINT64 addr)
 
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %lx  Data = %lx\n",
+                    "\n       %a Address = %lx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -135,7 +135,7 @@ pal_mmio_read16(UINT64 addr)
 
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %lx  Data = %lx\n",
+                    "\n       %a Address = %lx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -160,7 +160,7 @@ pal_mmio_read64(UINT64 addr)
 
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %lx  Data = %lx\n",
+                    "\n       %a Address = %lx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -185,7 +185,7 @@ pal_mmio_read(UINT64 addr)
 
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %lx  Data = %x\n",
+                    "\n       %a Address = %lx  Data = %x",
                     __func__,
                     addr,
                     data);
@@ -207,7 +207,7 @@ pal_mmio_write(UINT64 addr, UINT32 data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %a Address = %llx  Data = %x\n",
+                    "\n       %a Address = %llx  Data = %x",
                     __func__,
                     addr,
                     data);
@@ -237,7 +237,7 @@ pal_print(UINT64 data)
     Status = ShellWriteFile(g_acs_log_file_handle, &BufferSize, (VOID *)buf);
     if (EFI_ERROR(Status))
       pal_print_msg(ACS_PRINT_ERR,
-                    " Error in writing to log file\n");
+                    "\n       Error in writing to log file");
   }
   else
   {
@@ -346,12 +346,12 @@ pal_mem_allocate_shared(UINT32 num_pe, UINT32 sizeofentry)
                                (VOID **) &gSharedMemory );
 
   pal_print_msg(ACS_PRINT_INFO,
-                " Shared memory is %llx\n",
+                "\n       Shared memory is %llx",
                 gSharedMemory);
 
   if (EFI_ERROR(Status)) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Allocate Pool shared memory failed %x\n",
+                  "\n       Allocate Pool shared memory failed %x",
                   Status);
   }
   pal_pe_data_cache_ops_by_va((UINT64)&gSharedMemory, CLEAN_AND_INVALIDATE);
@@ -412,7 +412,7 @@ pal_mem_alloc (
   if (EFI_ERROR(Status))
   {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Allocate Pool failed %x\n",
+                  "\n       Allocate Pool failed %x",
                   Status);
     return NULL;
   }
@@ -445,7 +445,7 @@ pal_mem_calloc (
   if (EFI_ERROR(Status))
   {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Allocate Pool failed %x\n",
+                  "\n       Allocate Pool failed %x",
                   Status);
     return NULL;
   }
@@ -481,7 +481,7 @@ pal_mem_alloc_cacheable (
                                &Address);
   if (EFI_ERROR(Status)) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Allocate Pool failed %x\n",
+                  "\n       Allocate Pool failed %x",
                   Status);
     return NULL;
   }
@@ -612,7 +612,7 @@ pal_mem_alloc_pages (
   if (EFI_ERROR(Status))
   {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Allocate Pages failed %x\n",
+                  "\n       Allocate Pages failed %x",
                   Status);
     return NULL;
   }
@@ -700,7 +700,7 @@ void pal_uart_putc(char c)
         EFI_STATUS Status = ShellWriteFile(g_acs_log_file_handle, &n, &ch);
         if (EFI_ERROR(Status)) {
             pal_print_msg(ACS_PRINT_ERR,
-                          " Error in writing to log file\n");
+                          "\n       Error in writing to log file");
         }
     }
 }

@@ -377,8 +377,8 @@ v3_Init(void)
   /* Get the max interrupt */
   max_num_interrupts = val_get_max_intid();
 
-  val_print(DEBUG, "  GIC_INIT: D base %x\n", gicd_base);
-  val_print(DEBUG, "  GIC_INIT: Interrupts %d\n", max_num_interrupts);
+  val_print(DEBUG, "\nGIC_INIT: D base %x", gicd_base);
+  val_print(DEBUG, "\nGIC_INIT: Interrupts %d", max_num_interrupts);
 
 #if defined(TARGET_SIMULATION)
   /* Fast-sim: disable in register chunks (32 IRQs per write) */
@@ -406,7 +406,7 @@ v3_Init(void)
   /* Set ARI bits for v3 mode */
   val_mmio_write(gicd_base + GICD_CTLR, val_mmio_read(gicd_base + GICD_CTLR) | GIC_ARE_ENABLE);
   val_mmio_write(gicd_base + GICD_CTLR, val_mmio_read(gicd_base + GICD_CTLR) | 0x2);
-  val_print(DEBUG, "  GIC_INIT: GICD_CTLR value 0x%08x\n",
+  val_print(DEBUG, "\nGIC_INIT: GICD_CTLR value 0x%08x",
                              val_mmio_read(gicd_base + GICD_CTLR));
 
 #if defined(TARGET_SIMULATION)

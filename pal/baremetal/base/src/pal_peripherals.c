@@ -56,7 +56,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
 
   if (peripheralInfoTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO\n");
+                  "\n       Input Peripheral Table Pointer is NULL. Cannot create Peripheral INFO");
     return;
   }
 
@@ -76,7 +76,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   do {
 
        pal_print_msg(ACS_PRINT_INFO,
-                     "Entered USB loop\n");
+                     "\n       Entered USB loop");
        DeviceBdf = pal_pcie_get_bdf(USB_CLASSCODE, StartBdf);
        if (DeviceBdf != 0) {
           per_info->type  = PERIPHERAL_TYPE_USB;
@@ -90,7 +90,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->platform_type = 0;
 
           pal_print_msg(ACS_PRINT_INFO,
-                        "Found a USB controller %4x\n",
+                        "\n       Found a USB controller %4x",
                         per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
@@ -106,7 +106,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   do {
 
        pal_print_msg(ACS_PRINT_INFO,
-                     "Entered SATA loop\n");
+                     "\n       Entered SATA loop");
        DeviceBdf = pal_pcie_get_bdf(SATA_CLASSCODE, StartBdf);
        if (DeviceBdf != 0) {
           per_info->type  = PERIPHERAL_TYPE_SATA;
@@ -121,7 +121,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           per_info->bdf   = DeviceBdf;
 
           pal_print_msg(ACS_PRINT_INFO,
-                        "Found a SATA controller %4x\n",
+                        "\n       Found a SATA controller %4x",
                         per_info->base0);
           peripheralInfoTable->header.num_sata++;
           peripheralInfoTable->header.num_all++;
@@ -191,7 +191,7 @@ uint32_t pal_peripheral_is_pcie(uint32_t seg, uint32_t bus, uint32_t dev, uint32
      if ((reg_value & PCIE_CIDR_MASK) == CID_PCIECS)
      {
          pal_print_msg(ACS_PRINT_INFO,
-                       "PCIe Capable",
+                       "\n       PCIe Capable",
                        0);
          return 1;
      }
@@ -258,7 +258,7 @@ pal_memory_get_unpopulated_addr(uint64_t *addr, uint32_t instance)
           {
               *addr =  platform_mem_cfg.info[index].virt_addr;
               pal_print_msg(ACS_PRINT_INFO,
-                            "Unpopulated region with base address 0x%lX found\n",
+                            "\n       Unpopulated region with base address 0x%lX found",
                             *addr);
               return MEM_MAP_SUCCESS;
           }

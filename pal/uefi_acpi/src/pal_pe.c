@@ -83,7 +83,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
 
   if (SmbiosTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input SMBIOS Table Pointer is NULL. Cannot create SMBIOS INFO\n");
+                  "\n       Input SMBIOS Table Pointer is NULL. Cannot create SMBIOS INFO");
     return;
   }
 
@@ -106,7 +106,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
     /* Check of record if of type 4 */
     if (Record->Type == SMBIOS_TYPE_PROCESSOR_INFORMATION) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " Smbios type %d found\n",
+                    "\n       Smbios type %d found",
                     Record->Type);
 
       Type4Record = (SMBIOS_TABLE_TYPE4 *)Record;
@@ -118,7 +118,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
         Type4Entry->processor_family = Type4Record->ProcessorFamily;
 
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Processor Family 0x%x\n",
+                    "\n       Processor Family 0x%x",
                     Type4Entry->processor_family);
 
       /* Save Processor core count */
@@ -128,7 +128,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
         Type4Entry->core_count = Type4Record->CoreCount;
 
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Processor Count 0x%x\n",
+                    "\n       Processor Count 0x%x",
                     Type4Entry->core_count);
 
       Type4Entry++;
@@ -136,10 +136,10 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
 
       if (SmbiosTable->slot_count >= MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED) {
         pal_print_msg(ACS_PRINT_WARN,
-                      " Total Slots/Sockets 0x%x\n",
+                      "\n       Total Slots/Sockets 0x%x",
                       SmbiosTable->slot_count);
         pal_print_msg(ACS_PRINT_WARN,
-                      " Number of SMBIOS Slots greater than %d\n",
+                      "\n       Number of SMBIOS Slots greater than %d",
                       MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED);
         SmbiosTable->slot_count = MAX_NUM_OF_SMBIOS_SLOTS_SUPPORTED;
         return;
@@ -147,7 +147,7 @@ pal_smbios_create_info_table(PE_SMBIOS_PROCESSOR_INFO_TABLE *SmbiosTable)
     }
   }
   pal_print_msg(ACS_PRINT_DEBUG,
-                " Total Slots/Sockets 0x%x\n",
+                "\n       Total Slots/Sockets 0x%x",
                 SmbiosTable->slot_count);
 }
 
@@ -173,7 +173,7 @@ pal_psci_get_conduit (
   Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
   if (Xsdt == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " XSDT not found\n");
+                    "\n       XSDT not found");
       return CONDUIT_NO_TABLE;
   }
 
@@ -268,24 +268,24 @@ PalCaptureMmuConfig(VOID)
   }
 
   pal_print_msg(ACS_PRINT_DEBUG,
-                "  MMU Config captured at EL%d\n",
+                "\n       MMU Config captured at EL%d",
                 gMmuConfig.current_el);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    TTBR0: 0x%lx\n",
+                "\n       TTBR0: 0x%lx",
                 gMmuConfig.ttbr0);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    TCR:   0x%lx\n",
+                "\n       TCR:   0x%lx",
                 gMmuConfig.tcr);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    MAIR:  0x%lx\n",
+                "\n       MAIR:  0x%lx",
                 gMmuConfig.mair);
   pal_print_msg(ACS_PRINT_DEBUG,
-                "    SCTLR: 0x%lx\n",
+                "\n       SCTLR: 0x%lx",
                 gMmuConfig.sctlr);
 
   if (!SkipTtbr1)
     pal_print_msg(ACS_PRINT_DEBUG,
-                  "    TTBR1: 0x%lx\n",
+                  "\n       TTBR1: 0x%lx",
                   gMmuConfig.ttbr1);
 
   /* Clean cache to ensure secondary PEs see the config */
@@ -340,7 +340,7 @@ PalAllocateSecondaryStack(UINT64 mpidr)
                     (VOID **) &Buffer);
       if (EFI_ERROR(Status)) {
           pal_print_msg(ACS_PRINT_ERR,
-                        "\n FATAL - Allocation for Seconday stack failed %x\n",
+                        "\n       FATAL - Allocation for Seconday stack failed %x",
                         Status);
       }
       pal_pe_data_cache_ops_by_va((UINT64)&Buffer, CLEAN_AND_INVALIDATE);
@@ -380,7 +380,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 
   if (PeTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input PE Table Pointer is NULL. Cannot create PE INFO\n");
+                  "\n       Input PE Table Pointer is NULL. Cannot create PE INFO");
     return;
   }
 
@@ -392,12 +392,12 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   if (gMadtHdr != NULL) {
     TableLength =  gMadtHdr->Header.Length;
     pal_print_msg(ACS_PRINT_INFO,
-                  "  MADT is at %x and length is %x\n",
+                  "\n       MADT is at %x and length is %x",
                   gMadtHdr,
                   TableLength);
   } else {
     pal_print_msg(ACS_PRINT_ERR,
-                  " MADT not found\n");
+                  "\n       MADT not found");
     return;
   }
 
@@ -411,10 +411,10 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
       //Fill in the cpu num and the mpidr in pe info table
       Flags           = Entry->Flags;
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Flags %x\n",
+                    "\n       Flags %x",
                     Flags);
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  PE Enabled %d, Online Capable %d\n",
+                    "\n       PE Enabled %d, Online Capable %d",
                     ENABLED_BIT(Flags),
                     ONLINE_CAP_BIT(Flags));
 
@@ -442,13 +442,13 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
                                      ((UINT8 *)Entry))->TrbeInterrupt;
 
           pal_print_msg(ACS_PRINT_DEBUG,
-                        "  MADT Revision %llx \n",
+                        "\n       MADT Revision %llx",
                         gMadtHdr->Header.Revision);
 
           for (i = 0; i < MAX_L1_CACHE_RES; i++)
               Ptr->level_1_res[i] = DEFAULT_CACHE_IDX; //initialize cache index fields with all 1's
           pal_print_msg(ACS_PRINT_DEBUG,
-                        " MPIDR %llx PE num %x\n",
+                        "\n       MPIDR %llx PE num %x",
                         Ptr->mpidr,
                         Ptr->pe_num);
           pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);

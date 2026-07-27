@@ -50,7 +50,7 @@ val_pmu_reg_read (
     case PMCNTENSET_EL0:
         return read_pmcntenset_el0();
     default:
-        val_print(ERROR, "\n FATAL - Unsupported PMU register read \n");
+        val_print(ERROR, "\n       FATAL - Unsupported PMU register read");
     }
 
     return 0x0;
@@ -84,7 +84,7 @@ val_pmu_reg_write (
         write_pmcntenset_el0(WriteData);
         break;
     default:
-        val_print(ERROR, "\n FATAL - Unsupported PMU register read \n");
+        val_print(ERROR, "\n       FATAL - Unsupported PMU register read");
     }
 }
 
@@ -176,14 +176,14 @@ val_pmu_create_info_table(uint64_t *pmu_info_table)
 
   pal_pmu_create_info_table(g_pmu_info_table);
 
-  val_print(INFO, " PMU_INFO: Number of PMU units        : %4d\n",
+  val_print(INFO, "\n    PMU_INFO: Number of PMU units        : %4d",
             g_pmu_info_table->pmu_count);
 
   for (node_index = 0; node_index < g_pmu_info_table->pmu_count; node_index++) {
-      val_print(TRACE, " PMU node index: %4d\n", node_index);
+      val_print(TRACE, "\n       PMU node index: %4d", node_index);
       base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
       val_mmu_update_entry(base, 0x1000, DEVICE_nGnRnE);
-      val_print(TRACE, " PMU node mapped \n");
+      val_print(TRACE, "\n       PMU node mapped");
       reg_value = BITFIELD_READ(PMDEVARCH_ARCHITECT, val_mmio_read(base + REG_PMDEVARCH));
       /* 0x23B is value for Arm Limited */
       if (reg_value == 0x23B)
@@ -231,7 +231,7 @@ val_pmu_free_info_table(void)
     }
     else {
       val_print(ERROR,
-                  "\n WARNING: g_pmu_info_table pointer is already NULL");
+                  "\n       g_pmu_info_table pointer is already NULL");
     }
 }
 
@@ -279,7 +279,7 @@ val_pmu_get_info(PMU_INFO_e type, uint32_t node_index)
   case PMU_NODE_CS_COM:
       return entry->coresight_compliant;
   default:
-        val_print(ERROR, "\n   This PMU info option is not supported : %d ", type);
+        val_print(ERROR, "\n       PMU info option is not supported : %d ", type);
         return 0;
   }
 }
@@ -553,7 +553,7 @@ val_pmu_get_node_index(uint64_t node_instance_primary, PMU_NODE_INFO_TYPE node_t
             return node_index;
         }
     }
-    val_print(DEBUG, "\n   PMU node for given node primary instance not found ");
+    val_print(DEBUG, "\n       PMU node for given primary instance not found ");
     return PMU_INVALID_INDEX;
 }
 

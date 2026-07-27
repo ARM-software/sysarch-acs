@@ -70,7 +70,7 @@ uint32_t val_exerciser_create_info_table(void)
   num_ecam = (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
   if (num_ecam == 0)
   {
-      val_print(ERROR, "       No ECAMs discovered\n ");
+      val_print(ERROR, "\n       No ECAMs discovered");
       return 1;
   }
 
@@ -78,7 +78,7 @@ uint32_t val_exerciser_create_info_table(void)
   /* if no bdf table ptr return error */
   if (bdf_table->num_entries == 0)
   {
-      val_print(DEBUG, "\n       No BDFs discovered            ");
+      val_print(DEBUG, "\n       No BDFs discovered");
       return 1;
   }
 
@@ -104,15 +104,15 @@ uint32_t val_exerciser_create_info_table(void)
           g_exerciser_info_table.e_info[num_exerciser_info++].initialized = 0;
           vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
           vendor_name = lookup_vendor_name(vendor_id);
-          val_print(DEBUG, "    exerciser Bdf %x\n", Bdf);
-          val_print(DEBUG, "    Vendor ID: 0x%04x, ", vendor_id);
+          val_print(DEBUG, "\n       exerciser Bdf %x", Bdf);
+          val_print(DEBUG, "\n       Vendor ID: 0x%04x, ", vendor_id);
           val_print(DEBUG, "Vendor Name: ");
           val_print(DEBUG, vendor_name);
-          val_print(DEBUG, "\n\n");
+          val_print(DEBUG, "\n");
       }
   }
   g_exerciser_info_table.num_exerciser = num_exerciser_info;
-  val_print(INFO, "\n     PCIE_INFO: Number of exerciser cards  %4d \n",
+  val_print(INFO, "\nPCIE_INFO: Number of exerciser cards  %4d",
                                                              g_exerciser_info_table.num_exerciser);
   return 0;
 }
@@ -411,7 +411,7 @@ uint32_t val_exerciser_test_init(void)
     /* Build BDF table for all PCIe devices */
     if (val_pcie_create_device_bdf_table()) {
         val_print(WARN,
-                  "\n     Create BDF Table Failed, Skipping Exerciser tests...\n");
+                  "\n       Create BDF Table Failed, Skipping Exerciser tests...");
         status = ACS_STATUS_SKIP;
         g_exerciser_init_result = RESULT_SKIP(0);
         return status;

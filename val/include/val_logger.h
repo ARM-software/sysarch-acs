@@ -28,6 +28,8 @@ typedef enum {
  *   @return   - SUCCESS((Any positive number for character written)/FAILURE(0))
 **/
 uint32_t val_printf(print_verbosity_t verbosity, const char *msg, ...);
+uint32_t val_log_get_indent(void);
+void val_log_set_indent(uint32_t indent);
 
 void val_mem_copy(char *dest, const char *src, size_t len);
 

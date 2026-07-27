@@ -59,7 +59,7 @@ payload()
       data = val_smmu_read_cfg(SMMUv3_IDR0, num_smmu);
       // Check I/O coherent access
       if (VAL_EXTRACT_BITS(data, 4, 4) == 0)      {
-          val_print(ERROR, "\n\t IO-Coherent access not supported  ");
+          val_print(ERROR, "\n       IO-Coherent access not supported  ");
           val_set_status(index, RESULT_FAIL(3));
           return;
       }

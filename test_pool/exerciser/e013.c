@@ -108,7 +108,7 @@ payload (void)
   index = val_pe_get_index_mpid (val_pe_get_mpid());
 
   if (val_gic_get_info(GIC_INFO_NUM_ITS) == 0) {
-      val_print(DEBUG, "\n       No ITS, Skipping Test.\n");
+      val_print(DEBUG, "\n       No ITS, Skipping Test.");
       val_set_status(index, RESULT_SKIP(1));
       return;
   }

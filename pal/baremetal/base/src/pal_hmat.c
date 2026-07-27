@@ -39,7 +39,7 @@ void pal_hmat_dump_info_table(HMAT_INFO_TABLE *HmatTable)
 
   curr_entry = HmatTable->bw_info;
   pal_print_msg(ACS_PRINT_INFO,
-                "\n*** HMAT info table entries ***\n");
+                "\n       *** HMAT info table entries ***");
   for (i = 0 ; i < HmatTable->num_of_mem_prox_domain ; i++) {
       pal_print_msg(ACS_PRINT_INFO,
                     "\nMemory Proximity domain  :   0x%llx",
@@ -48,7 +48,7 @@ void pal_hmat_dump_info_table(HMAT_INFO_TABLE *HmatTable)
                     "\n  Write bandwidth        :   0x%llx",
                     curr_entry->write_bw);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n  Read  bandwidth        :   0x%llx\n",
+                    "\n       Read  bandwidth        :   0x%llx",
                     curr_entry->read_bw);
       curr_entry++;
   }
@@ -72,7 +72,7 @@ void pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
 
   if (HmatTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Unable to create HMAT info table, input pointer is NULL\n");
+                    "\n       Unable to create HMAT info table, input pointer is NULL");
       return;
   }
 

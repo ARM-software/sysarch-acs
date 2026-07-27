@@ -124,44 +124,44 @@ pal_ras_dump_info_table(RAS_INFO_TABLE *RasInfoTable)
   }
 
   pal_print_msg(ACS_PRINT_INFO,
-                "\nRAS Info :");
+                "\n       RAS Info :");
   pal_print_msg(ACS_PRINT_INFO,
-                "\nRAS Num Nodes : %d ",
+                "\n       RAS Num Nodes : %d ",
                 RasInfoTable->num_nodes);
 
   curr = &(RasInfoTable->node[0]);
 
   for (i = 0; i < RasInfoTable->num_nodes; i++) {
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Index    : %d ",
+                    "\n       Index    : %d ",
                     i);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Type     : 0x%x ",
+                    "\n       Type     : 0x%x ",
                     curr->type);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Num Intr : 0x%x ",
+                    "\n       Num Intr : 0x%x ",
                     curr->num_intr_entries);
 
       switch (curr->type) {
        case NODE_TYPE_PE:
            /* Print Processor Node Details */
            pal_print_msg(ACS_PRINT_INFO,
-                         "\n ProcessorID : 0x%x ",
+                         "\n       ProcessorID : 0x%x ",
                          curr->node_data.pe.processor_id);
            pal_print_msg(ACS_PRINT_INFO,
-                         "\n resource_type : 0x%x ",
+                         "\n       resource_type : 0x%x ",
                          curr->node_data.pe.resource_type);
            pal_print_msg(ACS_PRINT_INFO,
-                         "\n flags : 0x%x ",
+                         "\n       flags : 0x%x ",
                          curr->node_data.pe.flags);
            pal_print_msg(ACS_PRINT_INFO,
-                         "\n affinity : 0x%x ",
+                         "\n       affinity : 0x%x ",
                          curr->node_data.pe.affinity);
            break;
        case NODE_TYPE_MC:
            /* Print Memory Controller Node Details */
            pal_print_msg(ACS_PRINT_INFO,
-                         "\n proximity_domain : 0x%x ",
+                         "\n       proximity_domain : 0x%x ",
                          curr->node_data.mc.proximity_domain);
            break;
        default:
@@ -169,32 +169,30 @@ pal_ras_dump_info_table(RAS_INFO_TABLE *RasInfoTable)
       }
 
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Interface Info :");
+                    "\n       Interface Info :");
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n  type    : 0x%x ",
+                    "\n       type    : 0x%x ",
                     curr->intf_info.intf_type);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n  base    : 0x%x ",
+                    "\n       base    : 0x%x ",
                     curr->intf_info.base_addr);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n  num_err : 0x%x ",
+                    "\n       num_err : 0x%x ",
                     curr->intf_info.num_err_rec);
 
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n Interrupt Info :");
+                    "\n       Interrupt Info :");
       for (j = 0; j < curr->num_intr_entries; j++) {
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  type    : 0x%x ",
+                      "\n       type    : 0x%x ",
                       curr->intr_info[j].type);
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  gsiv    : 0x%x ",
+                      "\n       gsiv    : 0x%x ",
                       curr->intr_info[j].gsiv);
       }
 
       curr++;
   }
-  pal_print_msg(ACS_PRINT_INFO,
-                "\n");
 }
 
 void fill_node_specific_data (
@@ -294,7 +292,7 @@ pal_ras_create_info_table(RAS_INFO_TABLE *RasInfoTable)
 
   if (RasInfoTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "\n Input RAS Table Pointer is NULL");
+                    "\n       Input RAS Table Pointer is NULL");
       return;
   }
 
@@ -306,13 +304,13 @@ pal_ras_create_info_table(RAS_INFO_TABLE *RasInfoTable)
   aest = (EFI_ACPI_ARM_ERROR_SOURCE_TABLE *)pal_get_aest_ptr();
   if (aest == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " AEST table not found\n");
+                    "\n       AEST table not found");
       return;
   }
 
   if (aest->Header.Revision == 2) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " NOT_SUPPORTED: AEST Revision %d detected.\n",
+                    "\n       NOT_SUPPORTED: AEST Revision %d detected.",
                     aest->Header.Revision);
       return;
   }
@@ -345,7 +343,7 @@ pal_ras_create_info_table(RAS_INFO_TABLE *RasInfoTable)
 
       if (RasInfoTable->num_nodes >= MAX_NUM_OF_RAS_SUPPORTED) {
           pal_print_msg(ACS_PRINT_WARN,
-                        "\n Number of RAS nodes greater than %d",
+                        "\n       Number of RAS nodes greater than %d",
                         MAX_NUM_OF_RAS_SUPPORTED);
           break;
       }
@@ -372,7 +370,7 @@ pal_ras2_dump_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
 
   if (RasFeatInfoTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "\n Input RAS Table Pointer is NULL");
+                    "\n       Input RAS Table Pointer is NULL");
       return;
   }
 
@@ -380,34 +378,34 @@ pal_ras2_dump_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
   UINT32 i;
 
   pal_print_msg(ACS_PRINT_INFO,
-                "\n RAS2 Feature Info :");
+                "\n       RAS2 Feature Info :");
   pal_print_msg(ACS_PRINT_INFO,
-                "\n Total number of RAS2 feature info blocks  : %d",
+                "\n       Total number of RAS2 feature info blocks  : %d",
                 RasFeatInfoTable->num_all_block);
   pal_print_msg(ACS_PRINT_INFO,
-                "\n Number of RAS2 memory feature info blocks : %d\n",
+                "\n       Number of RAS2 memory feature info blocks : %d",
                 RasFeatInfoTable->num_of_mem_block);
 
   /*Iterate RAS2 feature info table and print info fields */
   for (i = 0 ; i < RasFeatInfoTable->num_all_block ; i++) {
     pal_print_msg(ACS_PRINT_INFO,
-                  "\n RAS2 feature info * Index %d *",
+                  "\n       RAS2 feature info * Index %d *",
                   i);
     switch(curr_block->type) {
     case RAS2_FEATURE_TYPE_MEMORY:
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  Type                            : 0x%x",
+                      "\n       Type                            : 0x%x",
                       curr_block->type);
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  Proximity Domain                : 0x%llx",
+                      "\n       Proximity Domain                : 0x%llx",
                       curr_block->block_info.mem_feat_info.proximity_domain);
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  Patrol scrub support            : 0x%lx\n",
+                      "\n       Patrol scrub support            : 0x%lx",
                       curr_block->block_info.mem_feat_info.patrol_scrub_support);
         break;
     default:
         pal_print_msg(ACS_PRINT_INFO,
-                      "\n  Invalid RAS feature type : 0x%x",
+                      "\n       Invalid RAS feature type : 0x%x",
                       curr_block->type);
     }
     curr_block++;
@@ -466,7 +464,7 @@ VOID pal_ras2_fill_mem_pcct_info(
 
   if (ras2_pcc_shared_mem == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "\n No PCC subspace found for PCCT index : 0x%x",
+                    "\n       No PCC subspace found for PCCT index : 0x%x",
                     pcct_array_idx);
       return;
   }
@@ -494,7 +492,7 @@ pal_ras2_create_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
 
   if (RasFeatInfoTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "\n Input RAS Table Pointer is NULL");
+                    "\n       Input RAS Table Pointer is NULL");
       return;
   }
 
@@ -505,7 +503,7 @@ pal_ras2_create_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
   ras2 = (RAS_FEATURE_2_TABLE_HEADER *)pal_get_acpi_table_ptr(EFI_ACPI_6_5_RAS2_FEATURE_TABLE_SIGNATURE);
   if (ras2 == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " RAS2 ACPI table not found\n");
+                    "\n       RAS2 ACPI table not found");
       return;
   }
 
@@ -513,7 +511,7 @@ pal_ras2_create_info_table(RAS2_INFO_TABLE *RasFeatInfoTable)
           pal_get_acpi_table_ptr(EFI_ACPI_6_4_PLATFORM_COMMUNICATIONS_CHANNEL_TABLE_SIGNATURE);
   if (pcct == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " PCCT ACPI table not found\n");
+                    "\n       PCCT ACPI table not found");
       return;
   }
   /* pointer to the start of RAS2 PCC descriptor array */

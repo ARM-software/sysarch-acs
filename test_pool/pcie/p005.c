@@ -189,7 +189,7 @@ payload(void)
         if ((mem_base + mem_offset) > mem_lim)
         {
             val_print(ERROR,
-                    "\n        Memory offset + base 0x%llx", mem_base + mem_offset);
+                    "\n       Memory offset + base 0x%llx", mem_base + mem_offset);
             val_print(ERROR, " exceeds the memory limit 0x%llx", mem_lim);
             val_set_status(pe_index, RESULT_FAIL(02));
             return;
@@ -211,7 +211,7 @@ payload(void)
              val_pcie_is_urd(bdf)) {
           val_print(DEBUG, "\n       Value written into memory - 0x%x", KNOWN_DATA);
           val_print(DEBUG, "\n       Value in memory after write - 0x%x", read_value);
-          val_print(ERROR, "\n       Memory access check failed for BDF  0x%x\n", bdf);
+          val_print(ERROR, "\n       Memory access check failed for BDF  0x%x", bdf);
           val_set_status(pe_index, RESULT_FAIL(02));
           val_pcie_clear_urd(bdf);
           return;
@@ -243,7 +243,7 @@ payload(void)
                val_pcie_write_cfg(bdf, TYPE1_P_MEM_LU, (mem_base >> 32));
 
            mem_base = ((uint32_t)mem_base) | ((uint32_t)mem_base >> 16);
-           val_print(TRACE, "       mem_base new is 0x%llx", mem_base);
+           val_print(TRACE, "\n       mem_base new is 0x%llx", mem_base);
            val_pcie_write_cfg(bdf, TYPE1_P_MEM, mem_base);
 
            val_pcie_read_cfg(bdf, TYPE1_P_MEM, &read_value);
@@ -263,12 +263,12 @@ payload(void)
 
            val_pcie_bar_mem_read(bdf, new_mem_lim + MEM_OFFSET_SMALL, &value);
            ur_status = val_pcie_is_urd(bdf);
-           val_print(DEBUG, "       Value read is 0x%llx, UR status is %d", value, ur_status);
+           val_print(DEBUG, "\n       Value read is 0x%llx, UR status is %d", value, ur_status);
            if (!ur_status)
            {
                val_print(ERROR,
                      "\n       UR response not obtained for out of range access on bdf 0x%x", bdf);
-               val_print(ERROR, " Range 0x%llx - 0x%llx",
+               val_print(ERROR, "\n Range 0x%llx - 0x%llx",
                                             updated_mem_base, updated_mem_lim);
                val_print(ERROR, "\n       Out of range 0x%llx",
                                          (new_mem_lim + MEM_OFFSET_SMALL));

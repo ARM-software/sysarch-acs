@@ -597,7 +597,7 @@ val_wait_for_test_completion(uint32_t test_num, uint32_t num_pe, uint32_t timeou
 
   uint32_t i = 0, j = 0;
 
-  val_print(TRACE, "Test_num= %d\n", test_num);
+  val_print(TRACE, "\n       Test_num= %d", test_num);
 
   //For single PE tests, there is no need to wait for the results
   if (num_pe == 1)

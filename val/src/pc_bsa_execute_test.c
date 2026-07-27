@@ -117,7 +117,7 @@ val_pcbsa_gic_execute_tests(uint32_t level, uint32_t num_pe)
   val_print_test_start("GIC");
   g_curr_module = 1 << GIC_MODULE;
 
-  val_print(TRACE, "  Initializing ITS\n");
+  val_print(TRACE, "\n       Initializing ITS");
   val_gic_its_configure();
 
   if (((level >= 1) && (g_pcbsa_only_level == 0)) || (g_pcbsa_only_level == 1)) {
@@ -173,7 +173,7 @@ val_pcbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe)
       status |= i025_entry(num_pe);
 
       if (status != ACS_STATUS_PASS) {
-         val_print(WARN, "\n     SMMU Compatibility Check Failed, ");
+         val_print(WARN, "\n       SMMU Compatibility Check Failed,");
          val_print(WARN, "Skipping SMMU tests...\n");
          val_print_test_end(status, "SMMU");
          return ACS_STATUS_FAIL;
@@ -249,7 +249,7 @@ val_pcbsa_wd_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_WD_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all Watchdog tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all Watchdog tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -293,7 +293,7 @@ val_pcbsa_tpm2_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_TPM2_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all TPM2 tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all TPM2 tests\n");
           return ACS_STATUS_SKIP;
       }
   }

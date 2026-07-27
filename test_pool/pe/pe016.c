@@ -172,7 +172,7 @@ pe016_entry(uint32_t num_pe)
 
   smbios_slots = val_get_num_smbios_slots();
   if (smbios_slots == 0) {
-    val_print(WARN, "\n       SMBIOS Table Not Found, Skipping the test\n");
+    val_print(WARN, "\n       SMBIOS Table Not Found, Skipping the test");
     status = ACS_STATUS_SKIP;
     val_set_status(index, RESULT_SKIP(1));
 
@@ -205,7 +205,7 @@ pe016_entry(uint32_t num_pe)
       } else {
         val_print(DEBUG, "\n       ID_AA64ZFR0_EL1.SVEver 0x%llx PASS", reg_buffer->data);
         if (reg_buffer->vector_len_bits)
-          val_print(INFO, "\n       PE[%d] VL = %u bits", i, reg_buffer->vector_len_bits);
+          val_print(DEBUG, "\n       PE[%d] VL = %u bits", i, reg_buffer->vector_len_bits);
         else
           val_print(DEBUG, "\n       PE[%d] VL probe skipped or not accessible", i);
       }

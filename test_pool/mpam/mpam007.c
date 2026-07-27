@@ -128,7 +128,7 @@ static void payload(void)
     }
 
     /* test mem-side cache for cpor support */
-    val_print(DEBUG, "\n\n       Testing mem-side caches for CPOR support");
+    val_print(DEBUG, "\n       Testing mem-side caches for CPOR support");
     pe_prox_domain = val_srat_get_info(SRAT_GICC_PROX_DOMAIN, val_pe_get_uid(index));
     /* visit each MSC node and check for mem cache resources */
     for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {

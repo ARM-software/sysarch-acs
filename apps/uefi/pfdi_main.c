@@ -104,7 +104,7 @@ execute_tests()
   }
 
   val_print(INFO, "\n\n PFDI Architecture Compliance Suite");
-  val_print(INFO, "\n          Version %d.", PFDI_ACS_MAJOR_VER);
+  val_print(INFO, "\n        Version %d.", PFDI_ACS_MAJOR_VER);
   val_print(INFO, "%d.", PFDI_ACS_MINOR_VER);
   val_print(INFO, "%d\n", PFDI_ACS_SUBMINOR_VER);
 

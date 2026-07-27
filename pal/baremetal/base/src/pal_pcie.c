@@ -42,7 +42,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
 
   if (PcieTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "Input PCIe Table Pointer is NULL. Cannot create PCIe INFO\n");
+                  "\n       Input PCIe Table Pointer is NULL. Cannot create PCIe INFO");
     return;
   }
 
@@ -50,7 +50,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
 
   if(platform_pcie_cfg.num_entries == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  "Number of ECAM is 0. Cannot create PCIe INFO\n");
+                  "\n       Number of ECAM is 0. Cannot create PCIe INFO");
     return;
   }
 
@@ -169,7 +169,7 @@ pal_pcie_io_read_cfg(uint32_t Bdf, uint32_t offset, uint32_t *data)
   }
 
   pal_print_msg(ACS_PRINT_ERR,
-                "No PCI devices found in the system\n");
+                "\n       No PCI devices found in the system");
   return PCIE_NO_MAPPING;
 }
 
@@ -504,7 +504,7 @@ pal_pcie_get_legacy_irq_map(uint32_t Seg, uint32_t Bus, uint32_t Dev, uint32_t F
   }
 
   pal_print_msg(ACS_PRINT_ERR,
-                "No PCI devices found in the system\n");
+                "\n       No PCI devices found in the system");
   return PCIE_NO_MAPPING;
 }
 
@@ -601,9 +601,9 @@ uint32_t pal_pcie_check_device_list(void)
 
     if (platform_pcie_device_hierarchy.num_entries != bdf_tbl_ptr->num_entries) {
       pal_print_msg(ACS_PRINT_ERR,
-                    "  Number of PCIe devices entries in ");
+                    "\n       Number of PCIe devices entries in ");
       pal_print_msg(ACS_PRINT_ERR,
-                    "info table not equal to platform hierarchy\n",
+                    "info table not equal to platform hierarchy",
                     0);
       return 1;
     }
@@ -634,14 +634,14 @@ uint32_t pal_pcie_check_device_list(void)
              vendor_id = data & 0xFFFF;
              if (vendor_id != pltf_vendor_id) {
                 pal_print_msg(ACS_PRINT_ERR,
-                              " VendorID mismatch for PCIe device with bdf = 0x%x\n",
+                              "\n       VendorID mismatch for PCIe device with bdf = 0x%x",
                               bdf);
                 return 1;
              }
              device_id = data >> DEVICE_ID_OFFSET;
              if (device_id != pltf_device_id) {
                 pal_print_msg(ACS_PRINT_ERR,
-                              " DeviceID mismatch for PCIe device with bdf = 0x%x\n",
+                              "\n       DeviceID mismatch for PCIe device with bdf = 0x%x",
                               bdf);
                 return 1;
              }
@@ -649,7 +649,7 @@ uint32_t pal_pcie_check_device_list(void)
              class_code = class_code >> CC_SHIFT;
              if (class_code != pltf_class_code) {
                 pal_print_msg(ACS_PRINT_ERR,
-                              "ClassCode mismatch for PCIe device with bdf = 0x%x\n",
+                              "\n       ClassCode mismatch for PCIe device with bdf = 0x%x",
                               bdf);
                 return 1;
              }
@@ -663,7 +663,7 @@ uint32_t pal_pcie_check_device_list(void)
       /* If any bdf match not found in platform device hierarchy and info table, return false */
       if (i == bdf_tbl_ptr->num_entries) {
           pal_print_msg(ACS_PRINT_ERR,
-                        " Bdf not found in info table = 0x%x\n",
+                        "\n       Bdf not found in info table = 0x%x",
                         pltf_pcie_device_bdf);
           return 1;
       }

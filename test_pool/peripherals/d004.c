@@ -82,8 +82,7 @@ payload_check_dma_mem_attribute(void)
             goto test_warn_unimplemented;
           }
           val_print(ERROR,
-                    "\n       DMA controller %d: Failed to get"
-                    " memory attributes\n",
+                    "\n       DMA controller %d: Failed to get memory attributes",
                     target_dev_index);
           val_set_status(index, RESULT_FAIL(1));
           flag_fail = 1;
@@ -96,8 +95,7 @@ payload_check_dma_mem_attribute(void)
           MEM_DEVICE(attr)))              /* Check Device type */
       {
           val_print(TRACE,
-                    "\n       DMA controller %d: DMA memory must be inner/outer writeback inner "
-                    "shareable, inner/outer non-cacheable, or device type\n",
+                    "\n       DMA controller %d: DMA memory must be inner/outer writeback inner shareable, inner/outer non-cacheable, or device type",
           target_dev_index);
           val_set_status(index, RESULT_FAIL(2));
           flag_fail = 1;
@@ -154,7 +152,7 @@ payload_check_io_coherent_dma_mem_attribute(void)
                 goto test_warn_unimplemented;
             } else if (ret) {
                 val_print(ERROR,
-                            "\n       DMA controller %d: Failed to get memory attributes\n",
+                            "\n       DMA controller %d: Failed to get memory attributes",
                             target_dev_index);
                 val_set_status(index, RESULT_FAIL(1));
                 flag_fail = 1;
@@ -164,10 +162,10 @@ payload_check_io_coherent_dma_mem_attribute(void)
             if (!(MEM_NORMAL_WB_IN_OUT(attr) && MEM_SH_INNER(sh)))
             {
                 val_print(TRACE,
-                            "\n       DMA controller %d: I/O Coherent DMA memory must\n",
+                            "\n       DMA controller %d: I/O Coherent DMA memory must",
                             target_dev_index);
                 val_print(TRACE,
-                            "       be inner/outer writeback, inner shareable\n");
+                            "\n       be inner/outer writeback, inner shareable");
                 val_set_status(index, RESULT_FAIL(2));
                 flag_fail = 1;
             }

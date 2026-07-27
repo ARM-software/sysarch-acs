@@ -73,9 +73,9 @@ val_mpam_execute_error_tests(void)
 
   /* Setup ITS for MSI Tests */
   if (g_its_init != 1) {
-      val_print(TRACE, "\n      Initializing ITS\n");
+      val_print(TRACE, "\n       Initializing ITS");
       if (val_gic_its_configure() == ACS_STATUS_ERR) {
-          val_print(ERROR, "\n     val_gic_its_configure() failed \n");
+          val_print(ERROR, "\n       val_gic_its_configure() failed");
           status = ACS_STATUS_SKIP;
           return status;
       }

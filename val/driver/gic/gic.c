@@ -141,11 +141,11 @@ val_gic_max_espi_val(void)
                                                                     GICD_TYPER_ESPI_RANGE_MASK;
       max_espi_val = (32 * (espi_range + 1) + 4095);
 
-      val_print(TRACE, "\n    max ESPI value %d  ", max_espi_val);
+      val_print(TRACE, "\n       max ESPI value %d", max_espi_val);
       return max_espi_val;
   }
   else {
-      val_print(TRACE, "\n    max ESPI value %d  ", max_espi_val);
+      val_print(TRACE, "\n       max ESPI value %d", max_espi_val);
       return 0;
   }
 }

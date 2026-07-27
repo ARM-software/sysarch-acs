@@ -40,11 +40,11 @@ isr()
 {
     val_wd_set_ws0(wd_num, 0);
     g_wd_int_received = 1;
-    val_print(DEBUG, "\n       Received WS0 interrupt                ");
+    val_print(DEBUG, "\n       Received WS0 interrupt");
     val_gic_end_of_interrupt(int_id);
 
     val_timer_set_phy_el1(0);
-    val_print(DEBUG, "       Clear Failsafe interrupt\n");
+    val_print(DEBUG, "\n       Clear Failsafe interrupt");
 }
 
 static
@@ -55,7 +55,7 @@ isr_failsafe()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   val_timer_set_phy_el1(0);
-  val_print(ERROR, "       Received Failsafe interrupt\n");
+  val_print(ERROR, "\n       Received Failsafe interrupt");
   g_failsafe_int_received = 1;
 
   /* On some system the failsafe is rcvd just after test interrupt and resulting

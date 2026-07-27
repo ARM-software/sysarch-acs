@@ -52,7 +52,7 @@ val_tpm2_get_info(TPM2_INFO_e info_type)
   case TPM2_INFO_INTERFACE_TYPE:
       return g_tpm2_info_table->tpm_interface;
   default:
-      val_print(ERROR, " Invalid TPM2 info_type: %d\n", info_type);
+      val_print(ERROR, "\n       Invalid TPM2 info_type: %d", info_type);
       return TPM2_INFO_INVALID;
   }
 
@@ -71,10 +71,10 @@ void
 val_tpm2_create_info_table(uint64_t *tpm2_info_table)
 {
   if (tpm2_info_table == NULL) {
-    val_print(ERROR, "\n Pre-allocated memory pointer is NULL\n");
+    val_print(ERROR, "\n       Pre-allocated memory pointer is NULL");
     return;
   }
-  val_print(TRACE, " Creating TPM2 INFO table\n");
+  val_print(TRACE, "\n       Creating TPM2 INFO table");
 
   g_tpm2_info_table = (TPM2_INFO_TABLE *)tpm2_info_table;
 

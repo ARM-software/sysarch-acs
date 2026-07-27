@@ -92,7 +92,7 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
 
   if (CxlTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input CXL Table Pointer is NULL. Cannot create CXL INFO ");
+                  "\n       Input CXL Table Pointer is NULL. Cannot create CXL INFO");
     return;
   }
   CxlTable->num_entries = 0;
@@ -100,7 +100,7 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
   cedt_address = pal_get_acpi_table_ptr(EFI_ACPI_6_4_CXL_EARLY_DISCOVERY_TABLE_SIGNATURE);
   if (cedt_address == 0) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " ACPI - CEDT Table not found.\n");
+                  "\n    ACPI - CEDT Table not found.");
     return;
   }
 
@@ -114,13 +114,13 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
 
     if (Host->RecordLength == 0) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " CEDT record length is zero. Aborting parse. ");
+                    "\n       CEDT record length is zero. Aborting parse.");
       return;
     }
 
     if ((ptr + Host->RecordLength) > end) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " CEDT record overruns table length. Stopping parse. ");
+                    "\n       CEDT record overruns table length. Stopping parse.");
       break;
     }
 
@@ -150,13 +150,13 @@ pal_cxl_create_info_table(CXL_INFO_TABLE *CxlTable)
 
     if (len == 0) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " CEDT record length is zero. Aborting parse. ");
+                    "\n       CEDT record length is zero. Aborting parse.");
       return;
     }
 
     if ((ptr + len) > end) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " CEDT record overruns table length. Stopping parse. ");
+                    "\n       CEDT record overruns table length. Stopping parse.");
       break;
     }
 
@@ -187,7 +187,7 @@ pal_cxl_get_host_bridge_uid(UINT32 bdf, UINT32 *uid)
   /* Map root port BDF to the root bridge UID for CEDT lookup. */
   if (uid == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " %a UID pointer NULL ",
+                  "\n       %a UID pointer NULL",
                   __func__);
     return 1;
   }

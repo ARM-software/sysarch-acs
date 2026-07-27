@@ -53,7 +53,7 @@ val_drtm_execute_interface_tests(uint32_t num_pe)
   }
 
 
-  val_print(TRACE, "  Initializing ITS\n");
+  val_print(TRACE, "\n       Initializing ITS");
   val_gic_its_configure();
 
   status = ACS_STATUS_PASS;

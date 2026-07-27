@@ -155,7 +155,7 @@ ShellAppMainpcbsa(void)
     acs_apply_el3_params(ctx, policy);
 
 #if ACS_ENABLE_MMU
-    val_print(INFO, " Enabling MMU\n");
+    val_print(INFO, "\nEnabling MMU");
 
     /* Create MMU page tables before enabling the MMU at EL2 */
     if (val_setup_mmu()) {
@@ -169,21 +169,21 @@ ShellAppMainpcbsa(void)
         return ACS_STATUS_FAIL;
     }
 #else
-    val_print(INFO, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n");
+    val_print(INFO, "\nSkipping MMU setup/enable (ACS_ENABLE_MMU=0)");
 #endif
 
     val_print(INFO, "\n\n PC BSA Architecture Compliance Suite\n");
-    val_print(INFO, "\n          Version %d.", PC_BSA_ACS_MAJOR_VER);
+    val_print(INFO, "\n        Version %d.", PC_BSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", PC_BSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", PC_BSA_ACS_SUBMINOR_VER);
-    val_print(INFO, " Built for target: %s\n", ACS_TARGET);
+    val_print(INFO, "\nBuilt for target: %s", ACS_TARGET);
 
     val_print(INFO, LEVEL_PRINT_FORMAT(ctx->level_value, ctx->level_filter_mode,
                 PCBSA_LEVEL_FR), ctx->level_value);
 
     val_print(INFO, "(Print level is %2d)\n\n", policy->print_level);
 
-    val_print(INFO, " Creating Platform Information Tables\n");
+    val_print(INFO, "\nCreating Platform Information Tables");
 
     Status = createPeInfoTable();
     if (Status) {

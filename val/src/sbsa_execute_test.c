@@ -152,7 +152,7 @@ val_sbsa_gic_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_GIC_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all GIC tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all GIC tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -205,7 +205,7 @@ val_sbsa_wd_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_WD_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all Watchdog tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all Watchdog tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -246,7 +246,7 @@ val_sbsa_timer_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_TIMER_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all Timer tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all Timer tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -461,7 +461,7 @@ val_sbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_SMMU_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all SMMU tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all SMMU tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -482,7 +482,7 @@ val_sbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe)
       status |= i025_entry(num_pe);
 
       if (status != ACS_STATUS_PASS) {
-         val_print(WARN, "\n     SMMU Compatibility Check Failed, ");
+         val_print(WARN, "\n       SMMU Compatibility Check Failed,");
          val_print(WARN, "Skipping SMMU tests...\n");
          return ACS_STATUS_FAIL;
       }
@@ -549,7 +549,7 @@ val_sbsa_memory_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0 ; i < g_num_skip ; i++) {
       if (g_skip_test_num[i] == ACS_MEMORY_MAP_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all memory tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all memory tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -705,7 +705,7 @@ val_sbsa_pmu_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_PMU_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all PMU tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all PMU tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -765,7 +765,7 @@ val_sbsa_mpam_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_MPAM_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all MPAM tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all MPAM tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -900,7 +900,7 @@ val_sbsa_ete_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_ETE_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all ETE tests \n");
+          val_print(TRACE, "\n       USER Override - Skipping all ETE tests\n");
           return ACS_STATUS_SKIP;
       }
   }
@@ -908,7 +908,7 @@ val_sbsa_ete_execute_tests(uint32_t level, uint32_t num_pe)
   /* Check if there are any tests to be executed in current module with user override options*/
   status = val_check_skip_module(ACS_ETE_TEST_NUM_BASE);
   if (status) {
-      val_print(TRACE, "\n USER Override - Skipping all ETE tests \n");
+      val_print(TRACE, "\n       USER Override - Skipping all ETE tests\n");
       return ACS_STATUS_SKIP;
   }
 
@@ -919,7 +919,7 @@ val_sbsa_ete_execute_tests(uint32_t level, uint32_t num_pe)
       ete_status = ete001_entry(num_pe);
 
       if (ete_status == ACS_STATUS_FAIL) {
-          val_print(ERROR, "\n FEAT_ETE Not Supported, Skipping FEAT_ETE tests \n");
+          val_print(ERROR, "\n       FEAT_ETE Not Supported, Skipping FEAT_ETE tests\n");
       } else {
           ete_status |= ete002_entry(num_pe);
           ete_status |= ete003_entry(num_pe);
@@ -929,7 +929,7 @@ val_sbsa_ete_execute_tests(uint32_t level, uint32_t num_pe)
       trbe_status = ete005_entry(num_pe);
 
       if (trbe_status == ACS_STATUS_FAIL) {
-          val_print(ERROR, "\n FEAT_TRBE Not Supported, Skipping FEAT_TRBE tests \n");
+          val_print(ERROR, "\n       FEAT_TRBE Not Supported, Skipping FEAT_TRBE tests\n");
       } else {
           trbe_status |= ete006_entry(num_pe);
           trbe_status |= ete007_entry(num_pe);
@@ -958,7 +958,7 @@ val_sbsa_nist_execute_tests(uint32_t level, uint32_t num_pe)
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_NIST_TEST_NUM_BASE) {
-          val_print(TRACE, "      USER Override - Skipping all NIST tests\n");
+          val_print(TRACE, "\n USER Override - Skipping all NIST tests\n");
           return ACS_STATUS_SKIP;
       }
   }

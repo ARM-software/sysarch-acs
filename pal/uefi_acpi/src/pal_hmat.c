@@ -196,7 +196,7 @@ VOID pal_hmat_dump_info_table(HMAT_INFO_TABLE *HmatTable)
 
   curr_entry = HmatTable->bw_info;
   pal_print_msg(ACS_PRINT_INFO,
-                "\n*** HMAT info table entries ***\n");
+                "\n       *** HMAT info table entries ***");
   for (i = 0 ; i < HmatTable->num_of_mem_prox_domain ; i++) {
       pal_print_msg(ACS_PRINT_INFO,
                     "\nMemory Proximity domain  :   0x%llx",
@@ -205,7 +205,7 @@ VOID pal_hmat_dump_info_table(HMAT_INFO_TABLE *HmatTable)
                     "\n  Write bandwidth        :   0x%llx",
                     curr_entry->write_bw);
       pal_print_msg(ACS_PRINT_INFO,
-                    "\n  Read  bandwidth        :   0x%llx\n",
+                    "\n       Read  bandwidth        :   0x%llx",
                     curr_entry->read_bw);
       curr_entry++;
   }
@@ -228,7 +228,7 @@ VOID pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
 
   if (HmatTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Unable to create HMAT info table, input pointer is NULL\n");
+                    "\n       Unable to create HMAT info table, input pointer is NULL");
       return;
   }
 
@@ -238,13 +238,13 @@ VOID pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable)
   HmatHdr = (EFI_ACPI_6_4_HETEROGENEOUS_MEMORY_ATTRIBUTE_TABLE_HEADER *) pal_get_hmat_ptr();
   if (HmatHdr == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " HMAT ACPI table not found\n");
+                    "\n       HMAT ACPI table not found");
       return;
   }
   else {
       TableLength = HmatHdr->Header.Length;
       pal_print_msg(ACS_PRINT_INFO,
-                    "HMAT ACPI table found at 0x%llx with length 0x%x\n",
+                    "\n       HMAT ACPI table found at 0x%llx with length 0x%x",
                     HmatHdr,
                     TableLength);
   }

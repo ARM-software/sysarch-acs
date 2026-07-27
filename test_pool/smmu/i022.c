@@ -48,7 +48,7 @@ payload()
                     val_iovirt_get_pcie_rc_info(RC_SEGMENT_NUM, i));
       val_print(DEBUG, "\n       CCA attribute  : 0x%x",
                     val_iovirt_get_pcie_rc_info(RC_MEM_ATTRIBUTE, i));
-      val_print(DEBUG, "\n       SMMU base addr : 0x%llx\n",
+      val_print(DEBUG, "\n       SMMU base addr : 0x%llx",
                     val_iovirt_get_pcie_rc_info(RC_SMMU_BASE, i));
 
       if (val_iovirt_get_pcie_rc_info(RC_MEM_ATTRIBUTE, i) == 0x1 &&
@@ -70,7 +70,7 @@ payload()
                     (char8_t *)val_iovirt_get_named_comp_info(NAMED_COMP_DEV_OBJ_NAME, i));
       val_print(DEBUG, "\n       CCA attribute    : 0x%x",
                     val_iovirt_get_named_comp_info(NAMED_COMP_CCA_ATTR, i));
-      val_print(DEBUG, "\n       SMMU base addr   : 0x%llx\n",
+      val_print(DEBUG, "\n       SMMU base addr   : 0x%llx",
                     val_iovirt_get_named_comp_info(NAMED_COMP_SMMU_BASE, i));
       if (val_iovirt_get_named_comp_info(NAMED_COMP_CCA_ATTR, i) == 0x1 &&
                                     val_iovirt_get_named_comp_info(NAMED_COMP_SMMU_BASE, i) == 0) {

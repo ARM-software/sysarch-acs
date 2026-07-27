@@ -124,11 +124,11 @@ ShellAppMainmpam(void)
     val_print(INFO, "    Version %d.", MPAM_ACS_MAJOR_VER);
     val_print(INFO, "%d.", MPAM_ACS_MINOR_VER);
     val_print(INFO, "%d\n", MPAM_ACS_SUBMINOR_VER);
-    val_print(INFO, " Built for target: %s\n", ACS_TARGET);
+    val_print(INFO, "\nBuilt for target: %s", ACS_TARGET);
     val_print(INFO, "(Print level is %2d)\n\n", acs_policy_get_print_level());
 
 #if ACS_ENABLE_MMU
-    val_print(INFO, " Enabling MMU\n");
+    val_print(INFO, "\nEnabling MMU");
 
     if (val_setup_mmu()) {
         status = ACS_STATUS_FAIL;
@@ -140,7 +140,7 @@ ShellAppMainmpam(void)
         goto exit_acs;
     }
 #else
-    val_print(INFO, "Skipping MMU setup/enable (ACS_ENABLE_MMU=0)\n");
+    val_print(INFO, "\nSkipping MMU setup/enable (ACS_ENABLE_MMU=0)");
 #endif
 
     if (!acs_is_module_enabled(ACS_MPAM_REGISTER_TEST_NUM_BASE) &&
@@ -152,7 +152,7 @@ ShellAppMainmpam(void)
         goto print_test_status;
     }
 
-    val_print(INFO, " Creating Platform Information Tables\n");
+    val_print(INFO, "\nCreating Platform Information Tables");
 
     status = createPeInfoTable();
     if (status)

@@ -38,10 +38,10 @@ val_gic_create_info_table(uint64_t *gic_info_table)
   uint32_t gic_version, num_msi_frame;
 
   if (gic_info_table == NULL) {
-      val_print(ERROR, "Input for Create Info table cannot be NULL\n");
+      val_print(ERROR, "\n       Input for Create Info table cannot be NULL");
       return ACS_STATUS_ERR;
   }
-  val_print(TRACE, " Creating GIC INFO table\n");
+  val_print(TRACE, "\n       Creating GIC INFO table");
 
   g_gic_info_table = (GIC_INFO_TABLE *)gic_info_table;
 
@@ -51,19 +51,19 @@ val_gic_create_info_table(uint64_t *gic_info_table)
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
   num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
   if ((gic_version != 2) || (num_msi_frame == 0)) /* check if not a GICv2m system */
-      val_print(INFO, " GIC INFO: GIC version                :    v%d\n", gic_version);
+      val_print(INFO, "\nGIC_INFO: GIC version                :    v%d", gic_version);
   else
-      val_print(INFO, " GIC INFO: GIC version                :    v2m\n");
+      val_print(INFO, "\nGIC_INFO: GIC version                :    v2m");
 
-  val_print(INFO, " GIC_INFO: Number of GICD             : %4d\n",
+  val_print(INFO, "\nGIC_INFO: Number of GICD             : %4d",
                                                              g_gic_info_table->header.num_gicd);
-  val_print(INFO, " GIC_INFO: Number of GICR RD          : %4d\n",
+  val_print(INFO, "\nGIC_INFO: Number of GICR RD          : %4d",
                                                              g_gic_info_table->header.num_gicr_rd);
   if (g_gic_info_table->header.num_gicr_rd == 0) {
-      val_print(INFO, " GIC_INFO: Number of GICC RD          : %4d\n",
+      val_print(INFO, "\nGIC_INFO: Number of GICC RD          : %4d",
                                                              g_gic_info_table->header.num_gicc_rd);
   }
-  val_print(INFO, " GIC_INFO: Number of ITS              : %4d\n",
+  val_print(INFO, "\nGIC_INFO: Number of ITS              : %4d",
                                                              g_gic_info_table->header.num_its);
 
   if (g_gic_info_table->header.num_gicd == 0) {
@@ -114,7 +114,7 @@ val_get_gicd_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ERROR, "GIC INFO table not available\n");
+      val_print(ERROR, "\n       GIC INFO table not available");
       return 0;
   }
 
@@ -172,7 +172,7 @@ val_gic_get_pe_rdbase(uint64_t mpidr)
   /* If System doesn't have GICR RD strcture, then use GICCC RD base */
   if (g_gic_info_table->header.num_gicr_rd == 0) {
       gicrd_base = val_get_gicr_base(&gicrd_baselen, 0);
-      val_print(DEBUG, "       gicrd_base 0x%lx\n", gicrd_base);
+      val_print(DEBUG, "\n       gicrd_base 0x%lx", gicrd_base);
 
       /* If information is present in GICC Structure */
       if (gicrd_baselen == 0)
@@ -188,13 +188,13 @@ val_gic_get_pe_rdbase(uint64_t mpidr)
   /* Use GICR RD base structure */
   while (gicr_rdindex < g_gic_info_table->header.num_gicr_rd) {
       gicrd_base = val_get_gicr_base(&gicrd_baselen, gicr_rdindex);
-      val_print(TRACE, "       gicr_rdindex %d", gicr_rdindex);
-      val_print(TRACE, "       gicrd_base 0x%lx\n", gicrd_base);
+      val_print(TRACE, "\n       gicr_rdindex %d", gicr_rdindex);
+      val_print(TRACE, "       gicrd_base 0x%lx", gicrd_base);
 
       pe_gicrd_base = gicrd_base;
       while (pe_gicrd_base < (gicrd_base + gicrd_baselen))
       {
-          val_print(TRACE, "       GICR_TYPER 0x%lx\n",
+          val_print(TRACE, "\n       GICR_TYPER 0x%lx",
                     val_mmio_read64(pe_gicrd_base + GICR_TYPER));
 
           affinity = (val_mmio_read64(pe_gicrd_base + GICR_TYPER) & GICR_TYPER_AFF) >> 32;
@@ -226,7 +226,7 @@ val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ERROR, "GIC INFO table not available\n");
+      val_print(ERROR, "\n       GIC INFO table not available");
       return 0;
   }
   gic_entry = g_gic_info_table->gic_info;
@@ -264,7 +264,7 @@ val_get_gich_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ERROR, "GIC INFO table not available\n");
+      val_print(ERROR, "\n       GIC INFO table not available");
       return 0;
   }
 
@@ -292,7 +292,7 @@ val_get_cpuif_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ERROR, "GIC INFO table not available\n");
+      val_print(ERROR, "\n       GIC INFO table not available");
       return 0;
   }
 
@@ -331,7 +331,7 @@ val_gic_get_info(GIC_INFO_e type)
 
       case GIC_INFO_VERSION:
           if (g_gic_info_table->header.gic_version != 0) {
-             val_print(TRACE, "\n       gic version from info table = %d\n",
+             val_print(TRACE, "\n       gic version from info table = %d",
                        g_gic_info_table->header.gic_version);
              return g_gic_info_table->header.gic_version;
           }

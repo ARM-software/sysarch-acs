@@ -134,7 +134,7 @@ pal_mpam_create_info_table(MPAM_INFO_TABLE *MpamTable)
 
   if (MpamTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Input MPAM Table Pointer is NULL\n");
+                    "\n       Input MPAM Table Pointer is NULL");
       return;
   }
 
@@ -200,7 +200,7 @@ pal_mpam_parse_dsdt_info(MPAM_INFO_TABLE *MpamTable)
 {
   if (MpamTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Input MPAM Table Pointer is NULL\n");
+                    "\n       Input MPAM Table Pointer is NULL");
       return 0;
   }
   return 0;
@@ -221,7 +221,7 @@ pal_srat_create_info_table(SRAT_INFO_TABLE *SratTable)
 
   if (SratTable == NULL) {
       pal_print_msg(ACS_PRINT_ERR,
-                    " Input SRAT Table Pointer is NULL\n");
+                    "\n       Input SRAT Table Pointer is NULL");
       return;
   }
 

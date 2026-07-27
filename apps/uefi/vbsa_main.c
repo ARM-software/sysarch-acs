@@ -150,7 +150,7 @@ execute_tests()
     }
 
     val_print(INFO, "\n\n VBSA Architecture Compliance Suite");
-    val_print(INFO, "\n          Version %d.", VBSA_ACS_MAJOR_VER);
+    val_print(INFO, "\n        Version %d.", VBSA_ACS_MAJOR_VER);
     val_print(INFO, "%d.", VBSA_ACS_MINOR_VER);
     val_print(INFO, "%d\n", VBSA_ACS_SUBMINOR_VER);
 

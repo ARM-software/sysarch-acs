@@ -37,6 +37,7 @@ typedef struct acs_execution_policy {
     bool     pcie_skip_dp_nic_ms;
     uint32_t print_level;
     uint32_t print_mmio;
+    uint32_t log_indent;
     uint32_t timeout_pass;
     uint32_t timeout_fail;
     uint32_t timer_timeout_us;
@@ -60,6 +61,8 @@ acs_execution_policy_t *acs_get_execution_policy_mut(void);
 const acs_execution_policy_t *acs_get_execution_policy(void);
 uint32_t acs_policy_get_print_level(void);
 uint32_t acs_policy_get_print_mmio(void);
+uint32_t acs_policy_get_log_indent(void);
+void acs_policy_set_log_indent(uint32_t indent);
 uint32_t acs_policy_get_pcie_p2p(void);
 uint32_t acs_policy_get_pcie_cache_present(void);
 bool acs_policy_get_pcie_skip_dp_nic_ms(void);

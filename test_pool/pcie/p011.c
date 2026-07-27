@@ -84,7 +84,7 @@ payload(void)
 
         if ((ecam_cr != ecam_cr_8) || (ecam_cr_8 != ecam_cr_16))
         {
-          val_print(ERROR, "\n        Byte Enable Read Failed for Bdf: 0x%x", bdf);
+          val_print(ERROR, "\n       Byte Enable Read Failed for Bdf: 0x%x", bdf);
           test_fail++;
         }
 
@@ -100,7 +100,7 @@ payload(void)
             ecam_cr_new = val_mmio_read8(ecam_base + busnum_offset + i);
             if (write_value != ecam_cr_new)
             {
-              val_print(ERROR, "\n        8 Bit Write Failed for Bdf: 0x%x", bdf);
+              val_print(ERROR, "\n       8 Bit Write Failed for Bdf: 0x%x", bdf);
               test_fail++;
             }
         }
@@ -116,7 +116,7 @@ payload(void)
         ecam_cr_new = val_mmio_read16(ecam_base + busnum_offset);
         if (write_value != ecam_cr_new)
         {
-          val_print(ERROR, "\n        16 Bit Write Failed for Bdf: 0x%x", bdf);
+          val_print(ERROR, "\n       16 Bit Write Failed for Bdf: 0x%x", bdf);
           test_fail++;
         }
 

@@ -143,7 +143,7 @@ void payload(void)
         return;
     }
 
-    val_print(DEBUG, "\n       MinMax PARTID = %d\n", minmax_partid);
+    val_print(DEBUG, "\n       MinMax PARTID = %d", minmax_partid);
 
     /* Disable all types of partitioning for all other nodes */
     for (msc_index = 0; msc_index < total_nodes; msc_index++) {
@@ -284,7 +284,7 @@ void payload(void)
                 };
 
                 start_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n        Start count is %llx", start_count);
+                val_print(INFO, "\n       Start count is %llx", start_count);
 
                 /* perform memory operation */
                 val_memcpy(src_buf, dest_buf, buf_size);
@@ -296,7 +296,7 @@ void payload(void)
                 };
 
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n        End count is %llx", end_count);
+                val_print(INFO, "\n       End count is %llx", end_count);
 
                 /* read the memory bandwidth usage monitor */
                 counter[enabled_scenarios++][msc_index][rsrc_index] =

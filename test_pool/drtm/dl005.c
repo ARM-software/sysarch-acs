@@ -32,54 +32,54 @@ static DRTM_DLME_DATA_HDR *dlme_data_header;
 static void print_dlme_data_header(DRTM_DLME_DATA_HDR *dlme_data_header)
 {
   val_print(DEBUG, "\n       DLME Data Header");
-  val_print(DEBUG, "\n         Revision                  = 0x%08lx",
+  val_print(DEBUG, "\n       Revision                  = 0x%08lx",
                                                 dlme_data_header->revision);
-  val_print(DEBUG, "\n         Size                      = %d Bytes",
+  val_print(DEBUG, "\n       Size                      = %d Bytes",
                                                 dlme_data_header->size);
-  val_print(DEBUG, "\n         DLME_data_size            = %d Bytes",
+  val_print(DEBUG, "\n       DLME_data_size            = %d Bytes",
                                                 dlme_data_header->dlme_data_size);
-  val_print(DEBUG, "\n         Protected Regions Size    = %d Bytes",
+  val_print(DEBUG, "\n       Protected Regions Size    = %d Bytes",
                                                 dlme_data_header->protected_regions_size);
-  val_print(DEBUG, "\n         Address Map Size          = %d Bytes",
+  val_print(DEBUG, "\n       Address Map Size          = %d Bytes",
                                                 dlme_data_header->address_map_size);
-  val_print(DEBUG, "\n         DRTM Event Log Size       = %d Bytes",
+  val_print(DEBUG, "\n       DRTM Event Log Size       = %d Bytes",
                                                 dlme_data_header->drtm_event_log_size);
-  val_print(DEBUG, "\n         TCB Hash Table Size       = %d Bytes",
+  val_print(DEBUG, "\n       TCB Hash Table Size       = %d Bytes",
                                                 dlme_data_header->tcb_hash_table_size);
-  val_print(DEBUG, "\n         ACPI Table Region Size    = %d Bytes",
+  val_print(DEBUG, "\n       ACPI Table Region Size    = %d Bytes",
                                                 dlme_data_header->acpi_table_region_size);
-  val_print(DEBUG, "\n         Implementation Region Size= %d Bytes",
+  val_print(DEBUG, "\n       Implementation Region Size= %d Bytes",
                                                 dlme_data_header->implementation_region_size);
 }
 
 static void print_protected_region_info(void)
 {
-  val_print(DEBUG, "\n\n       Protected Region");
-  val_print(DEBUG, "\n         Revision          : 0x%08lx",
+  val_print(DEBUG, "\n       Protected Region");
+  val_print(DEBUG, "\n       Revision          : 0x%08lx",
                                             prot_region->header.revision);
-  val_print(DEBUG, "\n         Number of Regions : 0x%08lx",
+  val_print(DEBUG, "\n       Number of Regions : 0x%08lx",
                                             prot_region->header.num_regions);
   for (uint32_t i = 0; i < prot_region->header.num_regions; i++) {
-    val_print(DEBUG, "\n           Region           : 0x%lx", i);
-    val_print(DEBUG, "\n           Start Address    : 0x%08lx",
+    val_print(DEBUG, "\n       Region           : 0x%lx", i);
+    val_print(DEBUG, "\n       Start Address    : 0x%08lx",
                                             prot_region->regions[i].start_addr);
-    val_print(DEBUG, "\n           Region Size/Type : 0x%08lx",
+    val_print(DEBUG, "\n       Region Size/Type : 0x%08lx",
                                             prot_region->regions[i].size_type);
   }
 }
 
 static void print_address_map_info(void)
 {
-  val_print(DEBUG, "\n\n       Address Map");
-  val_print(DEBUG, "\n         Revision          : 0x%08lx",
+  val_print(DEBUG, "\n       Address Map");
+  val_print(DEBUG, "\n       Revision          : 0x%08lx",
                                             addr_map->header.revision);
-  val_print(DEBUG, "\n         Number of Regions : 0x%08lx",
+  val_print(DEBUG, "\n       Number of Regions : 0x%08lx",
                                             addr_map->header.num_regions);
   for (uint32_t i = 0; i < addr_map->header.num_regions; i++) {
-    val_print(DEBUG, "\n           Region           : 0x%lx", i);
-    val_print(DEBUG, "\n           Start Address    : 0x%08lx",
+    val_print(DEBUG, "\n       Region           : 0x%lx", i);
+    val_print(DEBUG, "\n       Start Address    : 0x%08lx",
                                             addr_map->regions[i].start_addr);
-    val_print(DEBUG, "\n           Region Size/Type : 0x%08lx",
+    val_print(DEBUG, "\n       Region Size/Type : 0x%08lx",
                                             addr_map->regions[i].size_type);
   }
 }
@@ -111,20 +111,20 @@ static void print_dlme_data_info(uint64_t dlme_data_address)
   print_address_map_info();
 
   if (dlme_data_header->tcb_hash_table_size != 0) {
-    val_print(DEBUG, "\n\n       TCB Hash Table");
+    val_print(DEBUG, "\n       TCB Hash Table");
     tcb_hash_table = (DRTM_TCB_HASH_TABLE *)(tcb_hash_address);
-    val_print(DEBUG, "\n         Revision          : 0x%08lx",
+    val_print(DEBUG, "\n       Revision          : 0x%08lx",
                                             tcb_hash_table->header.revision);
-    val_print(DEBUG, "\n         Number of Hashes  : 0x%08lx",
+    val_print(DEBUG, "\n       Number of Hashes  : 0x%08lx",
                                             tcb_hash_table->header.num_hashes);
-    val_print(DEBUG, "\n         Hash Algorithm    : 0x%08lx",
+    val_print(DEBUG, "\n       Hash Algorithm    : 0x%08lx",
                                             tcb_hash_table->header.hash_algo);
     for (uint32_t i = 0; i < tcb_hash_table->header.num_hashes; i++) {
-      val_print(DEBUG, "\n           HASH Index : 0x%lx", i);
-      val_print(DEBUG, "\n             HASH ID    : 0x%08lx",
+      val_print(DEBUG, "\n       HASH Index : 0x%lx", i);
+      val_print(DEBUG, "\n       HASH ID    : 0x%08lx",
                                             tcb_hash_table->hashes[i].hash_id);
       for (uint32_t j = 0; j < 32; j = j+4) {
-        val_print(DEBUG, "\n             HASH Val   : ");
+        val_print(DEBUG, "\n       HASH Val   : ");
         val_print(DEBUG, "%02x ", (tcb_hash_table->hashes[i]).hash_val[j]);
         val_print(DEBUG, "%02x ", (tcb_hash_table->hashes[i]).hash_val[j+1]);
         val_print(DEBUG, "%02x ", (tcb_hash_table->hashes[i]).hash_val[j+2]);
@@ -135,8 +135,8 @@ static void print_dlme_data_info(uint64_t dlme_data_address)
 
   if (dlme_data_header->acpi_table_region_size != 0) {
     /* Print the XSDT Address and Present Tables */
-    val_print(DEBUG, "\n\n       ACPI Tables");
-    val_print(DEBUG, "\n         Signature : %llx",
+    val_print(DEBUG, "\n       ACPI Tables");
+    val_print(DEBUG, "\n       Signature : %llx",
                                             (uint32_t)(*((uint64_t *)acpi_region_address)));
     if ((uint32_t)(*((uint64_t *)acpi_region_address)) == ACS_ACPI_SIGNATURE('X', 'S', 'D', 'T')) {
       /* Print all Present ACPI Tables */

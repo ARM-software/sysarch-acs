@@ -39,7 +39,7 @@ uint32_t val_gic_v2m_parse_info(void)
   uint32_t i;
 
   if (g_gic_info_table == NULL) {
-      val_print(DEBUG, "GIC INFO table not available\n");
+      val_print(DEBUG, "\n       GIC INFO table not available");
       return ACS_STATUS_SKIP;
   }
 

@@ -35,7 +35,7 @@ isr_failsafe()
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   val_timer_set_phy_el1(0);
-  val_print(ERROR, "       Received Failsafe interrupt\n");
+  val_print(ERROR, "\n       Received Failsafe interrupt");
   g_failsafe_int_received = 1;
   /* On some system the failsafe is rcvd just after test interrupt and resulting
      in incorrect fail, to avoid this ensure set test as fail only when failsafe
@@ -56,12 +56,12 @@ isr4()
   uint32_t intid;
 
   val_wd_set_ws0(wd_num, 0);
-  val_print(TRACE, "       Received WS0 interrupt\n");
+  val_print(TRACE, "\n       Received WS0 interrupt");
   g_wd_int_received = 1;
   intid = val_wd_get_info(wd_num, WD_INFO_GSIV);
   val_gic_end_of_interrupt(intid);
   val_timer_set_phy_el1(0);
-  val_print(DEBUG, "       Clear Failsafe interrupt\n");
+  val_print(DEBUG, "\n       Clear Failsafe interrupt");
 }
 
 static
@@ -171,7 +171,7 @@ payload4()
   }
 
   if (!ns_wdg) {
-      val_print(DEBUG, "       No non-secure watchdog implemented\n");
+      val_print(DEBUG, "\n       No non-secure watchdog implemented");
       val_set_status(index, RESULT_SKIP(2));
       return;
   }

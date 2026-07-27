@@ -163,7 +163,7 @@ check_p2p_sequence(uint64_t dma_src, uint32_t tgt_instance, uint32_t req_instanc
   {
       val_print(ERROR,
                 "\n       Data mismatch for target exerciser instance: %x", tgt_instance);
-      val_print(ERROR, " with value: %x\n", transaction_data);
+      val_print(ERROR, " with value: %x", transaction_data);
       return ACS_STATUS_FAIL;
   }
 
@@ -235,7 +235,7 @@ host_dma_test(uint32_t req_instance, uint64_t dma_src, uint64_t dma_dst)
   uint32_t test_fail = 0;
   uint32_t count = (sizeof(datasizes)/sizeof(datasizes[0]));
 
-  val_print(DEBUG, "\n   Testing endpoint to Host DMA\n");
+  val_print(DEBUG, "\n       Testing endpoint to Host DMA");
   while (req_instance-- != 0)
   {
       /* if init fail moves to next exerciser */
@@ -243,7 +243,7 @@ host_dma_test(uint32_t req_instance, uint64_t dma_src, uint64_t dma_dst)
           continue;
 
       req_e_bdf = val_exerciser_get_bdf(req_instance);
-      val_print(DEBUG, "       Requester exerciser BDF - 0x%x\n", req_e_bdf);
+      val_print(DEBUG, "\n       Requester exerciser BDF - 0x%x", req_e_bdf);
 
       for (i = 0; i < count; i++)
       {
@@ -251,7 +251,7 @@ host_dma_test(uint32_t req_instance, uint64_t dma_src, uint64_t dma_dst)
           if (ret_status != ACS_STATUS_PASS)
           {
               val_print(ERROR,
-                    "       Failed for %dByte host memory transaction from exerciser: %x\n",
+                    "\n       Failed for %dByte host memory transaction from exerciser: %x",
                      datasizes[i], req_instance);
               // Continue running the tests even if this fails
               test_fail++;
@@ -264,7 +264,7 @@ host_dma_test(uint32_t req_instance, uint64_t dma_src, uint64_t dma_dst)
       ret_status = ACS_STATUS_FAIL;
   }
   // else test is either skip or pass
-  val_print(INFO, "Endpoint to Host DMA test  %s\n", printStatus(ret_status));
+  val_print(INFO, "\n       Endpoint to Host DMA test  %s", printStatus(ret_status));
   return ret_status;
 }
 
@@ -282,7 +282,7 @@ p2p_dma_test(uint32_t req_instance, uint64_t dma_src)
   uint32_t count = (sizeof(datasizes)/sizeof(datasizes[0]));
 
 
-  val_print(DEBUG, "\n   Testing endpoint to endpoint DMA\n");
+  val_print(DEBUG, "\n       Testing endpoint to endpoint DMA");
 
   while (req_instance-- != 0)
   {
@@ -291,7 +291,7 @@ p2p_dma_test(uint32_t req_instance, uint64_t dma_src)
           continue;
 
       req_e_bdf = val_exerciser_get_bdf(req_instance);
-      val_print(DEBUG, "       Requester exerciser BDF - 0x%x\n", req_e_bdf);
+      val_print(DEBUG, "\n       Requester exerciser BDF - 0x%x", req_e_bdf);
 
       /* Get RP of the exerciser */
       if (val_pcie_get_rootport(req_e_bdf, &req_rp_bdf))
@@ -311,7 +311,7 @@ p2p_dma_test(uint32_t req_instance, uint64_t dma_src)
           if (ret_status != ACS_STATUS_PASS)
           {
               val_print(ERROR,
-                      "       Failed for %dBytes transaction from exerciser: %x\n",
+                      "\n       Failed for %dBytes transaction from exerciser: %x",
                            datasizes[i], req_instance);
               test_fail++;
           }
@@ -324,7 +324,7 @@ p2p_dma_test(uint32_t req_instance, uint64_t dma_src)
       ret_status = ACS_STATUS_FAIL;
   }
   // else test is either skip or pass
-  val_print(INFO, "Endpoint to Endpoint DMA test  %s\n", printStatus(ret_status));
+  val_print(INFO, "\n       Endpoint to Endpoint DMA test  %s", printStatus(ret_status));
   return ret_status;
 }
 
@@ -371,7 +371,7 @@ payload(void)
       test_dma_src_buffer[0] = TEST_DMA_PATTERN;
       val_pe_cache_clean_invalidate_range((uint64_t)test_dma_src_buffer, 8);
 
-      val_print(DEBUG, "\nPerforming Endpoint to Host DMA transfer\n");
+      val_print(DEBUG, "\n       Performing Endpoint to Host DMA transfer");
       test_status = host_dma_test(req_instance,
                                    (uint64_t) test_dma_src_buffer,
                                    (uint64_t) test_dma_dst_buffer);
@@ -380,27 +380,27 @@ payload(void)
           break;
       }
       else {
-          val_print(DEBUG, "Endpoint to Host DMA transfer Success\n");
+          val_print(DEBUG, "\n       Endpoint to Host DMA transfer Success");
       }
 
       /* Check If PCIe Hierarchy supports P2P. */
       p2p_status = val_pcie_p2p_support();
       if (p2p_status == ACS_STATUS_PASS)
       {
-          val_print(DEBUG, "Platform supports PCIe P2P dma transfer ");
-          val_print(DEBUG, "performing Endpoint to Endpoint transfer\n");
+          val_print(DEBUG, "\n       Platform supports PCIe P2P dma transfer ");
+          val_print(DEBUG, "\n       performing Endpoint to Endpoint transfer");
           test_status = p2p_dma_test(req_instance, (uint64_t)test_dma_src_buffer);
           if (test_status != ACS_STATUS_PASS) {
               set_status(pe_index, test_status, 2);
               break;
           }
           else {
-              val_print(DEBUG, "Endpoint to Endpoint DMA transfer Success\n");
+              val_print(DEBUG, "\n       Endpoint to Endpoint DMA transfer Success");
           }
       }
       else
       {
-          val_print(DEBUG, "Platform do not support PCIe P2P dma transfer\n");
+          val_print(DEBUG, "\n       Platform do not support PCIe P2P dma transfer");
       }
   } while (0);
 

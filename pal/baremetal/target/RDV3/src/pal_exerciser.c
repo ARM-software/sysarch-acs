@@ -117,7 +117,7 @@ pal_exerciser_get_base(uint32_t bdf, uint32_t bar_index)
   }
 
   pal_print_msg(ACS_PRINT_INFO,
-                "value read from BAR 0x%llx\n",
+                "\n       value read from BAR 0x%llx",
                 bar_value);
 
   return bar_value;

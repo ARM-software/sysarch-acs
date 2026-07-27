@@ -57,7 +57,7 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
 
   if (gMcfgHdr == NULL) {
       pal_print_msg(ACS_PRINT_WARN,
-                    " ACPI - MCFG Table not found. Setting ECAM Base to 0.\n");
+                    "\n       ACPI - MCFG Table not found. Setting ECAM Base to 0.");
       return 0x0;
   }
 
@@ -71,7 +71,7 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
       if ((bus >= Entry->StartBusNumber) && (bus <= Entry->EndBusNumber) &&
           (seg == Entry->PciSegmentGroupNumber)) {
           pal_print_msg(ACS_PRINT_INFO,
-                        " ECAM base address is %llx\n",
+                        "\n       ECAM base address is %llx",
                         Entry->BaseAddress);
           return Entry->BaseAddress;
       }
@@ -82,7 +82,7 @@ pal_pcie_get_mcfg_ecam(UINT32 bdf)
   }
 
   pal_print_msg(ACS_PRINT_ERR,
-                " ECAM base address for bdf 0x%x is 0\n",
+                "\n       ECAM base address for bdf 0x%x is 0",
                 bdf);
   return 0;
 }
@@ -105,7 +105,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
 
   if (PcieTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input PCIe Table Pointer is NULL. Cannot create PCIe INFO\n");
+                  "\n       Input PCIe Table Pointer is NULL. Cannot create PCIe INFO");
     return;
   }
 
@@ -115,7 +115,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
 
   if (gMcfgHdr == NULL) {
       pal_print_msg(ACS_PRINT_DEBUG,
-                    " ACPI - MCFG Table not found.\n");
+                    "\n       ACPI - MCFG Table not found.");
       return;
   }
 
@@ -137,19 +137,19 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
       PcieTable->block[i].start_bus_num = Entry->StartBusNumber;
       PcieTable->block[i].end_bus_num   = Entry->EndBusNumber;
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Ecam Index = %d\n",
+                    "\n       Ecam Index = %d",
                     i);
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Base Address = 0x%llx\n",
+                    "\n       Base Address = 0x%llx",
                     Entry->BaseAddress);
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Segment   = 0x%llx\n",
+                    "\n       Segment   = 0x%llx",
                     Entry->PciSegmentGroupNumber);
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Start Bus = 0x%llx\n",
+                    "\n       Start Bus = 0x%llx",
                     Entry->StartBusNumber);
       pal_print_msg(ACS_PRINT_INFO,
-                    "  End Bus   = 0x%llx\n",
+                    "\n       End Bus   = 0x%llx",
                     Entry->EndBusNumber);
       length += sizeof(EFI_ACPI_MEMORY_MAPPED_ENHANCED_CONFIGURATION_SPACE_BASE_ADDRESS_ALLOCATION_STRUCTURE);
       Entry++;
@@ -185,7 +185,7 @@ pal_pcie_io_read_cfg(UINT32 Bdf, UINT32 offset, UINT32 *data)
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
     pal_print_msg(ACS_PRINT_INFO,
-                  " No PCI devices found in the system\n");
+                  "\n       No PCI devices found in the system");
     return PCIE_NO_MAPPING;
   }
 
@@ -238,7 +238,7 @@ pal_pcie_io_write_cfg(UINT32 Bdf, UINT32 offset, UINT32 data)
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
     pal_print_msg(ACS_PRINT_INFO,
-                  " No PCI devices found in the system\n");
+                  "\n       No PCI devices found in the system");
     return;
   }
 
@@ -284,7 +284,7 @@ pal_pcie_bar_mem_read(UINT32 Bdf, UINT64 address, UINT32 *data)
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciRootBridgeIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
     pal_print_msg(ACS_PRINT_INFO,
-                  " No Root Bridge found in the system\n");
+                  "\n       No Root Bridge found in the system");
     return PCIE_NO_MAPPING;
   }
 
@@ -333,7 +333,7 @@ pal_pcie_bar_mem_write(UINT32 Bdf, UINT64 address, UINT32 data)
   Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiPciRootBridgeIoProtocolGuid, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
     pal_print_msg(ACS_PRINT_INFO,
-                  " No Root Bridge found in the system\n");
+                  "\n       No Root Bridge found in the system");
     return PCIE_NO_MAPPING;
   }
 
@@ -631,7 +631,7 @@ pal_pcie_is_devicedma_64bit(UINT32 seg, UINT32 bus, UINT32 dev, UINT32 fn)
   Status = gBS->LocateHandleBuffer(ByProtocol, &gEfiPciIoProtocolGuid, NULL,
                                    &HandleCount, &HandleBuffer);
   if (EFI_ERROR(Status)) {
-    pal_print_msg(ACS_PRINT_ERR, " No PCI devices found in the system\n");
+    pal_print_msg(ACS_PRINT_ERR, "\n       No PCI devices found in the system");
     return 0;
   }
 

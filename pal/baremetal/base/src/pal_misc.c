@@ -421,7 +421,7 @@ pal_mmio_read8(uint64_t addr)
   data = (*(volatile uint8_t *)addr);
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %lx\n",
+                    "\n       %s Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -445,7 +445,7 @@ pal_mmio_read16(uint64_t addr)
   data = (*(volatile uint16_t *)addr);
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %lx\n",
+                    "\n       %s Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -469,7 +469,7 @@ pal_mmio_read64(uint64_t addr)
   data = (*(volatile uint64_t *)addr);
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %llx\n",
+                    "\n       %s Address = %llx  Data = %llx",
                     __func__,
                     addr,
                     data);
@@ -494,7 +494,7 @@ pal_mmio_read(uint64_t addr)
   data = (*(volatile uint32_t *)addr);
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %8x  Data = %x\n",
+                    "\n       %s Address = %8x  Data = %x",
                     __func__,
                     addr,
                     data);
@@ -517,7 +517,7 @@ pal_mmio_write8(uint64_t addr, uint8_t data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %lx\n",
+                    "\n       %s Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -539,7 +539,7 @@ pal_mmio_write16(uint64_t addr, uint16_t data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %lx\n",
+                    "\n       %s Address = %llx  Data = %lx",
                     __func__,
                     addr,
                     data);
@@ -561,7 +561,7 @@ pal_mmio_write64(uint64_t addr, uint64_t data)
 {
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %llx  Data = %llx\n",
+                    "\n       %s Address = %llx  Data = %llx",
                     __func__,
                     addr,
                     data);
@@ -584,7 +584,7 @@ pal_mmio_write(uint64_t addr, uint32_t data)
 
   if (acs_policy_get_print_mmio() || (g_curr_module & g_enable_module))
       pal_print_msg(ACS_PRINT_INFO,
-                    " %s Address = %8x  Data = %x\n",
+                    "\n       %s Address = %8x  Data = %x",
                     __func__,
                     addr,
                     data);
@@ -1103,7 +1103,7 @@ loop:
 }
 
 static const char *prefix_str[] = {
-        "", "", "", "", ""};
+        "   ", "   ", "", "   WARN : ", "   ERROR: "};
 
 const char *log_get_prefix(int log_level)
 {
@@ -1124,18 +1124,43 @@ void pal_uart_print(int log, const char *fmt, ...)
 {
         va_list args;
         const char *prefix_str;
+        uint32_t i;
+        uint32_t new_log_record;
 
-        prefix_str = log_get_prefix(log);
+        if (fmt == NULL) {
+                return;
+        }
 
-        while (*prefix_str != '\0') {
-                pal_uart_putc(*prefix_str);
-                prefix_str++;
+        new_log_record = (*fmt == '\n');
+
+        while (*fmt == '\n') {
+                pal_uart_putc('\n');
+                pal_uart_putc('\r');
+                fmt++;
+        }
+
+        if (new_log_record) {
+                for (i = 0; i < 7 && *fmt == ' '; i++) {
+                        fmt++;
+                }
+
+                for (i = 0; i < acs_policy_get_log_indent(); i++) {
+                        pal_uart_putc(' ');
+                        pal_uart_putc(' ');
+                        pal_uart_putc(' ');
+                        pal_uart_putc(' ');
+                }
+
+                prefix_str = log_get_prefix(log);
+                while (*prefix_str != '\0') {
+                        pal_uart_putc(*prefix_str);
+                        prefix_str++;
+                }
         }
 
         va_start(args, fmt);
         (void)vprintf(fmt, args);
         va_end(args);
-        (void) log;
 }
 
 /**
@@ -1149,7 +1174,7 @@ void
 pal_dump_dtb()
 {
   pal_print_msg(ACS_PRINT_ERR,
-                " DTB dump not available for platform initialized with ACPI table\n",
+                "\n       DTB dump not available for platform initialized with ACPI table",
                 0);
 }
 

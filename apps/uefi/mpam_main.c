@@ -394,13 +394,13 @@ execute_tests()
     branch_label = &&print_test_status;
     val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
 
-    Print(L"\n\n MPAM System Architecture Compliance Suite \n");
+    Print(L"\n\nMPAM System Architecture Compliance Suite \n");
     Print(L"    Version %d.%d.", MPAM_ACS_MAJOR_VER, MPAM_ACS_MINOR_VER);
     Print(L"%d  \n", MPAM_ACS_SUBMINOR_VER);
 
-    Print(L"\n Starting tests for Print level %2d\n\n", acs_policy_get_print_level());
+    Print(L"\nStarting tests for Print level %2d\n", acs_policy_get_print_level());
 
-    Print(L" Creating Platform Information Tables \n");
+    Print(L"\nCreating Platform Information Tables");
     Status = createPeInfoTable();
     if (Status)
         return Status;

@@ -140,7 +140,7 @@ payload (void)
 
       val_pcie_read_cfg(bdf, TYPE01_RIDR, &class_code);
       val_print(DEBUG, "\n     Primary  BDF is 0x%x", bdf);
-      val_print(DEBUG, "\n         Class code is 0x%x", class_code);
+      val_print(DEBUG, "\n       Class code is 0x%x", class_code);
 
       base_cc = class_code >> TYPE01_BCC_SHIFT;
 
@@ -156,14 +156,14 @@ payload (void)
         if (skip_by_flag)
           skip_due_to_flag = true;
         tbl_index++;
-        val_print(DEBUG, "\n        Skipping DP/NIC/MAS/RES device.");
+        val_print(DEBUG, "\n       Skipping DP/NIC/MAS/RES device.");
         continue;
       }
 
       dp_type = val_pcie_device_port_type(bdf);
       /* Check entry is EP. Else move to next BDF. */
       if (dp_type == EP) {
-        val_print(DEBUG, "\n        Continuing... device is EP");
+        val_print(DEBUG, "\n       Continuing... device is EP");
         current_dev_bdf = bdf;
         if (!check_msi_status(current_dev_bdf))
         {
@@ -202,7 +202,7 @@ payload (void)
                 {
                   if (skip_by_flag)
                     skip_due_to_flag = true;
-                  val_print(DEBUG, "\n        Skipping DP/NIC/MAS/RES device.");
+                  val_print(DEBUG, "\n       Skipping DP/NIC/MAS/RES device.");
                   tbl_index_next++;
                   continue;
                 }
@@ -211,7 +211,7 @@ payload (void)
                 /* Check entry is EP. Else move to next BDF. */
                 if (dp_type == EP)
                 {
-                  val_print(DEBUG, "\n        Continuing...device is EP");
+                  val_print(DEBUG, "\n       Continuing...device is EP");
                   next_dev_bdf = bdf;
                   if (!check_msi_status(next_dev_bdf))
                   {

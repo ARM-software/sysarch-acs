@@ -84,7 +84,7 @@ payload(void *arg)
       /* Valid payload size between 000b (129-bytes) to 101b (4096 bytes) */
       if (!((max_payload_value >= 0x00) && (max_payload_value <= 0x05)))
       {
-          val_print(ERROR, "\n        BDF 0x%x", bdf);
+          val_print(ERROR, "\n       BDF 0x%x", bdf);
           val_print(ERROR, " Cap Ptr Value: 0x%x", max_payload_value);
           test_fails++;
       }

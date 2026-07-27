@@ -43,7 +43,7 @@ pal_get_platform_time_us (
 
   Status = gRT->GetTime(&Time, NULL);
   if (EFI_ERROR(Status)) {
-    pal_print_msg(ACS_PRINT_WARN, " GetTime failed: %x\n", Status);
+    pal_print_msg(ACS_PRINT_WARN, "\n       GetTime failed: %x", Status);
     return ~0ULL;
   }
 
@@ -98,7 +98,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 
   if (TimerTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Timer Table Pointer is NULL. Cannot create Timer INFO\n");
+                  "\n       Input Timer Table Pointer is NULL. Cannot create Timer INFO");
     return;
   }
 
@@ -109,18 +109,18 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 
   if (gGtdtHdr == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " GTDT not found\n");
+                  "\n       GTDT not found");
     return;
   }
   gtdt_ptr = (UINT8 *)gGtdtHdr;
   pal_print_msg(ACS_PRINT_INFO,
-                "  GTDT is at %x and length is %x\n",
+                "\n       GTDT is at %x and length is %x",
                 gGtdtHdr,
                 gGtdtHdr->Header.Length);
 
   revision = gGtdtHdr->Header.Revision;
   pal_print_msg(ACS_PRINT_INFO,
-                "  GTDT revision is at %d\n",
+                "\n       GTDT revision is at %d",
                 revision);
 
   //Fill in our internal table
@@ -145,18 +145,18 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 
     if (Entry->Type == EFI_ACPI_6_1_GTDT_GT_BLOCK) {
       pal_print_msg(ACS_PRINT_INFO,
-                    "  Found block entry\n");
+                    "\n       Found block entry");
       GtEntry->type = TIMER_TYPE_SYS_TIMER;
       GtEntry->block_cntl_base = Entry->CntCtlBase;
       GtEntry->timer_count     = Entry->GTBlockTimerCount;
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  CNTCTLBase = %llx\n",
+                    "\n       CNTCTLBase = %llx",
                     GtEntry->block_cntl_base);
       GtBlockTimer = (EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *)
                         (((UINT8 *)Entry) + Entry->GTBlockTimerOffset);
       for (i = 0; i < GtEntry->timer_count; i++) {
         pal_print_msg(ACS_PRINT_INFO,
-                      "  Found timer entry\n");
+                      "\n       Found timer entry");
         GtEntry->frame_num[i]    = GtBlockTimer->GTFrameNumber;
         GtEntry->GtCntBase[i]    = GtBlockTimer->CntBaseX;
         GtEntry->GtCntEl0Base[i] = GtBlockTimer->CntEL0BaseX;
@@ -166,7 +166,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
                                    (GtBlockTimer->GTxVirtualTimerFlags << 8) |
                                    (GtBlockTimer->GTxCommonFlags << 16);
         pal_print_msg(ACS_PRINT_DEBUG,
-                      "  CNTBaseN = %llx for sys counter = %d\n",
+                      "\n       CNTBaseN = %llx for sys counter = %d",
                       GtEntry->GtCntBase[i],
                       i);
         GtBlockTimer++;
@@ -193,7 +193,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
       }
       if (TimerTable->header.el2_virt_timer_gsiv == 0)
          pal_print_msg(ACS_PRINT_DEBUG,
-                       "  GTDT don't have el2 virt timer info\n");
+                       "\n       GTDT don't have el2 virt timer info");
   }
   else
       pal_timer_platform_override(TimerTable);
@@ -242,7 +242,7 @@ pal_wd_create_info_table(WD_INFO_TABLE *WdTable)
 
   if (WdTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " Input Watchdog Table Pointer is NULL. Cannot create Watchdog INFO\n");
+                  "\n       Input Watchdog Table Pointer is NULL. Cannot create Watchdog INFO");
     return;
   }
 
@@ -252,7 +252,7 @@ pal_wd_create_info_table(WD_INFO_TABLE *WdTable)
 
   if (gGtdtHdr == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
-                  " GTDT not found\n");
+                  "\n       GTDT not found");
     return;
   }
 
@@ -276,7 +276,7 @@ pal_wd_create_info_table(WD_INFO_TABLE *WdTable)
       WdEntry->wd_flags        = Entry->WatchdogTimerFlags;
       WdTable->header.num_wd++;
       pal_print_msg(ACS_PRINT_DEBUG,
-                    "  Watchdog base = 0x%llx INTID = 0x%x\n",
+                    "\n       Watchdog base = 0x%llx INTID = 0x%x",
                     WdEntry->wd_ctrl_base,
                     WdEntry->wd_gsiv);
       WdEntry++;

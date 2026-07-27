@@ -109,12 +109,12 @@ payload(void)
 
           status = func_ecam_is_rp_ecam(bdf);
           if (status) {
-              val_print(ERROR, "  dp_type: 0x%x ", dp_type);
+              val_print(ERROR, "\n  dp_type: 0x%x ", dp_type);
 
               if (status == PCIE_RP_NOT_FOUND)
-                  val_print(ERROR, "  No RP found to the EP");
+                  val_print(ERROR, "\n  No RP found to the EP");
               else
-                  val_print(ERROR, "  RP and EP does not share same ECAM region");
+                  val_print(ERROR, "\n  RP and EP does not share same ECAM region");
 
               fail_cnt++;
           }

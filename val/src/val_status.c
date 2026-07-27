@@ -38,7 +38,7 @@ void val_set_status(uint32_t index, uint32_t test_res)
     volatile val_test_status_t *mem = val_get_shared_address();
 
     if (index >= val_pe_get_num()) {
-        val_print(ERROR, "val_set_status: invalid PE index %u\n",
+        val_print(ERROR, "\n       val_set_status: invalid PE index %u",
                   (unsigned int)index);
         return;
     }
@@ -63,7 +63,7 @@ uint32_t val_get_status(uint32_t index)
     volatile val_test_status_t *mem = val_get_shared_address();
 
     if (index >= val_pe_get_num()) {
-        val_print(ERROR, "val_get_status: invalid PE index %u\n",
+        val_print(ERROR, "\n       val_get_status: invalid PE index %u",
                   (unsigned int)index);
         return RESULT_UNKNOWN;
     }

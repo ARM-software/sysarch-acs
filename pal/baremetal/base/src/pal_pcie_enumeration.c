@@ -180,7 +180,7 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
       if (BAR_REG(bar_reg_value) == BAR_64_BIT)
       {
           pal_print_msg(ACS_PRINT_INFO,
-                        "The RP BAR supports P_MEM 64-bit addr decoding capability\n",
+                        "\n       The RP BAR supports P_MEM 64-bit addr decoding capability",
                         0);
 
           /** BAR supports 64-bit address therefore, write all 1's
@@ -212,7 +212,7 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
       else
       {
           pal_print_msg(ACS_PRINT_INFO,
-                        "The RP BAR supports P_MEM 32-bit addr decoding capability\n",
+                        "\n       The RP BAR supports P_MEM 32-bit addr decoding capability",
                         0);
 
           /**BAR supports 32-bit address. Write all 1's
@@ -231,7 +231,7 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
           }
           pal_pci_cfg_write(seg, bus, dev, func, offset, g_rp_bar32_value);
           pal_print_msg(ACS_PRINT_INFO,
-                        "Value written to BAR register is %x\n",
+                        "\n       Value written to BAR register is %x",
                         g_rp_bar32_value);
           g_rp_bar32_value = g_rp_bar32_value + bar_size;
           offset = offset + 4;
@@ -265,7 +265,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
         if (BAR_REG(bar_reg_value) == BAR_64_BIT)
         {
             pal_print_msg(ACS_PRINT_INFO,
-                          "The BAR supports P_MEM 64-bit addr decoding capability\n",
+                          "\n       The BAR supports P_MEM 64-bit addr decoding capability",
                           0);
 
             /** BAR supports 64-bit address therefore, write all 1's
@@ -311,7 +311,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
             pal_pci_cfg_write(seg, bus, dev, func, offset + 4, g_bar64_p_start >> 32);
 
             pal_print_msg(ACS_PRINT_INFO,
-                          "Value written to BAR register is %llx\n",
+                          "\n       Value written to BAR register is %llx",
                           g_bar64_p_start);
             p_bar64_size = bar_size;
             g_bar64_size = bar_size;
@@ -323,7 +323,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
         else
         {
             pal_print_msg(ACS_PRINT_INFO,
-                          "The BAR supports P_MEM 32-bit addr decoding capability\n",
+                          "\n       The BAR supports P_MEM 32-bit addr decoding capability",
                           0);
 
             /**BAR supports 32-bit address. Write all 1's
@@ -362,7 +362,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
 
             pal_pci_cfg_write(seg, bus, dev, func, offset, g_bar32_p_start);
             pal_print_msg(ACS_PRINT_INFO,
-                          "Value written to BAR register is %x\n",
+                          "\n       Value written to BAR register is %x",
                           g_bar32_p_start);
             p_bar_size = bar_size;
             g_p_bar_size = bar_size;
@@ -375,7 +375,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
     else
     {
          pal_print_msg(ACS_PRINT_INFO,
-                       "The BAR supports NP_MEM 32-bit addr decoding capability\n",
+                       "\n       The BAR supports NP_MEM 32-bit addr decoding capability",
                        0);
 
          /**BAR supports 32-bit address. Write all 1's
@@ -416,7 +416,7 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
 
          pal_pci_cfg_write(seg, bus, dev, func, offset, g_bar32_np_start);
          pal_print_msg(ACS_PRINT_INFO,
-                       "Value written to BAR register is %x\n",
+                       "\n       Value written to BAR register is %x",
                        g_bar32_np_start);
          np_bar_size = bar_size;
          g_np_bar_size = bar_size;
@@ -480,10 +480,10 @@ uint32_t pal_pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
                 continue;
 
         pal_print_msg(ACS_PRINT_INFO,
-                      "The Vendor id read is %x\n",
+                      "\n       The Vendor id read is %x",
                       vendor_id);
         pal_print_msg(ACS_PRINT_INFO,
-                      "Valid PCIe device found at %x %x %x\n ",
+                      "\n       Valid PCIe device found at %x %x %x",
                       bus,
                       dev,
                       func);
@@ -491,7 +491,7 @@ uint32_t pal_pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
         if (PCIE_HEADER_TYPE(header_value) == TYPE1_HEADER)
         {
             pal_print_msg(ACS_PRINT_INFO,
-                          "TYPE1 HEADER found\n",
+                          "\n       TYPE1 HEADER found",
                           0);
 
             /* Enable memory access, Bus master enable and I/O access*/
@@ -534,7 +534,7 @@ uint32_t pal_pcie_enumerate_device(uint32_t bus, uint32_t sec_bus)
         if (PCIE_HEADER_TYPE(header_value) == TYPE0_HEADER)
         {
             pal_print_msg(ACS_PRINT_INFO,
-                          "END POINT found\n",
+                          "\n       END POINT found",
                           0);
             pal_pcie_program_bar_reg(seg, bus, dev, func);
             sub_bus = sec_bus - 1;
@@ -612,7 +612,7 @@ void pal_pcie_enumerate(void)
     }
 
     pal_print_msg(ACS_PRINT_INFO,
-                  "\nStarting Enumeration\n",
+                  "\n       Starting Enumeration",
                   0);
     while (pcie_index < g_pcie_info_table->num_entries)
     {
@@ -743,7 +743,7 @@ pal_pcie_get_base(uint32_t bdf, uint32_t bar_index)
   }
 
   pal_print_msg(ACS_PRINT_INFO,
-                "value read from BAR 0x%llx\n",
+                "\n       value read from BAR 0x%llx",
                 bar_value);
 
   return bar_value;

@@ -45,7 +45,7 @@ static void print_hex_dump(uint64_t address, uint64_t size)
   uint32_t i;
 
   for (offset = 0; offset < size; offset += 16) {
-    val_print(DEBUG, "\n         %08llx :", offset);
+    val_print(DEBUG, "\n       %08llx :", offset);
     for (i = 0; (i < 16) && ((offset + i) < size); i++)
       val_print(DEBUG, " %02x", data[offset + i]);
   }
@@ -85,56 +85,56 @@ static void print_acpi_table_debug(uint64_t acpi_addr, uint64_t acpi_size)
   uint64_t acpi_end;
   uint32_t i;
 
-  val_print(DEBUG, "\n\n       DL017 ACPI Table Region Debug");
-  val_print(DEBUG, "\n         Base Address : 0x%llx", acpi_addr);
-  val_print(DEBUG, "\n         Region Size  : %ld Bytes", acpi_size);
+  val_print(DEBUG, "\n       DL017 ACPI Table Region Debug");
+  val_print(DEBUG, "\n       Base Address : 0x%llx", acpi_addr);
+  val_print(DEBUG, "\n       Region Size  : %ld Bytes", acpi_size);
 
   if (acpi_size == 0) {
-    val_print(DEBUG, "\n         ACPI table region is not present");
+    val_print(DEBUG, "\n       ACPI table region is not present");
     return;
   }
 
   if (acpi_size < ACPI_HEADER_SIZE) {
-    val_print(DEBUG, "\n         ACPI table region smaller than ACPI header");
+    val_print(DEBUG, "\n       ACPI table region smaller than ACPI header");
     print_hex_dump(acpi_addr, acpi_size);
     return;
   }
 
   acpi_end = acpi_addr + acpi_size;
   if (acpi_end < acpi_addr) {
-    val_print(DEBUG, "\n         ACPI table region address overflow");
+    val_print(DEBUG, "\n       ACPI table region address overflow");
     return;
   }
 
   sig = *(uint32_t *)acpi_addr;
-  val_print(DEBUG, "\n         Region Signature:");
+  val_print(DEBUG, "\n       Region Signature:");
   print_sig(sig);
-  val_print(DEBUG, "\n         Raw ACPI Region Data:");
+  val_print(DEBUG, "\n       Raw ACPI Region Data:");
   print_hex_dump(acpi_addr, acpi_size);
 
   if (sig != ACS_ACPI_SIGNATURE('X', 'S', 'D', 'T')) {
-    val_print(DEBUG, "\n         ACPI region does not start with XSDT");
+    val_print(DEBUG, "\n       ACPI region does not start with XSDT");
     return;
   }
 
   xsdt_len = *((uint32_t *)(acpi_addr + ACPI_HEADER_LEN_OFFSET));
-  val_print(DEBUG, "\n\n         XSDT Length  : %d Bytes", xsdt_len);
+  val_print(DEBUG, "\n       XSDT Length  : %d Bytes", xsdt_len);
 
   if ((xsdt_len < ACPI_HEADER_SIZE) || (xsdt_len > acpi_size)) {
-    val_print(DEBUG, "\n         XSDT length is outside ACPI table region");
+    val_print(DEBUG, "\n       XSDT length is outside ACPI table region");
     return;
   }
 
   num_entries = (xsdt_len - ACPI_HEADER_SIZE) >> 3;
-  val_print(DEBUG, "\n         XSDT Entries : %d", num_entries);
+  val_print(DEBUG, "\n       XSDT Entries : %d", num_entries);
 
   for (i = 0; i < num_entries; i++) {
     next_table_addr = *((uint64_t *)(acpi_addr + ACPI_HEADER_SIZE + (i * 8)));
-    val_print(DEBUG, "\n           Entry[%d] Address : 0x%llx", i, next_table_addr);
-    val_print(DEBUG, "\n           Entry[%d] Signature:", i);
+    val_print(DEBUG, "\n       Entry[%d] Address : 0x%llx", i, next_table_addr);
+    val_print(DEBUG, "\n       Entry[%d] Signature:", i);
     if (!val_drtm_is_range_valid((uint8_t *)acpi_addr, (uint8_t *)acpi_end,
                                  (uint8_t *)next_table_addr, ACPI_HEADER_SIZE)) {
-      val_print(DEBUG, "\n           Entry[%d] outside ACPI region", i);
+      val_print(DEBUG, "\n       Entry[%d] outside ACPI region", i);
       continue;
     }
 
@@ -145,23 +145,23 @@ static void print_acpi_table_debug(uint64_t acpi_addr, uint64_t acpi_size)
 static void print_dlme_layout_debug(uint64_t dlme_data_address, uint64_t tcb_hash_address,
                                     uint64_t acpi_table_address)
 {
-  val_print(DEBUG, "\n\n       DL017 DLME Layout Debug");
-  val_print(DEBUG, "\n         DLME Data Address          : 0x%llx", dlme_data_address);
-  val_print(DEBUG, "\n         DLME Header Size           : %d Bytes",
+  val_print(DEBUG, "\n       DL017 DLME Layout Debug");
+  val_print(DEBUG, "\n       DLME Data Address          : 0x%llx", dlme_data_address);
+  val_print(DEBUG, "\n       DLME Header Size           : %d Bytes",
             dlme_data_header->size);
-  val_print(DEBUG, "\n         Protected Regions Size     : %ld Bytes",
+  val_print(DEBUG, "\n       Protected Regions Size     : %ld Bytes",
             dlme_data_header->protected_regions_size);
-  val_print(DEBUG, "\n         Address Map Size           : %ld Bytes",
+  val_print(DEBUG, "\n       Address Map Size           : %ld Bytes",
             dlme_data_header->address_map_size);
-  val_print(DEBUG, "\n         DRTM Event Log Size        : %ld Bytes",
+  val_print(DEBUG, "\n       DRTM Event Log Size        : %ld Bytes",
             dlme_data_header->drtm_event_log_size);
-  val_print(DEBUG, "\n         TCB Hash Table Address     : 0x%llx", tcb_hash_address);
-  val_print(DEBUG, "\n         TCB Hash Table Size        : %ld Bytes",
+  val_print(DEBUG, "\n       TCB Hash Table Address     : 0x%llx", tcb_hash_address);
+  val_print(DEBUG, "\n       TCB Hash Table Size        : %ld Bytes",
             dlme_data_header->tcb_hash_table_size);
-  val_print(DEBUG, "\n         ACPI Table Region Address  : 0x%llx", acpi_table_address);
-  val_print(DEBUG, "\n         ACPI Table Region Size     : %ld Bytes",
+  val_print(DEBUG, "\n       ACPI Table Region Address  : 0x%llx", acpi_table_address);
+  val_print(DEBUG, "\n       ACPI Table Region Size     : %ld Bytes",
             dlme_data_header->acpi_table_region_size);
-  val_print(DEBUG, "\n         Implementation Region Size : %ld Bytes",
+  val_print(DEBUG, "\n       Implementation Region Size : %ld Bytes",
             dlme_data_header->implementation_region_size);
 }
 
@@ -173,29 +173,29 @@ static void print_tcb_hash_debug(DRTM_TCB_HASH_TABLE *tbl, uint64_t tbl_size)
   uint64_t entry_offset;
   uint32_t i;
 
-  val_print(DEBUG, "\n\n       DL017 TCB Hash Table Debug");
-  val_print(DEBUG, "\n         Base Address : 0x%llx", (uint64_t)tbl);
-  val_print(DEBUG, "\n         Table Size   : %ld Bytes", tbl_size);
+  val_print(DEBUG, "\n       DL017 TCB Hash Table Debug");
+  val_print(DEBUG, "\n       Base Address : 0x%llx", (uint64_t)tbl);
+  val_print(DEBUG, "\n       Table Size   : %ld Bytes", tbl_size);
 
   if (tbl_size == 0) {
-    val_print(DEBUG, "\n         TCB hash table is not present");
+    val_print(DEBUG, "\n       TCB hash table is not present");
     return;
   }
 
   if (tbl_size < sizeof(DRTM_TCB_HASH_TABLE_HDR)) {
-    val_print(DEBUG, "\n         TCB hash table smaller than header");
+    val_print(DEBUG, "\n       TCB hash table smaller than header");
     print_hex_dump((uint64_t)tbl, tbl_size);
     return;
   }
 
   digest_size = val_drtm_get_digest_size(tbl->header.hash_algo);
-  val_print(DEBUG, "\n         Revision     : 0x%x", tbl->header.revision);
-  val_print(DEBUG, "\n         Num Hashes   : %d", tbl->header.num_hashes);
-  val_print(DEBUG, "\n         Hash Algo    : 0x%x", tbl->header.hash_algo);
-  val_print(DEBUG, "\n         Digest Size  : %d Bytes", digest_size);
+  val_print(DEBUG, "\n       Revision     : 0x%x", tbl->header.revision);
+  val_print(DEBUG, "\n       Num Hashes   : %d", tbl->header.num_hashes);
+  val_print(DEBUG, "\n       Hash Algo    : 0x%x", tbl->header.hash_algo);
+  val_print(DEBUG, "\n       Digest Size  : %d Bytes", digest_size);
 
   if (digest_size == 0) {
-    val_print(DEBUG, "\n         Unsupported hash algorithm, raw table dump:");
+    val_print(DEBUG, "\n       Unsupported hash algorithm, raw table dump:");
     print_hex_dump((uint64_t)tbl, tbl_size);
     return;
   }
@@ -207,13 +207,13 @@ static void print_tcb_hash_debug(DRTM_TCB_HASH_TABLE *tbl, uint64_t tbl_size)
 
     if ((entry_offset > tbl_size) ||
         ((tbl_size - entry_offset) < (sizeof(hash->hash_id) + digest_size))) {
-      val_print(DEBUG, "\n         Hash[%d] extends beyond table size", i);
+      val_print(DEBUG, "\n       Hash[%d] extends beyond table size", i);
       return;
     }
 
-    val_print(DEBUG, "\n           Hash[%d] Offset : 0x%llx", i, entry_offset);
-    val_print(DEBUG, "\n           Hash[%d] ID     : 0x%08x", i, hash->hash_id);
-    val_print(DEBUG, "\n           Hash[%d] Value  :", i);
+    val_print(DEBUG, "\n       Hash[%d] Offset : 0x%llx", i, entry_offset);
+    val_print(DEBUG, "\n       Hash[%d] ID     : 0x%08x", i, hash->hash_id);
+    val_print(DEBUG, "\n       Hash[%d] Value  :", i);
     print_hex_dump((uint64_t)hash->hash_val, digest_size);
 
     hash_entry += sizeof(hash->hash_id) + digest_size;

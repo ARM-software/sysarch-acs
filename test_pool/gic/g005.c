@@ -83,7 +83,7 @@ payload()
         }
         else {
             val_print(DEBUG,
-                "\n       GICR_ISENABLER0: %X\n ", data);
+                "\n       GICR_ISENABLER0: %X", data);
             val_print(ERROR,
                 "\n       INTID 0 - 7 not implemented as non-secure SGIs");
             val_set_status(index, RESULT_FAIL(3));
@@ -101,7 +101,7 @@ payload()
         }
         else {
             val_print(DEBUG,
-                "\n       GICD_IENABLER<n>: %X\n ", data);
+                "\n       GICD_IENABLER<n>: %X", data);
             val_print(ERROR,
                 "\n       INTID 0 - 7 not implemented as non-secure SGIs");
             val_set_status(index, RESULT_FAIL(4));

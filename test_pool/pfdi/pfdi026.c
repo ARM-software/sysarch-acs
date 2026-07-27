@@ -84,7 +84,7 @@ static void payload_invalid_pe_fw_check(void *arg)
   g_pfdi_invalid_fw_check = (PFDI_INVAL_RETURNS *)
                             val_memory_calloc(num_pe, sizeof(PFDI_INVAL_RETURNS));
   if (g_pfdi_invalid_fw_check == NULL) {
-    val_print(ERROR, "\n       Allocation for PFDI Invalid Firmware Check Failed \n");
+    val_print(ERROR, "\n       Allocation for PFDI Invalid Firmware Check Failed");
     val_set_status(index, RESULT_FAIL(1));
     return;
   }

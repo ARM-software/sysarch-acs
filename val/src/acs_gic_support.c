@@ -217,7 +217,7 @@ uint32_t val_gic_its_configure()
   /* Allocate memory to store ITS info */
   g_gic_its_info = (GIC_ITS_INFO *) val_aligned_alloc(MEM_ALIGN_4K, 1024);
   if (!g_gic_its_info) {
-      val_print(ERROR, "  ITS Configure: memory allocation failed\n");
+      val_print(ERROR, "\n       ITS Configure: memory allocation failed");
       return ACS_STATUS_ERR;
   }
 
@@ -250,13 +250,13 @@ uint32_t val_gic_its_configure()
 
   /* Return if no ITS */
   if (g_gic_its_info->GicNumIts == 0) {
-    val_print(DEBUG, "  ITS Configure: No ITS Found\n");
+    val_print(DEBUG, "\n       ITS Configure: No ITS Found");
     goto its_fail;
   }
 
   /* Base Address Check. */
   if ((g_gic_its_info->GicRdBase == 0) || (g_gic_its_info->GicDBase == 0)) {
-    val_print(DEBUG, "  ITS Configure: GICD/GICRD Base addr failed\n");
+    val_print(DEBUG, "\n       ITS Configure: GICD/GICRD Base addr failed");
     goto its_fail;
   }
 
@@ -264,11 +264,11 @@ uint32_t val_gic_its_configure()
       && val_its_gicr_lpi_support(g_gic_its_info->GicRdBase)) {
     Status = val_its_init();
     if ((Status)) {
-      val_print(DEBUG, "  ITS Configure: its_init failed\n");
+      val_print(DEBUG, "\n       ITS Configure: its_init failed");
       goto its_fail;
     }
   } else {
-    val_print(DEBUG, "  ITS Configure: LPI unsupported\n");
+    val_print(DEBUG, "\n       ITS Configure: LPI unsupported");
     goto its_fail;
   }
 
@@ -278,8 +278,8 @@ uint32_t val_gic_its_configure()
 
 its_fail:
 
-  val_print(DEBUG, "  ITS Init failed: ");
-  val_print(DEBUG, "LPI Interrupt related test may not pass\n");
+  val_print(DEBUG, "\n       ITS Init failed: ");
+  val_print(DEBUG, "LPI Interrupt related test may not pass");
   val_memory_free_aligned((void *)g_gic_its_info);
 
   return ACS_STATUS_ERR;
