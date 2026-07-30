@@ -50,6 +50,19 @@ typedef struct {
  */
 int val_fault_handle_sync(uint64_t esr, uint64_t far);
 
+/**
+ * @brief Arm scoped synchronous-exception recovery for the current PE.
+ * @param resume_pc Aligned instruction address to resume at after a fault.
+ * @return VAL_SUCCESS when armed, otherwise VAL_ERROR.
+ */
+int val_fault_begin(uint64_t resume_pc);
+
+/**
+ * @brief Disarm scoped exception recovery and return the captured ESR.
+ * @return ESR recorded by the scope, or zero when no exception occurred.
+ */
+uint64_t val_fault_end(void);
+
 /*
  * Best-effort memory probe: attempt a 64-bit load from `addr`.
  * - Returns VAL_SUCCESS if the access completed (no exception).

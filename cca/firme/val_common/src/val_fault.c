@@ -181,3 +181,33 @@ resume:
 
     return VAL_SUCCESS;
 }
+
+/**
+ * @brief Arm a synchronous recovery scope for the current single-PE payload.
+ * @param resume_pc Aligned recovery instruction within the caller's active frame.
+ * @return VAL_SUCCESS, or VAL_ERROR if recovery is already armed or invalid.
+ */
+int val_fault_begin(uint64_t resume_pc)
+{
+    if ((g_fault_ctx.active != 0U) || (resume_pc == 0U) ||
+        ((resume_pc & UINT64_C(3)) != 0U))
+        return VAL_ERROR;
+
+    g_fault_ctx.faulted = 0U;
+    g_fault_ctx.esr = 0U;
+    g_fault_ctx.far = 0U;
+    g_fault_ctx.resume_pc = resume_pc;
+    g_fault_ctx.active = 1U;
+    return VAL_SUCCESS;
+}
+
+/**
+ * @brief Disarm the current recovery scope after the caller restores its state.
+ * @return Recorded ESR; a trapped undefined instruction can have ESR zero.
+ */
+uint64_t val_fault_end(void)
+{
+    g_fault_ctx.active = 0U;
+    g_fault_ctx.resume_pc = 0U;
+    return g_fault_ctx.esr;
+}

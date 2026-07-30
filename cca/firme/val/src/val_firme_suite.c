@@ -17,6 +17,24 @@
 /* Chapter selection is controlled by build-time macros (from CMake/Make). */
 
 #if FIRME_ENABLE_BASE
+extern int firme_base_smccc_version_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_version_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_version_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sve_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sve_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sve_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sme_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sme_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smccc_sme_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_smc64_calling_convention_run_secure(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_base_smc64_calling_convention_run_realm(uint64_t base_pa,
+                                                         firme_rule_res_t *out);
+extern int firme_base_smc64_calling_convention_run_ns(uint64_t base_pa,
+                                                      firme_rule_res_t *out);
+extern int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_status_codes_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -72,6 +90,80 @@ extern int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res
 /* Global, self-describing registry (ordered by chapter). */
 const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_BASE
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0007,
+        .rule_str = "R0007",
+        .suite = "firme",
+        .test_name = "smccc_version",
+        .desc = "FIRME ABIs comply with SMCCC version 1.2 or later",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "SMCCC version from Secure world",
+        .check_realm = "SMCCC version from Realm world",
+        .check_ns = "SMCCC version from NS world",
+        .run_ns = firme_base_smccc_version_run_ns,
+        .run_secure = firme_base_smccc_version_run_secure,
+        .run_realm = firme_base_smccc_version_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0008,
+        .rule_str = "R0008",
+        .suite = "firme",
+        .test_name = "smccc_sve",
+        .desc = "FEAT_SVE systems comply with SMCCC version 1.3 or later",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "SMCCC SVE rule from Secure world",
+        .check_realm = "SMCCC SVE rule from Realm world",
+        .check_ns = "SMCCC SVE rule from NS world",
+        .run_ns = firme_base_smccc_sve_run_ns,
+        .run_secure = firme_base_smccc_sve_run_secure,
+        .run_realm = firme_base_smccc_sve_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0009,
+        .rule_str = "R0009",
+        .suite = "firme",
+        .test_name = "smccc_sme",
+        .desc = "FEAT_SME systems comply with SMCCC version 1.4 or later",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "SMCCC SME rule from Secure world",
+        .check_realm = "SMCCC SME rule from Realm world",
+        .check_ns = "SMCCC SME rule from NS world",
+        .run_ns = firme_base_smccc_sme_run_ns,
+        .run_secure = firme_base_smccc_sme_run_secure,
+        .run_realm = firme_base_smccc_sme_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0010,
+        .rule_str = "R0010",
+        .suite = "firme",
+        .test_name = "smc64_calling_convention",
+        .desc = "FIRME ABIs use the SMC64 calling convention",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "SMC64 convention from Secure world",
+        .check_realm = "SMC64 convention from Realm world",
+        .check_ns = "SMC64 convention from NS world",
+        .run_ns = firme_base_smc64_calling_convention_run_ns,
+        .run_secure = firme_base_smc64_calling_convention_run_secure,
+        .run_realm = firme_base_smc64_calling_convention_run_realm,
+    },
+    /*
+     * R0011 validates statuses observed from every advertised ABI against the
+     * status set permitted for that ABI. It remains unscheduled until all
+     * service-specific test paths feed the shared validator, so one safe probe
+     * per advertised ABI is not misreported as complete status-path coverage.
+     */
     /*
      * R0023 is a static interface-definition check with no executable test:
      * legal calls keep bits [63:8] SBZ and cannot distinguish a wider decoder.

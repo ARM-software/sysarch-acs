@@ -25,7 +25,61 @@ FIRME_BUILD_DIR="${FIRME_BUILD_DIR:-${ACS_DIR}/build-cmake}"
 FIRME_ARTIFACT_DIR="${FIRME_ARTIFACT_DIR:-${ACS_DIR}/build}"
 ACS_PRINT_LEVEL="${ACS_PRINT_LEVEL:-3}"
 FIRME_TOOLCHAIN="${FIRME_TOOLCHAIN:-gcc}" # gcc|clang
-SUITE="${SUITE:-}"
+SUITE="${SUITE:-all}"
+SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
+
+case "${SUITE}" in
+    all|base|gpt|mec|ide|attest)
+        ;;
+    *)
+        echo "ERROR: unknown SUITE='${SUITE}' (expected all|base|gpt|mec|ide|attest)" >&2
+        exit 1
+        ;;
+esac
+
+if [[ -z "${FIRME_ENABLE_SVE+x}" ]]; then
+    case "${SUITE}" in
+        all|base)
+            FIRME_ENABLE_SVE=1
+            ;;
+        *)
+            FIRME_ENABLE_SVE=0
+            ;;
+    esac
+fi
+if [[ -z "${FIRME_ENABLE_SME+x}" ]]; then
+    case "${SUITE}" in
+        all|base)
+            FIRME_ENABLE_SME=1
+            ;;
+        *)
+            FIRME_ENABLE_SME=0
+            ;;
+    esac
+fi
+case "${FIRME_ENABLE_SVE}:${FIRME_ENABLE_SME}" in
+    0:0|1:0|1:1)
+        ;;
+    *)
+        echo "ERROR: FIRME_ENABLE_SVE/SME must be 0 or 1, and SME requires SVE." >&2
+        exit 1
+        ;;
+esac
+
+if [[ "${FIRME_ENABLE_SVE}" == "1" ]]; then
+    TFA_ENABLE_SVE_FOR_NS="${TFA_ENABLE_SVE_FOR_NS:-2}"
+    TFA_ENABLE_SVE_FOR_SWD="${TFA_ENABLE_SVE_FOR_SWD:-1}"
+else
+    TFA_ENABLE_SVE_FOR_NS="${TFA_ENABLE_SVE_FOR_NS:-0}"
+    TFA_ENABLE_SVE_FOR_SWD="${TFA_ENABLE_SVE_FOR_SWD:-0}"
+fi
+if [[ "${FIRME_ENABLE_SME}" == "1" ]]; then
+    TFA_ENABLE_SME_FOR_NS="${TFA_ENABLE_SME_FOR_NS:-2}"
+    TFA_ENABLE_SME_FOR_SWD="${TFA_ENABLE_SME_FOR_SWD:-1}"
+else
+    TFA_ENABLE_SME_FOR_NS="${TFA_ENABLE_SME_FOR_NS:-0}"
+    TFA_ENABLE_SME_FOR_SWD="${TFA_ENABLE_SME_FOR_SWD:-0}"
+fi
 
 if [[ -z "${FIRME_TOOLCHAIN_FILE:-}" ]]; then
     case "${FIRME_TOOLCHAIN}" in
@@ -98,9 +152,9 @@ if [[ -z "${TFA_DIR}" ]]; then
     exit 1
 fi
 
-BL32_BIN="${ACS_DIR}/build/secure.bin"
-BL33_BIN="${ACS_DIR}/build/nsel2.bin"
-REL2_BIN="${ACS_DIR}/build/rel2.bin"
+BL32_BIN="${FIRME_ARTIFACT_DIR}/secure.bin"
+BL33_BIN="${FIRME_ARTIFACT_DIR}/nsel2.bin"
+REL2_BIN="${FIRME_ARTIFACT_DIR}/rel2.bin"
 
 echo "Building TF-A:"
 echo "  TFA_DIR   : ${TFA_DIR}"
@@ -112,8 +166,12 @@ echo "  BL32      : ${BL32_BIN}"
 echo "  BL33      : ${BL33_BIN}"
 echo "  REL2      : ${REL2_BIN}"
 echo "  BL2_ENABLE_SP_LOAD: ${BL2_ENABLE_SP_LOAD}"
-echo "  FIRME_SUPPORT     : ${FIRME_SUPPORT}"
-echo "  SPMD_SPM_AT_SEL2   : ${SPMD_SPM_AT_SEL2}"
+echo "  FIRME_SUPPORT      : ${FIRME_SUPPORT}"
+echo "  SPMD_SPM_AT_SEL2  : ${SPMD_SPM_AT_SEL2}"
+echo "  ENABLE_SVE_FOR_NS : ${TFA_ENABLE_SVE_FOR_NS}"
+echo "  ENABLE_SVE_FOR_SWD: ${TFA_ENABLE_SVE_FOR_SWD}"
+echo "  ENABLE_SME_FOR_NS : ${TFA_ENABLE_SME_FOR_NS}"
+echo "  ENABLE_SME_FOR_SWD: ${TFA_ENABLE_SME_FOR_SWD}"
 
 if [[ "${SPMD_SPM_AT_SEL2}" == "0" ]]; then
     cat <<'EOF'
@@ -228,6 +286,10 @@ SPD=spmd
 ENABLE_RME=1
 SPMD_SPM_AT_SEL2=${SPMD_SPM_AT_SEL2}
 CTX_INCLUDE_EL2_REGS=${CTX_INCLUDE_EL2_REGS}
+ENABLE_SVE_FOR_NS=${TFA_ENABLE_SVE_FOR_NS}
+ENABLE_SVE_FOR_SWD=${TFA_ENABLE_SVE_FOR_SWD}
+ENABLE_SME_FOR_NS=${TFA_ENABLE_SME_FOR_NS}
+ENABLE_SME_FOR_SWD=${TFA_ENABLE_SME_FOR_SWD}
 E=${TFA_E}
 BL2_ENABLE_SP_LOAD=${BL2_ENABLE_SP_LOAD}
 FIRME_SUPPORT=${FIRME_SUPPORT}
@@ -297,6 +359,10 @@ EOF
         ENABLE_RME=1 \
         SPMD_SPM_AT_SEL2="${SPMD_SPM_AT_SEL2}" \
         CTX_INCLUDE_EL2_REGS="${CTX_INCLUDE_EL2_REGS}" \
+        ENABLE_SVE_FOR_NS="${TFA_ENABLE_SVE_FOR_NS}" \
+        ENABLE_SVE_FOR_SWD="${TFA_ENABLE_SVE_FOR_SWD}" \
+        ENABLE_SME_FOR_NS="${TFA_ENABLE_SME_FOR_NS}" \
+        ENABLE_SME_FOR_SWD="${TFA_ENABLE_SME_FOR_SWD}" \
         E="${TFA_E}" \
         BL2_ENABLE_SP_LOAD="${BL2_ENABLE_SP_LOAD}" \
         FIRME_SUPPORT="${FIRME_SUPPORT}" \

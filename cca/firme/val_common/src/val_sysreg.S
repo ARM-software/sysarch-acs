@@ -7,16 +7,18 @@
 
     .section .text, "ax"
 
-	/* Minimal AArch64 system register accessors used by FIRME-ACS payloads. */
+    /* Minimal AArch64 system register accessors used by FIRME-ACS payloads. */
 
 /*
  * Toolchain portability:
- * Some AArch64 assemblers do not accept the symbolic sysreg name
- * `ID_AA64MMFR4_EL1`, so use an explicit encoding via a macro.
+ * Some AArch64 assemblers do not accept newer symbolic sysreg names,
+ * so use explicit encodings via macros.
  *
+ * ID_AA64PFR1_EL1  == S3_0_C0_C4_1.
  * ID_AA64MMFR4_EL1 == S3_0_C0_C7_4.
  * MECIDR_EL2       == S3_4_C10_C8_7.
  */
+#define VAL_SYSREG_ID_AA64PFR1_EL1  S3_0_C0_C4_1
 #define VAL_SYSREG_ID_AA64MMFR4_EL1 S3_0_C0_C7_4
 #define VAL_SYSREG_MECIDR_EL2       S3_4_C10_C8_7
 
@@ -33,6 +35,11 @@ read_mpidr_el1:
     .global read_id_aa64pfr0_el1
 read_id_aa64pfr0_el1:
     mrs x0, ID_AA64PFR0_EL1
+    ret
+
+    .global read_id_aa64pfr1_el1
+read_id_aa64pfr1_el1:
+    mrs x0, VAL_SYSREG_ID_AA64PFR1_EL1
     ret
 
     .global read_id_aa64mmfr4_el1

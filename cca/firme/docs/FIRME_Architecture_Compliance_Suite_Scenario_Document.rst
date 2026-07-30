@@ -34,6 +34,89 @@ Testcase checklist
 
   * -
 
+      `smccc_version <../test/base/smccc_version.c>`_
+
+    -
+
+      R0007: FIRME ABIs are compliant with SMCCC version 1.2 or later.
+
+    -
+
+      1. Invoke the SMCCC ``VERSION`` call from each caller world.
+      2. Decode the returned SMCCC major and minor version fields.
+      3. Expect a non-error response and verify the version is at least 1.2.
+      4. Discover every service and ABI advertised at the current FIRME instance.
+      5. Invoke each advertised ABI with side-effect-safe, ABI-specific inputs.
+      6. Verify unused ``x4-x17``, preserved ``x18-x30``, SIMD/FP state, ``FPCR`` and ``FPSR``.
+
+  * -
+
+      `smccc_sve <../test/base/smccc_sve.c>`_
+
+    -
+
+      R0008: If FEAT_SVE is implemented, FIRME ABIs are compliant with SMCCC version 1.3 or later.
+
+    -
+
+      1. Read ``ID_AA64PFR0_EL1`` and check the SVE field.
+      2. If FEAT_SVE is absent, report SKIP because the conditional rule is not applicable.
+      3. If FEAT_SVE is present, invoke SMCCC ``VERSION``.
+      4. Expect the reported SMCCC version to be at least 1.3.
+      5. Seed live ``Z``, ``P`` and ``FFR`` state and invoke every advertised ABI.
+      6. Repeat each ABI with the SVE hint and verify discardable state is preserved or zeroed.
+      7. Verify the lower 128 bits of every ``Z`` register and SIMD/FP controls in both cases.
+
+  * -
+
+      `smccc_sme <../test/base/smccc_sme.c>`_
+
+    -
+
+      R0009: If FEAT_SME is implemented, FIRME ABIs are compliant with SMCCC version 1.4 or later.
+
+    -
+
+      1. Read ``ID_AA64PFR1_EL1`` and check the SME field.
+      2. If FEAT_SME is absent, report SKIP because the conditional rule is not applicable.
+      3. If FEAT_SME is present, invoke SMCCC ``VERSION``.
+      4. Expect the reported SMCCC version to be at least 1.4.
+      5. Seed live ``ZA`` and vector state in non-streaming and streaming modes.
+      6. Invoke every advertised ABI with and without the SVE hint.
+      7. Verify live ``ZA``, applicable vector state, streaming state and SIMD/FP controls.
+
+  * -
+
+      `smc64_calling_convention <../test/base/smc64_calling_convention.c>`_
+
+    -
+
+      R0010: FIRME ABIs use the SMC64 calling convention.
+
+    -
+
+      1. Verify every ALP3 FIRME ABI function ID carries the SMC64 convention bit.
+      2. Discover each ABI advertised at the current FIRME instance.
+      3. Invoke every advertised ABI using its SMC64 function ID and require an ABI-defined response.
+
+  * -
+
+      `status_codes <../test/base/status_codes.c>`_
+
+    -
+
+      R0011: FIRME ABIs use the status codes defined by the FIRME specification.
+
+    -
+
+      1. Invoke a valid Base feature-register request and expect ``SUCCESS``.
+      2. Exercise allocated and unallocated service discovery requests.
+      3. Discover every ABI advertised at the current FIRME instance.
+      4. Invoke each advertised ABI with side-effect-safe inputs.
+      5. Require each observed return value to be permitted by that ABI definition.
+
+  * -
+
       Static service ID width review
 
     -

@@ -39,6 +39,34 @@ esac
 
 FVP_ENABLE_RME="${FVP_ENABLE_RME:-1}"
 FVP_RME_SUPPORT_LEVEL="${FVP_RME_SUPPORT_LEVEL:-2}"
+if [[ -z "${FVP_ENABLE_SVE+x}" ]]; then
+    case "${SUITE}" in
+        all|base)
+            FVP_ENABLE_SVE=1
+            ;;
+        *)
+            FVP_ENABLE_SVE=0
+            ;;
+    esac
+fi
+if [[ -z "${FVP_ENABLE_SME+x}" ]]; then
+    case "${SUITE}" in
+        all|base)
+            FVP_ENABLE_SME=1
+            ;;
+        *)
+            FVP_ENABLE_SME=0
+            ;;
+    esac
+fi
+case "${FVP_ENABLE_SVE}:${FVP_ENABLE_SME}" in
+    0:0|1:0|1:1)
+        ;;
+    *)
+        echo "ERROR: FVP_ENABLE_SVE/SME must be 0 or 1, and SME requires SVE." >&2
+        exit 1
+        ;;
+esac
 if [[ -z "${FVP_ENABLE_MEC+x}" ]]; then
     case "${SUITE}" in
         all|mec)
@@ -65,13 +93,15 @@ BUILD_PLAT="${BUILD_BASE}/${PLAT}/${BUILD_TYPE}"
 BUILD_STAMP="${BUILD_PLAT}/firme-build.stamp"
 
 need_build_auto() {
-    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" <<'PY'
+    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" "$FVP_ENABLE_SVE" "$FVP_ENABLE_SME" <<'PY'
 import os, sys
 
 acs_dir = sys.argv[1]
 fip = sys.argv[2]
 stamp = sys.argv[3]
 suite = sys.argv[4]
+enable_sve = sys.argv[5]
+enable_sme = sys.argv[6]
 
 SOURCE_SUFFIXES = {
     ".c", ".h", ".S", ".s", ".ld", ".mk", ".make", ".json", ".dts", ".dtsi",
@@ -120,6 +150,12 @@ except FileNotFoundError:
 if f"SUITE={suite}" not in stamp_lines:
     print("1")
     sys.exit(0)
+if f"FIRME_ENABLE_SVE={enable_sve}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FIRME_ENABLE_SME={enable_sme}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
 
 print("1" if latest > fip_mtime else "0")
 PY
@@ -149,9 +185,15 @@ if [[ "${DO_BUILD}" == "1" ]]; then
     fi
     TFA_DIR="${TFA_DIR}" PLAT="${PLAT}" BUILD_BASE="${BUILD_BASE}" BUILD_TYPE="${BUILD_TYPE}" \
         SUITE="${SUITE}" \
+        FIRME_ENABLE_SVE="${FVP_ENABLE_SVE}" \
+        FIRME_ENABLE_SME="${FVP_ENABLE_SME}" \
         BUILD_TFA="${BUILD_TFA:-auto}" \
         bash "${ACS_DIR}/tools/scripts/build_tfa_fvp.sh"
-    printf 'SUITE=%s\n' "${SUITE}" > "${BUILD_STAMP}"
+    {
+        printf 'SUITE=%s\n' "${SUITE}"
+        printf 'FIRME_ENABLE_SVE=%s\n' "${FVP_ENABLE_SVE}"
+        printf 'FIRME_ENABLE_SME=%s\n' "${FVP_ENABLE_SME}"
+    } > "${BUILD_STAMP}"
 else
     echo "[run] Skipping build (BUILD_MODE=${BUILD_MODE})"
 fi
@@ -181,6 +223,8 @@ echo "  SUITE      : ${SUITE}"
 echo "  TELNET     : ${FVP_ENABLE_TELNET} (ports ${FVP_TELNET_PORTS})"
 echo "  TELNET_DIR : ${FVP_TELNET_LOG_DIR}"
 echo "  RME        : ${FVP_ENABLE_RME} (support level ${FVP_RME_SUPPORT_LEVEL})"
+echo "  SVE        : ${FVP_ENABLE_SVE}"
+echo "  SME        : ${FVP_ENABLE_SME}"
 echo "  MEC        : ${FVP_ENABLE_MEC} (support level ${FVP_MEC_SUPPORT_LEVEL}, MECID width ${FVP_MECID_WIDTH})"
 echo "  SMMU MEC   : ${FVP_ENABLE_SMMU_MEC}"
 
@@ -222,6 +266,20 @@ FVP_ARGS=(
     -C bp.terminal_2.terminal_command=/bin/true
     -C bp.terminal_3.terminal_command=/bin/true
 )
+
+if [[ "${FVP_ENABLE_SVE}" == "1" ]]; then
+    FVP_ARGS+=(
+        -C cluster0.has_sve=1
+        -C cluster1.has_sve=1
+    )
+fi
+
+if [[ "${FVP_ENABLE_SME}" == "1" ]]; then
+    FVP_ARGS+=(
+        -C cluster0.sve.has_sme=1
+        -C cluster1.sve.has_sme=1
+    )
+fi
 
 if [[ "${FVP_ENABLE_RME}" == "1" ]]; then
     # Match the RME enablement knobs used by shrinkwrap configs:

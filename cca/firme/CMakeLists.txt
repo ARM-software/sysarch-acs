@@ -79,6 +79,11 @@ set(FIRME_COMMON_CFLAGS
     -O2 -g
 )
 
+set_source_files_properties(
+    "${CMAKE_CURRENT_LIST_DIR}/val_common/src/val_fault.c"
+    PROPERTIES COMPILE_OPTIONS "-mgeneral-regs-only"
+)
+
 set(FIRME_COMMON_LDFLAGS
     -nostdlib -nostartfiles
 )

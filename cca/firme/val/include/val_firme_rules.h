@@ -16,6 +16,11 @@
  * Keep IDs stable so logs and automation can key off them.
  */
 typedef enum {
+    FIRME_RULE_R0007 = 7,
+    FIRME_RULE_R0008 = 8,
+    FIRME_RULE_R0009 = 9,
+    FIRME_RULE_R0010 = 10,
+    FIRME_RULE_R0011 = 11,
     FIRME_RULE_R0023 = 23,
     FIRME_RULE_R0024 = 24,
     FIRME_RULE_R0025 = 25,
