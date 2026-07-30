@@ -64,6 +64,8 @@
 #define FIRME_SERVICE_ID_INTEGRATED_DEVICE 0x5U
 #define FIRME_SERVICE_ID_MAX               0x6U
 #define FIRME_SERVICE_ID_8BIT_MAX          0xffU
+#define FIRME_SERVICE_ID_INPUT_MASK        UINT64_C(0xFF)
+#define FIRME_FEATURE_REG_INDEX_INPUT_MASK UINT64_C(0xFF)
 
 /* FIRME service version encoding. */
 #define FIRME_VERSION_MAJOR_SHIFT 16U
@@ -108,6 +110,7 @@
 #define FIRME_GM_FEATURE_REG0_ALLOCATED_BITS \
     (FIRME_GM_FEATURE_GPI_SET_BIT | FIRME_GM_FEATURE_GPI_CONTINUE_BIT | \
      FIRME_GM_FEATURE_L1_CREATE_BIT | FIRME_GM_FEATURE_L1_DESTROY_BIT)
+#define FIRME_GM_GPI_SET_ATTRIBUTES_MASK      UINT64_C(0xF)
 
 #define FIRME_IDE_FEATURE_REG0_INDEX           0U
 #define FIRME_IDE_FEATURE_KEYSET_PROG_BIT      (UINT64_C(1) << 0)
@@ -137,7 +140,10 @@
 #define FIRME_MEC_REFRESH_REASON_MASK    UINT64_C(1)
 #define FIRME_MEC_REFRESH_MECID_SHIFT    32U
 #define FIRME_MEC_REFRESH_MECID_WIDTH    16U
-#define FIRME_MEC_REFRESH_MECID_MASK     UINT64_C(0xffff)
+#define FIRME_MEC_REFRESH_MECID_MASK     UINT64_C(0xFFFF)
+#define FIRME_MEC_REFRESH_PARAMS_MASK \
+    ((FIRME_MEC_REFRESH_MECID_MASK << FIRME_MEC_REFRESH_MECID_SHIFT) | \
+     FIRME_MEC_REFRESH_REASON_MASK)
 
 /* FIRME MECID management service feature register fields. */
 #define FIRME_MECID_FEATURE_REG0_INDEX           0U
@@ -174,6 +180,10 @@ typedef struct {
     uint64_t x2;
     uint64_t x3;
 } firme_res_t;
+
+int val_firme_test_output_poison_enable(uint64_t fid, const firme_res_t *mask,
+                                        const firme_res_t *value);
+void val_firme_test_output_poison_disable(void);
 
 void val_firme_version(firme_res_t *out);
 void val_firme_features(uint64_t feature_id, firme_res_t *out);

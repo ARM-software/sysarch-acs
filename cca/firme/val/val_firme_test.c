@@ -84,7 +84,7 @@ void val_firme_gm_gpi_set_do_retry(uint64_t base_pa, uint64_t granule_count, uin
     firme_res_t r = {0};
     for (uint32_t i = 0; i < 8U; i++) {
         val_firme_gm_gpi_set_do(base_pa, granule_count, target_gpi, &r);
-        if ((int64_t)r.x0 != (int64_t)FIRME_RETRY) {
+        if (val_firme_status_to_i64(r.x0) != (int64_t)FIRME_RETRY) {
             if (out)
                 *out = r;
             return;

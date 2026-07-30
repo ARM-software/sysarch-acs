@@ -117,6 +117,94 @@ Testcase checklist
 
   * -
 
+      `reserved_input_registers <../test/base/reserved_input_registers.c>`_
+
+    -
+
+      R0012: An unused input parameter register in a FIRME ABI is Reserved and SBZ.
+
+    -
+
+      1. Enable capture-only mode before invoking each production FIRME wrapper.
+      2. Capture the final x0-x17 input frame immediately before SMC dispatch.
+      3. Bypass the SMC while capture is enabled so GM and MEC audit requests
+         cannot change DUT state.
+      4. Exercise the Base, GM and MEC wrappers present in this revision.
+      5. Verify every wholly unused input register is zero; the generic helper
+         clears x8-x17 immediately before the capture point.
+      6. Report PASS only when every captured wrapper frame satisfies SBZ.
+
+  * -
+
+      `reserved_input_bits <../test/base/reserved_input_bits.c>`_
+
+    -
+
+      R0013: An unused bit in an input parameter register in a FIRME ABI is Reserved and SBZ.
+
+    -
+
+      1. Enable capture-only mode and invoke every production FIRME wrapper
+         present in this revision with all-one values in parameter fields.
+      2. Capture the final x0-x17 input frame immediately before SMC dispatch.
+      3. Verify only allocated Base service-ID, feature-index, GM attribute and
+         MEC parameter bits remain, while every other input bit is zero.
+      4. Bypass the SMC while capture is enabled so malformed audit inputs cannot
+         change DUT state.
+      5. Use the raw SMCCC path for intentional DUT parameter-validation tests,
+         so production-wrapper sanitization cannot weaken negative coverage.
+      6. Report PASS only when every captured wrapper frame satisfies SBZ.
+
+  * -
+
+      `reserved_output_registers <../test/base/reserved_output_registers.c>`_
+
+    -
+
+      R0014: An unused output parameter register is Reserved and ignored by the caller.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` and consume only the architected version/status output.
+      2. Invoke ``FIRME_SERVICE_FEATURES`` and consume only architected status and feature-register outputs.
+      3. Configure the ACS caller-side response hook to replace unused output
+         registers with zero, all-one and mixed patterns after the real SMC.
+      4. Exercise the production service-discovery consumers with each pattern.
+      5. Confirm service availability and decoded fields are unchanged.
+         Registers not exposed by the VAL response type are ignored by
+         construction.
+      6. Scope poisoning to the current PE and requested FID so unrelated calls
+         retain the genuine DUT response.
+      7. This validates Base caller behavior without modifying the DUT. The
+         remaining service/status output shapes and callee non-disclosure
+         property require caller and implementation security review.
+      8. Keep R0014 registry-gated until both parts have complete evidence.
+
+  * -
+
+      `reserved_output_bits <../test/base/reserved_output_bits.c>`_
+
+    -
+
+      R0015: An unused output bit is Reserved and ignored by the caller.
+
+    -
+
+      1. Invoke Base feature registers 0 and 1 using ``FIRME_SERVICE_FEATURES``.
+      2. Configure the ACS caller-side response hook to replace upper X0 bits
+         and unused feature-register fields after the real SMC.
+      3. Repeat with zero, all-one and mixed patterns through the production
+         service-discovery and signed-W0 decoding paths.
+      4. Confirm service state, version and every allocated feature field
+         remain identical for every poison pattern.
+      5. Scope poisoning to the current PE and requested FID.
+      6. This validates Base caller behavior without modifying the DUT. The
+         remaining service/status output fields and callee non-disclosure
+         property require caller and implementation security review.
+      7. Keep R0015 registry-gated until both parts have complete evidence.
+
+  * -
+
       Static service ID width review
 
     -

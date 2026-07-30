@@ -57,6 +57,28 @@ extern int firme_base_service_abi_compliance_run_secure(uint64_t base_pa,
 extern int firme_base_service_abi_compliance_run_realm(uint64_t base_pa,
                                                        firme_rule_res_t *out);
 extern int firme_base_service_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_reserved_input_registers_run_secure(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_base_reserved_input_registers_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_base_reserved_input_registers_run_ns(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_base_reserved_input_bits_run_secure(uint64_t base_pa,
+                                                     firme_rule_res_t *out);
+extern int firme_base_reserved_input_bits_run_realm(uint64_t base_pa,
+                                                    firme_rule_res_t *out);
+extern int firme_base_reserved_input_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_reserved_output_registers_run_secure(uint64_t base_pa,
+                                                            firme_rule_res_t *out);
+extern int firme_base_reserved_output_registers_run_realm(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_base_reserved_output_registers_run_ns(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
+extern int firme_base_reserved_output_bits_run_secure(uint64_t base_pa,
+                                                      firme_rule_res_t *out);
+extern int firme_base_reserved_output_bits_run_realm(uint64_t base_pa,
+                                                     firme_rule_res_t *out);
+extern int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -185,6 +207,45 @@ const firme_test_case_t g_firme_test_cases[] = {
      * status set permitted for that ABI. It remains unscheduled until all
      * service-specific test paths feed the shared validator, so one safe probe
      * per advertised ABI is not misreported as complete status-path coverage.
+     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0012,
+        .rule_str = "R0012",
+        .suite = "firme",
+        .test_name = "reserved_input_registers",
+        .desc = "Unused FIRME input registers are reserved and SBZ",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Reserved input registers from Secure world",
+        .check_realm = "Reserved input registers from Realm world",
+        .check_ns = "Reserved input registers from NS world",
+        .run_ns = firme_base_reserved_input_registers_run_ns,
+        .run_secure = firme_base_reserved_input_registers_run_secure,
+        .run_realm = firme_base_reserved_input_registers_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0013,
+        .rule_str = "R0013",
+        .suite = "firme",
+        .test_name = "reserved_input_bits",
+        .desc = "Unused FIRME input bits are reserved and SBZ",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Reserved input bits from Secure world",
+        .check_realm = "Reserved input bits from Realm world",
+        .check_ns = "Reserved input bits from NS world",
+        .run_ns = firme_base_reserved_input_bits_run_ns,
+        .run_secure = firme_base_reserved_input_bits_run_secure,
+        .run_realm = firme_base_reserved_input_bits_run_realm,
+    },
+    /*
+     * R0014 and R0015 have caller-side poisoning self-tests, but are not
+     * scheduled as DUT compliance tests. Full coverage also requires every
+     * service/status output shape and a callee non-disclosure security audit.
      */
     /*
      * R0023 is a static interface-definition check with no executable test:

@@ -81,6 +81,8 @@ set(FIRME_COMMON_CFLAGS
 
 set_source_files_properties(
     "${CMAKE_CURRENT_LIST_DIR}/val_common/src/val_fault.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/base/reserved_input_bits.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/base/reserved_input_registers.c"
     PROPERTIES COMPILE_OPTIONS "-mgeneral-regs-only"
 )
 

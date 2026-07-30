@@ -85,27 +85,13 @@ void val_firme_ns_write64(uint64_t addr, uint64_t value)
 }
 
 /**
- *   @brief    - Convert an ABI return value into a signed status.
- *   @param    - v : Raw x0 return (often transported as zero-extended SMC32).
- *   @return   - Signed status value.
+ *   @brief    - Convert an ABI return value into a signed W0 status.
+ *   @param    - v : Raw x0 return.
+ *   @return   - Signed FIRME status value.
 **/
 int64_t val_firme_as_i64(uint64_t v)
 {
-    /*
-     * FIRME ABIs are defined as AArch64 SMC calls, but in the FIRME ACS shim we
-     * frequently transport status values over SMC32 direct messaging.
-     *
-     * In SMC32 convention, return registers are 32-bit and commonly
-     * zero-extended by the transport path (so -1 becomes 0x00000000ffffffff).
-     *
-     * Treat "upper 32 bits are zero and bit31 is set" as a sign-extended 32-bit
-     * status.
-     */
-    uint32_t lo = (uint32_t)v;
-    if (((v >> 32) == 0ULL) && ((lo & 0x80000000U) != 0U)) {
-        return (int64_t)(int32_t)lo;
-    }
-    return (int64_t)v;
+    return val_firme_status_to_i64(v);
 }
 
 /**
