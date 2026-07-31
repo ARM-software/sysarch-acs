@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include "acs_stdint.h"
+#include "pal_common_support.h"
 #include "platform_override_fvp.h"
 
 #define MAX_CS_COMP_LENGTH 256
@@ -451,22 +452,13 @@ typedef struct {
 
 
 /* Platform Communication Channel (PCC) info table */
-#ifndef GAS_STRUCT
-#define GAS_STRUCT
-typedef struct {
-  uint8_t   addr_space_id;
-  uint8_t   reg_bit_width;
-  uint8_t   reg_bit_offset;
-  uint8_t   access_size;
-  uint64_t  addr;
-} GENERIC_ADDRESS_STRUCTURE;
-#endif
-
 typedef struct {
   uint64_t                         base_addr;               /* base addr of shared mem-region */
+  uint32_t                         memory_length;           /* length of shared mem-region */
   GENERIC_ADDRESS_STRUCTURE        doorbell_reg;            /* doorbell register */
   uint64_t                         doorbell_preserve;       /* doorbell register preserve mask */
   uint64_t                         doorbell_write;          /* doorbell register set mask */
+  uint32_t                         nominal_latency_usec;    /* expected command latency */
   uint32_t                         min_req_turnaround_usec; /* minimum request turnaround time */
   GENERIC_ADDRESS_STRUCTURE        cmd_complete_chk_reg;    /* command complete check register */
   uint64_t                         cmd_complete_chk_mask;   /* command complete check mask */

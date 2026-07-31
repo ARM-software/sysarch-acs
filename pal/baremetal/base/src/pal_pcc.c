@@ -62,6 +62,9 @@ pal_pcc_dump_info_table(PCC_INFO_TABLE *PccInfoTable)
                         "\n Base address                      : 0x%lx",
                         ptr_pcc_ss_type_3->base_addr);
           pal_print_msg(ACS_PRINT_INFO,
+                        "\n Memory length                     : 0x%x",
+                        ptr_pcc_ss_type_3->memory_length);
+          pal_print_msg(ACS_PRINT_INFO,
                         "\n Doorbell Register addr            : 0x%lx",
                         ptr_pcc_ss_type_3->doorbell_reg.addr);
           pal_print_msg(ACS_PRINT_INFO,
@@ -70,6 +73,9 @@ pal_pcc_dump_info_table(PCC_INFO_TABLE *PccInfoTable)
           pal_print_msg(ACS_PRINT_INFO,
                         "\n Doorbell write Mask               : 0x%lx",
                         ptr_pcc_ss_type_3->doorbell_write);
+          pal_print_msg(ACS_PRINT_INFO,
+                        "\n Nominal latency (us)              : 0x%x",
+                        ptr_pcc_ss_type_3->nominal_latency_usec);
           pal_print_msg(ACS_PRINT_INFO,
                         "\n Min req turnaround time (us)      : 0x%x",
                         ptr_pcc_ss_type_3->min_req_turnaround_usec);
@@ -125,6 +131,8 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
     if (curr_entry->subspace_type == PCCT_SUBSPACE_TYPE_3_EXTENDED_PCC) {
         curr_entry->type_spec_info.pcc_ss_type_3.base_addr
           = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.base_addr;
+        curr_entry->type_spec_info.pcc_ss_type_3.memory_length
+          = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.memory_length;
         curr_entry->type_spec_info.pcc_ss_type_3.cmd_complete_chk_mask
           = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.cmd_complete_chk_mask;
         curr_entry->type_spec_info.pcc_ss_type_3.cmd_complete_chk_reg
@@ -141,6 +149,8 @@ pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable)
           = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.doorbell_reg;
         curr_entry->type_spec_info.pcc_ss_type_3.doorbell_write
           = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.doorbell_write;
+        curr_entry->type_spec_info.pcc_ss_type_3.nominal_latency_usec
+          = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.nominal_latency_usec;
         curr_entry->type_spec_info.pcc_ss_type_3.min_req_turnaround_usec
           = platform_pcc_cfg.pcc_info[i].type_spec_info.pcc_ss_type_3.min_req_turnaround_usec;
     }

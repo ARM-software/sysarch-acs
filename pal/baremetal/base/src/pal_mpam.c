@@ -48,6 +48,9 @@ pal_mpam_dump_table(MPAM_INFO_TABLE *MpamTable)
                     "\nMSC node Index      :%d ",
                     i);
       pal_print_msg(ACS_PRINT_INFO,
+                    "\nInterface type      :%lx ",
+                    curr_entry->intrf_type);
+      pal_print_msg(ACS_PRINT_INFO,
                     "\nMSC base addr       :%llx ",
                     curr_entry->msc_base_addr);
       pal_print_msg(ACS_PRINT_INFO,

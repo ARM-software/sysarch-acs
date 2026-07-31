@@ -1336,12 +1336,16 @@ const PLATFORM_OVERRIDE_PCC_INFO_TABLE platform_pcc_cfg = {
 
     .pcc_info[0].type_spec_info.pcc_ss_type_3.base_addr
                                                  = PLATFORM_PCC_SUBSPACE0_BASE,
+    .pcc_info[0].type_spec_info.pcc_ss_type_3.memory_length
+                                                 = PLATFORM_PCC_SUBSPACE0_MEMORY_LENGTH,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.doorbell_reg
                                                 = PLATFORM_PCC_SUBSPACE0_DOORBELL_REG,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.doorbell_preserve
                                                 = PLATFORM_PCC_SUBSPACE0_DOORBELL_PRESERVE,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.doorbell_write
                                                 = PLATFORM_PCC_SUBSPACE0_DOORBELL_WRITE,
+    .pcc_info[0].type_spec_info.pcc_ss_type_3.nominal_latency_usec
+                                                = PLATFORM_PCC_SUBSPACE0_NOMINAL_LATENCY,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.min_req_turnaround_usec
                                                 = PLATFORM_PCC_SUBSPACE0_MIN_REQ_TURN_TIME,
     .pcc_info[0].type_spec_info.pcc_ss_type_3.cmd_complete_chk_reg

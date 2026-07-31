@@ -1116,8 +1116,8 @@ typedef struct {
 void pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable);
 
 /* Platform Communication Channel (PCC) info table */
-#ifndef GAS_STRUCT
-#define GAS_STRUCT
+/* Set 1B alignment to prevent padding before the address field */
+#pragma pack(push, 1)
 typedef struct {
   uint8_t   addr_space_id;
   uint8_t   reg_bit_width;
@@ -1125,13 +1125,15 @@ typedef struct {
   uint8_t   access_size;
   uint64_t  addr;
 } GENERIC_ADDRESS_STRUCTURE;
-#endif
+#pragma pack(pop)
 
 typedef struct {
   uint64_t                         base_addr;               /* base addr of shared mem-region */
+  uint32_t                         memory_length;           /* length of shared mem-region */
   GENERIC_ADDRESS_STRUCTURE        doorbell_reg;            /* doorbell register */
   uint64_t                         doorbell_preserve;       /* doorbell register preserve mask */
   uint64_t                         doorbell_write;          /* doorbell register set mask */
+  uint32_t                         nominal_latency_usec;    /* expected command latency */
   uint32_t                         min_req_turnaround_usec; /* minimum request turnaround time */
   GENERIC_ADDRESS_STRUCTURE        cmd_complete_chk_reg;    /* command complete check register */
   uint64_t                         cmd_complete_chk_mask;   /* command complete check mask */
@@ -1179,8 +1181,8 @@ typedef struct {
 typedef struct {
   uint32_t msc_id;            /* Identifier of the MSC */
   uint32_t flags;             /* Reserved, must be zero */
-  uint32_t val;               /* value to be written to the register */
   uint32_t offset;            /* MPAM register offset to write */
+  uint32_t val;               /* value to be written to the register */
 } PCC_MPAM_MSC_WRITE_CMD_PARA;
 
 typedef struct {
@@ -1204,6 +1206,8 @@ typedef struct {
 #define MPAM_PCC_CMD_SUCCESS   0x0
 #define MPAM_PCC_SAFE_RETURN   0x0
 #define RETURN_FAILURE         0xFFFFFFFF
+#define PCC_TY3_FLAGS_OFFSET   4
+#define PCC_TY3_LENGTH_OFFSET  8
 #define PCC_TY3_CMD_OFFSET     12
 #define PCC_TY3_COMM_SPACE     16
 #define PCCT_SUBSPACE_TYPE_3_EXTENDED_PCC 0x03

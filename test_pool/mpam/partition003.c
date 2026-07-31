@@ -226,6 +226,13 @@ static void payload(void)
             end_count = val_mpam_read_csumon(msc_index);
             val_print(DEBUG, "\n       End Count = 0x%lx", end_count);
 
+            /* A partitioning result is not valid unless the monitor observed traffic. */
+            if (end_count <= start_count) {
+              val_print(ERROR, "\n       CSU monitor did not advance for msc_index : %d",
+                        msc_index);
+              test_fail++;
+            }
+
             /* Disable CSU MON */
             val_mpam_csumon_disable(msc_index);
 

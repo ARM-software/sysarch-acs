@@ -63,29 +63,86 @@ VOID
 pal_pcc_store_info(UINT32 subspace_idx)
 {
   EFI_ACPI_6_5_PLATFORM_COMMUNICATION_CHANNEL_TABLE_HEADER *pcct;
-  EFI_ACPI_6_5_PCCT_SUBSPACE_GENERIC *pcct_subspace, *pcct_end;
+  EFI_ACPI_6_5_PCCT_SUBSPACE_HEADER *pcct_subspace;
   EFI_ACPI_6_5_PCCT_SUBSPACE_3_EXTENDED_PCC *pcct_type_3;
   PCC_SUBSPACE_TYPE_3 *ptr_to_pcc_ss_type_3;
+  UINT8 *pcct_end;
+  UINTN remaining;
 
   UINT32 index = 0;
 
   /* get pointer to PCCT ACPI table*/
   pcct = (EFI_ACPI_6_5_PLATFORM_COMMUNICATION_CHANNEL_TABLE_HEADER *)
           pal_get_acpi_table_ptr(EFI_ACPI_6_5_PLATFORM_COMMUNICATIONS_CHANNEL_TABLE_SIGNATURE);
+  if (pcct == NULL) {
+      pal_print_msg(ACS_PRINT_ERR, "\n    PCC: PCCT table not found", 0);
+      return;
+  }
+
+  /* Multiple MSCs may reference the same PCCT subspace. Store it only once. */
+  while (index < g_pcc_info_table->subspace_cnt) {
+    if (g_pcc_info_table->pcc_info[index].subspace_idx == subspace_idx) {
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "\n    PCC: subspace=%u is already stored", subspace_idx);
+      return;
+    }
+    index++;
+  }
+  index = 0;
+
+  pal_print_msg(ACS_PRINT_DEBUG, "\n    PCC: parse PCCT=0x%llx length=0x%x requested subspace=%u",
+                (UINT64)pcct, pcct->Header.Length, subspace_idx);
+
+  /* The table length must include the fixed header before subspaces can be walked. */
+  if (pcct->Header.Length <
+      sizeof(EFI_ACPI_6_5_PLATFORM_COMMUNICATION_CHANNEL_TABLE_HEADER)) {
+      pal_print_msg(ACS_PRINT_ERR, "\n    PCC: PCCT length 0x%x is smaller than its header",
+                    pcct->Header.Length);
+      return;
+  }
 
   /* pointer to start of PCC subspace structure entries */
-  pcct_subspace = ADD_PTR(EFI_ACPI_6_5_PCCT_SUBSPACE_GENERIC, pcct,
+  pcct_subspace = ADD_PTR(EFI_ACPI_6_5_PCCT_SUBSPACE_HEADER, pcct,
                           sizeof(EFI_ACPI_6_5_PLATFORM_COMMUNICATION_CHANNEL_TABLE_HEADER));
-  pcct_end =  ADD_PTR(EFI_ACPI_6_5_PCCT_SUBSPACE_GENERIC, pcct,
-                          pcct->Header.Length);
-  while (pcct_subspace < pcct_end) {
+  pcct_end = ADD_PTR(UINT8, pcct, pcct->Header.Length);
+
+  while ((UINT8 *)pcct_subspace < pcct_end) {
+    remaining = (UINTN)(pcct_end - (UINT8 *)pcct_subspace);
+
+    /* Ensure Type and Length are both within the declared PCCT table. */
+    if (remaining < sizeof(EFI_ACPI_6_5_PCCT_SUBSPACE_HEADER)) {
+        pal_print_msg(ACS_PRINT_ERR,
+                      "\n    PCC: truncated PCCT subspace header at index %u",
+                      index);
+        return;
+    }
+
+    /* Reject lengths that cannot make progress or that overrun the table. */
+    if ((pcct_subspace->Length < sizeof(EFI_ACPI_6_5_PCCT_SUBSPACE_HEADER)) ||
+        (pcct_subspace->Length > remaining)) {
+        pal_print_msg(ACS_PRINT_ERR,
+                      "\n    PCC: invalid PCCT subspace length 0x%x at index %u",
+                      pcct_subspace->Length, index);
+        return;
+    }
+
     if (index == subspace_idx) {
-        /* this API only supports parsing of type 3 PCC structure info */
+        /* MPAM firmware-based communication uses a Type 3 Extended PCC subspace. */
         if (pcct_subspace->Type != EFI_ACPI_6_5_PCCT_SUBSPACE_TYPE_3_EXTENDED_PCC) {
             pal_print_msg(ACS_PRINT_ERR,
                           "\n    %a API doesn't support PCC structure type : 0x%x",
                           __func__,
                           pcct_subspace->Type);
+            return;
+        }
+
+        /* All fields copied below must be present in the selected Type 3 entry. */
+        if (pcct_subspace->Length <
+            sizeof(EFI_ACPI_6_5_PCCT_SUBSPACE_3_EXTENDED_PCC)) {
+            pal_print_msg(ACS_PRINT_ERR,
+                          "\n    PCC: Type 3 subspace at index %u is truncated",
+                          index);
+            return;
         }
 
         /* parse PCC structure type 3 */
@@ -103,9 +160,12 @@ pal_pcc_store_info(UINT32 subspace_idx)
                     = pcct_type_3->CommandCompleteUpdateRegister;
         ptr_to_pcc_ss_type_3->cmd_complete_update_preserve
                                             =  pcct_type_3->CommandCompleteUpdatePreserve;
+        ptr_to_pcc_ss_type_3->nominal_latency_usec
+                                            =  pcct_type_3->NominalLatency;
         ptr_to_pcc_ss_type_3->min_req_turnaround_usec
                                             =  pcct_type_3->MinimumRequestTurnaroundTime;
         ptr_to_pcc_ss_type_3->base_addr                 =  pcct_type_3->BaseAddress;
+        ptr_to_pcc_ss_type_3->memory_length             =  pcct_type_3->AddressLength;
         ptr_to_pcc_ss_type_3->doorbell_preserve         =  pcct_type_3->DoorbellPreserve;
         ptr_to_pcc_ss_type_3->doorbell_write            =  pcct_type_3->DoorbellWrite;
         ptr_to_pcc_ss_type_3->cmd_complete_chk_mask     =  pcct_type_3->CommandCompleteCheckMask;
@@ -115,7 +175,7 @@ pal_pcc_store_info(UINT32 subspace_idx)
         break;
     }
     /* point to next PCC subspace entry */
-    pcct_subspace = ADD_PTR(EFI_ACPI_6_5_PCCT_SUBSPACE_GENERIC, pcct_subspace,
+    pcct_subspace = ADD_PTR(EFI_ACPI_6_5_PCCT_SUBSPACE_HEADER, pcct_subspace,
                           pcct_subspace->Length);
     index++;
   }

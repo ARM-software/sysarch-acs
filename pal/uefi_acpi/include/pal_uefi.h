@@ -659,10 +659,12 @@ UINT32 pal_mpam_parse_dsdt_info(MPAM_INFO_TABLE *MpamTable);
 /* Platform Communication Channel (PCC) info table */
 typedef struct {
   UINT64                            base_addr;               /* base addr of shared mem-region */
+  UINT32                            memory_length;           /* length of shared mem-region */
   EFI_ACPI_6_5_GENERIC_ADDRESS_STRUCTURE
                                     doorbell_reg;            /* doorbell register */
   UINT64                            doorbell_preserve;       /* doorbell register preserve mask */
   UINT64                            doorbell_write;          /* doorbell register set mask */
+  UINT32                            nominal_latency_usec;   /* expected command latency */
   UINT32                            min_req_turnaround_usec; /* minimum request turnaround time */
   EFI_ACPI_6_5_GENERIC_ADDRESS_STRUCTURE
                                     cmd_complete_chk_reg;    /* command complete check register */
@@ -711,8 +713,8 @@ typedef struct {
 typedef struct {
   UINT32 msc_id;            /* Identifier of the MSC */
   UINT32 flags;             /* Reserved, must be zero */
-  UINT32 val;               /* value to be written to the register */
   UINT32 offset;            /* MPAM register offset to write */
+  UINT32 val;               /* value to be written to the register */
 } PCC_MPAM_MSC_WRITE_CMD_PARA;
 
 typedef struct {
@@ -725,6 +727,8 @@ typedef struct {
 #define MPAM_MSC_WRITE_CMD_ID  0x5
 #define MPAM_PCC_CMD_SUCCESS   0x0
 #define RETURN_FAILURE         0xFFFFFFFF
+#define PCC_TY3_FLAGS_OFFSET   4
+#define PCC_TY3_LENGTH_OFFSET  8
 #define PCC_TY3_CMD_OFFSET     12
 #define PCC_TY3_COMM_SPACE     16
 

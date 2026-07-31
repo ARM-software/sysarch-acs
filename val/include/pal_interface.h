@@ -1207,6 +1207,8 @@ void *pal_mem_alloc_at_address(uint64_t mem_base, uint64_t size);
 void pal_mem_free_at_address(uint64_t mem_base, uint64_t size);
 
 /* Platform Communication Channel (PCC) info table */
+/* Set 1B alignment to prevent padding before the address field */
+#pragma pack(push, 1)
 typedef struct {
   uint8_t   addr_space_id;
   uint8_t   reg_bit_width;
@@ -1214,12 +1216,15 @@ typedef struct {
   uint8_t   access_size;
   uint64_t  addr;
 } ACPI_GENERIC_ADDRESS_STRUCTURE;
+#pragma pack(pop)
 
 typedef struct {
   uint64_t                         base_addr;               /* base addr of shared mem-region */
+  uint32_t                         memory_length;           /* length of shared mem-region */
   ACPI_GENERIC_ADDRESS_STRUCTURE   doorbell_reg;            /* doorbell register */
   uint64_t                         doorbell_preserve;       /* doorbell register preserve mask */
   uint64_t                         doorbell_write;          /* doorbell register set mask */
+  uint32_t                         nominal_latency_usec;   /* expected command latency */
   uint32_t                         min_req_turnaround_usec; /* minimum request turnaround time */
   ACPI_GENERIC_ADDRESS_STRUCTURE   cmd_complete_chk_reg;    /* command complete check register */
   uint64_t                         cmd_complete_chk_mask;   /* command complete check mask */
@@ -1267,23 +1272,53 @@ typedef struct {
 typedef struct {
   uint32_t msc_id;            /* Identifier of the MSC */
   uint32_t flags;             /* Reserved, must be zero */
-  uint32_t val;               /* value to be written to the register */
   uint32_t offset;            /* MPAM register offset to write */
+  uint32_t val;               /* value to be written to the register */
 } PCC_MPAM_MSC_WRITE_CMD_PARA;
 
 typedef struct {
   int32_t  status;             /* command response status code */
 } PCC_MPAM_MSC_WRITE_RESP_PARA;
 
-#define MPAM_FB_PROTOCOL_ID    0x1A
-#define MPAM_MSG_TYPE_CMD      0x0
-#define MPAM_MSC_READ_CMD_ID   0x4
-#define MPAM_MSC_WRITE_CMD_ID  0x5
-#define MPAM_PCC_CMD_SUCCESS   0x0
-#define MPAM_PCC_SAFE_RETURN   0x0
-#define RETURN_FAILURE         0xFFFFFFFF
-#define PCC_TY3_CMD_OFFSET     12
-#define PCC_TY3_COMM_SPACE     16
+typedef union {
+  PCC_MPAM_MSC_READ_CMD_PARA  read;
+  PCC_MPAM_MSC_WRITE_CMD_PARA write;
+} MPAM_FB_CMD_PAYLOAD;
+
+#define MPAM_FB_PROTOCOL_ID         0x1A
+#define MPAM_MSG_TYPE_CMD           0x0
+#define MPAM_MSC_READ_CMD_ID        0x4
+#define MPAM_MSC_WRITE_CMD_ID       0x5
+#define MPAM_PCC_CMD_SUCCESS        0x0
+#define MPAM_PCC_SAFE_RETURN        0x0
+#define MPAM_FB_MESSAGE_ID_SHIFT    0U
+#define MPAM_FB_MESSAGE_ID_MASK     0xFFU
+#define MPAM_FB_MESSAGE_TYPE_SHIFT  8U
+#define MPAM_FB_MESSAGE_TYPE_MASK   0x3U
+#define MPAM_FB_PROTOCOL_ID_SHIFT   10U
+#define MPAM_FB_PROTOCOL_ID_MASK    0xFFU
+#define MPAM_FB_TOKEN_SHIFT         18U
+#define MPAM_FB_TOKEN_MASK          0x3FFU
+#define RETURN_FAILURE              0xFFFFFFFF
+
+/* ACPI Generic Address Structure encodings used by PCC registers. */
+#define PCC_GAS_SYSTEM_MEMORY         0x00U
+#define PCC_GAS_ACCESS_SIZE_MIN       1U
+#define PCC_GAS_ACCESS_SIZE_MAX       4U
+#define PCC_BITS_PER_BYTE             8U
+
+/* PCC Type 3 shared-memory transport layout. */
+#define PCC_TY3_FLAGS_OFFSET          4U
+#define PCC_TY3_LENGTH_OFFSET         8U
+#define PCC_TY3_CMD_OFFSET            12U
+#define PCC_TY3_COMM_SPACE            16U
+#define PCC_SCMI_TRANSPORT_FLAGS      0U
+#define PCC_SCMI_HEADER_SIZE          ((uint32_t)sizeof(uint32_t))
+
+/* VAL polling policy for PCC channel ownership and command completion. */
+#define PCC_COMMAND_TIMEOUT_USEC      100000U
+#define PCC_POLL_INTERVAL_USEC        1000U
+#define PCC_STATUS_SUCCESS            0U
 
 void pal_pcc_create_info_table(PCC_INFO_TABLE *PccInfoTable);
 void pal_pcc_store_info(uint32_t subspace_idx);

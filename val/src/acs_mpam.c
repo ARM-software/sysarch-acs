@@ -987,12 +987,24 @@ void
 memory_map_msc(void)
 {
   uint32_t msc_index;
+  uint32_t intrf_type;
   uint64_t msc_base;
   uint32_t msc_node_cnt = val_mpam_get_msc_count();
 
   for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
-    msc_base  = val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
-    val_mmu_update_entry(msc_base, MPAM_MSC_REGISTER_SPACE, DEVICE_nGnRnE);
+        msc_base  = val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
+        intrf_type = val_mpam_get_info(MPAM_MSC_INTERFACE_TYPE, msc_index, 0);
+
+        /* If interface is MMIO, make sure the MSC registers are mapped in PE MMU */
+        if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
+            val_mmu_update_entry(msc_base, MPAM_MSC_REGISTER_SPACE, DEVICE_nGnRnE);
+
+        /* If interface is PCC, make sure the Doorbell registers, etc. are mapped */
+        } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
+            if (val_pcc_map_registers((uint32_t)msc_base))
+                val_print(ERROR, "\n    Failed to map PCC registers for MPAM MSC index %u",
+                          msc_index);
+        }
   }
 
   return;
@@ -1022,7 +1034,6 @@ val_mpam_create_info_table(uint64_t *mpam_info_table)
                 "\n    MPAM_INFO: Number of MSC nodes     :  %d", g_mpam_info_table->msc_count);
   val_print(DEBUG, "\n       Memory mapping MSC nodes");
 
-  /* TODO - Check if MSC memory mapping requires a flag/ cmdline option */
   memory_map_msc();
 #endif
 }
@@ -1604,8 +1615,10 @@ val_mpam_configure_csu_mon(uint32_t msc_index, uint16_t partid, uint8_t pmg, uin
     /*Disable the monitor */
     val_mpam_csumon_disable(msc_index);
 
-    /* Configure the CSU monitor control register to match input PARTID & PMG */
-    data = BITFIELD_SET(CSU_CTL_MATCH_PARTID, 1) | BITFIELD_SET(CSU_CTL_MATCH_PMG, 1);
+    /* Preserve the monitor TYPE/SUBTYPE and other implementation-defined fields. */
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_CSU_CTL);
+    data = BITFIELD_WRITE(data, CSU_CTL_MATCH_PARTID, 1);
+    data = BITFIELD_WRITE(data, CSU_CTL_MATCH_PMG, 1);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_CSU_CTL, data);
 
     /* Reset CSU Monitor Value */
@@ -1708,7 +1721,7 @@ val_mpam_mmr_read(uint32_t msc_index, uint32_t reg_offset)
       return value;
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       value = val_mpam_pcc_read(msc_index, reg_offset);
-      MPAM_PRINT_REG("Read", reg_offset, value);
+      MPAM_PRINT_REG("Read PCC", reg_offset, value);
       return value;
   } else {
     val_print(ERROR,
@@ -1741,11 +1754,15 @@ val_mpam_mmr_read64(uint32_t msc_index, uint32_t reg_offset)
       MPAM_PRINT_REG("Read", reg_offset, value);
       return value;
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
-      /* PCC supports only supports 32 bit read at a time, hence reading twice
-         and concating */
-      value = ((uint64_t)val_mpam_pcc_read(msc_index, reg_offset + 4) << 32)
-                                | val_mpam_pcc_read(msc_index, reg_offset);
-      MPAM_PRINT_REG("Read", reg_offset, value);
+      uint32_t value_low;
+      uint32_t value_high;
+
+      /* The MPAM Fb protocol transfers one 32-bit register
+         value per command. Read both halves for a 64-bit register. */
+      value_low = val_mpam_pcc_read(msc_index, reg_offset);
+      value_high = val_mpam_pcc_read(msc_index, reg_offset + sizeof(uint32_t));
+      value = ((uint64_t)value_high << 32) | value_low;
+      MPAM_PRINT_REG("Read PCC", reg_offset, value);
       return value;
   } else {
     val_print(ERROR,
@@ -1778,7 +1795,7 @@ val_mpam_mmr_write(uint32_t msc_index, uint32_t reg_offset, uint32_t data)
       MPAM_PRINT_REG("Write", reg_offset, data);
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
       val_mpam_pcc_write(msc_index, reg_offset, data);
-      MPAM_PRINT_REG("Write", reg_offset, data);
+      MPAM_PRINT_REG("Write PCC", reg_offset, data);
   } else {
     val_print(ERROR,
               "\n    Invalid interface type reported for MPAM MSC index = %x", msc_index);
@@ -1809,14 +1826,75 @@ val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t data)
       val_mmio_write64(base_addr + reg_offset, data);
       MPAM_PRINT_REG("Write", reg_offset, data);
   } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
-      val_mpam_pcc_write(msc_index, reg_offset, (uint32_t)(data & 0xFFFFFFFF));
-      val_mpam_pcc_write(msc_index, reg_offset + 4, (uint32_t)(data >> 32));
-      MPAM_PRINT_REG("Write", reg_offset, data);
+      /* The MPAM firmware-based protocol transfers one 32-bit register
+         value per command. Write both halves for a 64-bit register. */
+      val_mpam_pcc_write(msc_index, reg_offset, (uint32_t)data);
+      val_mpam_pcc_write(msc_index, reg_offset + sizeof(uint32_t),
+                         (uint32_t)(data >> 32));
+      MPAM_PRINT_REG("Write PCC", reg_offset, data);
   } else {
     val_print(ERROR,
               "\n    Invalid interface type reported for MPAM MSC index = %x", msc_index);
   }
   val_mem_issue_dsb();
+}
+
+/**
+  @brief   Encode an MPAM firmware-based protocol message header.
+
+  @param   message_id    - Message identifier.
+  @param   message_type  - Message type.
+  @param   protocol_id   - Protocol identifier.
+  @param   token         - Caller-defined transaction token.
+
+  @return  Encoded 32-bit MPAM firmware-based protocol message header.
+**/
+static uint32_t
+val_mpam_fb_header(uint32_t message_id, uint32_t message_type,
+                   uint32_t protocol_id, uint32_t token)
+{
+  return BITFIELD_SET(MPAM_FB_MESSAGE_ID, message_id)
+       | BITFIELD_SET(MPAM_FB_MESSAGE_TYPE, message_type)
+       | BITFIELD_SET(MPAM_FB_PROTOCOL_ID, protocol_id)
+       | BITFIELD_SET(MPAM_FB_TOKEN, token);
+}
+
+/**
+  @brief   Construct an MPAM firmware-based protocol command payload.
+
+  @param   message_id - Message identifier that selects the payload format.
+  @param   msc_id     - Identifier of the target MSC.
+  @param   reg_offset - MPAM register offset.
+  @param   data       - Register value for commands that carry write data.
+
+  @return  Constructed command payload.
+**/
+static MPAM_FB_CMD_PAYLOAD
+val_mpam_fb_payload(uint32_t message_id, uint32_t msc_id,
+                    uint32_t reg_offset, uint32_t data)
+{
+  MPAM_FB_CMD_PAYLOAD payload = {0};
+
+  switch (message_id) {
+  case MPAM_MSC_READ_CMD_ID:
+      payload.read.msc_id = msc_id;
+      payload.read.flags = 0U;
+      payload.read.offset = reg_offset;
+      break;
+
+  case MPAM_MSC_WRITE_CMD_ID:
+      payload.write.msc_id = msc_id;
+      payload.write.flags = 0U;
+      payload.write.offset = reg_offset;
+      payload.write.val = data;
+      break;
+
+  default:
+      val_print(ERROR, "\n    Unsupported MPAM firmware-based message ID: 0x%x",
+                message_id);
+  }
+
+  return payload;
 }
 
 /**
@@ -1831,30 +1909,31 @@ val_mpam_mmr_write64(uint32_t msc_index, uint32_t reg_offset, uint64_t data)
 uint32_t
 val_mpam_pcc_read(uint32_t msc_index, uint32_t reg_offset)
 {
-  SCMI_PROTOCOL_MESSAGE_HEADER header;
-  PCC_MPAM_MSC_READ_CMD_PARA parameter;
-  PCC_MPAM_MSC_READ_RESP_PARA *response;
+  uint32_t header;
+  uint32_t msc_id;
   uint32_t subspace_id;
+  MPAM_FB_CMD_PAYLOAD payload;
+  PCC_MPAM_MSC_READ_RESP_PARA *response;
 
   /* if MSC interface type is PCC (0x0A), the Base address field
      captures index to PCCT ACPI structure */
   subspace_id = (uint32_t)val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
 
-  /* construct the message header */
-  header.reserved = 0;
-  header.protocol_id = MPAM_FB_PROTOCOL_ID;
-  header.message_type = MPAM_MSG_TYPE_CMD;
-  header.message_id = MPAM_MSC_READ_CMD_ID;
-  /* token is user defined value for book keeping */
-  header.token = 1;
+  /* Construct the MPAM Fb protocol header; token is caller-defined. */
+  header = val_mpam_fb_header(MPAM_MSC_READ_CMD_ID, MPAM_MSG_TYPE_CMD,
+                               MPAM_FB_PROTOCOL_ID, 1U);
 
-  /* construct parameter payload */
-  parameter.msc_id = val_mpam_get_info(MPAM_MSC_ID, msc_index, 0);
-  parameter.flags = 0;
-  parameter.offset = reg_offset;
+  /* Construct the MPAM Fb protocol payload with msc_id as input */
+  msc_id = (uint32_t)val_mpam_get_info(MPAM_MSC_ID, msc_index, 0);
+  payload = val_mpam_fb_payload(MPAM_MSC_READ_CMD_ID, msc_id, reg_offset, 0U);
 
+  val_print(TRACE,
+            "\n    MPAM PCC read: msc_id=0x%x subspace=%u offset=0x%x header=0x%x",
+                                  payload.read.msc_id, subspace_id, payload.read.offset, header);
+
+  /* Submit the header and payload to the PCC channel and get the response back from the platform */
   response = (PCC_MPAM_MSC_READ_RESP_PARA *) val_pcc_cmd_response(
-              (uint32_t)subspace_id, *(uint32_t *)&header, (void *)&parameter, sizeof(parameter));
+              (uint32_t)subspace_id, header, (void *)&payload.read, sizeof(payload.read));
 
   if (response == NULL || response->status != MPAM_PCC_CMD_SUCCESS) {
       val_print(ERROR,
@@ -1881,35 +1960,35 @@ val_mpam_pcc_read(uint32_t msc_index, uint32_t reg_offset)
 void
 val_mpam_pcc_write(uint32_t msc_index, uint32_t reg_offset, uint32_t data)
 {
-  SCMI_PROTOCOL_MESSAGE_HEADER header;
-  PCC_MPAM_MSC_WRITE_CMD_PARA parameter;
-  PCC_MPAM_MSC_WRITE_RESP_PARA *response;
+  uint32_t header;
+  uint32_t msc_id;
   uint32_t subspace_id;
+  MPAM_FB_CMD_PAYLOAD payload;
+  PCC_MPAM_MSC_WRITE_RESP_PARA *response;
 
   /* if MSC interface type is PCC (0x0A), the Base address field
      captures index to PCCT ACPI structure */
   subspace_id = val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
 
-  /* construct the message header */
-  header.reserved = 0;
-  header.protocol_id = MPAM_FB_PROTOCOL_ID;
-  header.message_type = MPAM_MSG_TYPE_CMD;
-  header.message_id = MPAM_MSC_WRITE_CMD_ID;
-  /* token is user defined value for book keeping */
-  header.token = 1;
+  /* Construct the MPAM firmware-based protocol header; token is caller-defined. */
+  header = val_mpam_fb_header(MPAM_MSC_WRITE_CMD_ID, MPAM_MSG_TYPE_CMD,
+                               MPAM_FB_PROTOCOL_ID, 1U);
 
-  /* construct parameter payload */
-  parameter.msc_id = val_mpam_get_info(MPAM_MSC_ID, msc_index, 0);
-  parameter.flags = 0;
-  parameter.val = data;
-  parameter.offset = reg_offset;
+  /* Construct the MPAM Fb protocol payload with msc_id as input */
+  msc_id = (uint32_t)val_mpam_get_info(MPAM_MSC_ID, msc_index, 0);
+  payload = val_mpam_fb_payload(MPAM_MSC_WRITE_CMD_ID, msc_id, reg_offset, data);
 
+  val_print(TRACE,
+            "\n    MPAM PCC write: msc_id=0x%x subspace=%u offset=0x%x value=0x%x header=0x%x",
+                   payload.write.msc_id, subspace_id, payload.write.offset, data, header);
+
+  /* Submit the header and payload to the PCC channel and get the response back from the platform */
   response = (PCC_MPAM_MSC_WRITE_RESP_PARA *) val_pcc_cmd_response(
-              (uint32_t)subspace_id, *(uint32_t *)&header, (void *)&parameter, sizeof(parameter));
+              (uint32_t)subspace_id, header, (void *)&payload.write, sizeof(payload.write));
 
   if (response == NULL || response->status != MPAM_PCC_CMD_SUCCESS) {
       val_print(ERROR,
-                "\n    Failed to read MPAM register with offset (0x%x) via PCC", reg_offset);
+                "\n    Failed to write MPAM register with offset (0x%x) via PCC", reg_offset);
       val_print(ERROR, " for MSC index = 0x%x", msc_index);
       if (response != NULL) {
           val_print(ERROR, "\n    PCC command response code = 0x%x", response->status);
