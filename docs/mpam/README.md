@@ -6,6 +6,7 @@
 - [Documentation & Guides](#documentation-and-guides)
 - [SYS-MPAM build steps](#sys-mpam-build-steps)
   - [UEFI Shell application](#uefi-shell-application)
+  - [Baremetal application](#baremetal-application)
 - [SYS-MPAM run steps](#sys-mpam-run-steps)
   - [For UEFI application](#for-uefi-application)
 - [Application arguments](#application-arguments)
@@ -49,6 +50,9 @@ been implemented and interpreted correctly.
 
 ## Documentation and Guides
 - [SYS-MPAM Test Scenario Document](arm_mpam_architecture_compliance_test_scenario.md)
+- Bare-metal porting guides:
+  - [SYS-MPAM ACS Bare-metal User Guide](arm_mpam_architecture_compliance_bare-metal_user_guide.md)
+  - [Common Bare-metal Build Guide](../../pal/baremetal/README.md)
 - [Common UEFI build guide](../common/uefi_build.md)
 
 ## SYS-MPAM build steps
@@ -62,6 +66,15 @@ edk2 workspace and Arm toolchain, then run:
 
 The flow emits `Mpam.efi` under `Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/` inside
 the edk2 workspace.
+
+### Baremetal application
+
+For SYS-MPAM platform setup, required information tables, and porting details,
+refer to the
+[SYS-MPAM ACS Bare-metal User Guide](arm_mpam_architecture_compliance_bare-metal_user_guide.md).
+
+For common bare-metal build and execution steps, refer to the
+[Bare-metal README](../../pal/baremetal/README.md).
 
 ## SYS-MPAM run steps
 
@@ -100,7 +113,7 @@ Runs at INFO level, skips tests 15/20/30, and saves the UART log to
 ## Application arguments
 
 SYS-MPAM ACS currently supports numeric test and module selectors. See example below:
- 
+
 Shell> Mpam.efi [-v <verbosity>] [-skip <test_id>] [-t <test_id>] [-m <module_id>] [-f <filename>]
 
 #### -v
