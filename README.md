@@ -36,6 +36,14 @@ Additionally, it also includes ACS for ...
 
 These suites enable silicon vendors, system integrators, and firmware developers to ensure platform compliance with Arm architectural standards across pre-silicon and silicon phases.
 
+#### Arm SystemReady ACS
+
+> Arm also provides pre-built, bootable ACS images for the **SystemReady Band** and **DeviceTree Band**. These images integrate multiple standalone compliance suites from the [sysarch-acs](https://github.com/ARM-software/sysarch-acs) and [bbr-acs](https://github.com/ARM-software/bbr-acs) repositories into a single self-contained environment for running the required ACS tests and collecting results.
+>
+> For details on which ACS suites are integrated for each band, how to run the ACS image, and how to collect and parse the results, refer to the [Arm SystemReady](https://github.com/ARM-software/arm-systemready) repository.
+
+
+
 ## 📁 Repository Structure
 
 | Path/Folder            | Purpose                                                                 |
