@@ -55,8 +55,7 @@ check_smmu_pmcg(uint32_t check_counter)
         return ACS_STATUS_SKIP;
     } else if (num_pmcg == 0) {
         /* If SMMUs are present in system and no PMCGs detected, report test as FAIL*/
-        val_print(ERROR, "\n       SMMUs in the system don't implement SMMUv3"
-                                   " Performance Monitors Extension ");
+        val_print(ERROR, "\n     No system SMMU implements SMMUv3 PMU extension");
         return ACS_STATUS_FAIL;
     }
 

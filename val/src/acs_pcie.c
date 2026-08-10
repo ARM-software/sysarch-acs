@@ -420,12 +420,12 @@ val_pcie_print_device_info(void)
               bdf_counter = 1;
               bdf = PCIE_CREATE_BDF(seg_num, bus_num, dev_num, func_num);
               val_print(TRACE, "\n       BDF: 0x%x", bdf);
-              val_print(TRACE, "\n       Seg: 0x%x, ", seg_num);
-              val_print(TRACE, "Bus: 0x%02x, ", bus_num);
-              val_print(TRACE, "Dev: 0x%02x, ", dev_num);
-              val_print(TRACE, "Func: 0x%x, ", func_num);
-              val_print(TRACE, "Dev ID: 0x%04x, ", device_id);
-              val_print(TRACE, "Vendor ID: 0x%04x", vendor_id);
+              val_print(TRACE, "\n       Seg 0x%x,", seg_num);
+              val_print(TRACE, "Bus 0x%02x,", bus_num);
+              val_print(TRACE, "Dev 0x%02x,", dev_num);
+              val_print(TRACE, "Func 0x%x, ", func_num);
+              val_print(TRACE, "Dev ID 0x%04x,", device_id);
+              val_print(TRACE, "Vendor ID 0x%04x", vendor_id);
           }
       }
       if (bdf_counter == 0)

@@ -668,5 +668,5 @@ report_status:
 
     }
     val_print(INFO,
-              "\n-------------------- Suite run complete --------------------\n");
+              "\n\n----------------- Suite run complete ----------------\n");
 }

@@ -173,7 +173,7 @@ payload(void)
       }
 
       /* Skip this function if it doesn't have mmio BAR */
-      val_print(DEBUG, "      Bar Base %x", bar_base);
+      val_print(DEBUG, " BarBase %x", bar_base);
       if (!bar_base)
          continue;
 
@@ -216,7 +216,7 @@ exception_return:
        *   - All 1's response received
        *   - Abort is not received.
        */
-      val_print(DEBUG, "    bar_data %x ", bar_data);
+      val_print(DEBUG, " bar_data %x ", bar_data);
       if (!(IS_TEST_PASS(val_get_status(pe_index)) || (bar_data == PCIE_UNKNOWN_RESPONSE)
             || (val_pcie_is_urd(bdf))))
       {

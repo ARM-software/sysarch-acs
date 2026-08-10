@@ -121,7 +121,7 @@ static void payload(void)
         val_print(INFO, "\n       The test must be considered fail"
                                    " if system has CoreSight PMU");
         val_print(INFO, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
-                                   "in the SBSA specification");
+                                   "in the SBSA spec");
         val_set_status(index, RESULT_SKIP(02));
         return;
     }
@@ -133,7 +133,7 @@ static void payload(void)
     if (cs_com != 0x1) {
         val_print(INFO, "\n       No CoreSight PMU nodes found");
         val_print(INFO, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
-                                   "in the SBSA specification");
+                                   "in the SBSA spec");
         val_set_status(index, RESULT_SKIP(03));
         return;
     }

@@ -84,8 +84,7 @@ payload()
     status = val_ras_get_info(RAS_INFO_NUM_NODES, 0, &num_node);
     if (status || (num_node == 0)) {
         val_print(ERROR,
-          "\n       RAS nodes not found. "
-          "Firmware interface is missing. Please conduct a paper-based analysis.");
+          "\n       RAS nodes not found. FW interface missing. Conduct a paper-based analysis.");
         val_set_status(index, RESULT_WARNING(01));
         return;
     }

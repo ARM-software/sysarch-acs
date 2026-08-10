@@ -684,7 +684,7 @@ uint32_t is_coresight_pmu_present(void)
         val_print(INFO, "\n       The test must be considered fail"
                                 " if system has CoreSight PMU");
         val_print(INFO, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
-                                "in the SBSA specification");
+                                "in the SBSA spec");
         return TEST_WARNING;
     }
 
@@ -695,7 +695,7 @@ uint32_t is_coresight_pmu_present(void)
     if (cs_com != 0x1) {
         val_print(INFO, "\n       No CoreSight PMU nodes found");
         val_print(INFO, "\n       For non CoreSight PMU, manually verify A.4 PMU rules "
-                                "in the SBSA specification");
+                                "in the SBSA spec");
         return TEST_WARNING;
     }
 
