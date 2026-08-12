@@ -35,9 +35,9 @@ The checklist provides information about:
       <td>S_L3_01</td>
       <td>-</td>
       <td>BSA Level 1 requirements</td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
       <td></td>
     </tr>
     <tr>
@@ -345,7 +345,7 @@ The checklist provides information about:
       <td>S_L5PE_03</td>
       <td>S_L5PE_03</td>
       <td>69</td>
-      <td>Check FEAT_TRF support for CS-BSA C</td>
+      <td>Check FEAT_TRF support per CS-BSA C</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -755,7 +755,7 @@ The checklist provides information about:
     <tr>
       <td>RI_ORD_1</td>
       <td>1521</td>
-      <td>Arrival order &amp; Gathering Check - RCiEP, iEP Pair</td>
+      <td>Arrival order &amp; Gathering Check - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -800,7 +800,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_3</td>
       <td>1536</td>
-      <td>Generate PASID transactions - RCiEP, iEP Pair</td>
+      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -971,7 +971,7 @@ The checklist provides information about:
     <tr>
       <td>RI_PWR_1</td>
       <td>870</td>
-      <td>Check Power Mgmt rules - RCiEP, iEP EP</td>
+      <td>Check Power Mgmt rules - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1061,7 +1061,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_02</td>
       <td>907</td>
-      <td>PCIe Device Memory mapping support</td>
+      <td>PCIe Non-Cacheable Memory mapping support</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -1088,7 +1088,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_05</td>
       <td>895</td>
-      <td>PCIe &amp; PE common physical memory view</td>
+      <td>PCIe devices and PEs common physical address view</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -1124,7 +1124,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MSI_2</td>
       <td></td>
-      <td>Check MSI=X vectors uniqueness</td>
+      <td>Check MSI(X) vectors uniqueness</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -1304,7 +1304,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_PP_04</td>
       <td></td>
-      <td>Check RP Adv Error Report</td>
+      <td>Check P2P ACS Functionality</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1340,7 +1340,7 @@ The checklist provides information about:
     <tr>
       <td>RE_PCI_1</td>
       <td>885</td>
-      <td>Check RCiEP Hdr type &amp; link Cap - RCiEP, RCEC</td>
+      <td>Check Hdr type &amp; link Cap - RCiEP, RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1349,7 +1349,7 @@ The checklist provides information about:
     <tr>
       <td>RE_PCI_2</td>
       <td>884</td>
-      <td>Check RCEC Class code and Ext Cap - RCEC</td>
+      <td>Check Class code and Ext Cap - RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1439,7 +1439,7 @@ The checklist provides information about:
     <tr>
       <td>RE_REG_1</td>
       <td>848</td>
-      <td>Check config header rule - RCEC,RCiEP</td>
+      <td>Check config header rule - RCEC, RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1531,7 +1531,7 @@ The checklist provides information about:
     <tr>
       <td>RI_ORD_1</td>
       <td>1521</td>
-      <td>Arrival order &amp; Gathering Check - RCiEP, iEP Pair</td>
+      <td>Arrival order &amp; Gathering Check - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1576,7 +1576,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_3</td>
       <td>1536</td>
-      <td>Generate PASID transactions - RCiEP, iEP EP</td>
+      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1747,7 +1747,7 @@ The checklist provides information about:
     <tr>
       <td>RI_PWR_1</td>
       <td>870</td>
-      <td>Check Power Mgmt rules - RCiEP, iEP EP</td>
+      <td>Check Power Mgmt rules - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1945,7 +1945,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_02</td>
       <td>907</td>
-      <td>PCIe Device Memory mapping support</td>
+      <td>PCIe Non-Cacheable Memory mapping support</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -1972,7 +1972,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_05</td>
       <td>895</td>
-      <td>PCIe &amp; PE common physical memory view</td>
+      <td>PCIe devices and PEs common physical address view</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -2332,7 +2332,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_3</td>
       <td></td>
-      <td>Check config header rule - iEP_RP</td>
+      <td>Check config header rule - iEP RP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2452,7 +2452,7 @@ The checklist provides information about:
       <td>S_L7PE_07</td>
       <td>S_L7PE_07</td>
       <td>54</td>
-      <td>Check for SVE Int8 matrix multiplc</td>
+      <td>Check for SVE Int8 matrix multiple</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2562,7 +2562,7 @@ The checklist provides information about:
       <td rowspan="3">S_L7MP_03</td>
       <td rowspan="3">S_L7MP_03</td>
       <td>1002</td>
-      <td>Check for MPAM LLC CSU Support</td>
+      <td>Check MPAM LLC Requirements</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2623,7 +2623,7 @@ The checklist provides information about:
       <td>S_L7ENT_1</td>
       <td>1301</td>
       <td>NIST Statistical Test Suite</td>
-      <td>Yes</td>
+      <td>No</td>
       <td>No</td>
       <td>No</td>
       <td></td>
@@ -2857,7 +2857,7 @@ The checklist provides information about:
     <tr>
       <td>PMU_SYS_1</td>
       <td>1104</td>
-      <td>Test Simultaneous 6 traffic measures</td>
+      <td>Test Simultaneous 4 traffic measures</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3369,7 +3369,7 @@ The checklist provides information about:
     <tr>
       <td rowspan="2">GPU_04</td>
       <td>889</td>
-      <td>Check ATS support for RC</td>
+      <td>Check ATS support for RC and SMMU</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3621,7 +3621,7 @@ The checklist provides information about:
       <td>KBRZG</td>
       <td>KBRZG</td>
       <td>1218</td>
-      <td>Data abort on containable device err</td>
+      <td>Data abort on containable Device err</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3675,6 +3675,8 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated S_L3_01 platform coverage.
+- Synced covered checklist descriptions and S_L7ENT_1 platform coverage with rule_metadata.c.
 - Updated PCI_MM_02 coverage with test 907.
 - Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
 - Added rule S_L5PE_03

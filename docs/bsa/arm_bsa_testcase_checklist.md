@@ -277,7 +277,7 @@ The checklist provides information about:
       <td>B_MEM_02</td>
       <td>101</td>
       <td>Memory Access to Un-Populated addr</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td></td>
@@ -288,7 +288,7 @@ The checklist provides information about:
       <td>B_MEM_03</td>
       <td>104</td>
       <td>Check Addressability</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -309,8 +309,8 @@ The checklist provides information about:
       <td>B_MEM_06</td>
       <td>B_MEM_06</td>
       <td>107</td>
-      <td>Check Addressability for non-DMA dev</td>
-      <td>No</td>
+      <td>Check NS non-64b DMA devices are behind SMMU</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -408,7 +408,7 @@ The checklist provides information about:
       <td rowspan="6">B_PPI_00</td>
       <td rowspan="2">B_PPI_01</td>
       <td>206</td>
-      <td>Check EL1-Phy timer PPI assignment</td>
+      <td>Check EL1 timer PPI assignments</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -425,7 +425,7 @@ The checklist provides information about:
     <tr>
       <td rowspan="3">B_PPI_02</td>
       <td>209</td>
-      <td>Check NS EL2-Virt timer PPI Assignment</td>
+      <td>Check EL2 and GIC PPI assignments</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -761,7 +761,7 @@ The checklist provides information about:
       <td rowspan="5">B_WAK_03</td>
       <td rowspan="5">B_WAK_03</td>
       <td>501</td>
-      <td>Wake from EL1 PHY Timer Int</td>
+      <td>Check power wakeup interrupts</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -837,7 +837,7 @@ The checklist provides information about:
       <td rowspan="5">B_WAK_07</td>
       <td rowspan="5">B_WAK_07</td>
       <td>501</td>
-      <td>Wake from EL1 PHY Timer Int</td>
+      <td>Check power wakeup interrupts</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1015,7 +1015,7 @@ The checklist provides information about:
       <td>B_PER_06</td>
       <td>B_PER_06</td>
       <td>606</td>
-      <td>Check Arm GENERIC UART Interrupt</td>
+      <td>Check ARM Generic UART Interrupt</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1298,7 +1298,7 @@ The checklist provides information about:
       <td rowspan="2">PCI_MM_01</td>
       <td>845</td>
       <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -1314,8 +1314,8 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_02</td>
       <td>906</td>
-      <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>PCIe Non-Cacheable Memory mapping support</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -1324,7 +1324,7 @@ The checklist provides information about:
       <td rowspan="2">PCI_MM_03</td>
       <td>894</td>
       <td>PCIe Normal Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -1349,7 +1349,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_05</td>
       <td>895</td>
-      <td>PCIe &amp; PE common physical memory view</td>
+      <td>PCIe devices and PEs common physical address view</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -1385,8 +1385,8 @@ The checklist provides information about:
     <tr>
       <td rowspan="2">PCI_MSI_2</td>
       <td>897</td>
-      <td>Check MSI=X vectors uniqueness</td>
-      <td>No</td>
+      <td>Check MSI(X) vectors uniqueness</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>MSI/MSI-X support required</td>
@@ -1412,7 +1412,7 @@ The checklist provides information about:
       <td rowspan="2">PCI_LI_02</td>
       <td>896</td>
       <td>PCI legacy intr SPI ID unique</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -1581,7 +1581,7 @@ The checklist provides information about:
     <tr>
       <td rowspan="3">PCI_PP_04</td>
       <td>818</td>
-      <td>Check RP Adv Error Report</td>
+      <td>Check P2P ACS Functionality</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1750,7 +1750,7 @@ The checklist provides information about:
     <tr>
       <td>ITS_DEV_6</td>
       <td>1504</td>
-      <td>MSI-X triggers intr with unique ID</td>
+      <td>Write to ITS GITS_TRANSLATER</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -1799,7 +1799,7 @@ The checklist provides information about:
       <td>B_PER_10</td>
       <td>B_PER_10</td>
       <td>607</td>
-      <td>Memory Attribute of I/O coherent DMA</td>
+      <td>Check DMA for I/O coherency</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -2061,7 +2061,7 @@ The checklist provides information about:
     <tr>
       <td>RI_BAR_1</td>
       <td>883</td>
-      <td>Read and write to BAR reg</td>
+      <td>Read and write to BAR reg - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2079,7 +2079,7 @@ The checklist provides information about:
     <tr>
       <td>RI_BAR_3</td>
       <td>862</td>
-      <td>Check BAR memory space &amp; type</td>
+      <td>Check BAR memory space &amp; type - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2088,7 +2088,7 @@ The checklist provides information about:
     <tr>
       <td>RI_INT_1</td>
       <td>869</td>
-      <td>Check MSI and MSI-X support</td>
+      <td>Check MSI and MSI-X support - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2097,7 +2097,7 @@ The checklist provides information about:
     <tr>
       <td>RI_ORD_1</td>
       <td>1521</td>
-      <td>Arrival order &amp; Gathering Check</td>
+      <td>Arrival order &amp; Gathering Check - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2124,7 +2124,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_1</td>
       <td>1519</td>
-      <td>Check ATS Support Rule</td>
+      <td>Check ATS Support Rule - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2142,7 +2142,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_3</td>
       <td>1536</td>
-      <td>Generate PASID transactions</td>
+      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2268,7 +2268,7 @@ The checklist provides information about:
     <tr>
       <td>ITS_DEV_6</td>
       <td>1504</td>
-      <td>MSI-X triggers intr with unique ID</td>
+      <td>Write to ITS GITS_TRANSLATER</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2304,7 +2304,7 @@ The checklist provides information about:
     <tr>
       <td>RI_RST_1</td>
       <td>863</td>
-      <td>Check Function level reset</td>
+      <td>Check Function level reset - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2313,7 +2313,7 @@ The checklist provides information about:
     <tr>
       <td>RI_PWR_1</td>
       <td>870</td>
-      <td>Check Power Mgmt rules: RCiEP/iEP/RP</td>
+      <td>Check Power Mgmt rules - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2395,7 +2395,7 @@ The checklist provides information about:
       <td>PCI_MM_01</td>
       <td>845</td>
       <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -2403,8 +2403,8 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_02</td>
       <td>906</td>
-      <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>PCIe Non-Cacheable Memory mapping support</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -2413,7 +2413,7 @@ The checklist provides information about:
       <td>PCI_MM_03</td>
       <td>894</td>
       <td>PCIe Normal Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -2430,7 +2430,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_05</td>
       <td>895</td>
-      <td>PCIe &amp; PE common physical memory view</td>
+      <td>PCIe devices and PEs common physical address view</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -2466,8 +2466,8 @@ The checklist provides information about:
     <tr>
       <td>PCI_MSI_2</td>
       <td>897</td>
-      <td>Check MSI=X vectors uniqueness</td>
-      <td>No</td>
+      <td>Check MSI(X) vectors uniqueness</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>MSI/MSI-X support required</td>
@@ -2485,7 +2485,7 @@ The checklist provides information about:
       <td>PCI_LI_02</td>
       <td>896</td>
       <td>PCI legacy intr SPI ID unique</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -2646,7 +2646,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_PP_04</td>
       <td>818</td>
-      <td>Check RP Adv Error Report</td>
+      <td>Check P2P ACS Functionality</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2682,7 +2682,7 @@ The checklist provides information about:
     <tr>
       <td>RE_PCI_1</td>
       <td>885</td>
-      <td>Check RCiEP Hdr type &amp; link Cap</td>
+      <td>Check Hdr type &amp; link Cap - RCiEP, RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2691,7 +2691,7 @@ The checklist provides information about:
     <tr>
       <td>RE_PCI_2</td>
       <td>884</td>
-      <td>Check RCEC Class code and Ext Cap</td>
+      <td>Check Class code and Ext Cap - RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2727,7 +2727,7 @@ The checklist provides information about:
     <tr>
       <td>RE_ORD_4</td>
       <td>1508</td>
-      <td>Tx pending bit clear correctness RCiEP</td>
+      <td>Tx pending bit clear correctness - RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2754,7 +2754,7 @@ The checklist provides information about:
     <tr>
       <td>RE_ACS_1</td>
       <td>815</td>
-      <td>Check ACS Cap on p2p support: RCiEP</td>
+      <td>Check ACS Cap on p2p support - RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2763,7 +2763,7 @@ The checklist provides information about:
     <tr>
       <td>RE_ACS_2</td>
       <td>816</td>
-      <td>Check AER Cap on ACS Cap support</td>
+      <td>Check AER Cap on ACS Cap support - RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2781,7 +2781,7 @@ The checklist provides information about:
     <tr>
       <td>RE_REG_1</td>
       <td>848</td>
-      <td>Check config header rule: RCEC/RCiEP</td>
+      <td>Check config header rule - RCEC, RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2790,7 +2790,7 @@ The checklist provides information about:
     <tr>
       <td>RE_REG_2</td>
       <td>856</td>
-      <td>Check Power Mgmt Cap/Ctrl/Status - RC</td>
+      <td>Check PWR Mgmt Cap/Ctrl/Status - RCEC, RCiEP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2808,7 +2808,7 @@ The checklist provides information about:
     <tr>
       <td>RE_REC_1</td>
       <td>861</td>
-      <td>Check Max payload size support: RCEC</td>
+      <td>Check Dev Cap &amp; Ctrl Reg rule - RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2837,7 +2837,7 @@ The checklist provides information about:
     <tr>
       <td>RI_BAR_1</td>
       <td>883</td>
-      <td>Read and write to BAR reg</td>
+      <td>Read and write to BAR reg - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2855,7 +2855,7 @@ The checklist provides information about:
     <tr>
       <td>RI_BAR_3</td>
       <td>862</td>
-      <td>Check BAR memory space &amp; type</td>
+      <td>Check BAR memory space &amp; type - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2864,7 +2864,7 @@ The checklist provides information about:
     <tr>
       <td>RI_INT_1</td>
       <td>869</td>
-      <td>Check MSI and MSI-X support</td>
+      <td>Check MSI and MSI-X support - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2873,7 +2873,7 @@ The checklist provides information about:
     <tr>
       <td>RI_ORD_1</td>
       <td>1521</td>
-      <td>Arrival order &amp; Gathering Check</td>
+      <td>Arrival order &amp; Gathering Check - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2900,7 +2900,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_1</td>
       <td>1519</td>
-      <td>Check ATS Support Rule</td>
+      <td>Check ATS Support Rule - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -2918,7 +2918,7 @@ The checklist provides information about:
     <tr>
       <td>RI_SMU_3</td>
       <td>1536</td>
-      <td>Generate PASID transactions</td>
+      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3044,7 +3044,7 @@ The checklist provides information about:
     <tr>
       <td>ITS_DEV_6</td>
       <td>1504</td>
-      <td>MSI-X triggers intr with unique ID</td>
+      <td>Write to ITS GITS_TRANSLATER</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3080,7 +3080,7 @@ The checklist provides information about:
     <tr>
       <td>RI_RST_1</td>
       <td>863</td>
-      <td>Check Function level reset</td>
+      <td>Check Function level reset - RCiEP, iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3089,7 +3089,7 @@ The checklist provides information about:
     <tr>
       <td>RI_PWR_1</td>
       <td>870</td>
-      <td>Check Power Mgmt rules: RCiEP/iEP/RP</td>
+      <td>Check Power Mgmt rules - RCiEP, iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3279,7 +3279,7 @@ The checklist provides information about:
       <td>PCI_MM_01</td>
       <td>845</td>
       <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -3287,8 +3287,8 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_02</td>
       <td>906</td>
-      <td>PCIe Device Memory mapping support</td>
-      <td>No</td>
+      <td>PCIe Non-Cacheable Memory mapping support</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -3297,7 +3297,7 @@ The checklist provides information about:
       <td>PCI_MM_03</td>
       <td>894</td>
       <td>PCIe Normal Memory mapping support</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -3314,7 +3314,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_MM_05</td>
       <td>895</td>
-      <td>PCIe &amp; PE common physical memory view</td>
+      <td>PCIe devices and PEs common physical address view</td>
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
@@ -3350,8 +3350,8 @@ The checklist provides information about:
     <tr>
       <td>PCI_MSI_2</td>
       <td>897</td>
-      <td>Check MSI=X vectors uniqueness</td>
-      <td>No</td>
+      <td>Check MSI(X) vectors uniqueness</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>MSI/MSI-X support required</td>
@@ -3369,7 +3369,7 @@ The checklist provides information about:
       <td>PCI_LI_02</td>
       <td>896</td>
       <td>PCI legacy intr SPI ID unique</td>
-      <td>No</td>
+      <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
@@ -3530,7 +3530,7 @@ The checklist provides information about:
     <tr>
       <td>PCI_PP_04</td>
       <td>818</td>
-      <td>Check RP Adv Error Report</td>
+      <td>Check P2P ACS Functionality</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3593,7 +3593,7 @@ The checklist provides information about:
     <tr>
       <td>IE_ORD_4</td>
       <td>1538</td>
-      <td>Tx pending bit clear correctness iEP</td>
+      <td>Check Sec Bus Reset - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3602,7 +3602,7 @@ The checklist provides information about:
     <tr>
       <td>IE_RST_2</td>
       <td>879</td>
-      <td>Check Sec Bus Reset For iEP_RP</td>
+      <td>Check Sec Bus Reset - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3638,7 +3638,7 @@ The checklist provides information about:
     <tr>
       <td>IE_ACS_1</td>
       <td>882</td>
-      <td>Check ACS Cap on p2p support: iEP EP</td>
+      <td>Check ACS Cap on p2p support - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3647,7 +3647,7 @@ The checklist provides information about:
     <tr>
       <td>IE_ACS_2</td>
       <td>881</td>
-      <td>Check iEP-RootPort P2P Support</td>
+      <td>Check P2P Support - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3656,7 +3656,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_1</td>
       <td>849</td>
-      <td>Check config header rule: iEP_EP</td>
+      <td>Check config header rule - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3665,7 +3665,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_2</td>
       <td>854</td>
-      <td>Check Dev Cap &amp; Ctrl Reg rule - iEP_EP</td>
+      <td>Check Dev Cap &amp; Ctrl Reg rule - iEP EP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3674,7 +3674,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_3</td>
       <td>850</td>
-      <td>Check config header rule: iEP_RP</td>
+      <td>Check config header rule - iEP RP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3683,7 +3683,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_4</td>
       <td>888</td>
-      <td>Slot Cap, Control and Status reg rules</td>
+      <td>Check PCIe capability rules - iEP RP</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3701,7 +3701,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_6</td>
       <td>892</td>
-      <td>Secondary PCIe ECap Check: iEP Pair</td>
+      <td>Secondary PCIe ECap Check - iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3710,7 +3710,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_7</td>
       <td>812</td>
-      <td>Datalink feature ECap Check: iEP Pair</td>
+      <td>Datalink feature ECap Check - iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3719,7 +3719,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_8</td>
       <td>813</td>
-      <td>Phy Layer 16GT/s ECap Check: iEP Pair</td>
+      <td>Phy Layer 16GT/s ECap Check - iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3728,7 +3728,7 @@ The checklist provides information about:
     <tr>
       <td>IE_REG_9</td>
       <td>814</td>
-      <td>Lane Margining at Rec ECap Check: iEP</td>
+      <td>Phy Layer 16GT/s ECap Check - iEP Pair</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -3771,6 +3771,9 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MSI_2, and PCI_LI_02 UEFI coverage.
+- Updated B_MEM_02, B_MEM_03, and B_MEM_06 UEFI coverage.
+- Synced covered checklist descriptions with rule_metadata.c.
 - Updated PCI_MM_02 coverage with test 906.
 - Added direct B_PER_07 UART Non-secure register access coverage (test 605).
 - Updated B_PER_08 to include ITS Rules.
