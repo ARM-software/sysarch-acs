@@ -813,7 +813,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_02</td>
@@ -822,7 +822,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_03</td>
@@ -1589,7 +1589,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_02</td>
@@ -1598,7 +1598,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_03</td>
