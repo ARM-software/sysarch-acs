@@ -11,6 +11,7 @@ This document gives details of the various PCIe capabilities that exerciser devi
     * Legacy Interrupt Generation and Service
     * ATS Transaction
     * Transaction Monitoring
+    * CXL VDM Transaction (PM and MEFn)
 
 ## Introduction to PCIe Exerciser Endpoint Device
 
@@ -66,6 +67,8 @@ capability validation tests. Exerciser's BAR0 space contains following control a
 
  Transaction Trace Control       Control bit to start/stop transaction monitoring.       0x44
  Register
+
+ VDM Control Register            Configure and trigger CXL VDM requests (PM & MEFn).     0x48
 
 
 ```
@@ -162,7 +165,7 @@ capability validation tests. Exerciser's BAR0 space contains following control a
  **HOW TO USE DMA**
 
   * Before triggering DMA all the required DMA attribute fields like DMA bus address,
-    dmatxnsnoop etc., fields should be correctly set in the following registers:
+    `dmatxnsnoop`, etc., fields should be correctly set in the following registers:
      * DMA Control Register
      * Bus Address Register
      * DMA Length Register
@@ -171,20 +174,20 @@ capability validation tests. Exerciser's BAR0 space contains following control a
      * PASID Value Register
 
   * If user wants to do a Pure Translated transaction for a virtual address which is in ATC's input
-    address range then dmaUseATCforTranslation bit must be set to true, so that input virtual address
+    address range then `dmaUseATCforTranslation` bit must be set to true, so that input virtual address
     will be mapped to translated address as per ATC fields and translated address will go on the bus for DMA.
 
   * User can set custom requestor ID for an DMA transaction by using Illegal Requestor ID Control Register.
     Note: This is illegal as per PCIe specification as requestor ID should be assigned during PCIe enumeration.
 
-  * If passed address for DMA transaction is already translated one, then dmaAddressType must be set to translated.
+  * If passed address for DMA transaction is already translated one, then `dmaAddressType` must be set to translated.
     Note: This bypasses the ATC and so is also illegal as per PCIe specification as only a transaction translated
-    by the ATC is allowed to go out on the bus as a Translated Transaction. Also, if dmaAddressType is set to translated
-    and dmaUseATCforTranslation bit is set, then exerciser will fault by logging an error message while initiating DMA,
+    by the ATC is allowed to go out on the bus as a Translated Transaction. Also, if `dmaAddressType` is set to translated
+    and `dmaUseATCforTranslation` bit is set, then exerciser will fault by logging an error message while initiating DMA,
     as translation mapping of an already translated address might go wrong.
 
-  * DMAPasidEn bit must be set to 1 when a valid PASID is passed for DMA transaction. If dmaIsPrivileged
-    or dmaIsInstruction is 1, then DMAPasidEn bit must be set to 1 for correct DMA response.
+  * `DMAPasidEn` bit must be set to `1` when a valid PASID is passed for DMA transaction. If `dmaIsPrivileged`
+    or `dmaIsInstruction` is `1`, then `DMAPasidEn` bit must be set to `1` for correct DMA response.
 
   * Status of the last DMA request can be known from DMA Status Register.
 
@@ -346,10 +349,10 @@ capability validation tests. Exerciser's BAR0 space contains following control a
     command line as MSG_INFO and status of ATSRequest remains as 0 (failed - by default). User can
     detect whether error has occurred during the translation when following condition is true:
 
-    * ATSRequest is not in flight (ATS_CTL_REG[6] == 0) and ATS transaction status bit (ATS_CTL_REG[7]) is 0.
+    * ATSRequest is not in flight (`ATS_CTL_REG[6] == 0`) and ATS transaction status bit (`ATS_CTL_REG[7]`) is `0`.
 
-  * If ATSRequest response result is cacheable (RW!= 2'b00 : Read/Write permission returned as ATSRequest result),
-    then ATS response cacheable bit (ATS_CTL_REG[8]) is set to true.
+  * If ATSRequest response result is cacheable (`RW != 2'b00`: Read/Write permission returned as ATSRequest result),
+    then ATS response cacheable bit (`ATS_CTL_REG[8]`) is set to true.
 
   * If a matching ATC invalidation comes while ATS request is in flight, translation will be retried, discarding
     the current translation result.
@@ -363,11 +366,11 @@ capability validation tests. Exerciser's BAR0 space contains following control a
   * DMA transaction's range must be fully covered by the ATC entry or it will fail.
 
   * Whenever any DMA transaction want to use ATC based translated address, it must set
-    dmaUseATCforTranslation flag (DMA_CTL_REG[11]) to true, so that translated address will go into the bus
+    `dmaUseATCforTranslation` flag (`DMA_CTL_REG[11]`) to true, so that translated address will go into the bus
     after being remapped to translated output address if it has all the necessary read/write permissions.
 
   * Currently exerciser can store maximum 1 ATS request result, mappings are stored in ATC till invalidated by SMMU or
-    user writes 1 to clear ATC bit (ATS_CTL_REG[5]) which will clear/invalidate all ATC mappings and fields.
+    user writes `1` to clear ATC bit (`ATS_CTL_REG[5]`) which will clear/invalidate all ATC mappings and fields.
 
   * ATC invalidation happens in following ways when an ATCInvalidate Request received by the exerciser:
 
@@ -391,12 +394,91 @@ capability validation tests. Exerciser's BAR0 space contains following control a
       then we invalidate the ATC immediately if invalidation_range intersects/matches with atc_entry's untranslated
       address.
 
-  * ATC can be invalidated by writing 1 to clear ATC bit (ATS_CTL_REG[5]), which will eventually invalidate ATC and discard
+  * ATC can be invalidated by writing `1` to clear ATC bit (`ATS_CTL_REG[5]`), which will eventually invalidate ATC and discard
     all the mappings for last ATSRequest.
 
   * Note: the following ATS behaviours are illegal under the PCIe specification, but implemented in the model for validation purposes only:
     * reading the ATC entry
     * issuing a translated transaction without using the ATC
+
+**CXL VDM Transaction (PM and MEFn)**
+
+PM and MEFn VDM functionality is accessed through a single unified register at offset `0x48`.
+The `vdm_type` field selects the VDM type (PM or MEFn), bit `31` is the trigger, and the
+`vdm_response` field returns the result from the corresponding service.
+
+```
+VDM Control Register       Bit      Description                                     r/w    Value at reset
+--------------------       ---      -----------                                     ---    --------------
+
+vdm_type                   3:0      VDM type selector                               RW         0h
+                                     0: Idle (no request)
+                                     1: PM VDM
+                                     2: MEFn VDM
+                                     3-0xF: Reserved
+                                     The field is cleared by the exerciser after
+                                     request handling completes.
+
+reserved                   7:4      RES0                                            RO         0h
+
+vdm_params                11:8      if vdm_type is PM VDM                           RW         0h
+                                     0: D0
+                                     1: D1
+                                     2: D2
+                                     3: D3hot
+                                     4-0xF: Reserved
+                                     else: RES0
+
+reserved                  15:12     RES0                                            RO         0h
+
+vdm_response              18:16     Response returned by the VDM service            RO         0h
+                                     For PM VDM:
+                                       0: PM_NotProcessed
+                                       1: PM_Ack
+                                       2: PM_Denied
+                                     For MEFn VDM:
+                                       3: MEFn_NotProcessed
+                                       4: MEFn_Ack
+                                       5: MEFn_ExceptionDone
+                                       6-7: Reserved
+
+reserved                  30:19     RES0                                            RO         0h
+
+vdm_trigger               31        Trigger VDM request                             RW         0b
+                                     Set to 1 along with vdm_type to fire a VDM
+                                     request. Cleared by exerciser after request
+                                     handling completes.
+```
+
+**HOW TO USE CXL PM VDM:**
+
+  * Program `vdm_params` (bits `[11:8]`) with the target power state.
+
+  * Write `1` to bits `[3:0]` (vdm_type = PM) and set bit `31` (trigger) to fire the PM VDM request.
+
+  * If the downstream PCIe endpoint handles the request locally, it acknowledges the request and
+    updates its PMCSR `PowerState` field to the requested D-state.
+
+  * Bits `[18:16]` are updated with the PM VDM response returned by the service provider.
+
+  * The trigger bit and type field are cleared automatically after the request is processed.
+
+
+**HOW TO USE CXL MEFn VDM:**
+
+> **Note:** Due to platform limitations, this configuration may be revised in the future.
+
+  * Write `2` to bits `[3:0]` (vdm_type = MEFn) and set bit `31` (trigger) to fire the MEFn request.
+
+  * In the exercised topology, the PCIe endpoint handles the request locally, raises SERR, marks
+    the request complete, and returns `MEFn_ExceptionDone` in bits `[18:16]`.
+
+  * The trigger bit and type field are cleared automatically after the request is processed.
+
+  * While SERR remains asserted, repeated MEFn requests still complete and continue to report
+    `MEFn_ExceptionDone`.
+
+  * If software clears the endpoint PCI status SERR bit, a subsequent MEFn request re-asserts SERR.
 
 **Transaction Monitoring**
 
@@ -490,5 +572,4 @@ Note: Each beat in a burst transaction is recorded as a single separate transact
   * Read the transaction trace database register(offset 0x40). Each read returns one 32 bit entry mentioned above, starting
     from first transaction. A value of 0xFFFFffff indicates invalid entry.
 
-
-*Copyright (c) 2023-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2023-2026, Arm Limited and Contributors. All rights reserved.*

@@ -10,6 +10,9 @@ The checklist provides information about:
 4. The runtime environment (UEFI, BareMetal, or Linux) in which each test executes.
 5. In a UEFI or Linux based test is **not** part of the SystemReady images, it is highlighted with `#`.
 6. Tests which are dependent on platform information which cannot be auto-determined and needs manual effort to provide information in PAL API's are marked with `&`
+7. The Exerciser PAL APIs used by each exerciser-backed test.
+
+> **Note:** To identify an exerciser, `pal_is_bdf_exerciser()` and `pal_exerciser_get_state()` must be implemented for all exerciser-backed tests. These common APIs are omitted from the individual API lists.
 
 [Latest checklist changes](#latest-checklist-changes) summarizing the latest checklist changes relative to the latest released tag, is present at end of document.
 
@@ -26,6 +29,7 @@ The checklist provides information about:
       <th>BM</th>
       <th>Linux</th>
       <th>Additional Information</th>
+      <th>Exerciser PAL APIs Used</th>
     </tr>
   </thead>
   <tbody>
@@ -39,6 +43,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
@@ -49,6 +54,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -61,6 +67,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
@@ -71,6 +78,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -83,6 +91,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
@@ -93,6 +102,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -105,6 +115,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
@@ -115,6 +126,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -127,6 +139,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
@@ -138,12 +151,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
       <td>S_L3SM_01</td>
       <td>S_L3SM_01</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -160,6 +175,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_WD_02</td>
@@ -168,6 +184,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -178,6 +195,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_WD_04</td>
@@ -187,10 +205,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_WD_05</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -207,12 +227,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L3</td>
       <td>S_PCIe_09</td>
       <td>S_PCIe_09</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -229,6 +251,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L4</td>
@@ -239,6 +262,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -251,6 +275,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L4</td>
@@ -261,6 +286,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -273,6 +299,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L4</td>
@@ -283,6 +310,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -295,12 +323,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L4</td>
       <td>S_L4PCI_1</td>
       <td>S_L4PCI_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -317,6 +347,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -327,6 +358,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -339,6 +371,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -349,6 +382,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -361,6 +395,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -371,6 +406,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -383,6 +419,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -393,6 +430,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -405,6 +443,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -415,6 +454,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -427,6 +467,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L5</td>
@@ -437,6 +478,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -449,6 +491,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="2">L5</td>
@@ -460,6 +503,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SMMU_20</td>
@@ -468,6 +512,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -480,6 +525,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="5">L6</td>
@@ -491,6 +537,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SEC_02</td>
@@ -499,6 +546,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -509,6 +557,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SEC_04</td>
@@ -518,6 +567,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SEC_05</td>
@@ -526,6 +576,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -538,6 +589,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L6</td>
@@ -548,6 +600,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -560,6 +613,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L6</td>
@@ -570,6 +624,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -582,12 +637,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L6</td>
       <td>S_L6PE_07</td>
       <td>S_L6PE_07</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -604,6 +661,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L6</td>
@@ -615,6 +673,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="6">L6</td>
@@ -625,6 +684,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     </tr>
@@ -644,6 +704,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SMMU_13</td>
@@ -652,6 +713,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -662,6 +724,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>B_SMMU_23</td>
@@ -670,6 +733,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -682,6 +746,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L6</td>
@@ -692,6 +757,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -704,12 +770,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td rowspan="86">L6</td>
-      <td rowspan="86">S_L6PCI_1 - B_REP_1</td>
+      <td rowspan="88">L6</td>
+      <td rowspan="88">S_L6PCI_1 - B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -724,10 +792,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_BAR_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -742,6 +812,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_INT_1</td>
@@ -751,6 +822,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP; MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_ORD_1</td>
@@ -760,10 +832,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (TRANSACTION_TYPE, CLEAR_TXN)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)<br>pal_exerciser_get_data (EXERCISER_DATA_MMIO_SPACE)</td>
     </tr>
     <tr>
       <td>RI_ORD_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -778,19 +852,40 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td>RI_SMU_1</td>
+      <td rowspan="3">RI_SMU_1</td>
+      <td>880</td>
+      <td>Check ATS Support Rule: RCiEP/iEP/RP</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>1519</td>
-      <td>Check ATS Support Rule - RCiEP, iEP Pair</td>
+      <td>PCIe Address translation check</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required; ATC cache required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
+    </tr>
+    <tr>
+      <td>1520</td>
+      <td>ATS Functionality Check</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required; ATC cache required</td>
+      <td>pal_exerciser_get_param (ATS_RES_ATTRIBUTES)<br>pal_exerciser_set_param (DMA_ATTRIBUTES, CFG_TXN_ATTRIBUTES)<br>pal_exerciser_ops (ATS_TXN_REQ, START_DMA, ATS_TXN_CLEAR)</td>
     </tr>
     <tr>
       <td>RI_SMU_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -805,6 +900,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
     </tr>
     <tr>
       <td>ITS_01</td>
@@ -813,6 +909,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -823,6 +920,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_03</td>
@@ -832,6 +930,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_04</td>
@@ -841,6 +940,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_05</td>
@@ -850,10 +950,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_06</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -868,6 +970,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_08</td>
@@ -877,10 +980,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_DEV_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -895,10 +1000,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -913,6 +1020,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_DEV_5</td>
@@ -921,6 +1029,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -931,6 +1040,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_7</td>
@@ -939,6 +1049,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -949,10 +1060,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_9</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -967,6 +1080,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_PWR_1</td>
@@ -976,6 +1090,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_01</td>
@@ -985,6 +1100,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_02</td>
@@ -994,6 +1110,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_03</td>
@@ -1003,10 +1120,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_07</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1021,10 +1140,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_15</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1039,6 +1160,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_20</td>
@@ -1048,6 +1170,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_01</td>
@@ -1057,6 +1180,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_02</td>
@@ -1066,6 +1190,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -1075,10 +1200,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_04</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1092,11 +1219,13 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_MM_06</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1110,7 +1239,8 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_MSI_1</td>
@@ -1120,6 +1250,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MSI_2</td>
@@ -1129,6 +1260,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_01</td>
@@ -1138,6 +1270,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_02</td>
@@ -1146,6 +1279,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -1156,10 +1290,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_04</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1174,6 +1310,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_SM_02</td>
@@ -1182,6 +1319,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -1192,10 +1330,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_12</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1210,10 +1350,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_14</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1228,10 +1370,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (TRANSACTION_TYPE)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)<br>pal_exerciser_get_data (EXERCISER_DATA_MMIO_SPACE)</td>
     </tr>
     <tr>
       <td>PCI_IC_16</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1246,10 +1390,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_18</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1264,10 +1410,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IEP_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1282,6 +1430,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_02</td>
@@ -1291,6 +1440,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_PP_03</td>
@@ -1300,6 +1450,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_04</td>
@@ -1309,6 +1460,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_05</td>
@@ -1318,6 +1470,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PAS_1</td>
@@ -1327,10 +1480,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PASID support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1345,6 +1500,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP; PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_PCI_2</td>
@@ -1354,10 +1510,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_CFG_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1372,10 +1530,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_CFG_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1390,10 +1550,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA, TXN_NO_SNOOP_ENABLE)</td>
     </tr>
     <tr>
       <td>RE_PWR_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1408,6 +1570,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_ACS_1</td>
@@ -1417,6 +1580,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP; PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_ACS_2</td>
@@ -1426,10 +1590,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP; PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_ACS_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1444,6 +1610,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_REG_2</td>
@@ -1453,6 +1620,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_REG_3</td>
@@ -1462,15 +1630,17 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_REC_1</td>
-      <td></td>
+      <td>853</td>
       <td>Check Dev Cap &amp; Ctrl Reg rule - RCEC</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>RE_REC_2</td>
@@ -1480,12 +1650,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td rowspan="101">L6</td>
-      <td rowspan="101">S_L6PCI_1 - B_IEP_1</td>
+      <td rowspan="105">L6</td>
+      <td rowspan="105">S_L6PCI_1 - B_IEP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1500,10 +1672,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP EP, iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_BAR_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1518,6 +1692,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP EP, iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_INT_1</td>
@@ -1527,6 +1702,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP; MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_ORD_1</td>
@@ -1536,10 +1712,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (TRANSACTION_TYPE, CLEAR_TXN)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)<br>pal_exerciser_get_data (EXERCISER_DATA_MMIO_SPACE)</td>
     </tr>
     <tr>
       <td>RI_ORD_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1554,19 +1732,40 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td>RI_SMU_1</td>
+      <td rowspan="3">RI_SMU_1</td>
+      <td>880</td>
+      <td>Check ATS Support Rule: RCiEP/iEP/RP</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>1519</td>
-      <td>Check ATS Support Rule - RCiEP, iEP Pair</td>
+      <td>PCIe Address translation check</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required; ATC cache required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
+    </tr>
+    <tr>
+      <td>1520</td>
+      <td>ATS Functionality Check</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Exerciser VIP required; ATC cache required</td>
+      <td>pal_exerciser_get_param (ATS_RES_ATTRIBUTES)<br>pal_exerciser_set_param (DMA_ATTRIBUTES, CFG_TXN_ATTRIBUTES)<br>pal_exerciser_ops (ATS_TXN_REQ, START_DMA, ATS_TXN_CLEAR)</td>
     </tr>
     <tr>
       <td>RI_SMU_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1581,6 +1780,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
     </tr>
     <tr>
       <td>ITS_01</td>
@@ -1589,6 +1789,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -1599,6 +1800,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_03</td>
@@ -1608,6 +1810,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_04</td>
@@ -1617,6 +1820,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_05</td>
@@ -1626,10 +1830,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_06</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1644,6 +1850,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_08</td>
@@ -1653,10 +1860,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_DEV_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1671,10 +1880,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1689,6 +1900,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_ops (GENERATE_MSI)</td>
     </tr>
     <tr>
       <td>ITS_DEV_5</td>
@@ -1697,6 +1909,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -1707,6 +1920,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_7</td>
@@ -1715,6 +1929,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -1725,10 +1940,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ITS_DEV_9</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1743,6 +1960,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>RI_PWR_1</td>
@@ -1752,6 +1970,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_01</td>
@@ -1761,6 +1980,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_02</td>
@@ -1770,6 +1990,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_03</td>
@@ -1779,6 +2000,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_04</td>
@@ -1788,6 +2010,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_05</td>
@@ -1797,10 +2020,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_06</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1815,10 +2040,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_08</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1833,10 +2060,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_10</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1851,6 +2080,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (CFG_TXN_ATTRIBUTES, CLEAR_TXN)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)</td>
     </tr>
     <tr>
       <td>PCI_IN_12</td>
@@ -1860,6 +2090,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_13</td>
@@ -1869,10 +2100,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_14</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1887,6 +2120,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_16</td>
@@ -1896,15 +2130,35 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
-      <td>PCI_IN_17</td>
+      <td rowspan="3">PCI_IN_17</td>
+      <td>836</td>
+      <td>Check ARI forwarding enable rule</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>871</td>
+      <td>Check ARI forwarding enable rule</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>1515</td>
       <td>Check ARI forwarding enable rule</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (CFG_TXN_ATTRIBUTES, CLEAR_TXN)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)</td>
     </tr>
     <tr>
       <td>PCI_IN_18</td>
@@ -1914,6 +2168,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_19</td>
@@ -1923,6 +2178,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IN_20</td>
@@ -1932,6 +2188,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_01</td>
@@ -1941,6 +2198,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_02</td>
@@ -1950,6 +2208,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_03</td>
@@ -1959,10 +2218,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>RCiEP, RCEC, iEP RP, iEP EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MM_04</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1976,11 +2237,13 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_MM_06</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -1994,7 +2257,8 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
-      <td></td>
+      <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_MSI_1</td>
@@ -2004,6 +2268,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_MSI_2</td>
@@ -2013,6 +2278,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>MSI/MSI-X support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_01</td>
@@ -2022,6 +2288,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_02</td>
@@ -2030,6 +2297,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2040,10 +2308,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_LI_04</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2058,6 +2328,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_SM_02</td>
@@ -2066,6 +2337,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2076,10 +2348,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_12</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2094,10 +2368,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_14</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2112,10 +2388,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (TRANSACTION_TYPE)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)<br>pal_exerciser_get_data (EXERCISER_DATA_MMIO_SPACE)</td>
     </tr>
     <tr>
       <td>PCI_IC_16</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2130,10 +2408,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IC_18</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2148,10 +2428,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_IEP_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2166,6 +2448,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_02</td>
@@ -2175,6 +2458,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>PCI_PP_03</td>
@@ -2184,6 +2468,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_04</td>
@@ -2193,6 +2478,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PP_05</td>
@@ -2202,6 +2488,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PAS_1</td>
@@ -2211,10 +2498,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PASID support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2229,10 +2518,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_CFG_2</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2247,6 +2538,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_ORD_4</td>
@@ -2256,6 +2548,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA, TXN_NO_SNOOP_ENABLE)</td>
     </tr>
     <tr>
       <td>IE_RST_2</td>
@@ -2265,10 +2558,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_RST_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2283,10 +2578,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_PWR_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2301,6 +2598,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP; PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_ACS_2</td>
@@ -2310,6 +2608,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP; PCIe Hierarchy and Device P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_1</td>
@@ -2319,6 +2618,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_2</td>
@@ -2328,6 +2628,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_3</td>
@@ -2337,6 +2638,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_4</td>
@@ -2346,6 +2648,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_5</td>
@@ -2355,6 +2658,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP, IEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_6</td>
@@ -2364,6 +2668,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP, IEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_7</td>
@@ -2373,6 +2678,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP, IEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_8</td>
@@ -2382,6 +2688,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP, IEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>IE_REG_9</td>
@@ -2391,6 +2698,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP_EP, IEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2401,6 +2709,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2413,6 +2722,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2423,6 +2733,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2435,6 +2746,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2445,6 +2757,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2457,6 +2770,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2467,6 +2781,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2479,12 +2794,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
       <td>S_L7TME_1</td>
       <td>S_L7TME_1</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2501,12 +2818,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
       <td>S_L7TME_3</td>
       <td>S_L7TME_3</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2523,12 +2842,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
       <td>S_L7TME_5</td>
       <td>S_L7TME_5</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2545,6 +2866,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2555,6 +2877,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2567,6 +2890,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>1006</td>
@@ -2575,6 +2899,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>1007</td>
@@ -2582,6 +2907,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2594,6 +2920,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2604,6 +2931,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2616,6 +2944,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2626,6 +2955,7 @@ The checklist provides information about:
       <td>No</td>
       <td>No</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2638,6 +2968,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2648,6 +2979,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2660,6 +2992,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -2670,6 +3003,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2682,6 +3016,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_PE_02</td>
@@ -2690,6 +3025,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2700,6 +3036,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_11</td>
@@ -2708,6 +3045,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2718,6 +3056,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_01</td>
@@ -2726,6 +3065,7 @@ The checklist provides information about:
       <td>No</td>
       <td>No</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2736,6 +3076,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_03</td>
@@ -2745,10 +3086,12 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_04</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2763,6 +3106,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_06</td>
@@ -2771,6 +3115,7 @@ The checklist provides information about:
       <td>No</td>
       <td>No</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2781,6 +3126,7 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_08</td>
@@ -2789,6 +3135,7 @@ The checklist provides information about:
       <td>No</td>
       <td>No</td>
       <td>Yes</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2799,10 +3146,12 @@ The checklist provides information about:
       <td>No</td>
       <td>Yes</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_EV_10</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2817,6 +3166,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_BM_2</td>
@@ -2826,10 +3176,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_BM_3</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2844,6 +3196,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_MEM_1</td>
@@ -2852,6 +3205,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2862,6 +3216,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_SYS_2</td>
@@ -2870,6 +3225,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2880,6 +3236,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_SYS_6</td>
@@ -2888,6 +3245,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2898,10 +3256,12 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>PMU_SEC_1</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2918,6 +3278,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_02</td>
@@ -2926,6 +3287,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2936,6 +3298,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_04</td>
@@ -2945,10 +3308,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_05</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2963,6 +3328,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_07</td>
@@ -2971,6 +3337,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -2981,10 +3348,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_10</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -2999,10 +3368,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RAS_12</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3019,6 +3390,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3029,6 +3401,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3041,12 +3414,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
       <td>S_PCIe_01</td>
       <td>S_PCIe_01</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3063,6 +3438,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3074,6 +3450,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (DATA_ATTRIBUTES)<br>pal_exerciser_ops (START_TXN_MONITOR, STOP_TXN_MONITOR)<br>pal_exerciser_get_data (EXERCISER_DATA_MMIO_SPACE)</td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3085,12 +3462,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (DATA_ATTRIBUTES)<br>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA, START_TXN_MONITOR, STOP_TXN_MONITOR)</td>
     </tr>
     <tr>
       <td>L7</td>
       <td>S_PCIe_05</td>
       <td>S_PCIe_05</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3107,6 +3486,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3118,6 +3498,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ERROR_INJECT_TYPE)<br>pal_exerciser_ops (INJECT_ERROR)</td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3129,6 +3510,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>L7</td>
@@ -3140,6 +3522,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ERROR_INJECT_TYPE)<br>pal_exerciser_ops (INJECT_ERROR)</td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3150,6 +3533,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3162,6 +3546,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3172,6 +3557,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3184,6 +3570,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3194,6 +3581,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3206,6 +3594,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Requires BRBE enabled for Non-Secure EL2 in TF-A. Missing this firmware dependency can cause EL2→EL3 traps and potential system hang</td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3217,6 +3606,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3228,12 +3618,14 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
       <td>S_L8RME_1</td>
       <td>S_L8RME_1</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3250,6 +3642,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3261,12 +3654,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
       <td>S_L8TI_01</td>
       <td>S_L8TI_01</td>
       <td>Not Covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3283,12 +3678,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>Version 8.0</td>
       <td>S_PCIe_06</td>
       <td>S_PCIe_06</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3305,6 +3702,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td>Version 8.0</td>
@@ -3316,6 +3714,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (START_DMA)</td>
     </tr>
     <tr>
       <td rowspan="2">Version 8.0</td>
@@ -3327,14 +3726,16 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td></td>
     </tr>
     <tr>
       <td>B_PCIe_11</td>
-      <td>891</td>
-      <td>Steering Tag value properties</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3342,6 +3743,7 @@ The checklist provides information about:
       <td rowspan="5">XDGKZ</td>
       <td>GPU_01</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3356,6 +3758,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>GPU_03</td>
@@ -3365,6 +3768,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>PCIe Hierarchy P2P support required</td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="2">GPU_04</td>
@@ -3374,6 +3778,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>324</td>
@@ -3382,10 +3787,11 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td rowspan="12">Version 8.0</td>
-      <td rowspan="12">S_L8CXL_1</td>
+      <td rowspan="13">Version 8.0</td>
+      <td rowspan="13">S_L8CXL_1</td>
       <td>CXL_01</td>
       <td>1801</td>
       <td>Check CXL Version</td>
@@ -3393,15 +3799,26 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
-      <td>CXL_02</td>
+      <td rowspan="2">CXL_02</td>
       <td>1802</td>
-      <td>Check CXL Type1/2 SMMU ATS</td>
+      <td>Check SMMU &amp; ATS for CXL Type1/Type2</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>1540</td>
+      <td>CXL path ATS translation + DMA check</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_get_param (ATS_RES_ATTRIBUTES)<br>pal_exerciser_set_param (DMA_ATTRIBUTES, CFG_TXN_ATTRIBUTES)<br>pal_exerciser_ops (ATS_TXN_REQ, START_DMA, ATS_TXN_CLEAR)</td>
     </tr>
     <tr>
       <td>CXL_03</td>
@@ -3410,6 +3827,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3420,6 +3838,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>CXL_05</td>
@@ -3429,6 +3848,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (GENERATE_PMREQ_VDM)</td>
     </tr>
     <tr>
       <td>CXL_06</td>
@@ -3438,10 +3858,12 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (GENERATE_MEFN_VDM)</td>
     </tr>
     <tr>
       <td>CXL_08</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3456,6 +3878,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ENABLE_POISON_MODE, DISABLE_POISON_MODE)</td>
     </tr>
     <tr>
       <td>CXL_10</td>
@@ -3464,6 +3887,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3474,6 +3898,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>CXL_12</td>
@@ -3483,6 +3908,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ENABLE_CACHE_TXN, DMA_ATTRIBUTES)<br>pal_exerciser_ops (TXN_NO_SNOOP_DISABLE, START_DMA)</td>
     </tr>
     <tr>
       <td>CXL_13</td>
@@ -3492,12 +3918,14 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="10">Version 8.0</td>
       <td rowspan="10">S_L8SHD_1</td>
       <td>ETE_01</td>
       <td>Not covered</td>
+      <td></td>
       <td></td>
       <td></td>
       <td></td>
@@ -3512,6 +3940,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ETE_03</td>
@@ -3520,6 +3949,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3530,6 +3960,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ETE_05</td>
@@ -3538,6 +3969,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3548,6 +3980,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ETE_07</td>
@@ -3556,6 +3989,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3566,6 +4000,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ETE_09</td>
@@ -3575,6 +4010,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>ETE_10</td>
@@ -3583,6 +4019,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3595,6 +4032,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td rowspan="2">FR</td>
@@ -3606,6 +4044,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>RKLPK</td>
@@ -3614,6 +4053,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+      <td></td>
       <td></td>
     </tr>
     <tr>
@@ -3626,6 +4066,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>FR</td>
@@ -3637,6 +4078,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ENABLE_RAS_CTRL)<br>pal_exerciser_get_data (EXERCISER_DATA_BAR0_SPACE)<br>pal_exerciser_get_pcie_ras_compliant_err_node()<br>pal_exerciser_get_ras_status()<br>pal_exerciser_set_bar_response()</td>
     </tr>
     <tr>
       <td>FR</td>
@@ -3648,6 +4090,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ENABLE_POISON_MODE, ENABLE_RAS_CTRL, DISABLE_POISON_MODE)<br>pal_exerciser_get_data (EXERCISER_DATA_BAR0_SPACE)<br>pal_exerciser_check_poison_data_forwarding_support()<br>pal_exerciser_get_pcie_ras_compliant_err_node()<br>pal_exerciser_get_ras_status()</td>
     </tr>
     <tr>
       <td>FR</td>
@@ -3659,6 +4102,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>iEP RP</td>
+      <td></td>
     </tr>
     <tr>
       <td>FR</td>
@@ -3670,6 +4114,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (ERROR_INJECT_TYPE)<br>pal_exerciser_ops (INJECT_ERROR)<br>pal_exerciser_disable_rp_pio_register()</td>
     </tr>
   </tbody>
 </table>
