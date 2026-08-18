@@ -9,7 +9,7 @@ For more information, download the [DRTM Architecture for Arm](https://developer
 ## Release details
  - Code Quality: Alpha
  - The tests are written for version 1.1 of the DRTM Architecture for Arm.
- - For more details on tests implemented in this release, Please refer [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.pdf).
+ - For more details on tests implemented in this release, Please refer [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.md).
 
 ## Downloading DRTM ACS
 
@@ -121,4 +121,4 @@ DRTM ACS is distributed under Apache v2.0 License.
 
 --------------
 
-*Copyright (c) 2024-2025, Arm Limited and Contributors. All rights reserved.*
+*Copyright (c) 2024-2026, Arm Limited and Contributors. All rights reserved.*

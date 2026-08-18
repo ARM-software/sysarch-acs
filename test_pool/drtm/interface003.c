@@ -20,7 +20,7 @@
 
 #define TEST_NUM   (ACS_DRTM_INTERFACE_TEST_NUM_BASE  +  3)
 #define TEST_RULE  "R31000"
-#define TEST_DESC  "Check DRTM mandatory function check   "
+#define TEST_DESC  "Check DRTM mandatory functions support"
 
 static
 void
