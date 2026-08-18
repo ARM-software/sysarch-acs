@@ -180,27 +180,31 @@ payload(uint32_t num_pe)
     goto free_dlme_region;
   }
   event_idx++;
-  /* DCE_PUBKEY optional repeatable */
-  while (event_idx < pcr18_count && pcr18_events[event_idx] == DRTM_EVTYPE_ARM_DCE_PUBKEY)
-    event_idx++;
+  /* DCE_PUBKEY required */
+  if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DCE_PUBKEY) {
+    val_print(ERROR, "\n       PCR[18] DCE_PUBKEY not found or out of order");
+    val_set_status(index, RESULT_FAIL(14));
+    goto free_dlme_region;
+  }
+  event_idx++;
   /* DLME required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME) {
     val_print(ERROR, "\n       PCR[18] DLME not found or out of order");
-    val_set_status(index, RESULT_FAIL(14));
+    val_set_status(index, RESULT_FAIL(15));
     goto free_dlme_region;
   }
   event_idx++;
   /* DLME_ENTRY_POINT required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME_ENTRY_POINT) {
     val_print(ERROR, "\n       PCR[18] DLME_ENTRY_POINT not found or out of order");
-    val_set_status(index, RESULT_FAIL(15));
+    val_set_status(index, RESULT_FAIL(16));
     goto free_dlme_region;
   }
   event_idx++;
   /* DEBUG_CONFIG required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DEBUG_CONFIG) {
     val_print(ERROR, "\n       PCR[18] DEBUG_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(16));
+    val_set_status(index, RESULT_FAIL(17));
     goto free_dlme_region;
   }
   event_idx++;
@@ -208,21 +212,21 @@ payload(uint32_t num_pe)
   if (event_idx >= pcr18_count ||
       pcr18_events[event_idx] != DRTM_EVTYPE_ARM_NONSECURE_CONFIG) {
     val_print(ERROR, "\n       PCR[18] NONSECURE_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(17));
+    val_set_status(index, RESULT_FAIL(18));
     goto free_dlme_region;
   }
   event_idx++;
   /* SEPARATOR required */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_SEPARATOR) {
     val_print(ERROR, "\n       PCR[18] SEPARATOR not found or out of order");
-    val_set_status(index, RESULT_FAIL(18));
+    val_set_status(index, RESULT_FAIL(19));
     goto free_dlme_region;
   }
   event_idx++;
   /* No more events */
   if (event_idx != pcr18_count) {
     val_print(ERROR, "\n       PCR[18] extra events after SEPARATOR");
-    val_set_status(index, RESULT_FAIL(19));
+    val_set_status(index, RESULT_FAIL(20));
     goto free_dlme_region;
   }
 
