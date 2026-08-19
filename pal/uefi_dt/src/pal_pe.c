@@ -613,6 +613,12 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
   }
 
   Ptr = PeTable->pe_info;
+  for (i = 0; i < PeTable->header.num_of_pe; i++) {
+    Ptr->pmu_gsiv = 0;
+    Ptr++;
+  }
+
+  Ptr = PeTable->pe_info;
 
   for (arr_idx = 0; arr_idx < (sizeof(pmu_dt_arr)/PMU_COMPATIBLE_STR_LEN); arr_idx++) {
 
