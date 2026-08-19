@@ -40,11 +40,14 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
         return 0;
     }
 
+    if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
+        return 0;
+
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": secure start base=%llx",
               (unsigned long long)base_pa);
 
     /* Step 1: force known state (Non-secure). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step1 set->NS x0=%llx x1=%llx",
               (unsigned long long)res.x0, (unsigned long long)res.x1);
     if (out) {
@@ -53,7 +56,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
     }
 
     /* Step 2: Secure caller: Non-secure -> Secure (permitted). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step2 NS->S x0=%llx x1=%llx",
               (unsigned long long)res.x0, (unsigned long long)res.x1);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
@@ -114,7 +117,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
     }
 
     /* Step 3: Secure caller: Secure -> Non-secure (permitted). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step3 S->NS x0=%llx x1=%llx",
               (unsigned long long)res.x0, (unsigned long long)res.x1);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
@@ -129,9 +132,9 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
     }
 
     /* Step 4: Disallowed: Secure -> Realm. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
     if (val_firme_status_success(res.x0, res.x1, expected_done)) {
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_REALM, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
         LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step4 S->R x0=%llx x1=%llx",
                   (unsigned long long)res.x0, (unsigned long long)res.x1);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
@@ -148,7 +151,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
         }
     }
 
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": secure done");
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -180,11 +183,14 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
         return 0;
     }
 
+    if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
+        return 0;
+
     /* Step 1: force known state (Non-secure). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
 
     /* Step 2: Realm caller: Non-secure -> Realm (permitted). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_REALM, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": realm step2 NS->R failed x0=%llx x1=%llx",
                   (unsigned long long)res.x0, (unsigned long long)res.x1);
@@ -242,7 +248,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
     }
 
     /* Step 3: Realm caller: Realm -> Non-secure (permitted). */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": realm step3 R->NS failed x0=%llx x1=%llx",
                   (unsigned long long)res.x0, (unsigned long long)res.x1);
@@ -255,9 +261,9 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
     }
 
     /* Step 4: Disallowed: Realm -> Secure. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_REALM, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
     if (val_firme_status_success(res.x0, res.x1, expected_done)) {
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SECURE, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
             LOG_ERROR(NULL, "%s: realm step4 R->S expected DENIED/NSUP x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -272,7 +278,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
         }
     }
 
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
     return 0;
@@ -310,6 +316,9 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
         return 0;
     }
 
+    if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
+        return 0;
+
     gpc2 = val_firme_feat_rme_gpc2_present();
     gdi = val_firme_feat_rme_gdi_present();
 
@@ -341,7 +350,7 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     /* Step 3: NS caller: NS->Secure is disallowed. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
     if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
         LOG_ERROR(NULL, "%s: ns NS->S expected DENIED/NSUP x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -356,7 +365,7 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     /* Step 4: NS caller: NS->Realm is disallowed. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_REALM, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
     if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
         LOG_ERROR(NULL, "%s: ns NS->R expected DENIED/NSUP x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -371,7 +380,7 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     /* Step 5: NS caller: NS->Root is disallowed. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_ROOT, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_ROOT, &res);
     if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
         LOG_ERROR(NULL, "%s: ns NS->ROOT expected DENIED/NSUP x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -387,7 +396,7 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     if (!gpc2) {
         /* Step 6: NS caller: NS->NSO is disallowed when GPC2 is absent. */
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSO, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
             LOG_ERROR(NULL, "%s: ns NS->NSO expected DENIED/NSUP x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -404,7 +413,7 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     if (!gdi) {
         /* Step 7: NS caller: NS->NSP is disallowed when GDI is absent. */
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSP, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
             LOG_ERROR(NULL, "%s: ns NS->NSP expected DENIED/NSUP x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
@@ -428,7 +437,7 @@ cleanup:
      * - Clear test data using a fault-tolerant write so the suite does not halt
      *   even if cleanup isn't possible on a broken implementation.
      */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     val_probe_write64(base_pa, clear_value, &fault_info);
     return 0;
 }

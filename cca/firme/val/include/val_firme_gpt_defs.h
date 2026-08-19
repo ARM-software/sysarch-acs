@@ -19,6 +19,7 @@
 #define FIRME_GPI_NSO       0xDU /* FEAT_RME_GPC2 */
 #define FIRME_GPI_SA        0x4U /* FEAT_RME_GDI */
 #define FIRME_GPI_NSP       0x5U /* FEAT_RME_GDI */
+#define FIRME_GPI_UNALLOCATED_TEST 0x6U
 
 /* FIRME_GM_GPI_SET Attributes helpers */
 #define FIRME_GPI_ATTR_TARGET_SHIFT 0U

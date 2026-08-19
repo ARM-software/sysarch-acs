@@ -23,7 +23,7 @@ same hosting model.
 - **Current coverage:** Base service / Concepts (R0007, R0008, R0009,
   R0010, R0012, R0013, R0025, R0026, R0033, R0034, R0035, R0038, R0044,
   R0047, R0051, R0053, R0055), MECID management (R0206, R0208), and GPT
-  Management (R0085, R0086, R0089)
+  Management (R0079, R0087, R0088, R0091, R0104, R0120)
 - **Deferred or not runtime-scheduled:** R0011 until every architected status is
   reachable; R0014 and R0015 until all service/status output shapes and the
   callee non-disclosure clause are auditable; R0023 because legal calls cannot
@@ -31,7 +31,9 @@ same hosting model.
   allocated non-Base service ID; R0031 because it is a specification
   release-policy requirement rather than a runtime DUT check; R0041 because
   register size is not exposed by the ABI; R0048 and R0054 until TF-A advertises
-  all mandatory ALP3 ABI bits.
+  all mandatory ALP3 ABI bits; R0083 because alignment is a caller precondition
+  (its negative case is covered by R0116); and R0085, R0106, R0113, and R0116
+  until TF-A implements the corresponding ALP3 GPI-management semantics.
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
 ## FIRME spec version mapping

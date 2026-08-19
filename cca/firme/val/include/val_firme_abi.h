@@ -110,7 +110,19 @@
 #define FIRME_GM_FEATURE_REG0_ALLOCATED_BITS \
     (FIRME_GM_FEATURE_GPI_SET_BIT | FIRME_GM_FEATURE_GPI_CONTINUE_BIT | \
      FIRME_GM_FEATURE_L1_CREATE_BIT | FIRME_GM_FEATURE_L1_DESTROY_BIT)
-#define FIRME_GM_GPI_SET_ATTRIBUTES_MASK      UINT64_C(0xF)
+#define FIRME_GM_GPI_SET_ATTRIBUTES_MASK UINT64_C(0xf)
+#define FIRME_GM_FEATURE_REG1_INDEX         1U
+#define FIRME_GM_FEATURE_REG1_PGS_SHIFT     0U
+#define FIRME_GM_FEATURE_REG1_PGS_MASK      0x3U
+#define FIRME_GM_FEATURE_REG1_L0GPTSZ_SHIFT 2U
+#define FIRME_GM_FEATURE_REG1_L0GPTSZ_MASK  0xfU
+#define FIRME_GM_FEATURE_REG1_PPS_SHIFT     6U
+#define FIRME_GM_FEATURE_REG1_PPS_MASK      0x7U
+
+/* GPCCR_EL3.PGS encodings surfaced via GM feature register 1. */
+#define FIRME_GM_PGS_4KB  0U
+#define FIRME_GM_PGS_64KB 1U
+#define FIRME_GM_PGS_16KB 2U
 
 #define FIRME_IDE_FEATURE_REG0_INDEX           0U
 #define FIRME_IDE_FEATURE_KEYSET_PROG_BIT      (UINT64_C(1) << 0)
@@ -192,6 +204,7 @@ void val_firme_service_features(uint64_t service_id, uint64_t feature_reg_index,
                                 firme_res_t *out);
 void val_firme_gm_gpi_set(uint64_t base_address, uint64_t granule_count, uint64_t attributes,
                           firme_res_t *out);
+void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *out);
 void val_firme_mec_refresh(uint64_t mec_params, firme_res_t *out);
 int64_t val_firme_status_to_i64(uint64_t value);
 int val_firme_status_is_architected(int64_t status);

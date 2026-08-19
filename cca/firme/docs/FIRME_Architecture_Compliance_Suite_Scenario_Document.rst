@@ -40,6 +40,21 @@ flow:
   observe written-size and remaining-size semantics for last, intermediate,
   or no-data chunks.
 
+Implemented but not scheduled by default
+----------------------------------------
+
+The following strict ALP3 rule bodies are implemented in source but not
+registered in the default regression until the reference DUT implements
+the corresponding ALP3 ``FIRME_GM_GPI_SET`` semantics:
+
+- R0085: same-GPI transitions are nops that complete with ``SUCCESS``.
+- R0106: multi-granule ``SUCCESS`` reports the number of transitioned granules.
+- R0116: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
+
+The rule algorithms must remain spec-driven. If a DUT claims the matching
+ALP3 behavior, these rules should be scheduled and any failure should be
+treated as a DUT issue.
+
 .. list-table::
   :header-rows: 1
   :widths: 22 20 58
@@ -641,15 +656,59 @@ flow:
 
   * -
 
+      `gpt_granule_size <../test/gpt/gpt_granule_size.c>`_
+
+    -
+
+      R0079: The GPI transition granule size is equal to the PGS advertised by the Granule Management service.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. Read Granule Management feature register 1 using ``FIRME_SERVICE_FEATURES``.
+      3. Decode the PGS field and compare it with the PAL-configured GPT test granule size.
+
+  * -
+
+      Caller-side aligned-input requirement
+
+    -
+
+      R0083: ``FIRME_GM_GPI_SET`` base address is aligned to PGS.
+
+    -
+
+      1. Treat alignment as a caller precondition rather than observable DUT behaviour.
+      2. Supply a PGS-aligned Base address in every valid ``FIRME_GM_GPI_SET`` scenario.
+      3. Cover rejection of an unaligned Base address under R0116.
+      4. Do not register a separate runtime test that misclassifies the R0116 negative case as R0083.
+
+  * -
+
+      `gpt_same_gpi_transition <../test/gpt/gpt_same_gpi_transition.c>`_
+
+    -
+
+      R0085: Same-GPI transitions are always permitted and complete as nops.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. Place the test granule at the target GPI for the caller world.
+      3. Invoke ``FIRME_GM_GPI_SET`` again with Current GPI == Target GPI.
+      4. Expect ``SUCCESS`` and a granule count of 1.
+
+  * -
+
       `gpt_transition_feat_rme <../test/gpt/gpt_transition_feat_rme.c>`_
 
     -
 
-      R0085: FEAT_RME permitted transitions (Table 3.1) via ``FIRME_GM_GPI_SET``.
+      R0087: FEAT_RME permitted transitions (Table 3.1) via ``FIRME_GM_GPI_SET``.
 
     -
 
-      1. Check FEAT_RME presence.
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
       2. From the required caller worlds, attempt the Table 3.1 transitions:
 
          - Secure caller: NS <-> Secure
@@ -658,7 +717,7 @@ flow:
       3. For each transition:
          a) Ensure the test granule is at the **Current GPI**.
          b) Invoke ``FIRME_GM_GPI_SET`` from the specified world.
-         c) Expect SUCCESS and verify enforcement using cross-world access probes.
+         c) Expect ``SUCCESS`` and verify enforcement using cross-world access probes.
 
   * -
 
@@ -666,17 +725,17 @@ flow:
 
     -
 
-      R0086: FEAT_RME_GPC2 additional NS<->NSO transitions (Table 3.2).
+      R0088: FEAT_RME_GPC2 additional NS<->NSO transitions (Table 3.2).
 
     -
 
-      1. Check FEAT_RME_GPC2 presence.
+      1. Check FEAT_RME_GPC2 and ``FIRME_GM_GPI_SET`` advertisement.
       2. From NS-EL2, attempt:
 
          - NS -> NSO
          - NSO -> NS
 
-      3. Expect SUCCESS only when FEAT_RME_GPC2 is present; otherwise expect DENIED/NOT_SUPPORTED.
+      3. Expect ``SUCCESS`` only when FEAT_RME_GPC2 is present; otherwise expect DENIED/NOT_SUPPORTED.
       4. Verify enforcement by probing the transitioned granule from Secure and Realm payloads and confirming
          the expected fault/no-fault behavior.
 
@@ -686,11 +745,11 @@ flow:
 
     -
 
-      R0089: FEAT_RME_GDI NSP/SA transition policy (Table 3.3).
+      R0091: FEAT_RME_GDI NSP/SA transition policy (Table 3.3).
 
     -
 
-      1. Check FEAT_RME_GDI presence.
+      1. Check FEAT_RME_GDI and ``FIRME_GM_GPI_SET`` advertisement.
       2. From NS-EL2, attempt the Table 3.3 permitted transitions:
 
          - NS/NSO -> NSP
@@ -698,9 +757,92 @@ flow:
          - NSP    -> NS/NSO
          - SA     -> NS/NSO
 
-      3. Expect SUCCESS only when FEAT_RME_GDI is present; otherwise expect DENIED/NOT_SUPPORTED.
+      3. Expect ``SUCCESS`` only when FEAT_RME_GDI is present; otherwise expect DENIED/NOT_SUPPORTED.
       4. Verify enforcement using cross-world probes and confirm no transitions beyond the union of Table 3.1–3.3
          are permitted.
+
+  * -
+
+      `gpt_start_granule <../test/gpt/gpt_start_granule.c>`_
+
+    -
+
+      R0104: ``FIRME_GM_GPI_SET`` starts at the granule at the Base address.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. From Secure and Realm worlds, seed two adjacent granules as NS.
+      3. Request a one-granule transition at Base to the caller world's GPI.
+      4. Verify the first granule is accessible from the caller world.
+      5. Verify the adjacent granule remains NS by expecting a GPF from the caller world.
+      6. Report NS coverage as skipped when no NS changing transition is available.
+
+  * -
+
+      `gpt_success_granule_count <../test/gpt/gpt_success_granule_count.c>`_
+
+    -
+
+      R0106: On ``SUCCESS``, the granule count output reports the number of successful transitions.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. From Secure and Realm worlds, seed two adjacent granules at the Current GPI.
+      3. Invoke ``FIRME_GM_GPI_SET`` for a two-granule permitted transition.
+      4. Expect ``SUCCESS`` and output granule count of 2.
+      5. Report NS coverage as skipped when no NS changing transition is available.
+
+  * -
+
+      `gpt_success_count_nonzero <../test/gpt/gpt_success_count_nonzero.c>`_
+
+    -
+
+      R0113: On ``SUCCESS``, the granule count output is greater than or equal to 1.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. From NS, invoke the architecturally permitted NS-to-NS no-op.
+      3. From Secure and Realm, invoke successful one-granule changing transitions.
+      4. For ``INCOMPLETE``, resume with ``FIRME_GM_GPI_OP_CONTINUE`` and follow
+         subsequent stateful or stateless phases until a terminal result.
+      5. Require every observed ``SUCCESS`` to report a non-zero granule count.
+      6. Keep this test body registry-gated until TF-A implements the ALP3 same-GPI
+         success behaviour needed by the NS path.
+
+  * -
+
+      `gpt_invalid_parameters_status <../test/gpt/gpt_invalid_parameters_status.c>`_
+
+    -
+
+      R0116: Invalid ``FIRME_GM_GPI_SET`` parameters return ``INVALID_PARAMETERS``.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. Invoke with Granule count 0 and expect ``INVALID_PARAMETERS``.
+      3. Invoke with an unallocated Target GPI in Attributes and expect ``INVALID_PARAMETERS``.
+      4. Invoke with a Base address not aligned to PGS and expect ``INVALID_PARAMETERS``.
+      5. Keep this strict ALP3 body registry-gated until TF-A returns the required
+         status for all three malformed-input conditions.
+
+  * -
+
+      `gpt_denied_status <../test/gpt/gpt_denied_status.c>`_
+
+    -
+
+      R0120: Non-permitted ``FIRME_GM_GPI_SET`` transitions return ``DENIED``.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. From NS, request NS -> Root.
+      3. Expect ``DENIED``.
 
 Notes
 =====

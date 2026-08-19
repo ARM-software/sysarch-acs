@@ -245,6 +245,20 @@ void val_firme_gm_gpi_set(uint64_t base_address, uint64_t granule_count, uint64_
 }
 
 /**
+ *   @brief    - Resume an incomplete GPI transition operation.
+ *   @param    - cookie : Cookie returned by a previous GPI management ABI call.
+ *   @param    - out    : Returned registers (x0-x3).
+ *   @return   - void (SMC status is returned in out->x0).
+ **/
+void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *out)
+{
+    smccc_res_t res;
+
+    val_smccc_smc_call(FIRME_FID_GM_GPI_OP_CONTINUE, cookie, 0, 0, 0, 0, 0, 0, &res);
+    val_firme_store_result(FIRME_FID_GM_GPI_OP_CONTINUE, &res, out);
+}
+
+/**
  *   @brief    - Invoke FIRME_MEC_REFRESH from the current world.
  *   @param    - mec_params : Encoded MEC params input value.
  *   @param    - out        : Returned registers (x0-x3).

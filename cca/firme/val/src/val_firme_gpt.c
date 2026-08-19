@@ -9,7 +9,12 @@
 
 #include "aarch64/sysreg.h"
 #include "val_common/val_status.h"
+#include "val_firme_service.h"
 #include "val_log.h"
+
+#define VAL_FIRME_GPT_PGS_SIZE_4KB  UINT64_C(0x1000)
+#define VAL_FIRME_GPT_PGS_SIZE_16KB UINT64_C(0x4000)
+#define VAL_FIRME_GPT_PGS_SIZE_64KB UINT64_C(0x10000)
 
 /**
  *   @brief    - Probe a 64-bit load from a given world and return fault details.
@@ -124,6 +129,138 @@ uint32_t val_firme_status_deniedish(uint64_t x0)
 uint32_t val_firme_status_not_supported(uint64_t x0)
 {
     return (uint32_t)(val_firme_as_i64(x0) == (int64_t)FIRME_NOT_SUPPORTED);
+}
+
+/**
+ *   @brief    - Check whether a FIRME return indicates invalid parameters.
+ *   @param    - x0 : FIRME status.
+ *   @return   - 1 if invalid parameters, 0 otherwise.
+**/
+uint32_t val_firme_status_invalid_parameters(uint64_t x0)
+{
+    return (uint32_t)(val_firme_as_i64(x0) == (int64_t)FIRME_INVALID_PARAMETERS);
+}
+
+/**
+ *   @brief    - Check whether FIRME_GM_GPI_SET is advertised by the DUT.
+ *   @param    - out       : Optional rule result updated on skip/failure.
+ *   @param    - fail_step : Step ID to report on service-query failure.
+ *   @return   - VAL_TRUE if advertised, otherwise VAL_FALSE.
+**/
+uint32_t val_firme_gpt_gpi_set_advertised(firme_rule_res_t *out, uint64_t fail_step)
+{
+    firme_res_t features_res = {0};
+    uint64_t feature_reg0 = 0ULL;
+    uint32_t advertised = VAL_FALSE;
+
+    if (val_firme_service_abi_is_advertised(FIRME_SERVICE_ID_GRANULE_MGMT,
+                                            FIRME_GM_FEATURE_REG0_GPI_SET_BIT,
+                                            &advertised, &feature_reg0,
+                                            &features_res) != VAL_SUCCESS) {
+        LOG_ERROR(NULL, "gpt: failed to query GM_GPI_SET advertisement x0=%llx x1=%llx",
+                  (unsigned long long)features_res.x0,
+                  (unsigned long long)features_res.x1);
+        if (out) {
+            out->status = (uint64_t)ACS_STATUS_FAIL;
+            out->fail_step = fail_step;
+            out->last_x0 = features_res.x0;
+            out->last_x1 = features_res.x1;
+        }
+        return VAL_FALSE;
+    }
+
+    if (advertised == VAL_FALSE) {
+        if (val_firme_status_to_i64(features_res.x0) ==
+            (int64_t)FIRME_NOT_SUPPORTED) {
+            if (out) {
+                out->status = (uint64_t)ACS_STATUS_SKIP;
+                out->fail_step = 0;
+                out->last_x0 = features_res.x0;
+                out->last_x1 = 0;
+            }
+            return VAL_FALSE;
+        }
+
+        LOG_ERROR(NULL, "gpt: GM service omits mandatory GPI_SET bit reg0=%llx",
+                  (unsigned long long)feature_reg0);
+        if (out) {
+            out->status = (uint64_t)ACS_STATUS_FAIL;
+            out->fail_step = fail_step;
+            out->last_x0 = features_res.x0;
+            out->last_x1 = feature_reg0;
+        }
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ *   @brief    - Read Granule Management feature register 1.
+ *   @param    - feature_reg1 : Returned feature register value.
+ *   @param    - out          : Optional rule result updated on skip/failure.
+ *   @param    - fail_step    : Step ID to report on service-query failure.
+ *   @return   - VAL_TRUE if feature register 1 is available, otherwise VAL_FALSE.
+**/
+uint32_t val_firme_gpt_feature_reg1(uint64_t *feature_reg1, firme_rule_res_t *out,
+                                    uint64_t fail_step)
+{
+    firme_res_t res = {0};
+
+    if (feature_reg1)
+        *feature_reg1 = 0ULL;
+
+    val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
+                               FIRME_GM_FEATURE_REG1_INDEX, &res);
+
+    if (val_firme_status_not_supported(res.x0)) {
+        if (out) {
+            out->status = (uint64_t)ACS_STATUS_SKIP;
+            out->fail_step = 0;
+            out->last_x0 = res.x0;
+            out->last_x1 = res.x1;
+        }
+        return VAL_FALSE;
+    }
+
+    if (val_firme_as_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
+        LOG_ERROR(NULL, "gpt: failed to read GM feature register 1 x0=%llx x1=%llx",
+                  (unsigned long long)res.x0, (unsigned long long)res.x1);
+        if (out) {
+            out->status = (uint64_t)ACS_STATUS_FAIL;
+            out->fail_step = fail_step;
+            out->last_x0 = res.x0;
+            out->last_x1 = res.x1;
+        }
+        return VAL_FALSE;
+    }
+
+    if (feature_reg1)
+        *feature_reg1 = res.x1;
+
+    return VAL_TRUE;
+}
+
+/**
+ *   @brief    - Decode the PGS field in Granule Management feature register 1.
+ *   @param    - feature_reg1 : Raw feature register 1 value.
+ *   @return   - Granule size in bytes, or 0 for an unknown encoding.
+**/
+uint64_t val_firme_gpt_pgs_size_from_feature_reg1(uint64_t feature_reg1)
+{
+    uint64_t pgs = (feature_reg1 >> FIRME_GM_FEATURE_REG1_PGS_SHIFT) &
+                   FIRME_GM_FEATURE_REG1_PGS_MASK;
+
+    if (pgs == FIRME_GM_PGS_4KB)
+        return VAL_FIRME_GPT_PGS_SIZE_4KB;
+
+    if (pgs == FIRME_GM_PGS_16KB)
+        return VAL_FIRME_GPT_PGS_SIZE_16KB;
+
+    if (pgs == FIRME_GM_PGS_64KB)
+        return VAL_FIRME_GPT_PGS_SIZE_64KB;
+
+    return 0ULL;
 }
 
 /**

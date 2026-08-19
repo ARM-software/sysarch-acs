@@ -21,5 +21,5 @@ uint32_t val_firme_feat_rme_gdi_present(void);
 /* FIRME_GM_GPI_SET helpers used by GPT rule tests. */
 void val_firme_gm_gpi_set_do(uint64_t base_pa, uint64_t granule_count, uint64_t target_gpi,
                              firme_res_t *out);
-void val_firme_gm_gpi_set_do_retry(uint64_t base_pa, uint64_t granule_count, uint64_t target_gpi,
-                                   firme_res_t *out);
+int val_firme_gm_gpi_set_complete(uint64_t base_pa, uint64_t granule_count,
+                                    uint64_t target_gpi, firme_res_t *out);

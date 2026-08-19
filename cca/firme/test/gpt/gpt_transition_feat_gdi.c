@@ -56,6 +56,9 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
         return 0;
     }
 
+    if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
+        return 0;
+
     gdi = val_firme_feat_rme_gdi_present();
     gpc2 = val_firme_feat_rme_gpc2_present();
 
@@ -88,7 +91,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     if (gdi == 0U) {
         /* Step 3: without GDI, NSP/SA transitions are expected to be denied/unsupported. */
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSP, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
             LOG_ERROR(NULL, "%s: NS->NSP expected DENIED/NSUP x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -101,7 +104,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
             goto cleanup;
         }
 
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SA, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
         if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
             LOG_ERROR(NULL, "%s: NS->SA expected DENIED/NSUP x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -121,7 +124,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     /* Step 4: GDI present: NS -> NSP -> NS. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSP, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, "%s: NS->NSP failed x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -147,7 +150,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
         goto cleanup;
     }
 
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, "%s: NSP->NS failed x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -174,7 +177,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     /* Step 5: GDI present: NS -> SA -> NS. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SA, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, "%s: NS->SA failed x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -200,7 +203,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
         goto cleanup;
     }
 
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
         LOG_ERROR(NULL, "%s: SA->NS failed x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -232,7 +235,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
          *
          * These checks are only performed when NS->NSO succeeds.
          */
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSO, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
         if (val_firme_status_success(res.x0, res.x1, expected_done)) {
             if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
                                                GPT_TRANS_FEAT_GDI_MATRIX_NSO_STEP_BASE)) {
@@ -247,7 +250,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
                 goto cleanup;
             }
 
-            val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSP, &res);
+            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
             if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
                 LOG_ERROR(NULL, "%s: NSO->NSP failed x0=%llx x1=%llx",
                           GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -273,7 +276,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
                 goto cleanup;
             }
 
-            val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSO, &res);
+            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
             if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
                 LOG_ERROR(NULL, "%s: NSP->NSO failed x0=%llx x1=%llx",
                           GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -299,7 +302,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
                 goto cleanup;
             }
 
-            val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_SA, &res);
+            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
             if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
                 LOG_ERROR(NULL, "%s: NSO->SA failed x0=%llx x1=%llx",
                           GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -325,7 +328,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
                 goto cleanup;
             }
 
-            val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSO, &res);
+            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
             if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
                 LOG_ERROR(NULL, "%s: SA->NSO failed x0=%llx x1=%llx",
                           GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -359,7 +362,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
 cleanup:
     /* Best-effort cleanup: restore to NS and clear test data. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     val_probe_write64(base_pa, clear_value, &fault_info);
     return 0;
 }

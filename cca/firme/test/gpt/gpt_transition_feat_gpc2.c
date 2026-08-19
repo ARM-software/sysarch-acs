@@ -46,6 +46,9 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         return 0;
     }
 
+    if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
+        return 0;
+
     gpc2 = val_firme_feat_rme_gpc2_present();
 
     /* Step 1: seed the test granule from NS. */
@@ -75,7 +78,7 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
     }
 
     /* Step 3: request NS->NSO (FEAT_RME_GPC2) and validate enforcement. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NSO, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
     if (gpc2) {
         if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
             LOG_ERROR(NULL, "%s: NS->NSO failed x0=%llx x1=%llx",
@@ -102,7 +105,7 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         }
 
         /* Step 4: restore NS and validate enforcement. */
-        val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
         if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
             LOG_ERROR(NULL, "%s: NSO->NS failed x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GPC2_TEST_NAME,
@@ -147,7 +150,7 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
 
 cleanup:
     /* Best-effort cleanup: restore to NS and clear test data. */
-    val_firme_gm_gpi_set_do_retry(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     val_probe_write64(base_pa, clear_value, &fault_info);
     return 0;
 }

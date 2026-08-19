@@ -69,7 +69,7 @@ static const char *status_str(uint64_t s)
  *   @brief    - Print a consistent test banner (begin).
  *   @param    - suite : Suite name.
  *   @param    - test  : Test name.
- *   @param    - rule  : Rule identifier (e.g. "R0085").
+ *   @param    - rule  : Rule identifier (e.g. "R0087").
  *   @param    - desc  : Optional description line.
  *   @return   - void
 **/
@@ -427,10 +427,10 @@ void dispatcher_main(void)
 
         if (PLAT_FIRME_GPT_BASE_SECURE != 0ULL) {
             val_firme_world_call(FIRME_ACS_WORLD_SECURE, FIRME_ACS_CMD_RUN_RULE_SEL1,
-                                 (uint64_t)FIRME_RULE_R0085, PLAT_FIRME_GPT_BASE_SECURE,
+                                 (uint64_t)FIRME_RULE_R0087, PLAT_FIRME_GPT_BASE_SECURE,
                                  0, 0, sec);
             LOG_DEBUG(NULL,
-                      "secure(sel1) R0085 status=%llx fail_step=%llx last_x0=%llx last_x1=%llx",
+                      "secure(sel1) R0087 status=%llx fail_step=%llx last_x0=%llx last_x1=%llx",
                       (unsigned long long)sec->x0, (unsigned long long)sec->x1,
                       (unsigned long long)sec->x2, (unsigned long long)sec->x3);
         }

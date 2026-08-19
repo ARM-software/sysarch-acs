@@ -130,11 +130,26 @@ extern int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 #endif
 
 #if FIRME_ENABLE_GPT
+extern int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_same_gpi_transition_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_same_gpi_transition_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_same_gpi_transition_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_start_granule_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_start_granule_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_granule_count_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_granule_count_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_granule_count_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_count_nonzero_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_count_nonzero_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_success_count_nonzero_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 #endif
 
 /* Global, self-describing registry (ordered by chapter). */
@@ -517,8 +532,38 @@ const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_GPT
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0085,
-        .rule_str = "R0085",
+        .rule_id = FIRME_RULE_R0079,
+        .rule_str = "R0079",
+        .suite = "firme",
+        .test_name = "gpt_granule_size",
+        .desc = "GPI transition granule size matches advertised PGS",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Validate GM feature register 1 PGS against PAL granule size",
+        .run_ns = firme_gpt_granule_size_run_ns,
+        .run_secure = 0,
+        .run_realm = 0,
+    },
+    /*
+     * R0083 is a caller precondition, so valid calls below always use an aligned
+     * Base address; the unaligned negative condition is covered by R0116.
+     *
+     * Strict ALP3 rule bodies below are implemented in test/gpt/ but are not
+     * scheduled until the reference DUT implements their ALP3 semantics:
+     *
+     * - R0085: same-GPI transitions are nops that complete with SUCCESS.
+     * - R0106: multi-granule SUCCESS reports the transitioned granule count.
+     * - R0113: all successful GPI management calls report non-zero progress;
+     *   the body covers NS, Secure, Realm, and OP_CONTINUE handling.
+     * - R0116: malformed inputs complete with INVALID_PARAMETERS.
+     *
+     * Do not relax these test bodies to match older DUT behavior. Enable each
+     * registry entry when the DUT claims the applicable ALP3 semantics.
+     */
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0087,
+        .rule_str = "R0087",
         .suite = "firme",
         .test_name = "gpt_transition_feat_rme",
         .desc = "FEAT_RME permitted GM_GPI_SET transitions",
@@ -533,8 +578,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0086,
-        .rule_str = "R0086",
+        .rule_id = FIRME_RULE_R0088,
+        .rule_str = "R0088",
         .suite = "firme",
         .test_name = "gpt_transition_feat_gpc2",
         .desc = "FEAT_RME_GPC2 additional NS<->NSO transitions",
@@ -547,8 +592,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0089,
-        .rule_str = "R0089",
+        .rule_id = FIRME_RULE_R0091,
+        .rule_str = "R0091",
         .suite = "firme",
         .test_name = "gpt_transition_feat_gdi",
         .desc = "FEAT_RME_GDI additional NSP/SA transitions",
@@ -556,6 +601,36 @@ const firme_test_case_t g_firme_test_cases[] = {
         .optional_worlds_mask = 0u,
         .check_ns = "Testing FIRME ABI: GM_GPI_SET from NS world (NSP/SA)",
         .run_ns = firme_gpt_transition_feat_gdi_run_ns,
+        .run_secure = 0,
+        .run_realm = 0,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0104,
+        .rule_str = "R0104",
+        .suite = "firme",
+        .test_name = "gpt_start_granule",
+        .desc = "GM_GPI_SET start granule is the granule at Base address",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
+        .check_secure = "Secure GM_GPI_SET starts at Base granule",
+        .check_realm = "Realm GM_GPI_SET starts at Base granule",
+        .check_ns = "NS changing transition unavailable on this platform",
+        .run_ns = firme_gpt_start_granule_run_ns,
+        .run_secure = firme_gpt_start_granule_run_secure,
+        .run_realm = firme_gpt_start_granule_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0120,
+        .rule_str = "R0120",
+        .suite = "firme",
+        .test_name = "gpt_denied_status",
+        .desc = "GM_GPI_SET denied transition returns DENIED",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Invoke non-permitted NS->Root transition and expect DENIED",
+        .run_ns = firme_gpt_denied_status_run_ns,
         .run_secure = 0,
         .run_realm = 0,
     },
