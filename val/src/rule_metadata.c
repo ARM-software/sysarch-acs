@@ -569,6 +569,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE + 62,
         },
+        [S_L8PE_08] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check for FEAT_LSE support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
         [WNPXD] = {
             .test_entry_id    = PE065_ENTRY,
             .module_id        = PE,
@@ -3069,9 +3076,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L6PE_07] = {
             .module_id        = PE,
         },
-        [S_L8PE_08] = {
-            .module_id        = PE,
-        },
         [B_PER_04] = {
             .module_id        = PERIPHERAL,
         },
@@ -4739,6 +4743,9 @@ const RULE_ID_e s_l8shd_1_rule_list[]   = {
                                     RULE_ID_SENTINEL
 };
 
+/* S_L8PE_08 */
+const RULE_ID_e s_l8pe_08_rule_list[] = {B_PE_25, RULE_ID_SENTINEL};
+
 /* S_L8CXL_1 */
 const RULE_ID_e s_l8cxl_rule_list[] = {
     /* SBSA CXL Rules */
@@ -4854,6 +4861,7 @@ const alias_rule_map_t alias_rule_map[] = {
     {S_PCIe_10, s_pcie_10_rule_list},
     {S_L7PMU,   s_l7pmu_rule_list},
     {S_L8SHD_1, s_l8shd_1_rule_list},
+    {S_L8PE_08, s_l8pe_08_rule_list},
     {SYS_RAS,   sys_ras_rule_list},
     {LVQBC,     lvqbc_rule_list},
     {S_L8CXL_1, s_l8cxl_rule_list},

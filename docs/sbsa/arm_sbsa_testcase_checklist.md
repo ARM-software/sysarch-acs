@@ -3221,11 +3221,12 @@ The checklist provides information about:
     <tr>
       <td>Version 8.0</td>
       <td>S_L8PE_08</td>
-      <td>S_L8PE_08</td>
-      <td>Not covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>B_PE_25</td>
+      <td>15</td>
+      <td>Check for FEAT_LSE support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
       <td></td>
     </tr>
