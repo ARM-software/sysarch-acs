@@ -20,11 +20,7 @@
 
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  4)
-#ifdef PC_BSA
-#define TEST_RULE  "P_L1PE_01"
-#else
 #define TEST_RULE  "B_PE_04"
-#endif
 #define TEST_DESC  "Check PE 4KB Granule Support          "
 
 static

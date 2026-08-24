@@ -183,15 +183,6 @@ appendix_i_6_entry(uint32_t num_pe)
     return run_test_entries(tst_entry_list, num_pe);
 }
 
-/* P_L1PE_01 */
-uint32_t
-p_l1pe_01_entry(uint32_t num_pe)
-{
-    TEST_ENTRY_ID_e tst_entry_list[] = {PE004_ENTRY, PE018_ENTRY, TEST_ENTRY_SENTINEL};
-
-    return run_test_entries(tst_entry_list, num_pe);
-}
-
 /* IE_REG_1 */
 uint32_t
 ie_reg_1_entry(uint32_t num_pe)

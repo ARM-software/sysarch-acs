@@ -476,7 +476,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
 
     /* PC-BSA identifiers */
     [P_L1_01]     = "P_L1_01",
-    [P_L1PE_01]   = "P_L1PE_01",
     [P_L1PE_02]   = "P_L1PE_02",
     [P_L1PE_03]   = "P_L1PE_03",
     [P_L1PE_04]   = "P_L1PE_04",

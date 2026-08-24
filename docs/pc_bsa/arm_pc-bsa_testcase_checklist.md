@@ -36,26 +36,6 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
-      <td>4</td>
-      <td>Check PE 4KB Granule Support</td>
-      <td>1</td>
-      <td>P_L1PE_01</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td>18</td>
-      <td>Check PE Stage 2 4KB Granule Support</td>
-      <td>1</td>
-      <td>P_L1PE_01</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-    </tr>
-    <tr>
       <td>24</td>
       <td>Check for 16-bit ASID support</td>
       <td>1</td>
