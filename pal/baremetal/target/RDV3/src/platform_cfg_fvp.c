@@ -51,12 +51,12 @@ const uint32_t g_module_array_len = sizeof(g_module_array) / sizeof(g_module_arr
    Partner fill-in guide :
    - platform_rule_list_arr: Explicit list of rule IDs (RULE_ID_e) to execute. Leave empty for
        the default rule checklist.
-       Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
+       Example entries : B_PE_01, S_L3PE_02, P_L1PE_02, B_GIC_03, ...
        Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
    - platform_skip_rule_list_arr: Rules (RULE_ID_e) to skip.
        These take precedence over selections via platform_rule_list_arr or module filters.
-       Example entries: B_PE_01, S_L3PE_02, P_L1PE_01, B_GIC_03, ...
+       Example entries : B_PE_01, S_L3PE_02, P_L1PE_02, B_GIC_03, ...
        Refer sysarch-acs/val/include/rule_based_execution_enum.h for valid enums.
 
    - platform_execute_modules_arr: Modules to include (values from MODULE_NAME_e: PE, GIC, SMMU,

@@ -102,13 +102,13 @@ below to claim complete coverage.
 
 **Example**
 
-`Shell> PC_bsa.efi -v 1 -skip P_L1PE_01,P_L1GI_01 -f pcbsa_uefi.log`
+`Shell> PC_bsa.efi -v 1 -skip P_L1PE_02,P_L1GI_01 -f pcbsa_uefi.log`
 
-Runs PCBSA ACS with verbosity INFO, skips rules `P_L1PE_01`/`P_L1GI_01`and stores the UART output in `pcbsa_uefi.log`.
+Runs PCBSA ACS with verbosity INFO, skips rules `P_L1PE_02`/`P_L1GI_01`and stores the UART output in `pcbsa_uefi.log`.
 
 > Use PC BSA rule IDs that follow the `P_L<level><module>_<nn>` pattern defined in
   [PC BSA checklist](arm_pc-bsa_testcase_checklist.md)
-  (for example, `P_L1PE_01`, `P_L1GI_01`) when filtering, and record any resulting
+  (for example, `P_L1PE_02`, `P_L1GI_01`) when filtering, and record any resulting
   coverage gap.
 
 #### Emulation environment with secondary storage

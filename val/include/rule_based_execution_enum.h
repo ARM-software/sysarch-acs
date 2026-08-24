@@ -100,7 +100,6 @@ typedef enum {
     S_L8SHD_1,
 
     /* PE PCBSA rules */
-    P_L1PE_01,
     P_L1PE_02,
     P_L1PE_03,
     P_L1PE_04,
@@ -785,7 +784,6 @@ typedef enum {
     U006_ENTRY,
     B_WAK_03_07_ENTRY,
     V_L1WK_02_05_ENTRY,
-    P_L1PE_01_ENTRY,
     P021_ENTRY,
     P093_ENTRY,
     P089_ENTRY,

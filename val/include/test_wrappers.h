@@ -28,7 +28,6 @@ uint32_t b_ppi_02_entry(uint32_t num_pe);
 uint32_t b_wak_03_07_entry(uint32_t num_pe);
 uint32_t s_l7mp_03_entry(uint32_t num_pe);
 uint32_t appendix_i_6_entry(uint32_t num_pe);
-uint32_t p_l1pe_01_entry(uint32_t num_pe);
 uint32_t ie_reg_1_entry(uint32_t num_pe);
 uint32_t pci_ic_11_entry(uint32_t num_pe);
 uint32_t pci_in_04_entry(uint32_t num_pe);

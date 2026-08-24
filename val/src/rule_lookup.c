@@ -25,7 +25,6 @@ const pcbsa_rule_entry_t pcbsa_rule_list[] = {
     { P_L1_01,     PCBSA_LEVEL_1 },
 
     /* PE */
-    { P_L1PE_01,   PCBSA_LEVEL_1 },
     { P_L1PE_02,   PCBSA_LEVEL_1 },
     { P_L1PE_03,   PCBSA_LEVEL_1 },
     { P_L1PE_04,   PCBSA_LEVEL_1 },
