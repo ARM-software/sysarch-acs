@@ -56,6 +56,8 @@ The tests can also be executed in a Bare-metal environment. The initialization o
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 |   SBSA Spec Version   |   ACS Coverage Mapping   |   SBSA ACS Version   |        SBSA Tag ID         |   BSA ACS Version   |          BSA Tag ID         |    Pre-Si Support    |
 |-----------------------|:------------------------:|:--------------------:|:--------------------------:|:-------------------:|:---------------------------:|:--------------------:|
+|       SBSA v8.0       |    BSA ACS + SBSA ACS    |      v8.0.3          |   v26.08_SBSA_8.0.3        |        v1.2.1       |       v26.03_BSA_1.2.1      |       Yes            |
+|       SBSA v8.0       |    BSA ACS + SBSA ACS    |      v8.0.2          |   v26.06_SBSA_8.0.2        |        v1.2.1       |       v26.03_BSA_1.2.1      |       Yes            |
 |       SBSA v8.0       |    BSA ACS + SBSA ACS    |      v8.0.1          |   v26.03_SBSA_8.0.1        |        v1.2.1       |       v26.03_BSA_1.2.1      |       Yes            |
 |       SBSA v8.0       |    BSA ACS + SBSA ACS    |      v8.0.0          |   v25.12_SBSA_8.0.0        |        v1.2.0       |       v25.12_BSA_1.2.0      |       Yes            |
 |       SBSA v7.2       |    BSA ACS + SBSA ACS    |      v7.2.2          |   v25.03_REL7.2.2          |        v1.1.0       |       v25.03_REL1.1.0       |       Yes            |
