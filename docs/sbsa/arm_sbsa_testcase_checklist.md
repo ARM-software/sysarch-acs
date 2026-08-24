@@ -1,6 +1,6 @@
 ## SBSA ACS Testcase checklist
 
-The SBSA ACS test checklist is based on **SBSA 8.0 specification** and **SBSA ACS 8.0.1** tag.
+The SBSA ACS test checklist is based on **SBSA 8.0 specification** and **SBSA ACS 8.0.3** tag.
 
 The checklist provides information about:
 
@@ -3676,12 +3676,15 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+### v26.08_SBSA_8.0.3
 - Updated S_L3_01 platform coverage.
 - Synced covered checklist descriptions and S_L7ENT_1 platform coverage with rule_metadata.c.
+- Updated ITS_08, ITS_DEV_5
+
+### v26.06_SBSA_8.0.2
 - Updated PCI_MM_02 coverage with test 907.
 - Updated S_L5SM_04, S_L6PE_08, S_L6SM_04
 - Added rule S_L5PE_03
-- Updated ITS_08, ITS_DEV_5
 
 ### v26.03_SBSA_8.0.1
 - **FR Added:** LVQBC, KBRZG
