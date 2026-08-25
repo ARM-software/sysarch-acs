@@ -145,6 +145,7 @@ payload()
             val_gic_set_intr_trigger(int_id, INTR_TRIGGER_INFO_LEVEL_HIGH);
 
         g_wd_int_received = 0;
+        g_failsafe_int_received = 0;
         status = val_wd_set_ws0(wd_num, timer_expire_ticks);
         if (status) {
             val_print(ERROR, "\n       Setting watchdog timeout failed");
