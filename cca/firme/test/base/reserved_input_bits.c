@@ -6,6 +6,7 @@
  */
 
 #include "val_firme_abi.h"
+#include "val_firme_ide.h"
 #include "val_firme_rules.h"
 #include "val_common/val_smccc.h"
 #include "val_log.h"
@@ -16,10 +17,19 @@
 #define RESERVED_INPUT_BITS_STEP_SERVICE_FEATURES UINT64_C(2)
 #define RESERVED_INPUT_BITS_STEP_GM_GPI_SET       UINT64_C(3)
 #define RESERVED_INPUT_BITS_STEP_MEC_REFRESH      UINT64_C(4)
+#define RESERVED_INPUT_BITS_STEP_IDE_PROG         UINT64_C(5)
+#define RESERVED_INPUT_BITS_STEP_IDE_GO           UINT64_C(6)
+#define RESERVED_INPUT_BITS_STEP_IDE_STOP         UINT64_C(7)
+#define RESERVED_INPUT_BITS_STEP_IDE_POLL         UINT64_C(8)
 #define RESERVED_INPUT_BITS_X0_INDEX 0U
 #define RESERVED_INPUT_BITS_X1_INDEX 1U
 #define RESERVED_INPUT_BITS_X2_INDEX 2U
 #define RESERVED_INPUT_BITS_X3_INDEX 3U
+#define RESERVED_INPUT_BITS_X4_INDEX 4U
+#define RESERVED_INPUT_BITS_X5_INDEX 5U
+#define RESERVED_INPUT_BITS_X6_INDEX 6U
+#define RESERVED_INPUT_BITS_X7_INDEX 7U
+#define RESERVED_INPUT_BITS_X8_INDEX 8U
 
 /**
  *   @brief    - Initialize a reserved input bit result record.
@@ -147,6 +157,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
 {
     smccc_input_registers_t expected = {0};
     firme_res_t result = {0};
+    val_firme_ide_prog_args_t prog_args = {0};
 
     reserved_input_bits_init_result(out);
 
@@ -211,6 +222,103 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     val_firme_mec_refresh(RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_MEC_REFRESH,
+            out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+
+    /* Step 5: IDE_KEYSET_PROG must retain only allocated flag and ID bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
+        FIRME_FID_IDE_KEYSET_PROG;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
+        VAL_FIRME_IDE_INPUT_FLAGS_MASK;
+    expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
+        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+    expected.registers[RESERVED_INPUT_BITS_X4_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X5_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X6_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X7_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X8_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.ecam_address = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.flags = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.keyset_id = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.keyqw0 = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.keyqw1 = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.keyqw2 = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.keyqw3 = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    prog_args.handle = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_IDE_PROG, out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+    val_firme_ide_keyset_prog(&prog_args, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_IDE_PROG,
+            out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+
+    /* Step 6: IDE_KEYSET_GO must retain only allocated flag and ID bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
+        FIRME_FID_IDE_KEYSET_GO;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
+        VAL_FIRME_IDE_INPUT_FLAGS_MASK;
+    expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
+        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+    expected.registers[RESERVED_INPUT_BITS_X4_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_IDE_GO, out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+    val_firme_ide_keyset_go(
+        RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
+        RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
+        &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_IDE_GO,
+            out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+
+    /* Step 7: IDE_KEYSET_STOP must retain only allocated flag and ID bits. */
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
+        FIRME_FID_IDE_KEYSET_STOP;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_IDE_STOP, out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+    val_firme_ide_keyset_stop(
+        RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
+        RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
+        &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_IDE_STOP,
+            out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+
+    /* Step 8: IDE_KEYSET_POLL must retain only its one-bit flag and ID. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
+        FIRME_FID_IDE_KEYSET_POLL;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
+        RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
+        VAL_FIRME_IDE_POLL_FLAGS_MASK;
+    expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
+        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_IDE_POLL, out) != VAL_SUCCESS)
+        return reserved_input_bits_result(out);
+    val_firme_ide_keyset_poll(
+        RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
+        RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_IDE_POLL,
             out) != VAL_SUCCESS)
         return reserved_input_bits_result(out);
 

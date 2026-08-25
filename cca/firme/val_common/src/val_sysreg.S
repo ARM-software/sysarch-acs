@@ -126,6 +126,53 @@ write_sctlr_el1:
     isb
     ret
 
+/** @brief Read the implemented physical-address range. */
+    .global val_read_id_aa64mmfr0_el1
+val_read_id_aa64mmfr0_el1:
+    mrs x0, ID_AA64MMFR0_EL1
+    ret
+
+/** @brief Save EL2 translation controls for a temporary device mapping. */
+    .global val_read_tcr_el2
+val_read_tcr_el2:
+    mrs x0, TCR_EL2
+    ret
+
+/** @brief Invalidate EL2 stage-1 translations after publishing descriptors. */
+    .global val_tlbi_all_el2
+val_tlbi_all_el2:
+    dsb sy
+    tlbi alle2is
+    dsb sy
+    isb
+    ret
+
+/** @brief Yield without waiting indefinitely for an event during an ABI retry. */
+    .global val_mp_relax
+val_mp_relax:
+    yield
+    ret
+
+/** @brief Clean a bounded range to PoC using the current PE's cache-line size. */
+    .global val_cache_clean_poc
+val_cache_clean_poc:
+    cbz x1, 2f
+    add x1, x0, x1
+    mrs x2, ctr_el0
+    ubfx x2, x2, #16, #4
+    mov x3, #4
+    lsl x2, x3, x2
+    sub x3, x2, #1
+    bic x0, x0, x3
+1:
+    dc cvac, x0
+    add x0, x0, x2
+    cmp x0, x1
+    b.lo 1b
+2:
+    dsb sy
+    ret
+
     .global write_tcr_el2
 write_tcr_el2:
     msr TCR_EL2, x0

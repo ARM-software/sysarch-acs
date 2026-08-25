@@ -19,10 +19,34 @@ FIRME_SUPPORT="${FIRME_SUPPORT:-1}"
 SPMD_SPM_AT_SEL2="${SPMD_SPM_AT_SEL2:-1}" # 1: SPMC at S-EL2, 0: SPMC at S-EL1
 CTX_INCLUDE_EL2_REGS="${CTX_INCLUDE_EL2_REGS:-}" # TF-A internal knob; set only when needed
 TFA_E="${TFA_E:-}" # TF-A warnings-as-errors (E=1 enables -Werror)
+FVP_ENABLE_IDE="${FVP_ENABLE_IDE:-0}"
+FVP_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX:-0}"
+FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT:-0}"
+FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
+
+case "${FVP_FIRME_CXL_IDE}" in
+    0|1) ;;
+    *)
+        echo "ERROR: FVP_FIRME_CXL_IDE must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
+    if [[ "${FVP_ENABLE_IDE}" != "1" || "${PLAT}" != "fvp" ]]; then
+        echo "ERROR: the experimental CXL backend requires FVP_ENABLE_IDE=1 and PLAT=fvp." >&2
+        exit 1
+    fi
+    if ! grep -q 'FVP_FIRME_CXL_IDE' "${TFA_DIR}/plat/arm/board/fvp/platform.mk"; then
+        echo "ERROR: this TF-A checkout does not provide the experimental CXL backend." >&2
+        exit 1
+    fi
+fi
 
 echo "Building FIRME payloads..."
 FIRME_BUILD_DIR="${FIRME_BUILD_DIR:-${ACS_DIR}/build-cmake}"
 FIRME_ARTIFACT_DIR="${FIRME_ARTIFACT_DIR:-${ACS_DIR}/build}"
+FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE:-0}"
+FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
 ACS_PRINT_LEVEL="${ACS_PRINT_LEVEL:-3}"
 FIRME_TOOLCHAIN="${FIRME_TOOLCHAIN:-gcc}" # gcc|clang
 SUITE="${SUITE:-all}"
@@ -143,6 +167,11 @@ esac
 cmake -S "${ACS_DIR}" -B "${FIRME_BUILD_DIR}" \
     -DCMAKE_TOOLCHAIN_FILE="${FIRME_TOOLCHAIN_FILE}" \
     -DFIRME_ARTIFACT_DIR="${FIRME_ARTIFACT_DIR}" \
+    -DFIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE}" \
+    -DFIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM}" \
+    -DFIRME_LIBSPDM_DIR="${FIRME_LIBSPDM_DIR:-${ACS_DIR}/ext/libspdm}" \
+    -DFIRME_SPDM_EMU_DIR="${FIRME_SPDM_EMU_DIR:-${ACS_DIR}/ext/spdm-emu}" \
+    -DFIRME_SPDM_ROOT_CERT="${FIRME_SPDM_ROOT_CERT:-}" \
     -DACS_PRINT_LEVEL="${ACS_PRINT_LEVEL}" \
     ${SUITE:+-DSUITE=${SUITE}}
 cmake --build "${FIRME_BUILD_DIR}"
@@ -172,6 +201,10 @@ echo "  ENABLE_SVE_FOR_NS : ${TFA_ENABLE_SVE_FOR_NS}"
 echo "  ENABLE_SVE_FOR_SWD: ${TFA_ENABLE_SVE_FOR_SWD}"
 echo "  ENABLE_SME_FOR_NS : ${TFA_ENABLE_SME_FOR_NS}"
 echo "  ENABLE_SME_FOR_SWD: ${TFA_ENABLE_SME_FOR_SWD}"
+echo "  FIRME IDE KM      : ${FVP_ENABLE_IDE}"
+echo "  IDE pending ops   : ${FVP_IDE_KM_PENDING_OPS_MAX}"
+echo "  IDE KM simulation : ${FVP_SIMULATE_IDE_KM_UNIT}"
+echo "  CXL model backend : ${FVP_FIRME_CXL_IDE} (experimental)"
 
 if [[ "${SPMD_SPM_AT_SEL2}" == "0" ]]; then
     cat <<'EOF'
@@ -245,40 +278,52 @@ PY
 }
 
 tfa_git_rev() {
-    if command -v git >/dev/null 2>&1 && [[ -d "${TFA_DIR}/.git" ]]; then
+    if command -v git >/dev/null 2>&1 && [[ -e "${TFA_DIR}/.git" ]]; then
         git -C "${TFA_DIR}" rev-parse HEAD 2>/dev/null || true
     fi
 }
 
 tfa_git_status_sha256() {
-    if command -v git >/dev/null 2>&1 && [[ -d "${TFA_DIR}/.git" ]]; then
+    if command -v git >/dev/null 2>&1 && [[ -e "${TFA_DIR}/.git" ]]; then
         python3 - "${TFA_DIR}" <<'PY'
 import hashlib
+import os
 import subprocess
 import sys
 
 tfa_dir = sys.argv[1]
-try:
-    out = subprocess.check_output(
-        ["git", "-C", tfa_dir, "status", "--porcelain=v1"],
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
-except Exception:
-    out = ""
-h = hashlib.sha256(out.encode("utf-8", errors="replace")).hexdigest()
-print(h)
+digest = hashlib.sha256(subprocess.check_output(
+    ["git", "-C", tfa_dir, "diff", "--binary", "HEAD", "--"],
+    stderr=subprocess.DEVNULL,
+))
+untracked = subprocess.check_output(
+    ["git", "-C", tfa_dir, "ls-files", "--others", "--exclude-standard", "-z"],
+    stderr=subprocess.DEVNULL,
+)
+for name in sorted(filter(None, untracked.split(b"\0"))):
+    digest.update(name + b"\0")
+    path = os.path.join(os.fsencode(tfa_dir), name)
+    if os.path.islink(path):
+        digest.update(os.readlink(path))
+    else:
+        with open(path, "rb") as source:
+            for chunk in iter(lambda: source.read(65536), b""):
+                digest.update(chunk)
+    digest.update(b"\0")
+print(digest.hexdigest())
 PY
     fi
 }
 
 expected_stamp() {
     local rev
+    local source_hash
     rev="$(tfa_git_rev)"
+    source_hash="$(tfa_git_status_sha256)" || return 1
     cat <<EOF
 TFA_DIR=${TFA_DIR}
 TFA_GIT_REV=${rev}
-TFA_GIT_STATUS_SHA256=$(tfa_git_status_sha256)
+TFA_GIT_STATUS_SHA256=${source_hash}
 PLAT=${PLAT}
 BUILD_TYPE=${BUILD_TYPE}
 LOG_LEVEL=${TFA_LOG_LEVEL}
@@ -293,6 +338,10 @@ ENABLE_SME_FOR_SWD=${TFA_ENABLE_SME_FOR_SWD}
 E=${TFA_E}
 BL2_ENABLE_SP_LOAD=${BL2_ENABLE_SP_LOAD}
 FIRME_SUPPORT=${FIRME_SUPPORT}
+FIRME_SUPPORT_IDE_KM=${FVP_ENABLE_IDE}
+PLAT_IDE_KM_PENDING_OPS_MAX=${FVP_IDE_KM_PENDING_OPS_MAX}
+FVP_SIMULATE_IDE_KM_UNIT=${FVP_SIMULATE_IDE_KM_UNIT}
+FVP_FIRME_CXL_IDE=${FVP_FIRME_CXL_IDE}
 SP_LAYOUT_FILE=${ACS_DIR}/tools/config/sp_layout.json
 SP_LAYOUT_SHA256=$(sp_layout_sha256 "${ACS_DIR}/tools/config/sp_layout.json")
 EOF
@@ -366,6 +415,10 @@ EOF
         E="${TFA_E}" \
         BL2_ENABLE_SP_LOAD="${BL2_ENABLE_SP_LOAD}" \
         FIRME_SUPPORT="${FIRME_SUPPORT}" \
+        FIRME_SUPPORT_IDE_KM="${FVP_ENABLE_IDE}" \
+        PLAT_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX}" \
+        FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT}" \
+        FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE}" \
         SP_LAYOUT_FILE="${ACS_DIR}/tools/config/sp_layout.json" \
         BL32="${BL32_BIN}" \
         BL33="${BL33_BIN}" \

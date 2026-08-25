@@ -6,6 +6,7 @@
  */
 
 #include "val_firme_abi.h"
+#include "val_firme_ide.h"
 #include "val_firme_rules.h"
 #include "val_common/val_smccc.h"
 #include "val_log.h"
@@ -15,10 +16,18 @@
 #define RESERVED_INPUT_REGS_STEP_SERVICE_FEATURES UINT64_C(2)
 #define RESERVED_INPUT_REGS_STEP_GM_GPI_SET       UINT64_C(3)
 #define RESERVED_INPUT_REGS_STEP_MEC_REFRESH      UINT64_C(4)
+#define RESERVED_INPUT_REGS_STEP_IDE_PROG         UINT64_C(5)
+#define RESERVED_INPUT_REGS_STEP_IDE_GO           UINT64_C(6)
+#define RESERVED_INPUT_REGS_STEP_IDE_STOP         UINT64_C(7)
+#define RESERVED_INPUT_REGS_STEP_IDE_POLL         UINT64_C(8)
 #define RESERVED_INPUT_REGS_VERSION_FIRST_UNUSED  2U
 #define RESERVED_INPUT_REGS_FEATURES_FIRST_UNUSED 3U
 #define RESERVED_INPUT_REGS_GPI_SET_FIRST_UNUSED  4U
 #define RESERVED_INPUT_REGS_MEC_FIRST_UNUSED      2U
+#define RESERVED_INPUT_REGS_IDE_PROG_FIRST_UNUSED 9U
+#define RESERVED_INPUT_REGS_IDE_GO_FIRST_UNUSED   5U
+#define RESERVED_INPUT_REGS_IDE_STOP_FIRST_UNUSED 5U
+#define RESERVED_INPUT_REGS_IDE_POLL_FIRST_UNUSED 4U
 #define RESERVED_INPUT_REGS_GRANULE_COUNT         UINT64_C(1)
 
 /**
@@ -143,6 +152,7 @@ static int reserved_input_regs_check_capture(uint32_t first_unused,
 static int reserved_input_regs_run(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t result = {0};
+    val_firme_ide_prog_args_t prog_args = {0};
 
     reserved_input_regs_init_result(out);
 
@@ -186,6 +196,47 @@ static int reserved_input_regs_run(uint64_t base_pa, firme_rule_res_t *out)
     if (reserved_input_regs_check_capture(
             RESERVED_INPUT_REGS_MEC_FIRST_UNUSED,
             RESERVED_INPUT_REGS_STEP_MEC_REFRESH, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+
+    /* Step 5: Capture IDE_KEYSET_PROG and verify x9-x17 are zero. */
+    prog_args.ecam_address = base_pa;
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_IDE_PROG, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+    val_firme_ide_keyset_prog(&prog_args, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_IDE_PROG_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_IDE_PROG, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+
+    /* Step 6: Capture IDE_KEYSET_GO and verify x5-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_IDE_GO, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+    val_firme_ide_keyset_go(base_pa, 0ULL, 0ULL, 0ULL, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_IDE_GO_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_IDE_GO, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+
+    /* Step 7: Capture IDE_KEYSET_STOP and verify x5-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_IDE_STOP, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+    val_firme_ide_keyset_stop(base_pa, 0ULL, 0ULL, 0ULL, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_IDE_STOP_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_IDE_STOP, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+
+    /* Step 8: Capture IDE_KEYSET_POLL and verify x4-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_IDE_POLL, out) != VAL_SUCCESS)
+        return reserved_input_regs_result(out);
+    val_firme_ide_keyset_poll(base_pa, 0ULL, 0ULL, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_IDE_POLL_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_IDE_POLL, out) != VAL_SUCCESS)
         return reserved_input_regs_result(out);
 
     if (out)

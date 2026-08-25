@@ -36,10 +36,12 @@ SECTIONS {
         __bss_end__ = .;
     } > RAM
 
-    .stack (NOLOAD) : {
+    /* Keep stack loadable so firmware loaders assign the payload PAS. */
+    .stack : {
         . = ALIGN(16);
         __stack_start__ = .;
-        . = . + 0x8000; /* 32 KiB */
+        . = . + 0x7ff8;
+        QUAD(0); /* 32 KiB, force stack into binary */
         __stack_end__ = .;
     } > RAM
 }

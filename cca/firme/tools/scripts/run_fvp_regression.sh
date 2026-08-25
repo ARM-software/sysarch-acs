@@ -20,6 +20,10 @@ UART1_LOG="${UART1_LOG:-${ACS_DIR}/build-fvp-uart1.log}"
 UART2_LOG="${UART2_LOG:-${ACS_DIR}/build-fvp-uart2.log}"
 UART3_LOG="${UART3_LOG:-${ACS_DIR}/build-fvp-uart3.log}"
 MODEL_LOG="${MODEL_LOG:-${ACS_DIR}/build-fvp-model.log}"
+FVP_PCIE_HIERARCHY="${FVP_PCIE_HIERARCHY:-}"
+FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
+FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE:-0}"
+FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
 FVP_TIMEOUT_SECS="${FVP_TIMEOUT_SECS:-0}"
 FVP_ENABLE_TELNET="${FVP_ENABLE_TELNET:-1}"
 FVP_TELNET_PORTS="${FVP_TELNET_PORTS:-5000,5001,5002,5003}"
@@ -49,6 +53,7 @@ if [[ -z "${FVP_ENABLE_SVE+x}" ]]; then
             ;;
     esac
 fi
+
 if [[ -z "${FVP_ENABLE_SME+x}" ]]; then
     case "${SUITE}" in
         all|base)
@@ -77,6 +82,30 @@ if [[ -z "${FVP_ENABLE_MEC+x}" ]]; then
             ;;
     esac
 fi
+if [[ -z "${FVP_ENABLE_IDE+x}" ]]; then
+    case "${SUITE}" in
+        all|ide)
+            FVP_ENABLE_IDE=1
+            ;;
+        *)
+            FVP_ENABLE_IDE=0
+            ;;
+    esac
+fi
+if [[ -z "${FVP_IDE_KM_PENDING_OPS_MAX+x}" ]]; then
+    if [[ "${FVP_ENABLE_IDE}" == "1" ]]; then
+        FVP_IDE_KM_PENDING_OPS_MAX=1
+    else
+        FVP_IDE_KM_PENDING_OPS_MAX=0
+    fi
+fi
+if [[ -z "${FVP_SIMULATE_IDE_KM_UNIT+x}" ]]; then
+    if [[ "${FVP_ENABLE_IDE}" == "1" ]]; then
+        FVP_SIMULATE_IDE_KM_UNIT=1
+    else
+        FVP_SIMULATE_IDE_KM_UNIT=0
+    fi
+fi
 FVP_MEC_SUPPORT_LEVEL="${FVP_MEC_SUPPORT_LEVEL:-2}"
 FVP_MECID_WIDTH="${FVP_MECID_WIDTH:-16}"
 FVP_ENABLE_SMMU_MEC="${FVP_ENABLE_SMMU_MEC:-0}"
@@ -89,11 +118,40 @@ if [[ -z "${FVP_CACHE_STATE_MODELLED+x}" ]]; then
 fi
 BUILD_MODE="${BUILD_MODE:-auto}" # auto|always|never
 
+case "${FVP_FIRME_CXL_IDE}" in
+    0|1) ;;
+    *)
+        echo "ERROR: FVP_FIRME_CXL_IDE must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+if [[ -n "${FVP_PCIE_HIERARCHY}" ]]; then
+    FVP_PCIE_HIERARCHY="$(python3 - "${FVP_PCIE_HIERARCHY}" <<'PY'
+import json
+import os
+import sys
+
+path = os.path.abspath(sys.argv[1])
+with open(path, encoding="utf-8") as source:
+    topology = json.load(source)
+if not isinstance(topology, dict) or not topology:
+    raise SystemExit("ERROR: PCIe hierarchy must be a nonempty JSON object.")
+print(path)
+PY
+    )"
+fi
+if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
+    if [[ "${FVP_ENABLE_IDE}" != "1" || -z "${FVP_PCIE_HIERARCHY}" ]]; then
+        echo "ERROR: the CXL backend requires FVP_ENABLE_IDE=1 and FVP_PCIE_HIERARCHY." >&2
+        exit 1
+    fi
+fi
+
 BUILD_PLAT="${BUILD_BASE}/${PLAT}/${BUILD_TYPE}"
 BUILD_STAMP="${BUILD_PLAT}/firme-build.stamp"
 
 need_build_auto() {
-    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" "$FVP_ENABLE_SVE" "$FVP_ENABLE_SME" <<'PY'
+    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" "$FVP_ENABLE_SVE" "$FVP_ENABLE_SME" "$FVP_ENABLE_IDE" "$FVP_IDE_KM_PENDING_OPS_MAX" "$FVP_SIMULATE_IDE_KM_UNIT" "$FVP_FIRME_CXL_IDE" "$FIRME_ENABLE_CXL_ENDPOINT_PROBE" "$FIRME_ENABLE_CXL_SPDM" <<'PY'
 import os, sys
 
 acs_dir = sys.argv[1]
@@ -102,6 +160,12 @@ stamp = sys.argv[3]
 suite = sys.argv[4]
 enable_sve = sys.argv[5]
 enable_sme = sys.argv[6]
+enable_ide = sys.argv[7]
+pending_ops = sys.argv[8]
+simulate_ide = sys.argv[9]
+cxl_ide = sys.argv[10]
+endpoint_probe = sys.argv[11]
+enable_spdm = sys.argv[12]
 
 SOURCE_SUFFIXES = {
     ".c", ".h", ".S", ".s", ".ld", ".mk", ".make", ".json", ".dts", ".dtsi",
@@ -156,6 +220,24 @@ if f"FIRME_ENABLE_SVE={enable_sve}" not in stamp_lines:
 if f"FIRME_ENABLE_SME={enable_sme}" not in stamp_lines:
     print("1")
     sys.exit(0)
+if f"FVP_ENABLE_IDE={enable_ide}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FVP_IDE_KM_PENDING_OPS_MAX={pending_ops}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FVP_SIMULATE_IDE_KM_UNIT={simulate_ide}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FVP_FIRME_CXL_IDE={cxl_ide}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FIRME_ENABLE_CXL_ENDPOINT_PROBE={endpoint_probe}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
+if f"FIRME_ENABLE_CXL_SPDM={enable_spdm}" not in stamp_lines:
+    print("1")
+    sys.exit(0)
 
 print("1" if latest > fip_mtime else "0")
 PY
@@ -169,7 +251,12 @@ case "${BUILD_MODE}" in
         DO_BUILD=0
         ;;
     auto)
-        DO_BUILD="$(need_build_auto)"
+        if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
+            # The local TF-A backend may change without any ACS source changes.
+            DO_BUILD=1
+        else
+            DO_BUILD="$(need_build_auto)"
+        fi
         ;;
     *)
         echo "ERROR: unknown BUILD_MODE='${BUILD_MODE}' (expected auto|always|never)" >&2
@@ -187,15 +274,34 @@ if [[ "${DO_BUILD}" == "1" ]]; then
         SUITE="${SUITE}" \
         FIRME_ENABLE_SVE="${FVP_ENABLE_SVE}" \
         FIRME_ENABLE_SME="${FVP_ENABLE_SME}" \
+        FVP_ENABLE_IDE="${FVP_ENABLE_IDE}" \
+        FVP_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX}" \
+        FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT}" \
+        FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE}" \
+        FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE}" \
+        FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM}" \
         BUILD_TFA="${BUILD_TFA:-auto}" \
         bash "${ACS_DIR}/tools/scripts/build_tfa_fvp.sh"
     {
         printf 'SUITE=%s\n' "${SUITE}"
         printf 'FIRME_ENABLE_SVE=%s\n' "${FVP_ENABLE_SVE}"
         printf 'FIRME_ENABLE_SME=%s\n' "${FVP_ENABLE_SME}"
+        printf 'FVP_ENABLE_IDE=%s\n' "${FVP_ENABLE_IDE}"
+        printf 'FVP_IDE_KM_PENDING_OPS_MAX=%s\n' "${FVP_IDE_KM_PENDING_OPS_MAX}"
+        printf 'FVP_SIMULATE_IDE_KM_UNIT=%s\n' "${FVP_SIMULATE_IDE_KM_UNIT}"
+        printf 'FVP_FIRME_CXL_IDE=%s\n' "${FVP_FIRME_CXL_IDE}"
+        printf 'FIRME_ENABLE_CXL_ENDPOINT_PROBE=%s\n' "${FIRME_ENABLE_CXL_ENDPOINT_PROBE}"
+        printf 'FIRME_ENABLE_CXL_SPDM=%s\n' "${FIRME_ENABLE_CXL_SPDM}"
     } > "${BUILD_STAMP}"
 else
     echo "[run] Skipping build (BUILD_MODE=${BUILD_MODE})"
+fi
+
+if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
+    if ! grep -qx 'FVP_FIRME_CXL_IDE=1' "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+        echo "ERROR: firmware was not built with the requested CXL model backend." >&2
+        exit 1
+    fi
 fi
 
 BL1_BIN="${BUILD_PLAT}/bl1.bin"
@@ -220,6 +326,9 @@ echo "  UART2_LOG  : ${UART2_LOG}"
 echo "  UART3_LOG  : ${UART3_LOG}"
 echo "  MODEL_LOG  : ${MODEL_LOG}"
 echo "  SUITE      : ${SUITE}"
+echo "  PCIE JSON  : ${FVP_PCIE_HIERARCHY:-model default}"
+echo "  CXL backend: ${FVP_FIRME_CXL_IDE} (experimental)"
+echo "  CXL SPDM   : ${FIRME_ENABLE_CXL_SPDM} (rule-level key/traffic checks)"
 echo "  TELNET     : ${FVP_ENABLE_TELNET} (ports ${FVP_TELNET_PORTS})"
 echo "  TELNET_DIR : ${FVP_TELNET_LOG_DIR}"
 echo "  RME        : ${FVP_ENABLE_RME} (support level ${FVP_RME_SUPPORT_LEVEL})"
@@ -227,6 +336,7 @@ echo "  SVE        : ${FVP_ENABLE_SVE}"
 echo "  SME        : ${FVP_ENABLE_SME}"
 echo "  MEC        : ${FVP_ENABLE_MEC} (support level ${FVP_MEC_SUPPORT_LEVEL}, MECID width ${FVP_MECID_WIDTH})"
 echo "  SMMU MEC   : ${FVP_ENABLE_SMMU_MEC}"
+echo "  IDE KM     : ${FVP_ENABLE_IDE} (pending ops ${FVP_IDE_KM_PENDING_OPS_MAX}, simulation ${FVP_SIMULATE_IDE_KM_UNIT})"
 
 mkdir -p "$(dirname "${UART_LOG}")"
 mkdir -p "$(dirname "${UART1_LOG}")"
@@ -266,6 +376,18 @@ FVP_ARGS=(
     -C bp.terminal_2.terminal_command=/bin/true
     -C bp.terminal_3.terminal_command=/bin/true
 )
+
+if [[ -n "${FVP_PCIE_HIERARCHY}" ]]; then
+    FVP_ARGS+=(-C "pci.hierarchy_file_name=${FVP_PCIE_HIERARCHY}")
+fi
+
+if [[ "${FIRME_ENABLE_CXL_SPDM}" == "1" ]]; then
+    FVP_ARGS+=(
+        -C pci.chbcr_cxl_mem_base=0x100000000
+        -C cluster0.has_rndr=1
+        -C cluster1.has_rndr=1
+    )
+fi
 
 if [[ "${FVP_ENABLE_SVE}" == "1" ]]; then
     FVP_ARGS+=(
@@ -466,4 +588,14 @@ else
     else
         "${MODEL_BASE}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || true
     fi
+fi
+
+pass_summary='Total Tests run *=[[:space:]]*[1-9][0-9]*[[:space:]]*;'
+pass_summary+=' Tests Passed *=[[:space:]]*[0-9]+[[:space:]]*;'
+pass_summary+=' Tests Failed *=[[:space:]]*0[[:space:]]*$'
+if ! grep -Fq 'FIRME tests complete.' "${UART_LOG}" ||
+    ! grep -Eq "${pass_summary}" "${UART_LOG}"; then
+    echo "ERROR: FVP did not complete a passing FIRME regression." >&2
+    echo "Check ${MODEL_LOG} and ${UART_LOG}." >&2
+    exit 1
 fi

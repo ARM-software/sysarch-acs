@@ -158,9 +158,9 @@ treated as a DUT issue.
 
       1. Enable capture-only mode before invoking each production FIRME wrapper.
       2. Capture the final x0-x17 input frame immediately before SMC dispatch.
-      3. Bypass the SMC while capture is enabled so GM and MEC audit requests
+      3. Bypass the SMC while capture is enabled so GM, MEC and IDE audit requests
          cannot change DUT state.
-      4. Exercise the Base, GM and MEC wrappers present in this revision.
+      4. Exercise the Base, GM, MEC and IDE wrappers present in this revision.
       5. Verify every wholly unused input register is zero; the generic helper
          clears x8-x17 immediately before the capture point.
       6. Report PASS only when every captured wrapper frame satisfies SBZ.
@@ -178,8 +178,8 @@ treated as a DUT issue.
       1. Enable capture-only mode and invoke every production FIRME wrapper
          present in this revision with all-one values in parameter fields.
       2. Capture the final x0-x17 input frame immediately before SMC dispatch.
-      3. Verify only allocated Base service-ID, feature-index, GM attribute and
-         MEC parameter bits remain, while every other input bit is zero.
+      3. Verify only allocated Base service-ID, feature-index, GM attribute, MEC
+         parameter, and IDE flag/keyset-ID bits remain; all others are zero.
       4. Bypass the SMC while capture is enabled so malformed audit inputs cannot
          change DUT state.
       5. Use the raw SMCCC path for intentional DUT parameter-validation tests,

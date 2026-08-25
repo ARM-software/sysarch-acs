@@ -34,3 +34,7 @@ void val_smccc_smc_call(uint64_t fid,
                         uint64_t arg1, uint64_t arg2, uint64_t arg3,
                         uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
                         smccc_res_t *res);
+void val_smccc_smc_call_x8(uint64_t fid,
+                           uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                           uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
+                           uint64_t arg8, smccc_res_t *res);

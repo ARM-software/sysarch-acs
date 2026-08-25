@@ -15,6 +15,11 @@
 #include "val_firme_dispatch.h"
 #include "val_firme_suite.h"
 #include "pal_platform.h"
+#include "val_common/val_status.h"
+
+#if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
+#include "val_host_doe.h"
+#endif
 
 extern void nsel2_vectors(void);
 
@@ -89,8 +94,25 @@ extern void dispatcher_main(void);
 **/
 void nsel2_main(void)
 {
+#if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
+    val_host_doe_endpoint_t endpoint = {0};
+#endif
+
     nsel2_platform_init();
+#if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
+    if ((val_host_doe_prepare_endpoint(&endpoint) != VAL_SUCCESS) ||
+        (val_host_doe_discover_spdm(&endpoint) != VAL_SUCCESS)) {
+        LOG_ERROR(NULL, "CXL Type-2 endpoint DOE preflight failed");
+        val_host_doe_release_endpoint(&endpoint);
+        for (;;)
+            val_wfe();
+    }
+#endif
     dispatcher_main();
+#if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
+    if (val_host_doe_release_endpoint(&endpoint) != VAL_SUCCESS)
+        LOG_ERROR(NULL, "CXL Type-2 endpoint DOE cleanup failed");
+#endif
     for (;;)
         val_wfe();
 }

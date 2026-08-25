@@ -21,3 +21,5 @@ typedef enum {
  */
 void val_mmu_setup_identity_1g(mmu_el_t el, uint64_t dram_base, uint64_t dram_size);
 void val_mmu_enable(mmu_el_t el);
+int val_mmu_map_device_block_el2(uint64_t base);
+int val_mmu_unmap_device_block_el2(uint64_t base);

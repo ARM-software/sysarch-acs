@@ -11,6 +11,18 @@ project(firme_acs C ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(FIRME_ENABLE_CXL_ENDPOINT_PROBE
+       "Probe a Type-2 endpoint and its SPDM DOE protocols before FIRME tests" OFF)
+option(FIRME_ENABLE_CXL_SPDM
+       "Exercise authenticated CXL IDE key management over endpoint DOE" OFF)
+
+if(FIRME_ENABLE_CXL_SPDM)
+  if(NOT FIRME_ENABLE_CXL_ENDPOINT_PROBE)
+    message(FATAL_ERROR "FIRME_ENABLE_CXL_SPDM requires FIRME_ENABLE_CXL_ENDPOINT_PROBE")
+  endif()
+  include("${CMAKE_CURRENT_LIST_DIR}/tools/cmake/firme_spdm.cmake")
+endif()
+
 # Suite selection (build-time).
 # - Default is "all": build all available FIRME chapters/tests.
 # - To build a specific chapter only: -DSUITE=base|gpt|mec|ide|attest
@@ -77,6 +89,7 @@ set(FIRME_COMMON_CFLAGS
     -Wdeclaration-after-statement
     -ffreestanding -fno-builtin -fno-stack-protector -fno-omit-frame-pointer
     -O2 -g
+    -mstrict-align
 )
 
 set_source_files_properties(
@@ -140,6 +153,11 @@ file(GLOB FIRME_MEC_TEST_SRC CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/test/mec/*.S"
 )
 
+file(GLOB FIRME_IDE_TEST_SRC CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/test/ide/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/test/ide/*.S"
+)
+
 if(FIRME_ENABLE_BASE)
   target_sources(firme_common_obj PRIVATE ${FIRME_BASE_TEST_SRC})
 endif()
@@ -150,6 +168,10 @@ endif()
 
 if(FIRME_ENABLE_MEC)
   target_sources(firme_common_obj PRIVATE ${FIRME_MEC_TEST_SRC})
+endif()
+
+if(FIRME_ENABLE_IDE)
+  target_sources(firme_common_obj PRIVATE ${FIRME_IDE_TEST_SRC})
 endif()
 
 # Future chapters should follow the same pattern:
@@ -210,6 +232,19 @@ add_firme_payload(
   "tools/linker/host.ld"
   ${FIRME_HOST_SRC}
 )
+target_compile_definitions(nsel2.elf PRIVATE
+  FIRME_ENABLE_CXL_ENDPOINT_PROBE=$<BOOL:${FIRME_ENABLE_CXL_ENDPOINT_PROBE}>
+  FIRME_ENABLE_CXL_SPDM=$<BOOL:${FIRME_ENABLE_CXL_SPDM}>
+)
+if(FIRME_ENABLE_CXL_SPDM)
+  target_include_directories(nsel2.elf PRIVATE
+    "${FIRME_LIBSPDM_DIR}/include"
+    "${FIRME_SPDM_EMU_DIR}/include"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+  )
+  target_link_libraries(nsel2.elf PRIVATE ${FIRME_SPDM_LINK_LIBRARIES})
+  target_link_options(nsel2.elf PRIVATE -Wl,--gc-sections)
+endif()
 
 add_firme_payload(
   secure

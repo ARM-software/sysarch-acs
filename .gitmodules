@@ -1,0 +1,6 @@
+[submodule "cca/firme/ext/libspdm"]
+	path = cca/firme/ext/libspdm
+	url = https://github.com/DMTF/libspdm.git
+[submodule "cca/firme/ext/spdm-emu"]
+	path = cca/firme/ext/spdm-emu
+	url = https://github.com/DMTF/spdm-emu.git

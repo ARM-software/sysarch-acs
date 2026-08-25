@@ -40,7 +40,7 @@ same hosting model.
 
 | FIRME-ACS version | Git tag | FIRME spec version |
 |---|---|---|
-| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Concepts/Base service, MECID management, and GPT management coverage |
+| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Concepts/Base service, GPT, IDE, and MECID coverage |
 
 ## How it works (high level)
 1. TF-A boots three ACS payload images: **Secure shim** (BL32), **Realm shim**
@@ -55,7 +55,7 @@ same hosting model.
 ## Repository layout (ACS-style)
 - `docs/`: porting guide + scenario document.
 - `platform/`: PAL implementations (environment + target), for example:
-  `platform/pal_baremetal/targets/fvp/` (UART base, GPT window, GIC bases).
+  `platform/pal_baremetal/targets/fvp/` (UART base, GPT window, PCIe ECAM, GIC bases).
 - `val_common/`: shared bare-metal infrastructure (vectors, fault handling, logging, SMCCC, MMU helpers).
 - `val/`: world payloads and common wrappers (`val/host`, `val/secure`, `val/realm`).
 - `test/`: 1:1 rule-to-test mapping (one rule per file under `test/<module>/`).
@@ -116,7 +116,102 @@ Useful knobs:
 - `FVP_ENABLE_MEC=1` (enable FVP MEC/MPE parameters for MECID management tests)
 - `FVP_MECID_WIDTH=16` (default MECID width when MEC is enabled)
 - `FVP_ENABLE_SMMU_MEC=1` (optional device-side SMMU MECID plumbing; not required for current MEC ABI tests)
+- `FVP_ENABLE_IDE=1` (enable TF-A/FVP IDE key management support when running `SUITE=all|ide`)
+- `FVP_IDE_KM_PENDING_OPS_MAX=1` (enable non-blocking IDE operation tracking for POLL coverage)
+- `FVP_SIMULATE_IDE_KM_UNIT=1` (enable the FVP IDE KM simulation path in TF-A)
+- `FVP_PCIE_HIERARCHY=/path/to/topology.json` (load a PCIe topology through the
+  model's `pci.hierarchy_file_name` parameter; the default topology is unchanged)
 - `UART_LOG=cca/firme/build-fvp-uart.log`, `MODEL_LOG=cca/firme/build-fvp-model.log`
+
+### Experimental CXL programming backend
+
+`FVP_FIRME_CXL_IDE=1` selects an optional, local TF-A/FVP Root Port programming
+backend. It requires `FVP_ENABLE_IDE=1`, an explicit `FVP_PCIE_HIERARCHY`, and
+matching firmware and model implementations. It is disabled by default and is
+not available in an unmodified upstream TF-A or standard FVP release.
+
+The backend option is recorded in both build stamps. In experimental mode,
+`BUILD_MODE=auto` also visits the firmware build so local TF-A edits cannot be
+missed; tracked diffs and untracked source contents participate in its fingerprint.
+A JSON topology or successful key-programming acknowledgment alone does not
+qualify IDE traffic protection. Endpoint discovery, authenticated key exchange,
+Root Port programming, traffic checks, and cleanup must all be validated before
+enabling the corresponding end-to-end tests.
+
+Initialize the pinned dependencies once, including their nested submodules:
+
+```sh
+git submodule update --init --recursive
+```
+
+Run this from the repository root before configuring the optional SPDM build.
+The build uses `cca/firme/ext/libspdm` and `cca/firme/ext/spdm-emu` directly.
+Configuration and builds do not download or update dependency revisions.
+Re-run the submodule command after switching to a patchset that changes the
+pinned dependency revisions.
+Optional `FIRME_LIBSPDM_DIR` and `FIRME_SPDM_EMU_DIR` overrides are available for dependency development, but are not required for normal use.
+
+For opt-in paired-key and traffic checks, use an AArch64 GCC or Clang
+toolchain and a single DER-encoded root CA certificate trusted for the
+endpoint's SPDM chain:
+
+```sh
+export FIRME_ENABLE_CXL_ENDPOINT_PROBE=1
+export FIRME_ENABLE_CXL_SPDM=1
+export FIRME_SPDM_ROOT_CERT=/path/to/responder-root-ca.der
+export FVP_FIRME_CXL_IDE=1
+export FVP_PCIE_HIERARCHY=/path/to/type2-topology.json
+cca/firme/tools/scripts/run_fvp_regression.sh
+```
+
+The SPDM crypto configuration accepts DER certificates; PEM text parsing is
+not built into the payload.
+
+The runner enables FEAT_RNG and places the experimental CXL.mem aperture at
+4 GiB. The topology must reserve the fixture's Root Port/endpoint BARs and HDM
+decoder window; these resources must not overlap firmware or ordinary DRAM.
+The FVP PAL checks for unused resources and restores the temporary endpoint
+BAR, bridge window, decoders, EL2 mapping and address-size setting afterward.
+
+R0214, R0216 and R0218 each run a fresh host-side functional check after their
+Realm ABI status checks. The check uses that same FIRME caller instance;
+the host only coordinates endpoint setup and traffic observation. Each rule
+keeps one authenticated SPDM session open while it:
+
+1. Discovers the configured endpoint and confirms IDE service availability in
+   the caller instance already exercised by the rule.
+2. Generates independent keys and programs each Root Port RX/TX key together
+   with its corresponding endpoint TX/RX key over secured DOE.
+3. Completes FIRME operations, using POLL when required, and enables receivers
+   before transmitters.
+4. Writes and reads CXL.mem through the model's transaction-level AES-GCM path.
+   It requires matching data and evidence that both key directions were used.
+5. For R0214, deliberately mismatches each direction's endpoint key, requires
+   link-level rejection, restores the key, and verifies traffic works again.
+   For R0216/R0218, stops only one Root Port direction, leaves the endpoint
+   active, requires rejection, and issues Root Port GO to restore traffic.
+   Both directions are checked. An MMU/GPC fault without a link rejection
+   does not satisfy the negative check.
+6. Stops transmitters before receivers, ends the
+   SPDM session, and releases ACS key material and temporary resources.
+
+Failures are attributed to the owning rule with stage/direction diagnostics,
+and included in the normal regression summary. Without an observation backend,
+these three rules report SKIP after the status checks, not a status-only PASS.
+The check remains a functional scenario, not proof of every conditional error
+path or IDE type. Namespace isolation and generated ABI scenario gates remain
+until their own prerequisites and validation are complete. This local fixture
+validates paired key use on CXL.mem transactions, not CXL flit/IV protocol,
+CXL.cache coherency, replay protection, or CDA/TDISP device assignment. It
+does not change release rule gates or make an unmodified FVP compliant.
+The NS test harness owns the SPDM session; the Realm shim issues FIRME calls
+when IDE is advertised there. This is not a production RMM device owner.
+The synchronous local Root Port backend does not itself qualify asynchronous
+CXL completion. Existing Selective IDE status tests retain their separate
+TF-A simulation path.
+
+This build negotiates SPDM 1.2 with RSA-3072, SHA-256, P-256 ECDHE and
+AES-256-GCM; the model's algorithms and certificate chain must match.
 
 ### TF-A Secure Partition layout file (`tools/config/sp_layout.json`)
 FIRME-ACS does not package Secure Partitions by default (it uses a Secure shim at S-EL2 and an internal

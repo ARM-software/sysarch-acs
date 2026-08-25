@@ -32,6 +32,7 @@ typedef enum {
     /* Run the same command body from S-EL1 (within the Secure shim). */
     FIRME_ACS_CMD_RUN_DIAG_SEL1 = 0x04,
     FIRME_ACS_CMD_RUN_RULE_SEL1 = 0x05,
+    FIRME_ACS_CMD_IDE_LINK = 0x08,
 } firme_acs_cmd_t;
 
 typedef struct {

@@ -8,6 +8,7 @@
 #include "val_common/val_mmu.h"
 
 #include "aarch64/sysreg.h"
+#include "val_common/val_status.h"
 
 /*
  * A very small identity-mapping MMU setup:
@@ -46,6 +47,13 @@
 #define MAIR_ATTR_NORMAL_WBWA  0xFFUL
 
 static uint64_t __attribute__((aligned(PAGE_SIZE))) g_l1[L1_ENTRIES];
+static uint64_t g_device_base;
+static uint64_t g_device_tcr;
+static uint32_t g_device_active;
+
+#define VAL_TCR_PS_SHIFT 16U
+#define VAL_TCR_PS_MASK (UINT64_C(7) << VAL_TCR_PS_SHIFT)
+#define VAL_TCR_PS_36 (UINT64_C(1) << VAL_TCR_PS_SHIFT)
 
 /**
  *   @brief    - Build a 1GiB block descriptor for an identity mapping.
@@ -184,4 +192,62 @@ void val_mmu_enable(mmu_el_t el)
     }
     dsb_sy();
     isb_sy();
+}
+/**
+ * @brief Map an unused 1-GiB EL2 slot as non-executable Device memory.
+ * @param base Aligned identity-mapped address below 64 GiB, on the primary PE.
+ * @return VAL_SUCCESS on success; never replaces an existing mapping.
+ */
+int val_mmu_map_device_block_el2(uint64_t base)
+{
+    uint32_t index;
+    uint64_t tcr;
+    uint64_t physical_range;
+
+    if (g_device_active ||
+        (base & ((UINT64_C(1) << 30) - 1U)) != 0ULL || (base >> 36) != 0ULL)
+        return VAL_ERROR;
+    index = (uint32_t)(base >> 30);
+    if (g_l1[index] != 0ULL)
+        return VAL_ERROR;
+    tcr = val_read_tcr_el2();
+    physical_range = val_read_id_aa64mmfr0_el1() & UINT64_C(0xf);
+    if (base >= (UINT64_C(1) << 32) &&
+        (physical_range == 0ULL || physical_range > 7ULL))
+        return VAL_ERROR;
+    g_device_tcr = tcr;
+    g_device_base = base;
+    g_device_active = VAL_TRUE;
+    if (base >= (UINT64_C(1) << 32) && (tcr & VAL_TCR_PS_MASK) == 0ULL) {
+        dsb_sy();
+        write_tcr_el2(tcr | VAL_TCR_PS_36);
+    }
+
+    g_l1[index] = make_block_desc(base, DESC_ATTRINDX(0), 1);
+    val_cache_clean_poc((uintptr_t)&g_l1[index], sizeof(uint64_t));
+    val_tlbi_all_el2();
+    return VAL_SUCCESS;
+}
+
+/**
+ * @brief Remove only a matching Device mapping created for a temporary fixture.
+ * @param base Address previously passed to the mapping helper.
+ * @return VAL_SUCCESS after publishing the invalid descriptor and invalidating TLBs.
+ */
+int val_mmu_unmap_device_block_el2(uint64_t base)
+{
+    uint32_t index;
+
+    if (!g_device_active || base != g_device_base)
+        return VAL_ERROR;
+    index = (uint32_t)(base >> 30);
+    if (g_l1[index] != make_block_desc(base, DESC_ATTRINDX(0), 1))
+        return VAL_ERROR;
+    g_l1[index] = 0ULL;
+    val_cache_clean_poc((uintptr_t)&g_l1[index], sizeof(uint64_t));
+    val_tlbi_all_el2();
+    write_tcr_el2(g_device_tcr);
+    val_tlbi_all_el2();
+    g_device_active = VAL_FALSE;
+    return VAL_SUCCESS;
 }

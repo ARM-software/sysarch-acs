@@ -113,3 +113,63 @@
 #ifndef PLAT_FIRME_GPT_GRANULE_SIZE
 #define PLAT_FIRME_GPT_GRANULE_SIZE 0x1000ULL
 #endif
+
+
+/*
+ * PCIe ECAM window used by FIRME IDE key management tests.
+ *
+ * TF-A FVP identifies the PCIe Root Complex by the ECAM base address
+ * (`PCIE_EXP_BASE`, 0x4000_0000). Partners should override these values for
+ * their target platform in the PAL target header.
+ */
+#ifndef PLAT_FIRME_PCIE_ECAM_BASE
+#define PLAT_FIRME_PCIE_ECAM_BASE 0x40000000ULL
+#endif
+
+#ifndef PLAT_FIRME_PCIE_ECAM_SIZE
+#define PLAT_FIRME_PCIE_ECAM_SIZE 0x10000000ULL
+#endif
+
+#ifndef PLAT_FIRME_PCIE_SEGMENT
+#define PLAT_FIRME_PCIE_SEGMENT 0U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_START_BUS
+#define PLAT_FIRME_PCIE_START_BUS 0U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_END_BUS
+#define PLAT_FIRME_PCIE_END_BUS 0x8U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_MAX_DEV
+#define PLAT_FIRME_PCIE_MAX_DEV 32U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_MAX_FUNC
+#define PLAT_FIRME_PCIE_MAX_FUNC 8U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_ROOT_PORT_ID
+#define PLAT_FIRME_PCIE_ROOT_PORT_ID 0x8U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_ENDPOINT_ID
+#define PLAT_FIRME_PCIE_ENDPOINT_ID 0xffffffffU
+#endif
+
+#ifndef PLAT_FIRME_PCIE_STREAM_ID
+#define PLAT_FIRME_PCIE_STREAM_ID 1U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_SUBSTREAM_ID
+#define PLAT_FIRME_PCIE_SUBSTREAM_ID 0U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_DIRECTION_RX
+#define PLAT_FIRME_PCIE_DIRECTION_RX 0U
+#endif
+
+#ifndef PLAT_FIRME_PCIE_KEY_SET_0
+#define PLAT_FIRME_PCIE_KEY_SET_0 0U
+#endif

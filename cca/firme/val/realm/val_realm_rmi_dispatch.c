@@ -12,6 +12,7 @@
 #include "val_common/val_smc_args.h"
 #include "val_common/val_fault.h"
 #include "val_firme_test.h"
+#include "val_firme_ide_link.h"
 
 #include <stddef.h>
 
@@ -65,6 +66,7 @@ void rel2_handle_smc(smc_args_t *args)
     uint64_t status = (uint64_t)ACS_STATUS_PASS;
     uint64_t out0 = 0;
     uint64_t out1 = 0;
+    firme_acs_call_res_t link_response = {0};
 
     if (args == NULL) {
         return;
@@ -91,6 +93,11 @@ void rel2_handle_smc(smc_args_t *args)
         status = (uint64_t)val_firme_diag_run(a0, a1, a2, a3, 0, &out);
         out0 = out.x0;
         out1 = out.x1;
+    } else if (cmd == FIRME_ACS_CMD_IDE_LINK) {
+        val_firme_ide_link_command(a0, a1, a2, a3, &link_response);
+        status = link_response.x0;
+        out0 = link_response.x1;
+        out1 = link_response.x2;
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_RULE) {
         firme_rule_res_t rr = {0};
         val_firme_rule_run_realm((firme_rule_id_t)a0, a1, &rr);
