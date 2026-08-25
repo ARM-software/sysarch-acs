@@ -4739,10 +4739,10 @@ const RULE_ID_e s_l7pmu_rule_list[]   = {
                                     PMU_SYS_2, PMU_SYS_5, PMU_SYS_6, PMU_MEM_1,
                                     PMU_BM_1, PMU_BM_2,  PMU_EV_11, PMU_SPE,
                                     /* Not covered or Not implemented*/
-                                    PMU_PE_01, PMU_EV_01, PMU_EV_02, PMU_EV_03,
-                                    PMU_EV_04, PMU_EV_05, PMU_EV_06, PMU_EV_07,
-                                    PMU_EV_08, PMU_EV_09, PMU_EV_10, PMU_BM_3,
-                                    PMU_BM_4, PMU_SYS_7, PMU_SEC_1,
+                                    PMU_EV_01, PMU_EV_02, PMU_EV_03, PMU_EV_04,
+                                    PMU_EV_05, PMU_EV_06, PMU_EV_07, PMU_EV_08,
+                                    PMU_EV_09, PMU_EV_10, PMU_BM_3, PMU_BM_4,
+                                    PMU_SYS_7, PMU_SEC_1,
                                     /********/
                                     RULE_ID_SENTINEL};
 
