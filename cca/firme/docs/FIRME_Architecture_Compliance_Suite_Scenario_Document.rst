@@ -859,6 +859,42 @@ treated as a DUT issue.
 
   * -
 
+      `granule_management_feature_registers <../test/gpt/granule_management_feature_registers.c>`_
+
+    -
+
+      R0162: Granule Management feature-register size, index, and encoding follow Table 3.9.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the Granule Management service.
+      2. If the service is not implemented at the current FIRME instance, report SKIP.
+      3. Read feature register 0, ignoring unused output bits.
+      4. Read feature register 1, ignoring unused output bits.
+      5. Decode the ``PGS`` field and verify it uses an allocated ``GPCCR_EL3.PGS`` encoding.
+      6. Invoke ``FIRME_SERVICE_FEATURES`` for the first unallocated GM register index and expect
+         ``NOT_SUPPORTED``.
+
+  * -
+
+      `granule_management_abi_compliance <../test/gpt/granule_management_abi_compliance.c>`_
+
+    -
+
+      R0163: Granule Management ABIs follow the Table 3.10 compliance matrix.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the Granule Management service.
+      2. If the service is not implemented at the current FIRME instance, report SKIP.
+      3. Read feature register 0, ignoring unused ABI-presence bits.
+      4. Verify mandatory ABIs for the current FIRME instance are advertised.
+      5. Verify not-supported ABIs for the current FIRME instance are not advertised.
+      6. For the Realm FIRME instance, verify ``FIRME_GM_L1_GPT_CREATE`` and
+         ``FIRME_GM_L1_GPT_DESTROY`` are either both advertised or both absent.
+
+  * -
+
       `gpt_granule_size <../test/gpt/gpt_granule_size.c>`_
 
     -

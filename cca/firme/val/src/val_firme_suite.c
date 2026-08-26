@@ -161,6 +161,18 @@ extern int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 #endif
 
 #if FIRME_ENABLE_GPT
+extern int firme_gpt_granule_management_feature_registers_run_secure(uint64_t base_pa,
+                                                                     firme_rule_res_t *out);
+extern int firme_gpt_granule_management_feature_registers_run_realm(uint64_t base_pa,
+                                                                    firme_rule_res_t *out);
+extern int firme_gpt_granule_management_feature_registers_run_ns(uint64_t base_pa,
+                                                                 firme_rule_res_t *out);
+extern int firme_gpt_granule_management_abi_compliance_run_secure(uint64_t base_pa,
+                                                                  firme_rule_res_t *out);
+extern int firme_gpt_granule_management_abi_compliance_run_realm(uint64_t base_pa,
+                                                                 firme_rule_res_t *out);
+extern int firme_gpt_granule_management_abi_compliance_run_ns(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
 extern int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_same_gpi_transition_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_same_gpi_transition_run_realm(uint64_t base_pa, firme_rule_res_t *out);
@@ -723,6 +735,30 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
 #endif
 #if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0162,
+        .rule_str = "R0162",
+        .suite = "firme",
+        .test_name = "granule_management_feature_registers",
+        .desc = "Granule Management feature registers use specified indices and encodings",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Validate GM feature registers from Secure world",
+        .check_realm = "Validate GM feature registers from Realm world",
+        .check_ns = "Validate GM feature registers from NS world",
+        .run_ns = firme_gpt_granule_management_feature_registers_run_ns,
+        .run_secure = firme_gpt_granule_management_feature_registers_run_secure,
+        .run_realm = firme_gpt_granule_management_feature_registers_run_realm,
+    },
+    /*
+     * R0163 is implemented in test/gpt/granule_management_abi_compliance.c,
+     * but is intentionally not scheduled until the reference DUT advertises
+     * all ALP3 mandatory Granule Management ABIs. Current TF-A reports GM
+     * feature register 0 as 0x1, missing FIRME_GM_GPI_OP_CONTINUE (bit 1),
+     * so this rule currently fails by design.
+     */
     {
         .chapter = FIRME_CHAPTER_GPT,
         .rule_id = FIRME_RULE_R0079,
