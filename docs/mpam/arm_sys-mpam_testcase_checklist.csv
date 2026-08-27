@@ -1,0 +1,214 @@
+Specification Rule ID,BM,UEFI,Status,Tests,Notes
+BDJXQ,Yes,Yes,COVERED,monitor001.c,Indirect: monitor001 programs request PARTID and PMG and verifies monitor accounting distinguishes the labels.
+DDGSM,Yes,Yes,COVERED,-,No ACS check required: MSC may implement zero or more resource controls. ACS checks controls only when discovered.
+RBCMK,Yes,Yes,COVERED,-,No ACS check required: MSC may implement zero or more monitors. ACS checks monitors only when discovered.
+CFXGZ,Yes,Yes,COVERED,reg001.c,Direct: reg001 checks MPAM version EXT bit behavior.
+FXVBB,Yes,Yes,COVERED,reg004.c,Direct: reg004 checks MPAM-for-RME feature requirements.
+LRZGD,Yes,Yes,COVERED,-,No ACS check required: different MPAM architecture versions may coexist. ACS validates each discovered MSC against its advertised version.
+PBSTK,Yes,Yes,COVERED,-,No ACS check required: base memory behavior rules always apply. No separate SYS-MPAM ACS check is required.
+KXMHB,Yes,Yes,COVERED,reg004.c,"Indirect: non-secure PARTID space is exercised by ACS. Secure, Realm, and Root spaces cannot be directly validated from Non-secure execution."
+CZHSY,,,NOT_COVERED,-,"Not testable: ACS cannot compare the same PARTID across Secure, Non-secure, Root, and Realm PARTID spaces."
+RBWRS,,,NOT_COVERED,-,Not testable: ACS cannot access all PARTID spaces to prove each PARTID scope is space-local.
+QKQCF,Yes,Yes,COVERED,-,"No ACS check required: Default PARTID 0 is architecturally defined; labeling non-MPAM requesters with it is permitted, not mandatory."
+CZSZX,,,NOT_COVERED,-,Not testable: ACS cannot observe non-MPAM requester labeling to prove Default PMG 0 is used.
+NVNHD,,,NOT_COVERED,-,"Not testable: requester-generation mechanism is system-wide. ACS cannot prove every PE, SMMU, GIC, and non-PE requester path."
+SLJDR,,,NOT_COVERED,-,"Not testable: non-PE requester-generated PARTID space, PARTID, and PMG values are not directly observable by ACS."
+VNVMD,,,NOT_COVERED,-,Not testable: non-MPAM requester default/system-specific labeling is not directly controllable or observable by ACS.
+SJFGX,Yes,Yes,COVERED,-,No ACS check required: terminating completer has no downstream MPAM propagation to observe. No ACS runtime check is needed.
+YPHLH,,,NOT_COVERED,-,Not testable: intermediate forwarding of MPAM information is fabric behavior. ACS cannot observe the downstream bundle directly.
+RZCWR,,,NOT_COVERED,-,Not testable: buffered-request MPAM retention is internal. ACS cannot force or inspect a buffered request path.
+MRWWK,Yes,Yes,COVERED,-,No ACS check required: conditional cache-internal storage rule. ACS checks observable controls and monitors when present.
+XPPBS,Yes,Yes,COVERED,partition001.c,Indirect: cache partition tests exercise MSC response to request MPAM information.
+CWTSC,Yes,Yes,COVERED,partition001.c,Indirect: partition tests exercise per-PARTID control lookup from request MPAM information.
+JWKJD,,,NOT_COVERED,-,Not testable: cache-line MPAM metadata is internal. ACS cannot inspect the PARTID associated with each line.
+SGBFN,,,NOT_COVERED,-,Not testable: cache eviction metadata is internal. ACS cannot prove PARTID preservation from inner to outer cache.
+ZTFBQ,Yes,Yes,COVERED,reg001.c,"Indirect: reg001.c is used as a representative simple MMR access test. It uses the common MSC discovery/configuration path, including integrated PE MSCs if discovered."
+JGWSM,Yes,Yes,COVERED,reg001.c,"Indirect: reg001.c is used as a representative Non-secure MMR access test. Secure, Realm, and Root PA spaces are not directly accessible to ACS."
+LRNPR,Yes,Yes,COVERED,reg005.c,Indirect: reg004/reg005 check visible MPAM-for-RME and four-space capability.
+VBHPB,Yes,Yes,COVERED,reg004.c,Indirect: reg004/reg005 cover visible PE/MSC capability; Non-secure traffic exercises Non-secure MPAM_SP propagation.
+WZXPM,Yes,Yes,COVERED,reg001.c,Indirect: reg001.c is used as a representative Non-secure MPAM access test. ACS cannot directly observe MPAM_NS signal propagation or Secure-side traffic.
+CBBRW,,,NOT_COVERED,-,Not testable: ACS cannot generate Secure traffic or check reserved Secure PARTID-space encodings.
+CNQCS,,,NOT_COVERED,-,Not testable: ACS cannot observe 4-to-2 bridge reduction from Root/Realm MPAM_SP to MPAM_NS.
+BHHCR,,,NOT_COVERED,-,Not testable: ACS cannot observe whether a 4-to-2 bridge uses static or dynamic reduction.
+BSLZQ,,,NOT_COVERED,-,Not testable: ACS cannot observe 2-to-4 bridge expansion from MPAM_NS to MPAM_SP.
+WBZST,,,NOT_COVERED,-,Not testable: ACS cannot prove bridge preservation of physical address space and PARTID space.
+YWPPT,Yes,Yes,COVERED,-,No ACS check required: design statement for true two-space components. No separate ACS runtime check is needed.
+BNKHP,,,NOT_COVERED,-,Not testable: mAP4SPTO2SP is Root PA-space only; Non-secure ACS cannot verify Root-only access.
+KFDFD,,,NOT_COVERED,-,Not testable: external mapping register is Root PA-space only; Non-secure ACS cannot verify Root-only access.
+XRQHH,,,NOT_COVERED,-,Not testable: ACS cannot observe fixed MPAM_SP to MPAM_NS bridge signal mapping.
+VKQKB,,,NOT_COVERED,-,Not testable: ACS cannot identify or control all non-MPAM components to prove they do not propagate MPAM information.
+TTSLQ,,,NOT_COVERED,-,Not testable: ACS does not control SMMU-attached requester traffic or observe its PARTID-space use.
+RGSJV,,,NOT_COVERED,-,Not testable: completer interface behavior. ACS cannot observe whether MPAM information was dropped before a non-MPAM completer.
+MFRGP,,,NOT_COVERED,-,Not testable: interconnect transport behavior. ACS cannot directly observe MPAM information on fabric links.
+CYKPC,,,NOT_COVERED,-,Not testable: cache-line MPAM metadata is internal. ACS cannot inspect whether allocated lines store the request MPAM information.
+KPNNZ,,,NOT_COVERED,-,Not testable: cache eviction propagation behavior. ACS cannot observe MPAM metadata passed with evicted cache lines.
+JXRZM,Yes,Yes,COVERED,monitor001.c,Direct: CSUMON tests check cache-storage usage monitoring when implemented.
+RHYKB,Yes,Yes,COVERED,monitor001.c,Direct: CSUMON PMG/PARTID filter tests check cache-storage accounting for matching criteria.
+LQQJN,,,NOT_COVERED,-,Not testable: write-hit cache-line association is implementation-specific and cache-internal; ACS cannot observe the chosen association.
+KBJPW,Yes,Yes,COVERED,-,"No ACS check required: write-hit portion update is permitted but not required, so there is no mandatory ACS behavior to check."
+YBYPZ,Yes,Yes,COVERED,-,No ACS check required: reset/default-state behavior. SYS-MPAM ACS does not need a runtime check unless MPAM controls are discovered after boot.
+CNGYT,Yes,Yes,COVERED,partition001.c,Direct: cache partitioning tests use CSU measurement to validate capacity-based partitioning behavior.
+HHQWY,Yes,Yes,COVERED,error008.c,Direct: RIS tests exercise resource/control discovery and RIS-based control or monitor selection.
+WSXSL,Yes,Yes,COVERED,"partition001.c, error008.c",Direct: partitioning and RIS tests exercise common resource-control selection using PARTID and RIS.
+YQBMW,Yes,Yes,COVERED,error008.c,Direct: RIS tests exercise resource-instance selection and RIS-based control/monitor behavior.
+YXZFG,Yes,Yes,COVERED,error008.c,"Indirect: RIS tests rely on discovered RIS values, but uniqueness is not the primary assertion."
+DQNFB,Yes,Yes,COVERED,error008.c,"Indirect: RIS tests use RIS values in the 0..RIS_MAX range, but sparse assignment is not the primary assertion."
+YGZYL,,,NOT_COVERED,-,"Gap: common controls can only be inferred when advertised at RIS 0. If identical controls appear for all RIS values, ACS cannot prove whether they are common or per-resource."
+PLZWM,Yes,Yes,COVERED,error009.c,"Indirect: error009 exercises RIS no-control behavior, which covers unsupported non-zero RIS paths for partition controls."
+DNNTB,Yes,Yes,COVERED,error010.c,Direct: monitor RIS tests use MSMON_CFG_MON_SEL.RIS to select resource-instance monitors.
+LXXDB,Yes,Yes,COVERED,error010.c,Indirect: monitor RIS tests exercise RIS selection and unsupported monitor RIS paths; unassociated-monitor RIS 0 is not separately asserted.
+MRZLG,Yes,Yes,COVERED,"error008.c, error010.c","Indirect: RIS tests use RIS_MAX and undefined RIS paths, but do not directly assert every permitted RIS decode rule."
+NPVVN,Yes,Yes,COVERED,"error008.c, error009.c, error010.c, error011.c","Direct: RIS error tests validate undefined RIS, no-control, and no-monitor selected-resource cases."
+HSFKH,Yes,Yes,COVERED,error012.c,Direct: error012 checks ID register HAS fields read zero and no ESR error for undefined RIS.
+XRHKL,,,NOT_COVERED,-,Not testable: virtual PARTID resolution happens before the MSC. ACS cannot observe the pre-resolution virtual PARTID path.
+GDMQZ,Yes,Yes,COVERED,reg005.c,Direct: reg005 checks MSC four-space capability when MPAM for RME is supported.
+MMXWZ,Yes,Yes,COVERED,reg001.c,"Indirect: reg001.c is used as a representative MMR access test using MPAMF_BASE_ns from ACPI/platform data. Secure, Realm, and Root base fields are not validated."
+QFCTM,Yes,Yes,COVERED,-,No ACS check required: allows controls and monitors to differ by PA space. No standalone ACS check is required.
+CZMFT,Yes,Yes,COVERED,-,No ACS check required: defines when a resource can be partitioned. Actual controls are checked only when implemented.
+XDZGT,Yes,Yes,COVERED,-,No ACS check required: describes possible RIS support for multiple resources. No standalone ACS check is required.
+HLHYS,Yes,Yes,COVERED,-,No ACS check required: lists optional standard partitioning interfaces. ACS checks only implemented interfaces.
+GVCBB,Yes,Yes,COVERED,partition001.c,Indirect: partitioning tests check IDR support bits before exercising each advertised control.
+KWGHQ,Yes,Yes,COVERED,"partition001.c, mem001.c","Indirect: CPOR and MBWPBM tests use portion/PBM width and allocation behavior, but do not directly assert every generic portion property."
+TZWJG,Yes,Yes,COVERED,feat001.c,Indirect: feat001 exercises PARTID enable/disable behavior; the global-to-MSC scope is not directly asserted.
+VFJMZ,Yes,Yes,COVERED,feat001.c,Direct: feat001 verifies that a disabled PARTID allocates no resource or receives the lowest priority.
+WFQFS,,,NOT_COVERED,-,Not testable: ACS cannot directly observe preserved hardware settings across PARTID disable/re-enable; behavior can only give indirect confidence.
+GMCWW,,,NOT_COVERED,-,"Gap: needs a direct test to disable and re-enable one PARTID, then verify the effect across all RIS values."
+CSLHH,,,NOT_COVERED,-,Gap: needs a direct PARTID narrowing test that disables a request PARTID and verifies the enabled status controls request behavior.
+QFRFQ,Yes,Yes,COVERED,-,No ACS check required: defines normal enabled-control behavior. Feature-specific tests cover the implemented controls.
+RNSLZ,Yes,Yes,COVERED,reg006.c,Direct: reg006 checks NFU is not implemented when PARTID narrowing is supported.
+NJXHP,,,NOT_COVERED,-,Not testable: boot/reset enable state across all PARTIDs and spaces is not directly testable after firmware handoff.
+XPPGG,Yes,Yes,COVERED,partition001.c,Direct: partition001 checks cache portion partitioning.
+ZVTKX,Yes,Yes,COVERED,partition001.c,Indirect: partition001 exercises PARTID-based cache portion allocation.
+RLHRV,Yes,Yes,COVERED,partition001.c,Indirect: partition001 programs CPOR through the generic portion-control model.
+ZRSRZ,Yes,Yes,COVERED,partition001.c,Indirect: partition001 exercises CPBM permission bits through CPOR allocation behavior.
+WMPLL,Yes,Yes,COVERED,partition001.c,Indirect: partition001 uses CPBM as the cache instance of the generic PBM model.
+LPLMM,,,NOT_COVERED,-,"Not testable: cache-line portion after CPBM change is internal, and both reallocation and retained misallocation are allowed."
+BDRCM,Yes,Yes,COVERED,partition004.c,Direct: partition004 checks cache associativity partitioning.
+ZHBXH,Yes,Yes,COVERED,partition002.c,Direct: partition002 checks cache maximum-capacity partitioning.
+SWNLN,Yes,Yes,COVERED,partition005.c,"Indirect: partition005 compares CMAX with SOFTLIM disabled/enabled, but does not directly prove unused capacity cannot be used above CMAX."
+VZBFH,Yes,Yes,COVERED,partition005.c,Direct: partition005 checks CMAX soft-limit behavior.
+CXZDR,Yes,Yes,COVERED,partition006.c,Direct: partition006 checks CMIN allocation-priority behavior.
+FRTVY,Yes,Yes,COVERED,partition006.c,"Indirect: feat001, partition005, and partition006 exercise priority inputs, but not as a standalone priority table check."
+DPZKC,Yes,Yes,COVERED,partition006.c,"Indirect: cache partition tests exercise allocation behavior, but do not directly assert each candidate-selection step."
+DKYDB,Yes,Yes,COVERED,mem001.c,Direct: mem001 configures MBWPBM portions and validates bandwidth partition behavior with MBWU counters.
+GYMDB,Yes,Yes,COVERED,mem001.c,Direct: mem001 programs BWPBM bits through MBWPBM configuration and validates permitted bandwidth behavior.
+CFHQL,Yes,Yes,COVERED,mem001.c,Indirect: mem001 validates BWPBM behavior as a PBM-style bandwidth portion control.
+HVRZS,Yes,Yes,COVERED,-,No ACS check required: lists optional bandwidth partitioning methods. ACS checks only methods that are implemented.
+WKZBJ,Yes,Yes,COVERED,"mem002.c, mem003.c","Indirect: mem002 and mem003 validate MBWMIN/MBWMAX fraction behavior, but not every bandwidth control type in the table."
+BPRDL,,,NOT_COVERED,-,Not testable: end-to-end bandwidth guarantee across concatenated MSCs is system-performance behavior that ACS cannot prove reliably.
+WRXBV,Yes,Yes,COVERED,mem002.c,Direct: mem002 programs MBWMIN under contention and validates bandwidth behavior with MBWU counters.
+NWVFK,Yes,Yes,COVERED,mem003.c,Direct: mem003 programs MBWMAX hard limits and validates bandwidth behavior with MBWU counters.
+PKRGZ,,,NOT_COVERED,-,Gap: needs a combined MBWMIN+MBWMAX test; current tests validate each control separately.
+VWHYW,Yes,Yes,COVERED,mem003.c,Indirect: mem002 and mem003 validate MBWMIN/MBWMAX behavior that relies on accounting-window tracking.
+PWSWQ,,,NOT_COVERED,-,Not testable: accounting-window carry-over is internal and implementation-dependent; ACS cannot reliably prove unused bandwidth does not accumulate.
+XSYFH,,,NOT_COVERED,-,Not testable: fixed accounting-window state is internal; ACS cannot reliably prove history clear and new-window behavior.
+ZQXQL,,,NOT_COVERED,-,"Gap: priority partitioning for same-preference conflicts is testable, but no current mapped test covers it."
+CMZNL,,,NOT_COVERED,-,Not testable: moving accounting-window history aging is internal; ACS cannot reliably prove request aging and removal behavior.
+PXSBS,Yes,Yes,COVERED,-,No ACS check required: allows implementation-defined bandwidth tracking methods. No standalone ACS check is required.
+ZDTLN,Yes,Yes,COVERED,-,No ACS check required: defines proportional stride as a generic proportional-control instance. No standalone ACS check is required.
+ZFCRG,,,NOT_COVERED,-,"Gap: hAS_PROP advertisement is testable through MPAMF_MBW_IDR, but no current mapped test covers it."
+TKBDC,,,NOT_COVERED,-,Gap: needs a combined proportional-stride + MBWMAX test; current tests cover MBWMAX only.
+MSPZM,,,NOT_COVERED,-,"Gap: different priorities per MSC are testable through priority controls, but no current mapped test covers them."
+JJKQP,,,NOT_COVERED,-,Not testable: upstream QoS priority arrival is fabric behavior. ACS cannot observe incoming interconnect priority signals.
+NGDBL,,,NOT_COVERED,-,Not testable: priority override affects internal MSC operation and downstream transport priority; ACS cannot directly observe it.
+MQRPH,Yes,Yes,COVERED,-,No ACS check required: internal priority partitioning is optional even when downstream priority exists. No mandatory ACS check.
+RZDSR,Yes,Yes,COVERED,-,No ACS check required: downstream priority partitioning is optional even when internal priority exists. No mandatory ACS check.
+MBNHC,,,NOT_COVERED,-,Not testable: response priority is downstream-to-upstream fabric behavior. ACS cannot directly observe response priority preservation.
+JPLMZ,Yes,Yes,COVERED,-,No ACS check required: implementation-defined controls cannot be interpreted generically by ACS. No standalone ACS check is required.
+DQTTD,Yes,Yes,COVERED,-,No ACS check required: PARTID narrowing support is optional. ACS checks narrowing behavior only if implemented.
+RNWBS,,,NOT_COVERED,-,Gap: PARTID narrowing coverage still needs dedicated work; no current test proves this behavior.
+GFYDF,,,NOT_COVERED,-,"Gap: iNTPARTID mapping programming is testable when narrowing exists, but no current mapped test covers it."
+WCQKV,Yes,Yes,COVERED,-,No ACS check required: defines monitor types. ACS checks monitors only when the corresponding monitor type is implemented.
+ZGGMX,Yes,Yes,COVERED,monitor001.c,Indirect: PARTID-based monitor tests use request PARTID filters; narrowing-specific behavior is not directly proven.
+TMCXJ,,,NOT_COVERED,-,"Gap: top-level monitor RIS 0 access is testable, but no current mapped monitor test covers it."
+YFMQP,Yes,Yes,COVERED,mem001.c,Direct: MBWU tests count payload bytes during memory workloads using MBWU monitor filters.
+DLSGF,,,NOT_COVERED,-,"Gap: mBWU capture-event behavior is testable if capture registers exist, but no current mapped test covers it."
+WHJQG,Yes,Yes,COVERED,monitor007.c,Direct: MBWU overflow tests prefill the counter near maximum and verify overflow behavior.
+VLSJS,,,NOT_COVERED,-,Gap: no current ACS test explicitly verifies that MBWU_L VALUE is unscaled.
+RYRQJ,Yes,Yes,COVERED,intr004.c,Direct: intr004 prefills MBWU_L near maximum and verifies long-counter overflow status/interrupt behavior.
+QGXSZ,,,NOT_COVERED,-,Gap: no current ACS test triggers a CSU capture event; reg003 only rejects prohibited overflow-capture capability.
+VJDKF,Yes,Yes,COVERED,"monitor001.c, mem001.c",Indirect: CSU and MBWU monitor tests read monitor VALUE only when NRDY is clear; no standalone structural check covers every monitor instance.
+DSCQB,Yes,Yes,COVERED,"monitor005.c, monitor008.c",Indirect: MBWU tests verify VALUE advances/resumes and CSU tests read/write VALUE; no single test covers all VALUE-field behaviors.
+FWCFZ,Yes,Yes,COVERED,monitor008.c,Direct: monitor008 writes MBWU VALUE to zero and verifies the counter resumes advancing after new traffic.
+PVNHR,Yes,Yes,COVERED,monitor007.c,Direct: overflow tests write MBWU VALUE near maximum and verify hardware traffic advances the counter.
+KCWDZ,Yes,Yes,COVERED,-,No ACS check required: monitor registers are permitted to be RO. No check is needed unless RW behavior is advertised.
+XLWYW,Yes,Yes,COVERED,-,No ACS check required: rW monitor reprogramming without disable is permitted. No mandatory ACS behavior to check.
+GKWNB,Yes,Yes,COVERED,monitor001.c,Indirect: CSU monitor tests reprogram PMG/PARTID criteria on the same monitor and continue reading VALUE after new traffic.
+LRTGP,,,NOT_COVERED,-,Not testable: nRDY=1 after settings update can be too transient to observe reliably in ACS execution.
+NXKSF,Yes,Yes,COVERED,monitor007.c,Direct: MBWU monitor tests fail if the monitor remains not-ready after update/wait paths.
+FVFYC,Yes,Yes,COVERED,-,No ACS check required: automatic NRDY clear is not required for event monitors. No mandatory ACS check.
+ZTXDS,Yes,Yes,COVERED,-,No ACS check required: software-defined NRDY use is permitted when automatic update is absent. No mandatory ACS check.
+VBZTW,Yes,Yes,COVERED,monitor007.c,Direct: MBWU monitor tests wait MAX_NRDY_USEC and fail if NRDY remains set when the value is read.
+FZHDC,,,NOT_COVERED,-,Gap: needs a capture-event test that reads the capture register NRDY copy and verifies monitor NRDY resets to 0 after capture.
+YFVPY,,,NOT_COVERED,-,Gap: needs capture-event tests across monitor instances and capture registers; current tests only check prohibited capture capability.
+NKTBN,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies immediate capture completion.
+NWKJR,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies external capture distribution.
+SQSMV,Yes,Yes,COVERED,-,No ACS check required: capture reset after copy is permitted but not required. No mandatory ACS check.
+WQJKV,Yes,Yes,COVERED,monitor007.c,Direct: MBWU overflow tests drive VALUE past max and verify OFLOW_STATUS or OFLOW_STATUS_L is set.
+XZXVK,Yes,Yes,COVERED,monitor007.c,"Indirect: monitor007 verifies post-overflow counter freeze/advance behavior, but does not directly assert the wrapped VALUE."
+NDMMK,Yes,Yes,COVERED,monitor008.c,Direct: monitor008 clears OFLOW_STATUS through MSMON_CFG_MBWU_CTL and fails if the status remains set.
+VBBTL,Yes,Yes,COVERED,"monitor005.c, monitor006.c","Direct: monitor tests disable the monitor, update MSMON_CFG control/value state, and verify the written state is usable."
+XSTRM,Yes,Yes,COVERED,monitor007.c,Direct: monitor007 checks configurable monitor overflow behavior.
+JCNST,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies linked capture-on-overflow behavior.
+DFWFP,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies capture events stay local to one MSC.
+GNQFY,Yes,Yes,COVERED,monitor008.c,Direct: monitor008 checks overflow status reset when monitor VALUE is written.
+MGGJW,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies external capture distribution to all PARTID spaces.
+HXNGD,,,NOT_COVERED,-,Gap: capture feature coverage is pending; no current ACS test verifies local capture distribution across address spaces.
+RPGBQ,Yes,Yes,COVERED,-,No ACS check required: overflow linkage event is permitted for monitor types without capture-on-overflow. No mandatory ACS check.
+MTGGZ,,,NOT_COVERED,-,Gap: capture feature coverage is pending; current OFLOW_FRZ test does not verify freeze caused by a capture event.
+DYNFP,Yes,Yes,COVERED,error014.c,"Indirect: error014 triggers a second MPAM error after the first and verifies ESR updates, showing continued MSC error handling."
+WHSLQ,Yes,Yes,COVERED,"error001.c, error003.c, error005.c, error008.c, error010.c, error014.c","Indirect: error tests validate multiple MPAMF_ESR ERRCODE table entries and selected captured fields, but not every table row or security-state case."
+GVBGS,Yes,Yes,COVERED,error014.c,Direct: error014 generates a second MPAM error before clearing ESR and verifies ERRCODE updates.
+QBKDG,Yes,Yes,COVERED,error013.c,Direct: error013 checks MPAMF_ESR.RIS reports the selector RIS that caused the error.
+DLSCZ,Yes,Yes,COVERED,error001.c,Direct: error001 checks out-of-range PARTID_SEL error behavior.
+ZWRQW,Yes,Yes,COVERED,error003.c,Direct: error003 checks MPAMCFG access behavior with out-of-range PARTID_SEL.
+VKKDP,Yes,Yes,COVERED,error008.c,Direct: error008 checks undefined RIS handling in MPAMCFG_PART_SEL.
+XTQZR,Yes,Yes,COVERED,"error012.c, error013.c","Direct: error012 reads MPAMF_IDR with undefined RIS, and error013 reads MPAMCFG after programming undefined RIS."
+XDCDL,Yes,Yes,COVERED,error008.c,Direct: error008 checks undefined MPAMCFG_PART_SEL.RIS access and accepts ERRCODE 8 or RAZ/WI behavior.
+JMLNM,,,NOT_COVERED,-,"Not testable: read value is architecturally UNKNOWN for these error cases, so ACS cannot validate a required value."
+XMLDN,,,NOT_COVERED,-,"Not testable: resulting control setting is architecturally UNKNOWN for these write-error cases, so ACS cannot validate a required value."
+VMTBP,Yes,Yes,COVERED,error005.c,Direct: error005 checks out-of-range monitor selector error behavior.
+WXKWK,,,NOT_COVERED,-,"Not testable: read value is architecturally UNKNOWN for out-of-range MON_SEL, so ACS cannot validate a required value."
+MGXDK,,,NOT_COVERED,-,"Not testable: post-write behavior is implementation-defined with UNKNOWN selector or WI, so ACS cannot validate one required result."
+HJRZC,Yes,Yes,COVERED,error010.c,Direct: error010 checks undefined RIS handling in MSMON_CFG_MON_SEL.
+SQTSJ,Yes,Yes,COVERED,error010.c,Direct: error010 validates ERRCODE 10 for undefined MSMON_CFG_MON_SEL.RIS; read value is UNKNOWN and not directly assertable.
+VZWYW,,,NOT_COVERED,-,"Gap: needs a test that programs undefined MSMON_CFG_MON_SEL.RIS, then writes another MSMON register and checks ERRCODE 10 or allowed write behavior."
+PNPQQ,Yes,Yes,COVERED,"error001.c, error003.c, error005.c",Indirect: implemented error tests exercise required reporting for selected supported error conditions.
+SJFMB,Yes,Yes,COVERED,-,No ACS check required: hAS_ESR may be zero when no reportable errors exist. No standalone ACS check is required.
+VYLZC,Yes,Yes,COVERED,-,No ACS check required: defines selector types used by later error rules. No standalone ACS check is required.
+QBQJG,Yes,Yes,COVERED,-,No ACS check required: selector truncation behavior is permitted. ACS only checks invalid selector reporting when required.
+PFNBV,Yes,Yes,COVERED,error001.c,Indirect: out-of-range selector tests indirectly exercise invalid selector detection.
+CZZZK,Yes,Yes,COVERED,error007.c,Direct: error007 checks Unexpected INTERNAL error reporting when PARTID narrowing is supported.
+HVNKJ,Yes,Yes,COVERED,-,No ACS check required: lists possible MPAM interrupt sources. ACS checks only implemented interrupt behavior.
+TMMMD,Yes,Yes,COVERED,-,No ACS check required: four-space MSC choice of Secure or Non-secure error interrupt is permitted. No mandatory ACS check.
+QDSPY,Yes,Yes,COVERED,-,No ACS check required: applies when no reportable error can occur or detection is optional. No standalone ACS check is required.
+PPJSM,Yes,Yes,COVERED,-,No ACS check required: error interrupt type may be level-sensitive or edge-triggered. ACS checks the implemented type.
+GLPPK,Yes,Yes,COVERED,intr001.c,Direct: intr001 checks level-sensitive error interrupt behavior.
+NRGQD,,,NOT_COVERED,-,"Gap: level-sensitive error interrupt must not use MSI. This is testable if interrupt type is discoverable, but no current mapped test covers it."
+KVGWS,Yes,Yes,COVERED,intr002.c,Direct: intr002 checks edge-triggered error interrupt behavior.
+KVHTZ,,,NOT_COVERED,-,"Gap: mSI error interrupt requiring edge-triggered behavior is testable, but no current mapped test covers it."
+ZRDMM,Yes,Yes,COVERED,-,No ACS check required: overflow interrupt support is optional. ACS checks overflow interrupts only if implemented.
+YLCVK,Yes,Yes,COVERED,intr003.c,Direct: intr003 checks overflow interrupt generation conditions.
+YJCDR,Yes,Yes,COVERED,intr005.c,Direct: intr005 checks MSI overflow interrupt edge-triggered requirement.
+YVSNK,,,NOT_COVERED,-,"Gap: mSMON_OFLOW_SR summary behavior is testable if implemented, but no current mapped test covers it."
+JLYJJ,Yes,Yes,COVERED,reg001.c,Indirect: reg001.c is used as a representative simple MMR access test. It discovers MSCs and reads memory-mapped MPAM registers.
+MBDJF,,,NOT_COVERED,-,Not testable: 32-bit MMR single-copy atomicity is a bus atomicity property that ACS cannot prove reliably.
+LVCGQ,Yes,Yes,COVERED,-,No ACS check required: greater-than-32-bit MMR atomicity is not required. No ACS check is needed.
+DMKKT,,,NOT_COVERED,-,"Not testable: locks are per PARTID space. Non-secure ACS cannot verify locks in Secure, Realm, or Root spaces."
+VTFQK,Yes,Yes,COVERED,-,No ACS check required: monitor locks may be separate or shared with partition locks. Both designs are permitted.
+CTGKD,,,NOT_COVERED,-,"Not testable: monitor locks are per PARTID space. Non-secure ACS cannot verify locks in Secure, Realm, or Root spaces."
+RDMVJ,Yes,Yes,COVERED,-,No ACS check required: implementation-defined MMRs are permitted above offset 0x3000. No mandatory ACS check.
+KNNBY,Yes,Yes,COVERED,reg001.c,Indirect: reg001.c is used as a representative MPAM feature-page register access test. Reserved/unimplemented register locations are not exhaustively probed.
+ZPWLC,Yes,Yes,COVERED,reg001.c,Indirect: reg001.c is used as a representative Non-secure feature-page access test. Other PA-space feature pages are not accessible to ACS.
+DYDFT,Yes,Yes,COVERED,reg001.c,"Indirect: reg001.c is used as a representative Non-secure feature-page base access test. Secure, Realm, and Root bases cannot be validated from Non-secure ACS."
+HXLMF,Yes,Yes,COVERED,-,No ACS check required: different feature-page base addresses are permitted and overlap avoidance is a recommendation. No mandatory ACS check.
+QCYPH,,,NOT_COVERED,-,"Gap: feature-page alignment and containment are testable from platform data, but no current mapped test covers them."
+FLWNK,Yes,Yes,COVERED,-,No ACS check required: non-MPAM MMR placement in the feature page is permitted only for trapped MMRs. No mandatory ACS check.
+GTKCX,Yes,Yes,COVERED,reg001.c,Indirect: all SYS-MPAM MMR-based tests require the Non-secure MPAM feature page to exist.
+DFBBW,,,NOT_COVERED,-,Not testable: secure feature page existence cannot be verified from Non-secure ACS execution.
+FYTQL,,,NOT_COVERED,-,Not testable: realm and Root feature pages cannot be verified from Non-secure ACS execution.
+KZBWG,Yes,Yes,COVERED,-,No ACS check required: rO MMR sharing across security states is permitted when contents match. ACS cannot and need not check sharing.
+YCBKB,Yes,Yes,COVERED,"partition004.c, mem001.c",Indirect: PBM partitioning tests program CPBM/MBWPBM words using IDR widths and PBM offsets.
+TVYHS,,,NOT_COVERED,-,"Gap: unused PBM bits being RES0 is testable, but no current mapped test covers it."
+RJFKG,Yes,Yes,COVERED,"partition005.c, mem002.c","Indirect: fractional partitioning helpers program values using percentage minus one lsb, and tests validate resulting behavior."
+FKNKB,Yes,Yes,COVERED,"partition006.c, feat001.c",Direct: tests program 100 percent controls and disable PARTIDs through MPAMCFG_DIS.PARTID.

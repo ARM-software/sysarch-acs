@@ -1,0 +1,2582 @@
+{
+  "metadata": {
+    "title": "SYS-MPAM Rule Coverage Checklist",
+    "architecture": "SYS-MPAM",
+    "rule_order": "SYS-MPAM architecture specification order",
+    "source": "SYS-MPAM architecture specification",
+    "total_rules": 213,
+    "csv_download_label": "Download SYS-MPAM testcase checklist CSV",
+    "status_order": [
+      "COVERED",
+      "NOT_COVERED"
+    ],
+    "platforms": [
+      "BM",
+      "UEFI"
+    ]
+  },
+  "status_definitions": {
+    "COVERED": {
+      "meaning": "Rule is closed for ACS coverage: directly covered, indirectly covered, or no standalone ACS check is required. See Notes for the reason."
+    },
+    "NOT_COVERED": {
+      "meaning": "Rule is not closed by ACS coverage. It is either not testable by ACS or is a coverage gap. See Notes for the reason."
+    }
+  },
+  "rules": [
+    {
+      "rule_id": "BDJXQ",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c"
+      ],
+      "notes": "Indirect: monitor001 programs request PARTID and PMG and verifies monitor accounting distinguishes the labels.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DDGSM",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: MSC may implement zero or more resource controls. ACS checks controls only when discovered.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RBCMK",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: MSC may implement zero or more monitors. ACS checks monitors only when discovered.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CFXGZ",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Direct: reg001 checks MPAM version EXT bit behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FXVBB",
+      "status": "COVERED",
+      "tests": [
+        "reg004.c"
+      ],
+      "notes": "Direct: reg004 checks MPAM-for-RME feature requirements.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LRZGD",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: different MPAM architecture versions may coexist. ACS validates each discovered MSC against its advertised version.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PBSTK",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: base memory behavior rules always apply. No separate SYS-MPAM ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KXMHB",
+      "status": "COVERED",
+      "tests": [
+        "reg004.c"
+      ],
+      "notes": "Indirect: non-secure PARTID space is exercised by ACS. Secure, Realm, and Root spaces cannot be directly validated from Non-secure execution.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CZHSY",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot compare the same PARTID across Secure, Non-secure, Root, and Realm PARTID spaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RBWRS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot access all PARTID spaces to prove each PARTID scope is space-local.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QKQCF",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: Default PARTID 0 is architecturally defined; labeling non-MPAM requesters with it is permitted, not mandatory.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CZSZX",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot observe non-MPAM requester labeling to prove Default PMG 0 is used.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NVNHD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: requester-generation mechanism is system-wide. ACS cannot prove every PE, SMMU, GIC, and non-PE requester path.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SLJDR",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: non-PE requester-generated PARTID space, PARTID, and PMG values are not directly observable by ACS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VNVMD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: non-MPAM requester default/system-specific labeling is not directly controllable or observable by ACS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SJFGX",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: terminating completer has no downstream MPAM propagation to observe. No ACS runtime check is needed.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YPHLH",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: intermediate forwarding of MPAM information is fabric behavior. ACS cannot observe the downstream bundle directly.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RZCWR",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: buffered-request MPAM retention is internal. ACS cannot force or inspect a buffered request path.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MRWWK",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: conditional cache-internal storage rule. ACS checks observable controls and monitors when present.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XPPBS",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: cache partition tests exercise MSC response to request MPAM information.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CWTSC",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partition tests exercise per-PARTID control lookup from request MPAM information.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JWKJD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: cache-line MPAM metadata is internal. ACS cannot inspect the PARTID associated with each line.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SGBFN",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: cache eviction metadata is internal. ACS cannot prove PARTID preservation from inner to outer cache.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZTFBQ",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative simple MMR access test. It uses the common MSC discovery/configuration path, including integrated PE MSCs if discovered.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JGWSM",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative Non-secure MMR access test. Secure, Realm, and Root PA spaces are not directly accessible to ACS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LRNPR",
+      "status": "COVERED",
+      "tests": [
+        "reg005.c"
+      ],
+      "notes": "Indirect: reg004/reg005 check visible MPAM-for-RME and four-space capability.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VBHPB",
+      "status": "COVERED",
+      "tests": [
+        "reg004.c"
+      ],
+      "notes": "Indirect: reg004/reg005 cover visible PE/MSC capability; Non-secure traffic exercises Non-secure MPAM_SP propagation.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WZXPM",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative Non-secure MPAM access test. ACS cannot directly observe MPAM_NS signal propagation or Secure-side traffic.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CBBRW",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot generate Secure traffic or check reserved Secure PARTID-space encodings.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CNQCS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot observe 4-to-2 bridge reduction from Root/Realm MPAM_SP to MPAM_NS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "BHHCR",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot observe whether a 4-to-2 bridge uses static or dynamic reduction.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "BSLZQ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot observe 2-to-4 bridge expansion from MPAM_NS to MPAM_SP.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WBZST",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot prove bridge preservation of physical address space and PARTID space.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YWPPT",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: design statement for true two-space components. No separate ACS runtime check is needed.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "BNKHP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: mAP4SPTO2SP is Root PA-space only; Non-secure ACS cannot verify Root-only access.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KFDFD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: external mapping register is Root PA-space only; Non-secure ACS cannot verify Root-only access.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XRQHH",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot observe fixed MPAM_SP to MPAM_NS bridge signal mapping.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VKQKB",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot identify or control all non-MPAM components to prove they do not propagate MPAM information.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TTSLQ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS does not control SMMU-attached requester traffic or observe its PARTID-space use.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RGSJV",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: completer interface behavior. ACS cannot observe whether MPAM information was dropped before a non-MPAM completer.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MFRGP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: interconnect transport behavior. ACS cannot directly observe MPAM information on fabric links.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CYKPC",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: cache-line MPAM metadata is internal. ACS cannot inspect whether allocated lines store the request MPAM information.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KPNNZ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: cache eviction propagation behavior. ACS cannot observe MPAM metadata passed with evicted cache lines.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JXRZM",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c"
+      ],
+      "notes": "Direct: CSUMON tests check cache-storage usage monitoring when implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RHYKB",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c"
+      ],
+      "notes": "Direct: CSUMON PMG/PARTID filter tests check cache-storage accounting for matching criteria.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LQQJN",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: write-hit cache-line association is implementation-specific and cache-internal; ACS cannot observe the chosen association.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KBJPW",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: write-hit portion update is permitted but not required, so there is no mandatory ACS behavior to check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YBYPZ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: reset/default-state behavior. SYS-MPAM ACS does not need a runtime check unless MPAM controls are discovered after boot.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CNGYT",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Direct: cache partitioning tests use CSU measurement to validate capacity-based partitioning behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HHQWY",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Direct: RIS tests exercise resource/control discovery and RIS-based control or monitor selection.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WSXSL",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c",
+        "error008.c"
+      ],
+      "notes": "Direct: partitioning and RIS tests exercise common resource-control selection using PARTID and RIS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YQBMW",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Direct: RIS tests exercise resource-instance selection and RIS-based control/monitor behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YXZFG",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Indirect: RIS tests rely on discovered RIS values, but uniqueness is not the primary assertion.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DQNFB",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Indirect: RIS tests use RIS values in the 0..RIS_MAX range, but sparse assignment is not the primary assertion.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YGZYL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: common controls can only be inferred when advertised at RIS 0. If identical controls appear for all RIS values, ACS cannot prove whether they are common or per-resource.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PLZWM",
+      "status": "COVERED",
+      "tests": [
+        "error009.c"
+      ],
+      "notes": "Indirect: error009 exercises RIS no-control behavior, which covers unsupported non-zero RIS paths for partition controls.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DNNTB",
+      "status": "COVERED",
+      "tests": [
+        "error010.c"
+      ],
+      "notes": "Direct: monitor RIS tests use MSMON_CFG_MON_SEL.RIS to select resource-instance monitors.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LXXDB",
+      "status": "COVERED",
+      "tests": [
+        "error010.c"
+      ],
+      "notes": "Indirect: monitor RIS tests exercise RIS selection and unsupported monitor RIS paths; unassociated-monitor RIS 0 is not separately asserted.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MRZLG",
+      "status": "COVERED",
+      "tests": [
+        "error008.c",
+        "error010.c"
+      ],
+      "notes": "Indirect: RIS tests use RIS_MAX and undefined RIS paths, but do not directly assert every permitted RIS decode rule.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NPVVN",
+      "status": "COVERED",
+      "tests": [
+        "error008.c",
+        "error009.c",
+        "error010.c",
+        "error011.c"
+      ],
+      "notes": "Direct: RIS error tests validate undefined RIS, no-control, and no-monitor selected-resource cases.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HSFKH",
+      "status": "COVERED",
+      "tests": [
+        "error012.c"
+      ],
+      "notes": "Direct: error012 checks ID register HAS fields read zero and no ESR error for undefined RIS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XRHKL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: virtual PARTID resolution happens before the MSC. ACS cannot observe the pre-resolution virtual PARTID path.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GDMQZ",
+      "status": "COVERED",
+      "tests": [
+        "reg005.c"
+      ],
+      "notes": "Direct: reg005 checks MSC four-space capability when MPAM for RME is supported.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MMXWZ",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative MMR access test using MPAMF_BASE_ns from ACPI/platform data. Secure, Realm, and Root base fields are not validated.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QFCTM",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: allows controls and monitors to differ by PA space. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CZMFT",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: defines when a resource can be partitioned. Actual controls are checked only when implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XDZGT",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: describes possible RIS support for multiple resources. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HLHYS",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: lists optional standard partitioning interfaces. ACS checks only implemented interfaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GVCBB",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partitioning tests check IDR support bits before exercising each advertised control.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KWGHQ",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c",
+        "mem001.c"
+      ],
+      "notes": "Indirect: CPOR and MBWPBM tests use portion/PBM width and allocation behavior, but do not directly assert every generic portion property.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TZWJG",
+      "status": "COVERED",
+      "tests": [
+        "feat001.c"
+      ],
+      "notes": "Indirect: feat001 exercises PARTID enable/disable behavior; the global-to-MSC scope is not directly asserted.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VFJMZ",
+      "status": "COVERED",
+      "tests": [
+        "feat001.c"
+      ],
+      "notes": "Direct: feat001 verifies that a disabled PARTID allocates no resource or receives the lowest priority.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WFQFS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: ACS cannot directly observe preserved hardware settings across PARTID disable/re-enable; behavior can only give indirect confidence.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GMCWW",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a direct test to disable and re-enable one PARTID, then verify the effect across all RIS values.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CSLHH",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a direct PARTID narrowing test that disables a request PARTID and verifies the enabled status controls request behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QFRFQ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: defines normal enabled-control behavior. Feature-specific tests cover the implemented controls.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RNSLZ",
+      "status": "COVERED",
+      "tests": [
+        "reg006.c"
+      ],
+      "notes": "Direct: reg006 checks NFU is not implemented when PARTID narrowing is supported.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NJXHP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: boot/reset enable state across all PARTIDs and spaces is not directly testable after firmware handoff.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XPPGG",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Direct: partition001 checks cache portion partitioning.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZVTKX",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partition001 exercises PARTID-based cache portion allocation.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RLHRV",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partition001 programs CPOR through the generic portion-control model.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZRSRZ",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partition001 exercises CPBM permission bits through CPOR allocation behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WMPLL",
+      "status": "COVERED",
+      "tests": [
+        "partition001.c"
+      ],
+      "notes": "Indirect: partition001 uses CPBM as the cache instance of the generic PBM model.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LPLMM",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: cache-line portion after CPBM change is internal, and both reallocation and retained misallocation are allowed.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "BDRCM",
+      "status": "COVERED",
+      "tests": [
+        "partition004.c"
+      ],
+      "notes": "Direct: partition004 checks cache associativity partitioning.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZHBXH",
+      "status": "COVERED",
+      "tests": [
+        "partition002.c"
+      ],
+      "notes": "Direct: partition002 checks cache maximum-capacity partitioning.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SWNLN",
+      "status": "COVERED",
+      "tests": [
+        "partition005.c"
+      ],
+      "notes": "Indirect: partition005 compares CMAX with SOFTLIM disabled/enabled, but does not directly prove unused capacity cannot be used above CMAX.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VZBFH",
+      "status": "COVERED",
+      "tests": [
+        "partition005.c"
+      ],
+      "notes": "Direct: partition005 checks CMAX soft-limit behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CXZDR",
+      "status": "COVERED",
+      "tests": [
+        "partition006.c"
+      ],
+      "notes": "Direct: partition006 checks CMIN allocation-priority behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FRTVY",
+      "status": "COVERED",
+      "tests": [
+        "partition006.c"
+      ],
+      "notes": "Indirect: feat001, partition005, and partition006 exercise priority inputs, but not as a standalone priority table check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DPZKC",
+      "status": "COVERED",
+      "tests": [
+        "partition006.c"
+      ],
+      "notes": "Indirect: cache partition tests exercise allocation behavior, but do not directly assert each candidate-selection step.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DKYDB",
+      "status": "COVERED",
+      "tests": [
+        "mem001.c"
+      ],
+      "notes": "Direct: mem001 configures MBWPBM portions and validates bandwidth partition behavior with MBWU counters.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GYMDB",
+      "status": "COVERED",
+      "tests": [
+        "mem001.c"
+      ],
+      "notes": "Direct: mem001 programs BWPBM bits through MBWPBM configuration and validates permitted bandwidth behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CFHQL",
+      "status": "COVERED",
+      "tests": [
+        "mem001.c"
+      ],
+      "notes": "Indirect: mem001 validates BWPBM behavior as a PBM-style bandwidth portion control.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HVRZS",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: lists optional bandwidth partitioning methods. ACS checks only methods that are implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WKZBJ",
+      "status": "COVERED",
+      "tests": [
+        "mem002.c",
+        "mem003.c"
+      ],
+      "notes": "Indirect: mem002 and mem003 validate MBWMIN/MBWMAX fraction behavior, but not every bandwidth control type in the table.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "BPRDL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: end-to-end bandwidth guarantee across concatenated MSCs is system-performance behavior that ACS cannot prove reliably.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WRXBV",
+      "status": "COVERED",
+      "tests": [
+        "mem002.c"
+      ],
+      "notes": "Direct: mem002 programs MBWMIN under contention and validates bandwidth behavior with MBWU counters.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NWVFK",
+      "status": "COVERED",
+      "tests": [
+        "mem003.c"
+      ],
+      "notes": "Direct: mem003 programs MBWMAX hard limits and validates bandwidth behavior with MBWU counters.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PKRGZ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a combined MBWMIN+MBWMAX test; current tests validate each control separately.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VWHYW",
+      "status": "COVERED",
+      "tests": [
+        "mem003.c"
+      ],
+      "notes": "Indirect: mem002 and mem003 validate MBWMIN/MBWMAX behavior that relies on accounting-window tracking.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PWSWQ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: accounting-window carry-over is internal and implementation-dependent; ACS cannot reliably prove unused bandwidth does not accumulate.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XSYFH",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: fixed accounting-window state is internal; ACS cannot reliably prove history clear and new-window behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZQXQL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: priority partitioning for same-preference conflicts is testable, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CMZNL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: moving accounting-window history aging is internal; ACS cannot reliably prove request aging and removal behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PXSBS",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: allows implementation-defined bandwidth tracking methods. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZDTLN",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: defines proportional stride as a generic proportional-control instance. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZFCRG",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: hAS_PROP advertisement is testable through MPAMF_MBW_IDR, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TKBDC",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a combined proportional-stride + MBWMAX test; current tests cover MBWMAX only.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MSPZM",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: different priorities per MSC are testable through priority controls, but no current mapped test covers them.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JJKQP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: upstream QoS priority arrival is fabric behavior. ACS cannot observe incoming interconnect priority signals.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NGDBL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: priority override affects internal MSC operation and downstream transport priority; ACS cannot directly observe it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MQRPH",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: internal priority partitioning is optional even when downstream priority exists. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RZDSR",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: downstream priority partitioning is optional even when internal priority exists. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MBNHC",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: response priority is downstream-to-upstream fabric behavior. ACS cannot directly observe response priority preservation.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JPLMZ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: implementation-defined controls cannot be interpreted generically by ACS. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DQTTD",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: PARTID narrowing support is optional. ACS checks narrowing behavior only if implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RNWBS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: PARTID narrowing coverage still needs dedicated work; no current test proves this behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GFYDF",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: iNTPARTID mapping programming is testable when narrowing exists, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WCQKV",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: defines monitor types. ACS checks monitors only when the corresponding monitor type is implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZGGMX",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c"
+      ],
+      "notes": "Indirect: PARTID-based monitor tests use request PARTID filters; narrowing-specific behavior is not directly proven.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TMCXJ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: top-level monitor RIS 0 access is testable, but no current mapped monitor test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YFMQP",
+      "status": "COVERED",
+      "tests": [
+        "mem001.c"
+      ],
+      "notes": "Direct: MBWU tests count payload bytes during memory workloads using MBWU monitor filters.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DLSGF",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: mBWU capture-event behavior is testable if capture registers exist, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WHJQG",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: MBWU overflow tests prefill the counter near maximum and verify overflow behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VLSJS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: no current ACS test explicitly verifies that MBWU_L VALUE is unscaled.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RYRQJ",
+      "status": "COVERED",
+      "tests": [
+        "intr004.c"
+      ],
+      "notes": "Direct: intr004 prefills MBWU_L near maximum and verifies long-counter overflow status/interrupt behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QGXSZ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: no current ACS test triggers a CSU capture event; reg003 only rejects prohibited overflow-capture capability.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VJDKF",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c",
+        "mem001.c"
+      ],
+      "notes": "Indirect: CSU and MBWU monitor tests read monitor VALUE only when NRDY is clear; no standalone structural check covers every monitor instance.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DSCQB",
+      "status": "COVERED",
+      "tests": [
+        "monitor005.c",
+        "monitor008.c"
+      ],
+      "notes": "Indirect: MBWU tests verify VALUE advances/resumes and CSU tests read/write VALUE; no single test covers all VALUE-field behaviors.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FWCFZ",
+      "status": "COVERED",
+      "tests": [
+        "monitor008.c"
+      ],
+      "notes": "Direct: monitor008 writes MBWU VALUE to zero and verifies the counter resumes advancing after new traffic.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PVNHR",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: overflow tests write MBWU VALUE near maximum and verify hardware traffic advances the counter.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KCWDZ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: monitor registers are permitted to be RO. No check is needed unless RW behavior is advertised.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XLWYW",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: rW monitor reprogramming without disable is permitted. No mandatory ACS behavior to check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GKWNB",
+      "status": "COVERED",
+      "tests": [
+        "monitor001.c"
+      ],
+      "notes": "Indirect: CSU monitor tests reprogram PMG/PARTID criteria on the same monitor and continue reading VALUE after new traffic.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LRTGP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: nRDY=1 after settings update can be too transient to observe reliably in ACS execution.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NXKSF",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: MBWU monitor tests fail if the monitor remains not-ready after update/wait paths.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FVFYC",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: automatic NRDY clear is not required for event monitors. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZTXDS",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: software-defined NRDY use is permitted when automatic update is absent. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VBZTW",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: MBWU monitor tests wait MAX_NRDY_USEC and fail if NRDY remains set when the value is read.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FZHDC",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a capture-event test that reads the capture register NRDY copy and verifies monitor NRDY resets to 0 after capture.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YFVPY",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs capture-event tests across monitor instances and capture registers; current tests only check prohibited capture capability.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NKTBN",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies immediate capture completion.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NWKJR",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies external capture distribution.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SQSMV",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: capture reset after copy is permitted but not required. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WQJKV",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: MBWU overflow tests drive VALUE past max and verify OFLOW_STATUS or OFLOW_STATUS_L is set.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XZXVK",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Indirect: monitor007 verifies post-overflow counter freeze/advance behavior, but does not directly assert the wrapped VALUE.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NDMMK",
+      "status": "COVERED",
+      "tests": [
+        "monitor008.c"
+      ],
+      "notes": "Direct: monitor008 clears OFLOW_STATUS through MSMON_CFG_MBWU_CTL and fails if the status remains set.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VBBTL",
+      "status": "COVERED",
+      "tests": [
+        "monitor005.c",
+        "monitor006.c"
+      ],
+      "notes": "Direct: monitor tests disable the monitor, update MSMON_CFG control/value state, and verify the written state is usable.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XSTRM",
+      "status": "COVERED",
+      "tests": [
+        "monitor007.c"
+      ],
+      "notes": "Direct: monitor007 checks configurable monitor overflow behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JCNST",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies linked capture-on-overflow behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DFWFP",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies capture events stay local to one MSC.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GNQFY",
+      "status": "COVERED",
+      "tests": [
+        "monitor008.c"
+      ],
+      "notes": "Direct: monitor008 checks overflow status reset when monitor VALUE is written.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MGGJW",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies external capture distribution to all PARTID spaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HXNGD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; no current ACS test verifies local capture distribution across address spaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RPGBQ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: overflow linkage event is permitted for monitor types without capture-on-overflow. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MTGGZ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: capture feature coverage is pending; current OFLOW_FRZ test does not verify freeze caused by a capture event.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DYNFP",
+      "status": "COVERED",
+      "tests": [
+        "error014.c"
+      ],
+      "notes": "Indirect: error014 triggers a second MPAM error after the first and verifies ESR updates, showing continued MSC error handling.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WHSLQ",
+      "status": "COVERED",
+      "tests": [
+        "error001.c",
+        "error003.c",
+        "error005.c",
+        "error008.c",
+        "error010.c",
+        "error014.c"
+      ],
+      "notes": "Indirect: error tests validate multiple MPAMF_ESR ERRCODE table entries and selected captured fields, but not every table row or security-state case.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GVBGS",
+      "status": "COVERED",
+      "tests": [
+        "error014.c"
+      ],
+      "notes": "Direct: error014 generates a second MPAM error before clearing ESR and verifies ERRCODE updates.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QBKDG",
+      "status": "COVERED",
+      "tests": [
+        "error013.c"
+      ],
+      "notes": "Direct: error013 checks MPAMF_ESR.RIS reports the selector RIS that caused the error.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DLSCZ",
+      "status": "COVERED",
+      "tests": [
+        "error001.c"
+      ],
+      "notes": "Direct: error001 checks out-of-range PARTID_SEL error behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZWRQW",
+      "status": "COVERED",
+      "tests": [
+        "error003.c"
+      ],
+      "notes": "Direct: error003 checks MPAMCFG access behavior with out-of-range PARTID_SEL.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VKKDP",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Direct: error008 checks undefined RIS handling in MPAMCFG_PART_SEL.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XTQZR",
+      "status": "COVERED",
+      "tests": [
+        "error012.c",
+        "error013.c"
+      ],
+      "notes": "Direct: error012 reads MPAMF_IDR with undefined RIS, and error013 reads MPAMCFG after programming undefined RIS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XDCDL",
+      "status": "COVERED",
+      "tests": [
+        "error008.c"
+      ],
+      "notes": "Direct: error008 checks undefined MPAMCFG_PART_SEL.RIS access and accepts ERRCODE 8 or RAZ/WI behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JMLNM",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: read value is architecturally UNKNOWN for these error cases, so ACS cannot validate a required value.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "XMLDN",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: resulting control setting is architecturally UNKNOWN for these write-error cases, so ACS cannot validate a required value.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VMTBP",
+      "status": "COVERED",
+      "tests": [
+        "error005.c"
+      ],
+      "notes": "Direct: error005 checks out-of-range monitor selector error behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "WXKWK",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: read value is architecturally UNKNOWN for out-of-range MON_SEL, so ACS cannot validate a required value.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MGXDK",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: post-write behavior is implementation-defined with UNKNOWN selector or WI, so ACS cannot validate one required result.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HJRZC",
+      "status": "COVERED",
+      "tests": [
+        "error010.c"
+      ],
+      "notes": "Direct: error010 checks undefined RIS handling in MSMON_CFG_MON_SEL.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SQTSJ",
+      "status": "COVERED",
+      "tests": [
+        "error010.c"
+      ],
+      "notes": "Direct: error010 validates ERRCODE 10 for undefined MSMON_CFG_MON_SEL.RIS; read value is UNKNOWN and not directly assertable.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VZWYW",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: needs a test that programs undefined MSMON_CFG_MON_SEL.RIS, then writes another MSMON register and checks ERRCODE 10 or allowed write behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PNPQQ",
+      "status": "COVERED",
+      "tests": [
+        "error001.c",
+        "error003.c",
+        "error005.c"
+      ],
+      "notes": "Indirect: implemented error tests exercise required reporting for selected supported error conditions.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "SJFMB",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: hAS_ESR may be zero when no reportable errors exist. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VYLZC",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: defines selector types used by later error rules. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QBQJG",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: selector truncation behavior is permitted. ACS only checks invalid selector reporting when required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PFNBV",
+      "status": "COVERED",
+      "tests": [
+        "error001.c"
+      ],
+      "notes": "Indirect: out-of-range selector tests indirectly exercise invalid selector detection.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CZZZK",
+      "status": "COVERED",
+      "tests": [
+        "error007.c"
+      ],
+      "notes": "Direct: error007 checks Unexpected INTERNAL error reporting when PARTID narrowing is supported.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HVNKJ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: lists possible MPAM interrupt sources. ACS checks only implemented interrupt behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TMMMD",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: four-space MSC choice of Secure or Non-secure error interrupt is permitted. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QDSPY",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: applies when no reportable error can occur or detection is optional. No standalone ACS check is required.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "PPJSM",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: error interrupt type may be level-sensitive or edge-triggered. ACS checks the implemented type.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GLPPK",
+      "status": "COVERED",
+      "tests": [
+        "intr001.c"
+      ],
+      "notes": "Direct: intr001 checks level-sensitive error interrupt behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "NRGQD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: level-sensitive error interrupt must not use MSI. This is testable if interrupt type is discoverable, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KVGWS",
+      "status": "COVERED",
+      "tests": [
+        "intr002.c"
+      ],
+      "notes": "Direct: intr002 checks edge-triggered error interrupt behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KVHTZ",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: mSI error interrupt requiring edge-triggered behavior is testable, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZRDMM",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: overflow interrupt support is optional. ACS checks overflow interrupts only if implemented.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YLCVK",
+      "status": "COVERED",
+      "tests": [
+        "intr003.c"
+      ],
+      "notes": "Direct: intr003 checks overflow interrupt generation conditions.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YJCDR",
+      "status": "COVERED",
+      "tests": [
+        "intr005.c"
+      ],
+      "notes": "Direct: intr005 checks MSI overflow interrupt edge-triggered requirement.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YVSNK",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: mSMON_OFLOW_SR summary behavior is testable if implemented, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "JLYJJ",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative simple MMR access test. It discovers MSCs and reads memory-mapped MPAM registers.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "MBDJF",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: 32-bit MMR single-copy atomicity is a bus atomicity property that ACS cannot prove reliably.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "LVCGQ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: greater-than-32-bit MMR atomicity is not required. No ACS check is needed.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DMKKT",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: locks are per PARTID space. Non-secure ACS cannot verify locks in Secure, Realm, or Root spaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "VTFQK",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: monitor locks may be separate or shared with partition locks. Both designs are permitted.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "CTGKD",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: monitor locks are per PARTID space. Non-secure ACS cannot verify locks in Secure, Realm, or Root spaces.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RDMVJ",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: implementation-defined MMRs are permitted above offset 0x3000. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KNNBY",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative MPAM feature-page register access test. Reserved/unimplemented register locations are not exhaustively probed.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "ZPWLC",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative Non-secure feature-page access test. Other PA-space feature pages are not accessible to ACS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DYDFT",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: reg001.c is used as a representative Non-secure feature-page base access test. Secure, Realm, and Root bases cannot be validated from Non-secure ACS.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "HXLMF",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: different feature-page base addresses are permitted and overlap avoidance is a recommendation. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "QCYPH",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: feature-page alignment and containment are testable from platform data, but no current mapped test covers them.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FLWNK",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: non-MPAM MMR placement in the feature page is permitted only for trapped MMRs. No mandatory ACS check.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "GTKCX",
+      "status": "COVERED",
+      "tests": [
+        "reg001.c"
+      ],
+      "notes": "Indirect: all SYS-MPAM MMR-based tests require the Non-secure MPAM feature page to exist.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "DFBBW",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: secure feature page existence cannot be verified from Non-secure ACS execution.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FYTQL",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Not testable: realm and Root feature pages cannot be verified from Non-secure ACS execution.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "KZBWG",
+      "status": "COVERED",
+      "tests": [],
+      "notes": "No ACS check required: rO MMR sharing across security states is permitted when contents match. ACS cannot and need not check sharing.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "YCBKB",
+      "status": "COVERED",
+      "tests": [
+        "partition004.c",
+        "mem001.c"
+      ],
+      "notes": "Indirect: PBM partitioning tests program CPBM/MBWPBM words using IDR widths and PBM offsets.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "TVYHS",
+      "status": "NOT_COVERED",
+      "tests": [],
+      "notes": "Gap: unused PBM bits being RES0 is testable, but no current mapped test covers it.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "RJFKG",
+      "status": "COVERED",
+      "tests": [
+        "partition005.c",
+        "mem002.c"
+      ],
+      "notes": "Indirect: fractional partitioning helpers program values using percentage minus one lsb, and tests validate resulting behavior.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    },
+    {
+      "rule_id": "FKNKB",
+      "status": "COVERED",
+      "tests": [
+        "partition006.c",
+        "feat001.c"
+      ],
+      "notes": "Direct: tests program 100 percent controls and disable PARTIDs through MPAMCFG_DIS.PARTID.",
+      "sub_rules": [],
+      "platforms": [
+        "BM",
+        "UEFI"
+      ]
+    }
+  ]
+}
