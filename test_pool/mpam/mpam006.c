@@ -43,7 +43,7 @@ program_all_monitors_with_pmg(uint16_t partid, uint8_t pmg)
     uint32_t csumon_count = 0;
     uint32_t rsrc_node_cnt, rsrc_index;
 
-    val_print(INFO, "\n       Programming all MSCs to filter PMG value %d", pmg);
+    val_print(DEBUG, "\n       Programming all MSCs to filter PMG value %d", pmg);
 
     for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
         rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
@@ -78,7 +78,7 @@ program_all_monitors_with_pmg(uint16_t partid, uint8_t pmg)
                     /* Skip if the MSC's resource does not implement CSUMON or
                        has max_pmg < programmable PMG */
                     if (csumon_count == 0 || max_pmg < pmg) {
-                        val_print(INFO, "\n       Skipping MSC resource %d", rsrc_index);
+                        val_print(DEBUG, "\n       Skipping MSC resource %d", rsrc_index);
                         continue;
                     }
 
@@ -190,8 +190,8 @@ read_all_msc_csu_counters(uint32_t expected_count)
                     }
 
                     storage_count = val_mpam_read_csumon(msc_index);
-                    val_print(INFO, "\n       msc index  = %d", msc_index);
-                    val_print(INFO, "  storage count  = %d", storage_count);
+                    val_print(DEBUG, "\n       msc index  = %d", msc_index);
+                    val_print(DEBUG, "  storage count  = %d", storage_count);
 
                     /* Expected count || Storage count -> Status */
                     /*       0        ||       0       ->    1   */
@@ -278,7 +278,7 @@ payload(void)
     mpam2_el2 = CLEAR_BITS_M_TO_N(mpam2_el2, MPAMn_ELx_PMG_D_SHIFT+7,
                                                                     MPAMn_ELx_PMG_D_SHIFT);
 
-    val_print(INFO, "\n       Programming mpam2_el2 with PMG=0 %d", pmg0);
+    val_print(DEBUG, "\n       Programming mpam2_el2 with PMG=0 %d", pmg0);
 
     mpam2_el2 |= (((uint64_t)pmg0 << MPAMn_ELx_PMG_D_SHIFT) |
                     ((uint64_t)partid << MPAMn_ELx_PARTID_D_SHIFT));
@@ -314,7 +314,7 @@ payload(void)
     mpam2_el2 |= (((uint64_t)pmg1 << MPAMn_ELx_PMG_D_SHIFT) |
                     ((uint64_t)partid << MPAMn_ELx_PARTID_D_SHIFT));
 
-    val_print(INFO, "\n       Programming mpam2_el2 with PMG=1 %d", pmg1);
+    val_print(DEBUG, "\n       Programming mpam2_el2 with PMG=1 %d", pmg1);
 
     val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
 

@@ -26,7 +26,6 @@
 #define MPAM_VERSION_0_1           0x01
 #define MPAM_VERSION_1_0           0x10
 #define MPAM_VERSION_1_1           0x11
-#define MPAM_MSC_REGISTER_SPACE    0x2FFF  // Last register access is 0x2000 + (127 * 32) + 31
 
 /*******************************************************************************
  * MPAM system register bit definitions & constants
@@ -196,4 +195,45 @@ uint32_t mpam006_entry(uint32_t num_pe);
 uint32_t mpam007_entry(uint32_t num_pe);
 uint32_t mpam008_entry(uint32_t num_pe);
 uint32_t mpam009_entry(uint32_t num_pe);
+
+uint32_t feat001_entry(uint32_t num_pe);
+
+uint32_t reg001_entry(uint32_t num_pe);
+uint32_t reg004_entry(uint32_t num_pe);
+uint32_t reg005_entry(uint32_t num_pe);
+uint32_t reg006_entry(uint32_t num_pe);
+
+uint32_t partition001_entry(uint32_t num_pe);
+uint32_t partition002_entry(uint32_t num_pe);
+uint32_t partition004_entry(uint32_t num_pe);
+uint32_t partition005_entry(uint32_t num_pe);
+uint32_t partition006_entry(uint32_t num_pe);
+
+uint32_t mem001_entry(uint32_t num_pe);
+uint32_t mem002_entry(uint32_t num_pe);
+uint32_t mem003_entry(uint32_t num_pe);
+
+uint32_t monitor001_entry(uint32_t num_pe);
+uint32_t monitor005_entry(uint32_t num_pe);
+uint32_t monitor006_entry(uint32_t num_pe);
+uint32_t monitor007_entry(uint32_t num_pe);
+uint32_t monitor008_entry(uint32_t num_pe);
+
+uint32_t error001_entry(uint32_t num_pe);
+uint32_t error003_entry(uint32_t num_pe);
+uint32_t error005_entry(uint32_t num_pe);
+uint32_t error007_entry(uint32_t num_pe);
+uint32_t error008_entry(uint32_t num_pe);
+uint32_t error009_entry(uint32_t num_pe);
+uint32_t error010_entry(uint32_t num_pe);
+uint32_t error011_entry(uint32_t num_pe);
+uint32_t error012_entry(uint32_t num_pe);
+uint32_t error013_entry(uint32_t num_pe);
+uint32_t error014_entry(uint32_t num_pe);
+
+uint32_t intr001_entry(uint32_t num_pe);
+uint32_t intr002_entry(uint32_t num_pe);
+uint32_t intr003_entry(uint32_t num_pe);
+uint32_t intr004_entry(uint32_t num_pe);
+uint32_t intr005_entry(uint32_t num_pe);
 #endif /*__ACS_MPAM_H__ */

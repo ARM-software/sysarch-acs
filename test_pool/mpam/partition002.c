@@ -24,7 +24,7 @@
 
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 2
-#define TEST_RULE  ""
+#define TEST_RULE  "ZHBXH"
 #define TEST_DESC  "Check CCAP Partitioning               "
 
 #define CCAP_SCENARIO_MAX 10
@@ -276,11 +276,13 @@ static void payload(void)
     return;
 }
 
-uint32_t partition002_entry(void)
+uint32_t partition002_entry(uint32_t num_pe)
 {
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* This check is when user is forcing us to skip this test */

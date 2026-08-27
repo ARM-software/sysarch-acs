@@ -44,7 +44,7 @@ check_for_raz_wi(uint32_t reg_offset)
 
     /* Check if register ignores write */
     val_mpam_mmr_write(msc_index, reg_offset, PSUEDO_REG_VALUE);
-    val_mpam_mmr_read(msc_index, reg_offset);
+    reg_value = val_mpam_mmr_read(msc_index, reg_offset);
     if (reg_value != 0x00)
         return ACS_STATUS_FAIL;
 
@@ -56,7 +56,7 @@ uint32_t
 configure_monitoring_reg(uint32_t reg_offset)
 {
     uint32_t esr_errcode;
-    uint32_t status;
+    uint32_t status = ACS_STATUS_PASS;
 
     /* Write 0xFFFF to the unimplemented monitoring register of the MSC's resource */
     val_mpam_mmr_write(msc_index, reg_offset, PSUEDO_REG_VALUE);
@@ -71,13 +71,17 @@ configure_monitoring_reg(uint32_t reg_offset)
     esr_errcode = val_mpam_msc_get_errcode(msc_index);
     val_print(DEBUG, "\n       Error code read is %llx", esr_errcode);
 
-    if (esr_errcode != ESR_ERRCODE_RIS_NO_MON)
-    {
-        val_print(ERROR, "\n       Expected errcode: %d", ESR_ERRCODE_RIS_NO_MON);
-        val_print(ERROR, "\n       Actual errcode: %d", esr_errcode);
+    status = check_for_raz_wi(reg_offset);
+    if (status == ACS_STATUS_FAIL)
+        val_print(ERROR, "\n       Monitoring register is not RAZ/WI");
 
-        /* Check for RAZ/ WI*/
-        status = check_for_raz_wi(reg_offset);
+    if ((esr_errcode != ESR_ERRCODE_RIS_NO_MON) &&
+        (esr_errcode != ESR_ERRCODE_NO_ERROR)) {
+        val_print(ERROR, "\n       Expected errcode: %d or no error", ESR_ERRCODE_RIS_NO_MON);
+        val_print(ERROR, "\n       Actual errcode: %d", esr_errcode);
+        status = ACS_STATUS_FAIL;
+    } else if (esr_errcode == ESR_ERRCODE_NO_ERROR) {
+        val_print(DEBUG, "\n       Error not reported; permitted RAZ/WI behavior observed");
     }
 
     return status;
@@ -185,12 +189,14 @@ void payload(void)
     return;
 }
 
-uint32_t error011_entry(void)
+uint32_t
+error011_entry(uint32_t num_pe)
 {
-
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

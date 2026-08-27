@@ -193,6 +193,7 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
     uint32_t precheck_status;
     uint32_t rule_support_status;
     uint32_t old_log_indent;
+    TEST_ENTRY_ID_e entry_id;
     RULE_ID_e child_rule_id;
     const RULE_ID_e *child_rule_list;
 
@@ -240,11 +241,17 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
         }
 
         /* Execute any precheck required by the alias rule */
-        if (rule_test_map[rule_id].test_entry_id != NULL_ENTRY) {
+        entry_id = rule_test_map[rule_id].test_entry_id;
+        if (entry_id != NULL_ENTRY) {
+            if ((entry_id >= TEST_ENTRY_SENTINEL) ||
+                (test_entry_func_table[entry_id] == NULL)) {
+                val_print(ERROR, "\n       Invalid alias precheck entry: 0x%x", entry_id);
+                rule_test_status = RESULT_FAIL(1);
+                goto exit_rule;
+            }
             old_log_indent = val_log_get_indent();
             val_log_set_indent(indent);
-            precheck_status =
-                test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+            precheck_status = test_entry_func_table[entry_id](num_pe);
             val_log_set_indent(old_log_indent);
 
             if (GET_STATE(precheck_status) == TEST_FAIL) {
@@ -303,11 +310,12 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
 
         print_alias_walk_banner(rule_id, indent, 0);
     } else if (rule_test_map[rule_id].flag == BASE_RULE) {
-        if (test_entry_func_table[rule_test_map[rule_id].test_entry_id] != NULL) {
+        entry_id = rule_test_map[rule_id].test_entry_id;
+        if ((entry_id != NULL_ENTRY) && (entry_id < TEST_ENTRY_SENTINEL) &&
+            (test_entry_func_table[entry_id] != NULL)) {
             old_log_indent = val_log_get_indent();
             val_log_set_indent(indent);
-            rule_test_status =
-                test_entry_func_table[rule_test_map[rule_id].test_entry_id](num_pe);
+            rule_test_status = test_entry_func_table[entry_id](num_pe);
             val_log_set_indent(old_log_indent);
         } else {
             val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
@@ -363,6 +371,7 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
     const pcbsa_rule_entry_t *pcbsa_tbl = NULL;
     const vbsa_rule_entry_t  *vbsa_tbl  = NULL;
     const pfdi_rule_entry_t  *pfdi_tbl  = NULL;
+    const mpam_rule_entry_t  *mpam_tbl  = NULL;
     uint32_t tbl_count = 0;
 
     if (ctx == NULL)
@@ -387,6 +396,9 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
         } else if (ctx->arch_selection == ARCH_PFDI) {
             pfdi_tbl = pfdi_rule_list;
             add_count = pfdi_rule_list_len;
+        } else if (ctx->arch_selection == ARCH_SYS_MPAM) {
+            mpam_tbl = mpam_rule_list;
+            add_count = mpam_rule_list_len;
         }
 
         tbl_count = add_count;
@@ -429,6 +441,12 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
                 } else if (pfdi_tbl) {
                     for (i = 0; i < add_count; i++) {
                         RULE_ID_e rid = pfdi_tbl[i].rule_id;
+                        if (!rule_in_list(rid, new_list, new_count))
+                            new_list[new_count++] = rid;
+                    }
+                } else if (mpam_tbl) {
+                    for (i = 0; i < add_count; i++) {
+                        RULE_ID_e rid = mpam_tbl[i].rule_id;
                         if (!rule_in_list(rid, new_list, new_count))
                             new_list[new_count++] = rid;
                     }
@@ -582,6 +600,20 @@ uint32_t filter_rule_list_by_cli(acs_run_request_t *ctx)
                                     skip = 1;
                             } else if (ctx->level_filter_mode == LVL_FILTER_MAX) {
                                 if ((uint32_t)pfdi_tbl[ti].level > ctx->level_value)
+                                    skip = 1;
+                            }
+                            break;
+                        }
+                    }
+                } else if (mpam_tbl) {
+                    for (uint32_t ti = 0; ti < tbl_count; ti++) {
+                        if (mpam_tbl[ti].rule_id == rule) {
+                            found_entry = 1;
+                            if (ctx->level_filter_mode == LVL_FILTER_ONLY) {
+                                if ((uint32_t)mpam_tbl[ti].version != ctx->level_value)
+                                    skip = 1;
+                            } else if (ctx->level_filter_mode == LVL_FILTER_MAX) {
+                                if ((uint32_t)mpam_tbl[ti].version > ctx->level_value)
                                     skip = 1;
                             }
                             break;

@@ -23,49 +23,17 @@
 #include "val/include/acs_memory.h"
 #include "acs.h"
 
-/*
- * Build-time selection arrays for the MPAM bare-metal (non rule-based) path.
- */
-extern uint32_t g_skip_array[];
-extern const uint32_t g_skip_array_len;
-extern uint32_t g_test_array[];
-extern const uint32_t g_test_array_len;
-extern uint32_t g_module_array[];
-extern const uint32_t g_module_array_len;
-
-/* MPAM bare-metal globals local. */
-uint32_t *g_skip_test_num;
-uint32_t  g_num_skip;
-uint32_t *g_execute_tests;
-uint32_t  g_num_tests;
-uint32_t *g_execute_modules;
-uint32_t  g_num_modules;
-uint32_t  g_execute_secure = 0;
-
 static void
 free_mpam_mem(void)
 {
     val_free_shared_mem();
     val_mpam_free_info_table();
+    val_srat_free_info_table();
+    val_hmat_free_info_table();
     val_pcc_free_info_table();
-
-    if (acs_is_module_enabled(ACS_MPAM_MEMORY_TEST_NUM_BASE)) {
-        val_srat_free_info_table();
-        val_hmat_free_info_table();
-    }
-
-    if (acs_is_module_enabled(ACS_MPAM_CACHE_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MONITOR_TEST_NUM_BASE))
-        val_cache_free_info_table();
-
-    if (acs_is_module_enabled(ACS_MPAM_ERROR_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_CACHE_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MONITOR_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MEMORY_TEST_NUM_BASE)) {
-        val_iovirt_free_info_table();
-        val_gic_free_info_table();
-    }
-
+    val_cache_free_info_table();
+    val_iovirt_free_info_table();
+    val_gic_free_info_table();
     val_pe_free_info_table();
 }
 
@@ -80,19 +48,22 @@ apply_mpam_defaults(acs_run_request_t *ctx, acs_execution_policy_t *policy)
 
     policy->print_level = PLATFORM_OVERRIDE_PRINT_LEVEL;
     policy->print_mmio = 0;
-    ctx->arch_selection = ARCH_NONE;
 
-    /* Use build-time selection arrays (legacy non-rulebase mechanism). */
-    g_skip_test_num    = g_skip_array;
-    g_num_skip         = g_skip_array_len;
-    g_execute_tests    = g_test_array;
-    g_num_tests        = g_test_array_len;
-    g_execute_modules  = g_module_array;
-    g_num_modules      = g_module_array_len;
+    if (ctx->rule_count == 0)
+        ctx->arch_selection = ARCH_SYS_MPAM;
+
+    ctx->level_value = MPAM_VERSION_B_c;
+    if (ctx->level_filter_mode == LVL_FILTER_NONE)
+        ctx->level_filter_mode = LVL_FILTER_MAX;
+
+    if (ctx->level_value >= MPAM_VERSION_SENTINEL) {
+        val_print(ERROR, "\nInvalid MPAM version value (%d)", ctx->level_value);
+        return ACS_STATUS_FAIL;
+    }
+
     g_acs_tests_total = 0;
     g_acs_tests_pass = 0;
     g_acs_tests_fail = 0;
-    g_execute_secure = 0;
 
     return ACS_STATUS_PASS;
 }
@@ -143,15 +114,6 @@ ShellAppMainmpam(void)
     val_print(INFO, "\nSkipping MMU setup/enable (ACS_ENABLE_MMU=0)");
 #endif
 
-    if (!acs_is_module_enabled(ACS_MPAM_REGISTER_TEST_NUM_BASE) &&
-        !acs_is_module_enabled(ACS_MPAM_CACHE_TEST_NUM_BASE) &&
-        !acs_is_module_enabled(ACS_MPAM_MONITOR_TEST_NUM_BASE) &&
-        !acs_is_module_enabled(ACS_MPAM_ERROR_TEST_NUM_BASE) &&
-        !acs_is_module_enabled(ACS_MPAM_MEMORY_TEST_NUM_BASE)) {
-        val_print(INFO, "\n      No MPAM modules selected. Skipping table init/tests.\n");
-        goto print_test_status;
-    }
-
     val_print(INFO, "\nCreating Platform Information Tables");
 
     status = createPeInfoTable();
@@ -168,22 +130,15 @@ ShellAppMainmpam(void)
     if (status)
         goto exit_acs;
 
-    if (acs_is_module_enabled(ACS_MPAM_ERROR_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_CACHE_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MONITOR_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MEMORY_TEST_NUM_BASE))
-        createIoVirtInfoTable();
+    createIoVirtInfoTable();
 
-    if (acs_is_module_enabled(ACS_MPAM_CACHE_TEST_NUM_BASE) ||
-        acs_is_module_enabled(ACS_MPAM_MONITOR_TEST_NUM_BASE))
-        createCacheInfoTable();
+    createCacheInfoTable();
 
     createPccInfoTable();
 
-    if (acs_is_module_enabled(ACS_MPAM_MEMORY_TEST_NUM_BASE)) {
-        createHmatInfoTable();
-        createSratInfoTable();
-    }
+    createHmatInfoTable();
+
+    createSratInfoTable();
     createMpamInfoTable();
     val_mpam_update_msc_device_names();
 
@@ -200,17 +155,23 @@ ShellAppMainmpam(void)
     context_saved = 1;
     val_pe_initialize_default_exception_handler(val_pe_default_esr);
 
-    status |= val_mpam_execute_register_tests();
-    status |= val_mpam_execute_cache_tests();
-    status |= val_mpam_execute_error_tests();
-    status |= val_mpam_execute_membw_tests();
+    if ((ctx->rule_count > 0 && ctx->rule_list != NULL) ||
+        (ctx->arch_selection != ARCH_NONE)) {
+        filter_rule_list_by_cli(ctx);
+        if (ctx->rule_count == 0 || ctx->rule_list == NULL) {
+            val_print(ERROR, "\nRule list empty, nothing to execute.\n");
+            status = ACS_STATUS_FAIL;
+            goto print_test_status;
+        }
+
+        run_tests(ctx);
+    } else {
+        val_print(ERROR, "\nInvalid rule list or architecture selected.\n");
+        status = ACS_STATUS_FAIL;
+    }
 
 print_test_status:
-    val_print(ERROR, "\n     ------------------------------------------------------- \n");
-    val_print(ERROR, "     Total Tests run  = %4d;", g_acs_tests_total);
-    val_print(ERROR, "  Tests Passed  = %4d", g_acs_tests_pass);
-    val_print(ERROR, "  Tests Failed = %4d\n", g_acs_tests_fail);
-    val_print(ERROR, "     --------------------------------------------------------- \n");
+    val_print_acs_test_status_summary();
 
     val_print(INFO, "\n      *** MPAM tests complete. Reset the system. *** \n\n");
 

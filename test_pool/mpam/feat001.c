@@ -22,7 +22,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 25
-#define TEST_RULE  ""
+#define TEST_RULE  "VFJMZ"
 #define TEST_DESC  "Check PARTID Disable functionality    "
 
 /* Test algorithm -
@@ -225,7 +225,7 @@ payload(void)
 
             /* Step 6 */
             counter[0] = end_count;
-            val_print(INFO, "\n       PARTID_X Counter (Scenario 1)= 0x%lx", counter[0]);
+            val_print(DEBUG, "\n       PARTID_X Counter (Scenario 1)= 0x%lx", counter[0]);
 
             /* Counter should be non-zero */
             if (counter[0] == 0) {
@@ -292,7 +292,7 @@ payload(void)
             val_mpam_csumon_disable(msc_index);
 
             counter[1] = end_count;
-            val_print(INFO, "\n       PARTID_X Counter (Scenario 2)= 0x%lx", counter[1]);
+            val_print(DEBUG, "\n       PARTID_X Counter (Scenario 2)= 0x%lx", counter[1]);
 
             /* Step 10: Validate Value B < Value A */
             /* Txn tagged with PARTID_Y but monitor counts PARTID X. PARTID_X is disabled, so
@@ -355,7 +355,7 @@ payload(void)
             val_mpam_csumon_disable(msc_index);
 
             counter[2] = end_count;
-            val_print(INFO, "\n       PARTID_X Counter (Scenario 3)= 0x%lx", counter[2]);
+            val_print(DEBUG, "\n       PARTID_X Counter (Scenario 3)= 0x%lx", counter[2]);
 
             /* With PARTID_Y disabled and PARTID_X enabled, CPOR settings of PARTID_X must be
                restored by the H/W. PARTID_Y cache lines should be evicted by txn tagged with
@@ -391,11 +391,14 @@ cleanup:
     return;
 }
 
-uint32_t feat001_entry(void)
+uint32_t feat001_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    /* Legacy MPAM execution runs this test on one PE. */
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

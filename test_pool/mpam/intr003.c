@@ -23,7 +23,7 @@
 
 #define TEST_NUM   ACS_MPAM_ERROR_TEST_NUM_BASE  +  14
 #define TEST_DESC  "Check MBWU Mon Overflow interrupt     "
-#define TEST_RULE  ""
+#define TEST_RULE  "YLCVK"
 
 static uint32_t msc_index;
 static uint32_t intr_num;
@@ -100,7 +100,7 @@ void payload(void)
 
             if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index)
                                                                         != MPAM_RSRC_TYPE_MEMORY) {
-                val_print(INFO, "\n       MSC %d not a memory node. Skipping MSC",
+                val_print(DEBUG, "\n       MSC %d not a memory node. Skipping MSC",
                             msc_index);
                 continue;
             }
@@ -225,12 +225,14 @@ void payload(void)
     return;
 }
 
-uint32_t intr003_entry(void)
+uint32_t intr003_entry(uint32_t num_pe)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

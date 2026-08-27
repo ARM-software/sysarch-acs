@@ -79,6 +79,8 @@ typedef enum {
 /*These are the states a test can be in */
 #define TEST_PENDING_VAL 0x3
 
+#define ACS_UINT32_MAX 0xFFFFFFFFU
+
 #define CPU_NUM_BIT  32
 #define CPU_NUM_MASK 0xFFFFFFFF
 

@@ -132,16 +132,11 @@ function(acs_add_val_library_for_acs ACS_NAME)
             "${ROOT_DIR}/val/src/pc_bsa_execute_test.c"
             "${ROOT_DIR}/val/src/bsa_execute_test.c"
             "${ROOT_DIR}/val/src/sbsa_execute_test.c"
-            "${ROOT_DIR}/val/src/rule_based_execution_helpers.c"
-            "${ROOT_DIR}/val/src/rule_based_orchestrator.c"
-            "${ROOT_DIR}/val/src/rule_enum_string_map.c"
-            "${ROOT_DIR}/val/src/rule_lookup.c"
-            "${ROOT_DIR}/val/src/rule_metadata.c"
+            "${ROOT_DIR}/val/src/mpam_execute_test.c"
             "${ROOT_DIR}/val/src/acs_exerciser.c"
-            "${ROOT_DIR}/val/src/rule_based_execution_enum.h"
         )
         list(APPEND remove_sources ${common_remove_sources})
-        list(APPEND extra_defs BAREMETAL_MPAM_BUILD)
+        list(APPEND extra_defs BAREMETAL_MPAM_BUILD COMPILE_RB_EXE)
     else()
         message(FATAL_ERROR "Unsupported ACS value for val library: ${ACS_NAME}")
     endif()

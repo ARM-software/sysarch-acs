@@ -31,6 +31,7 @@
 #define BW2_PERCENTAGE  10            // Min BW limit partitioning scenario 2
 #define NUM_PE_CONT     04            // Number of PEs used to create BW contention
 #define MBWMIN_SCENARIO_MAX 2
+#define MPAM_TEST_MAX_RSRC 10
 
 static uint8_t contend_flag;
 static uint32_t num_pe_cont;
@@ -222,7 +223,7 @@ payload_primary(void)
     uint32_t scenario_cnt = 0;
     uint32_t num_pe = val_pe_get_num();
     uint32_t total_nodes =  val_mpam_get_msc_count();
-    uint64_t counter[total_nodes][10][MBWMIN_SCENARIO_MAX];
+    uint64_t counter[total_nodes][MPAM_TEST_MAX_RSRC][MBWMIN_SCENARIO_MAX];
 
     minmax_partid = DEFAULT_PARTID_MAX;
     primary_pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -234,6 +235,12 @@ payload_primary(void)
     for (msc_index = 0; msc_index < total_nodes; msc_index++) {
 
         rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
+
+        if (rsrc_node_cnt > MPAM_TEST_MAX_RSRC) {
+            val_print(ERROR, "\n       Resource count %d exceeds test limit", rsrc_node_cnt);
+            val_set_status(primary_pe_index, RESULT_FAIL(06));
+            return;
+        }
 
         val_print(DEBUG, "\n       msc index  = %d", msc_index);
         val_print(DEBUG, "\n       Resource count = %d ", rsrc_node_cnt);
@@ -259,7 +266,7 @@ payload_primary(void)
 
     /* Skip this test if no MIN BW supported MPAM memory node present in the system */
     if (mbwmin_node_cnt == 0) {
-        val_print(INFO,
+        val_print(DEBUG,
                 "\n       %d MSC Memory Nodes support MBW Min Limit Partitioning", mbwmin_node_cnt);
         val_set_status(primary_pe_index, RESULT_SKIP(01));
         return;
@@ -299,6 +306,14 @@ payload_primary(void)
                 /* Select Resource within an MSC */
                 if (val_mpam_msc_supports_ris(msc_index))
                     val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
+
+                if (!val_mpam_get_mbwumon_count(msc_index)) {
+                    val_print(DEBUG,
+                        "\n       No MBWU Monitor found to validate the test. Skipping test");
+                    val_set_status(primary_pe_index, RESULT_SKIP(02));
+                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+                    return;
+                }
 
                 /* Disable MBWPBM partitioning for the current memory msc_index */
                 if (val_mpam_msc_supports_mbwpbm(msc_index))
@@ -349,14 +364,6 @@ payload_primary(void)
                     }
                 }
 
-                if (!val_mpam_get_mbwumon_count(msc_index)) {
-                    val_print(INFO,
-                        "\n       No MBWU Monitor found to validate the test. Skipping test");
-                        val_set_status(pe_index, RESULT_SKIP(02));
-                        contend_flag = 0;
-                        return;
-                }
-
                 val_print(DEBUG,
                             "\n       Using MBWU monitor to measure MBW during buffer copy");
                 /* configure MBWU Monitor for this memory resource node */
@@ -372,18 +379,18 @@ payload_primary(void)
                 };
 
                 start_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       Start Count = 0x%llx", start_count);
+                val_print(DEBUG, "\n       Start Count = 0x%llx", start_count);
                 /* perform memory operation */
                 val_memcpy((void *)src_buf, (void *)dest_buf, buf_size);
                 /* Wait for some time before the memcpy settles and counters update */
                 val_time_delay_ms(TIMEOUT_MEDIUM);
 
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       End Count = 0x%llx", end_count);
+                val_print(DEBUG, "\n       End Count = 0x%llx", end_count);
                 /* read the memory bandwidth usage monitor */
                 counter[msc_index][rsrc_index][scenario_cnt] = end_count - start_count;
 
-                val_print(INFO,
+                val_print(DEBUG,
                 "\n       Byte count = 0x%llx", end_count - start_count);
 
                 /* disable and reset the MBWU monitor */
@@ -428,19 +435,19 @@ payload_primary(void)
                 };
 
                 start_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       Start Count = 0x%llx", start_count);
+                val_print(DEBUG, "\n       Start Count = 0x%llx", start_count);
 
                 /* perform memory operation */
                 val_memcpy((void *)src_buf, (void *)dest_buf, buf_size);
                 /* Wait for some time before the memcpy settles and counters update */
                 val_time_delay_ms(TIMEOUT_MEDIUM);
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       End Count = 0x%llx", end_count);
+                val_print(DEBUG, "\n       End Count = 0x%llx", end_count);
 
                 /* read the memory bandwidth usage monitor */
                 counter[msc_index][rsrc_index][scenario_cnt] = end_count - start_count;
 
-                val_print(INFO,
+                val_print(DEBUG,
                 "\n       Byte Count = 0x%llx", end_count - start_count);
 
                 /* disable and reset the MBWU monitor */
@@ -456,7 +463,7 @@ payload_primary(void)
                 }
 
                 /* Free the copy buffers to the heap manager */
-                val_mem_free_shared_memcpybuf(NUM_PE_CONT);
+                val_mem_free_shared_memcpybuf(num_pe_cont);
             }
         }
     }
@@ -502,12 +509,13 @@ exception_return:
 }
 
 uint32_t
-mem002_entry(void)
+mem002_entry(uint32_t num_pe)
 {
-
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

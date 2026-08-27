@@ -27,6 +27,7 @@
 #define TEST_RULE  ""
 
 #define MBWPBM_SCENARIO_MAX 10
+#define MPAM_TEST_MAX_RSRC 10
 static uint64_t mpam2_el2_temp;
 
 typedef struct {
@@ -84,7 +85,6 @@ static
 void payload(void)
 {
 
-    uint8_t enabled_scenarios = 0;
     uint16_t minmax_partid;
     uint16_t index;
     uint32_t msc_index;
@@ -101,7 +101,7 @@ void payload(void)
     uint64_t mpam2_el2 = 0;
     uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
     uint32_t total_nodes = val_mpam_get_msc_count();
-    uint64_t counter[MBWPBM_SCENARIO_MAX][total_nodes][10];
+    uint64_t counter[MBWPBM_SCENARIO_MAX][total_nodes][MPAM_TEST_MAX_RSRC];
 
     minmax_partid = DEFAULT_PARTID_MAX;
 
@@ -112,6 +112,12 @@ void payload(void)
     for (msc_index = 0; msc_index < total_nodes; msc_index++) {
 
         rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
+
+        if (rsrc_node_cnt > MPAM_TEST_MAX_RSRC) {
+            val_print(ERROR, "\n       Resource count %d exceeds test limit", rsrc_node_cnt);
+            val_set_status(pe_index, RESULT_FAIL(04));
+            return;
+        }
 
         val_print(DEBUG, "\n       msc index  = %d", msc_index);
         val_print(DEBUG, "\n       Resource count = %d ", rsrc_node_cnt);
@@ -135,7 +141,7 @@ void payload(void)
         minmax_partid = GET_MIN_VALUE(minmax_partid, val_mpam_get_max_partid(msc_index));
     }
 
-    val_print(INFO,
+    val_print(DEBUG,
         "\n       %d MSC Memory Nodes support MBW Portion Partitioning", mbwpbm_node_cnt);
 
     /* Skip this test if no MBWPBM supported MSC present in the system */
@@ -237,6 +243,7 @@ void payload(void)
                 buf_size  = get_buffer_size(msc_index, rsrc_index, addr_len, index);
                 if (buf_size == ACS_STATUS_SKIP) {
                     val_set_status(pe_index, RESULT_SKIP(02));
+                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
                     return;
                 }
 
@@ -257,16 +264,24 @@ void payload(void)
                     val_print(ERROR, "\n       Memory allocation of buffers failed");
                     val_set_status(pe_index, RESULT_FAIL(02));
 
+                    if (dest_buf != NULL)
+                        val_mem_free_at_address((uint64_t)dest_buf, buf_size);
+                    if (src_buf != NULL)
+                        val_mem_free_at_address((uint64_t)src_buf, buf_size);
+
                     /* Restore MPAM2_EL2 settings */
                     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
                     return;
                 }
 
                 if (!val_mpam_get_mbwumon_count(msc_index)) {
-                    val_print(INFO,
+                    val_print(DEBUG,
                           "\n       No MBWU Monitor found to validate the test. Skipping test");
-                          val_set_status(pe_index, RESULT_SKIP(03));
-                          return;
+                    val_set_status(pe_index, RESULT_SKIP(03));
+                    val_mem_free_at_address((uint64_t)dest_buf, buf_size);
+                    val_mem_free_at_address((uint64_t)src_buf, buf_size);
+                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
+                    return;
                 }
 
                 val_print(DEBUG,
@@ -285,7 +300,7 @@ void payload(void)
                 };
 
                 start_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       Start count is %llx", start_count);
+                val_print(DEBUG, "\n       Start count is %llx", start_count);
 
                 /* perform memory operation */
                 val_memcpy(src_buf, dest_buf, buf_size);
@@ -297,17 +312,17 @@ void payload(void)
                 };
 
                 end_count = val_mpam_memory_mbwumon_read_count(msc_index);
-                val_print(INFO, "\n       End count is %llx", end_count);
+                val_print(DEBUG, "\n       End count is %llx", end_count);
 
                 /* read the memory bandwidth usage monitor */
-                counter[enabled_scenarios++][msc_index][rsrc_index] =
+                counter[index][msc_index][rsrc_index] =
                                                     end_count - start_count;
 
                 /* disable and reset the MBWU monitor */
                 val_mpam_memory_mbwumon_disable(msc_index);
                 val_mpam_memory_mbwumon_reset(msc_index);
 
-                val_print(INFO,
+                val_print(DEBUG,
                     "\n       byte_count = 0x%llx bytes", end_count - start_count);
 
                 /* Free the buffers to the heap manager */
@@ -321,7 +336,8 @@ void payload(void)
     val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
 
     /* Compare the stream copy latencies for all the scenarios */
-    for (index = 1; index < enabled_scenarios; index++) {
+    for (index = 1;
+         index < sizeof(mbwpbm_config_data) / sizeof(mbwpbm_config_data[0]); index++) {
 
         for (msc_index = 0; msc_index < total_nodes; msc_index++) {
             rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
@@ -349,12 +365,13 @@ void payload(void)
     return;
 }
 
-uint32_t mem001_entry(void)
+uint32_t mem001_entry(uint32_t num_pe)
 {
-
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

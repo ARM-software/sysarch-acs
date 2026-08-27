@@ -23,7 +23,7 @@
 
 #define TEST_NUM   ACS_MPAM_ERROR_TEST_NUM_BASE  +  10
 #define TEST_DESC  "Check Undef RIS MSMON_CFG_MON_SEL Err "
-#define TEST_RULE  ""
+#define TEST_RULE  "HJRZC"
 
 static uint32_t max_ris_index;
 
@@ -45,7 +45,7 @@ check_for_raz_wi(uint32_t msc_index, uint32_t reg_offset)
     data = BITFIELD_SET(MON_SEL_MON_SEL, 0x10) |
            BITFIELD_SET(MON_SEL_RIS, (max_ris_index + 1));
     val_mpam_mmr_write(msc_index, reg_offset, data);
-    val_mpam_mmr_read(msc_index, reg_offset);
+    reg_value = val_mpam_mmr_read(msc_index, reg_offset);
     if (reg_value != 0x00)
         return ACS_STATUS_FAIL;
 
@@ -119,17 +119,21 @@ void payload(void)
         esr_errcode = val_mpam_msc_get_errcode(msc_index);
         val_print(DEBUG, "\n       Error code read is %llx", esr_errcode);
 
-        if (esr_errcode != ESR_ERRCODE_UNDEF_RIS_MON_SEL)
-        {
-            val_print(ERROR, "\n       Expected errcode: %d",
-                                                                ESR_ERRCODE_UNDEF_RIS_MON_SEL);
+        status = check_for_raz_wi(msc_index, REG_MSMON_CFG_MON_SEL);
+        if (status == ACS_STATUS_FAIL) {
+            val_print(ERROR,
+                "\n       MSMON_CFG_MON_SEL is not RAZ/WI with out-of-range RIS programmed");
+            test_fail++;
+        }
+
+        if ((esr_errcode != ESR_ERRCODE_UNDEF_RIS_MON_SEL) &&
+            (esr_errcode != ESR_ERRCODE_NO_ERROR)) {
+            val_print(ERROR, "\n       Expected errcode: %d or no error",
+                      ESR_ERRCODE_UNDEF_RIS_MON_SEL);
             val_print(ERROR, "\n       Actual errcode: %d", esr_errcode);
-            status = check_for_raz_wi(msc_index, REG_MSMON_CFG_MON_SEL);
-            if (status == ACS_STATUS_FAIL) {
-                val_print(ERROR,
-                    "\n       MSMON_CFG_MON_SEL is not RAZ/WI with out-of-range RIS programmed");
-                test_fail++;
-            }
+            test_fail++;
+        } else if (esr_errcode == ESR_ERRCODE_NO_ERROR) {
+            val_print(DEBUG, "\n       Error not reported; permitted RAZ/WI behavior observed");
         }
 
         /* Restore Error Control Register original settings */
@@ -145,12 +149,14 @@ void payload(void)
     return;
 }
 
-uint32_t error010_entry(void)
+uint32_t error010_entry(uint32_t num_pe)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

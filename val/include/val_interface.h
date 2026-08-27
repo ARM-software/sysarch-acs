@@ -789,10 +789,10 @@ typedef enum {
 } MPAM_MODULE_ID_e;
 
 // Module entry functions.
-uint32_t val_mpam_execute_register_tests(void);
-uint32_t val_mpam_execute_error_tests(void);
-uint32_t val_mpam_execute_cache_tests(void);
-uint32_t val_mpam_execute_membw_tests(void);
+uint32_t val_mpam_execute_register_tests(uint32_t num_pe);
+uint32_t val_mpam_execute_error_tests(uint32_t num_pe);
+uint32_t val_mpam_execute_cache_tests(uint32_t num_pe);
+uint32_t val_mpam_execute_membw_tests(uint32_t num_pe);
 
 // VAL API prototypes
 uint32_t val_mpam_msc_reset_errcode(uint32_t msc_index);
@@ -816,58 +816,58 @@ void     val_mpam_mbwu_wait_for_update(uint32_t msc_index);
 uint32_t val_mpam_get_msc_device_info(uint32_t msc_index, uint32_t *device_id, uint32_t *its_id);
 
 // Register tests entry calls
-uint32_t reg001_entry(void);
-uint32_t reg002_entry(void);
-uint32_t reg003_entry(void);
-uint32_t reg004_entry(void);
-uint32_t reg005_entry(void);
-uint32_t reg006_entry(void);
+uint32_t reg001_entry(uint32_t num_pe);
+uint32_t reg002_entry(uint32_t num_pe);
+uint32_t reg003_entry(uint32_t num_pe);
+uint32_t reg004_entry(uint32_t num_pe);
+uint32_t reg005_entry(uint32_t num_pe);
+uint32_t reg006_entry(uint32_t num_pe);
 
 // Memory Bandwidth partitioning tests entry calls
-uint32_t mem001_entry(void);
-uint32_t mem002_entry(void);
-uint32_t mem003_entry(void);
+uint32_t mem001_entry(uint32_t num_pe);
+uint32_t mem002_entry(uint32_t num_pe);
+uint32_t mem003_entry(uint32_t num_pe);
 
 // Error and Interrupt tests entry calls
-uint32_t error001_entry(void);
-uint32_t error002_entry(void);
-uint32_t error003_entry(void);
-uint32_t error004_entry(void);
-uint32_t error005_entry(void);
-uint32_t error006_entry(void);
-uint32_t error007_entry(void);
-uint32_t error008_entry(void);
-uint32_t error009_entry(void);
-uint32_t error010_entry(void);
-uint32_t error011_entry(void);
-uint32_t error012_entry(void);
-uint32_t error013_entry(void);
-uint32_t error014_entry(void);
-uint32_t intr001_entry(void);
-uint32_t intr002_entry(void);
-uint32_t intr003_entry(void);
-uint32_t intr004_entry(void);
-uint32_t intr005_entry(void);
-uint32_t intr006_entry(void);
+uint32_t error001_entry(uint32_t num_pe);
+uint32_t error002_entry(uint32_t num_pe);
+uint32_t error003_entry(uint32_t num_pe);
+uint32_t error004_entry(uint32_t num_pe);
+uint32_t error005_entry(uint32_t num_pe);
+uint32_t error006_entry(uint32_t num_pe);
+uint32_t error007_entry(uint32_t num_pe);
+uint32_t error008_entry(uint32_t num_pe);
+uint32_t error009_entry(uint32_t num_pe);
+uint32_t error010_entry(uint32_t num_pe);
+uint32_t error011_entry(uint32_t num_pe);
+uint32_t error012_entry(uint32_t num_pe);
+uint32_t error013_entry(uint32_t num_pe);
+uint32_t error014_entry(uint32_t num_pe);
+uint32_t intr001_entry(uint32_t num_pe);
+uint32_t intr002_entry(uint32_t num_pe);
+uint32_t intr003_entry(uint32_t num_pe);
+uint32_t intr004_entry(uint32_t num_pe);
+uint32_t intr005_entry(uint32_t num_pe);
+uint32_t intr006_entry(uint32_t num_pe);
 
 /* Cache Tests */
-uint32_t partition001_entry(void);
-uint32_t partition002_entry(void);
-uint32_t partition003_entry(void);
-uint32_t partition004_entry(void);
-uint32_t partition005_entry(void);
-uint32_t partition006_entry(void);
+uint32_t partition001_entry(uint32_t num_pe);
+uint32_t partition002_entry(uint32_t num_pe);
+uint32_t partition003_entry(uint32_t num_pe);
+uint32_t partition004_entry(uint32_t num_pe);
+uint32_t partition005_entry(uint32_t num_pe);
+uint32_t partition006_entry(uint32_t num_pe);
 
-uint32_t feat001_entry(void);  // MPAM PARTID EN/DIS feature check test
+uint32_t feat001_entry(uint32_t num_pe);  // MPAM PARTID EN/DIS feature check test
 
-uint32_t monitor001_entry(void);
-uint32_t monitor002_entry(void);
-uint32_t monitor003_entry(void);
-uint32_t monitor004_entry(void);
-uint32_t monitor005_entry(void);
-uint32_t monitor006_entry(void);
-uint32_t monitor007_entry(void);
-uint32_t monitor008_entry(void);
+uint32_t monitor001_entry(uint32_t num_pe);
+uint32_t monitor002_entry(uint32_t num_pe);
+uint32_t monitor003_entry(uint32_t num_pe);
+uint32_t monitor004_entry(uint32_t num_pe);
+uint32_t monitor005_entry(uint32_t num_pe);
+uint32_t monitor006_entry(uint32_t num_pe);
+uint32_t monitor007_entry(uint32_t num_pe);
+uint32_t monitor008_entry(uint32_t num_pe);
 
 // Accessing system registers from .S -> can be moved to respective .h
 uint64_t arm64_write_sp(uint64_t write_data);

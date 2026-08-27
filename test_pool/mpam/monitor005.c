@@ -81,7 +81,7 @@ payload(void)
                       GET_MIN_VALUE(test_partid, max_partid - 1);
     }
 
-    val_print(INFO, "\n       Selected PARTID = %d", test_partid);
+    val_print(DEBUG, "\n       Selected PARTID = %d", test_partid);
 
     /* Iterate through all available LLC MSCs and their resources */
     for (msc_index = 0; msc_index < msc_cnt; msc_index++) {
@@ -235,11 +235,14 @@ payload(void)
     return;
 }
 
-uint32_t monitor005_entry(void)
+uint32_t
+monitor005_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

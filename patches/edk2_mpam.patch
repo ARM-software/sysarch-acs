@@ -4,7 +4,7 @@
    ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
  
    SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
-+  ValLib|ShellPkg/Application/sysarch-acs/val/ValLib.inf
++  ValLib|ShellPkg/Application/sysarch-acs/val/ValLibRB.inf
 +  PalLib|ShellPkg/Application/sysarch-acs/pal/uefi_acpi/PalLib.inf
  
  [PcdsFixedAtBuild]
@@ -17,3 +17,9 @@
  
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
+@@ -157,4 +160,4 @@
+   ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
+ 
+ [BuildOptions]
+-  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
++  *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES -D SYS_MPAM_UEFI_BUILD

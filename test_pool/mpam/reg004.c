@@ -22,7 +22,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_MPAM_REGISTER_TEST_NUM_BASE + 4)
-#define TEST_RULE  ""
+#define TEST_RULE  "FXVBB"
 #define TEST_DESC  "Check MPAM for RME Feature Test       "
 
 static void payload(void)
@@ -87,12 +87,14 @@ static void payload(void)
 }
 
 
-uint32_t reg004_entry(void)
+uint32_t reg004_entry(uint32_t num_pe)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = val_pe_get_num();
 
+    num_pe = val_pe_get_num();
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)
@@ -101,7 +103,7 @@ uint32_t reg004_entry(void)
     /* get the result from all PE and check for failure */
     status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
 
-    val_report_status(0, ACS_END(TEST_NUM), NULL);
+    val_report_status(0, ACS_END(TEST_NUM), TEST_RULE);
 
     return status;
 }

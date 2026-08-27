@@ -23,7 +23,7 @@
 
 #define TEST_NUM   ACS_MPAM_ERROR_TEST_NUM_BASE + 3
 #define TEST_DESC  "Check MSMON ConfigID out-of-range Err "
-#define TEST_RULE  ""
+#define TEST_RULE  "ZWRQW"
 
 static
 void payload(void)
@@ -44,6 +44,8 @@ void payload(void)
 
     for (index = 0; index < total_nodes; index++) {
 
+        mon_count = 0;
+
         if (!val_mpam_msc_supports_esr(index)) {
             val_print(DEBUG, "\n       MSC index %d does not support ESR", index);
             continue;
@@ -58,18 +60,16 @@ void payload(void)
             return;
         }
 
-        /* Read the number of monitors implemented in this MSC */
+        /* Use the count for the monitor type selected by the error helper. */
         if (val_mpam_msc_supports_mon(index)) {
             if (val_mpam_supports_csumon(index)) {
-                mon_count += val_mpam_get_csumon_count(index);
+                mon_count = val_mpam_get_csumon_count(index);
                 val_print(DEBUG,
                             "\n       MSC implements %d CSU Monitors", mon_count);
-            }
-
-            if (val_mpam_msc_supports_mbwumon(index)) {
-                mon_count += val_mpam_get_mbwumon_count(index);
+            } else if (val_mpam_msc_supports_mbwumon(index)) {
+                mon_count = val_mpam_get_mbwumon_count(index);
                 val_print(DEBUG,
-                "\n       MSC implements %d MBWU Monitors", val_mpam_get_mbwumon_count(index));
+                            "\n       MSC implements %d MBWU Monitors", mon_count);
             }
         }
 
@@ -110,12 +110,14 @@ void payload(void)
     return;
 }
 
-uint32_t error003_entry(void)
+uint32_t error003_entry(uint32_t num_pe)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    uint32_t num_pe = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     if (status != ACS_STATUS_SKIP)

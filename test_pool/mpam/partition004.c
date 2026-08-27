@@ -22,7 +22,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 4
-#define TEST_RULE  ""
+#define TEST_RULE  "BDRCM"
 #define TEST_DESC  "Check CASSOC Partitioning             "
 
 /* Test algorithm -
@@ -80,8 +80,8 @@ payload(void)
     /* Check if LLC is valid */
     if (llc_idx == CACHE_TABLE_EMPTY) {
         val_print(DEBUG, "\n       No LLC found, skipping test");
-        return;
         val_set_status(index, RESULT_SKIP(1));
+        return;
     }
 
     /* Get the LLC Cache ID */
@@ -105,8 +105,13 @@ payload(void)
                       GET_MIN_VALUE(test_partid, max_partid - 1);
     }
 
-    val_print(INFO, "\n       Selected PARTID = %d", test_partid);
+    val_print(DEBUG, "\n       Selected PARTID = %d", test_partid);
 
+    if (test_partid < 2) {
+        val_print(DEBUG, "\n       Three consecutive test PARTIDs are required, skipping test");
+        val_set_status(index, RESULT_SKIP(3));
+        return;
+    }
     /* Iterate through all available LLC MSCs and their resources */
     for (msc_index = 0; msc_index < msc_cnt; msc_index++) {
 
@@ -126,7 +131,7 @@ payload(void)
                in unexpected behavior in the test
             */
             if (val_cache_get_associativity(cache_identifier) < 4) {
-                val_print(INFO,
+                val_print(DEBUG,
                           "\n       LLC is less than 4-way, skipping MSC");
                 continue;
             }
@@ -207,13 +212,17 @@ payload(void)
             status = val_mpam_program_el2(test_partid, DEFAULT_PMG);
             if (status) {
                 val_print(ERROR, "\n       MPAM2_EL2 programming failed");
+                val_mpam_csumon_disable(msc_index);
+                val_mpam_reg_write(MPAM2_EL2, saved_el2);
                 /* Free the buffers to the heap manager */
                 val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
                 val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
                 val_mem_issue_dsb();
 
-                val_memory_free_aligned(src_buf);
-                val_memory_free_aligned(dest_buf);
+                if (dest_buf != NULL)
+                    val_memory_free_pages(dest_buf, num_pages);
+                if (src_buf != NULL)
+                    val_memory_free_pages(src_buf, num_pages);
                 val_set_status(index, RESULT_FAIL(02));
                 return;
             }
@@ -268,13 +277,17 @@ payload(void)
             status = val_mpam_program_el2(test_partid - 1, DEFAULT_PMG);
             if (status) {
                 val_print(ERROR, "\n       MPAM2_EL2 programming failed");
+                val_mpam_csumon_disable(msc_index);
+                val_mpam_reg_write(MPAM2_EL2, saved_el2);
                 /* Free the buffers to the heap manager */
                 val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
                 val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
                 val_mem_issue_dsb();
 
-                val_memory_free_aligned(src_buf);
-                val_memory_free_aligned(dest_buf);
+                if (dest_buf != NULL)
+                    val_memory_free_pages(dest_buf, num_pages);
+                if (src_buf != NULL)
+                    val_memory_free_pages(src_buf, num_pages);
                 val_set_status(index, RESULT_FAIL(03));
                 return;
             }
@@ -329,13 +342,17 @@ payload(void)
             status = val_mpam_program_el2(test_partid - 2, DEFAULT_PMG);
             if (status) {
                 val_print(ERROR, "\n       MPAM2_EL2 programming failed");
+                val_mpam_csumon_disable(msc_index);
+                val_mpam_reg_write(MPAM2_EL2, saved_el2);
                 /* Free the buffers to the heap manager */
                 val_pe_cache_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
                 val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
                 val_mem_issue_dsb();
 
-                val_memory_free_aligned(src_buf);
-                val_memory_free_aligned(dest_buf);
+                if (dest_buf != NULL)
+                    val_memory_free_pages(dest_buf, num_pages);
+                if (src_buf != NULL)
+                    val_memory_free_pages(src_buf, num_pages);
                 val_set_status(index, RESULT_FAIL(04));
                 return;
             }
@@ -397,11 +414,13 @@ payload(void)
     return;
 }
 
-uint32_t partition004_entry(void)
+uint32_t partition004_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

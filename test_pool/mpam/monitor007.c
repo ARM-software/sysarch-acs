@@ -23,7 +23,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_MEMORY_TEST_NUM_BASE + 5
-#define TEST_RULE  ""
+#define TEST_RULE  "XSTRM"
 #define TEST_DESC  "Check MBWU OFLOW_FRZ overflow behavior"
 
 #define TEST_BUF_SIZE         SIZE_1M
@@ -278,11 +278,13 @@ cleanup:
   return;
 }
 
-uint32_t monitor007_entry(void)
+uint32_t monitor007_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

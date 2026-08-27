@@ -23,7 +23,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 5
-#define TEST_RULE  ""
+#define TEST_RULE  "VZBFH"
 #define TEST_DESC  "Check CMAX Partitioning with softlimit"
 
 /* Test algorithm
@@ -185,7 +185,7 @@ payload(void)
             /* Save the current MPAM2_EL2 settings */
             saved_el2 = val_mpam_reg_read(MPAM2_EL2);
 
-            val_print(INFO, "\n       Scenario 1: PARTID_X without SOFTLIM");
+            val_print(DEBUG, "\n       Scenario 1: PARTID_X without SOFTLIM");
 
             /* Step 4: Program MPAM2_EL2 with partid_x and default PMG */
             status = val_mpam_program_el2(partid_x, DEFAULT_PMG);
@@ -210,7 +210,7 @@ payload(void)
 
             /* Step 6 - Read the Cache line count used by PARTID X from CSU MON */
             counter[0] = val_mpam_read_csumon(msc_index);
-            val_print(INFO, "\n       Scenario 1: End Count = 0x%lx", counter[0]);
+            val_print(DEBUG, "\n       Scenario 1: End Count = 0x%lx", counter[0]);
 
             /* Disable CSU MON */
             val_mpam_csumon_disable(msc_index);
@@ -282,7 +282,7 @@ payload(void)
 
             /* Step 11: Measure cache usage again with the CSU monitor */
             counter[1] = val_mpam_read_csumon(msc_index);
-            val_print(INFO, "\n       Scenario 2: End Count = 0x%lx", counter[1]);
+            val_print(DEBUG, "\n       Scenario 2: End Count = 0x%lx", counter[1]);
 
             /* Compare the result. Counter[1] should be more than Counter[0]. The softlimiting
                should allow some of the disabled PARTID_Y's cache lines to be used by PARTID_X */
@@ -352,11 +352,13 @@ cleanup:
     return;
 }
 
-uint32_t partition005_entry(void)
+uint32_t partition005_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

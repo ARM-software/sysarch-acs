@@ -29,7 +29,7 @@
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_error_tests(void)
+val_mpam_execute_error_tests(uint32_t num_pe)
 {
   uint32_t status, i;
 
@@ -52,24 +52,24 @@ val_mpam_execute_error_tests(void)
   val_print_test_start("ERROR");
   g_curr_module = 1 << ERROR_MODULE;
 
-  status = error001_entry();
-  status |= error002_entry();
-  status |= error003_entry();
-  status |= error004_entry();
-  status |= error005_entry();
-  status |= error006_entry();
-  status |= error007_entry();
-  status |= error008_entry();
-  status |= error009_entry();
-  status |= error010_entry();
-  status |= error011_entry();
-  status |= error012_entry();
-  status |= error013_entry();
-  status |= error014_entry();
-  status |= intr001_entry();
-  status |= intr002_entry();
-  status |= intr003_entry();
-  status |= intr004_entry();
+  status = error001_entry(num_pe);
+  status |= error002_entry(num_pe);
+  status |= error003_entry(num_pe);
+  status |= error004_entry(num_pe);
+  status |= error005_entry(num_pe);
+  status |= error006_entry(num_pe);
+  status |= error007_entry(num_pe);
+  status |= error008_entry(num_pe);
+  status |= error009_entry(num_pe);
+  status |= error010_entry(num_pe);
+  status |= error011_entry(num_pe);
+  status |= error012_entry(num_pe);
+  status |= error013_entry(num_pe);
+  status |= error014_entry(num_pe);
+  status |= intr001_entry(num_pe);
+  status |= intr002_entry(num_pe);
+  status |= intr003_entry(num_pe);
+  status |= intr004_entry(num_pe);
 
   /* Setup ITS for MSI Tests */
   if (g_its_init != 1) {
@@ -83,8 +83,8 @@ val_mpam_execute_error_tests(void)
   }
 
   if (g_its_init) {
-    status |= intr005_entry();
-    status |= intr006_entry();
+    status |= intr005_entry(num_pe);
+    status |= intr006_entry(num_pe);
   }
 
   val_print_test_end(status, "ERROR");
@@ -101,7 +101,7 @@ val_mpam_execute_error_tests(void)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_membw_tests(void)
+val_mpam_execute_membw_tests(uint32_t num_pe)
 {
   uint32_t status, i;
 
@@ -126,13 +126,13 @@ val_mpam_execute_membw_tests(void)
   val_print_test_start("MEMORY BANDWIDTH");
   g_curr_module = 1 << MEMORY_MODULE;
 
-  status = mem001_entry();
-  status |= mem002_entry();
-  status |= mem003_entry();
+  status = mem001_entry(num_pe);
+  status |= mem002_entry(num_pe);
+  status |= mem003_entry(num_pe);
 
-  status |= monitor006_entry();
-  status |= monitor007_entry();
-  status |= monitor008_entry();
+  status |= monitor006_entry(num_pe);
+  status |= monitor007_entry(num_pe);
+  status |= monitor008_entry(num_pe);
 
   val_print_test_end(status, "MEMORY BANDWIDTH");
 
@@ -148,7 +148,7 @@ val_mpam_execute_membw_tests(void)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_register_tests(void)
+val_mpam_execute_register_tests(uint32_t num_pe)
 {
   uint32_t status, i;
 
@@ -171,12 +171,12 @@ val_mpam_execute_register_tests(void)
   val_print_test_start("REGISTER");
   g_curr_module = 1 << REGISTER_MODULE;
 
-  status |= reg001_entry();
-  status |= reg002_entry();
-  status |= reg003_entry();
-  status |= reg004_entry();
-  status |= reg005_entry();
-  status |= reg006_entry();
+  status |= reg001_entry(num_pe);
+  status |= reg002_entry(num_pe);
+  status |= reg003_entry(num_pe);
+  status |= reg004_entry(num_pe);
+  status |= reg005_entry(num_pe);
+  status |= reg006_entry(num_pe);
 
   val_print_test_end(status, "REGISTER");
 
@@ -192,7 +192,7 @@ val_mpam_execute_register_tests(void)
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_mpam_execute_cache_tests(void)
+val_mpam_execute_cache_tests(uint32_t num_pe)
 {
   uint32_t status, i;
 
@@ -215,20 +215,20 @@ val_mpam_execute_cache_tests(void)
   val_print_test_start("CACHE");
   g_curr_module = 1 << CACHE_MODULE;
 
-  status |= partition001_entry();
-  status |= partition002_entry();
-  status |= partition003_entry();
-  status |= partition004_entry();
-  status |= partition005_entry();
-  status |= partition006_entry();
+  status |= partition001_entry(num_pe);
+  status |= partition002_entry(num_pe);
+  status |= partition003_entry(num_pe);
+  status |= partition004_entry(num_pe);
+  status |= partition005_entry(num_pe);
+  status |= partition006_entry(num_pe);
 
-  status |= feat001_entry();
+  status |= feat001_entry(num_pe);
 
-  status |= monitor001_entry();
-  status |= monitor002_entry();
-  status |= monitor003_entry();
-  status |= monitor004_entry();
-  status |= monitor005_entry();
+  status |= monitor001_entry(num_pe);
+  status |= monitor002_entry(num_pe);
+  status |= monitor003_entry(num_pe);
+  status |= monitor004_entry(num_pe);
+  status |= monitor005_entry(num_pe);
 
   val_print_test_end(status, "CACHE");
 

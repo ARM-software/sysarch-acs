@@ -23,7 +23,7 @@
 #include "val_interface.h"
 
 #define TEST_NUM   ACS_MPAM_CACHE_TEST_NUM_BASE + 6
-#define TEST_RULE  ""
+#define TEST_RULE  "CXZDR"
 #define TEST_DESC  "Check CMIN resource controls          "
 
 /* Test Algorithm
@@ -199,7 +199,7 @@ payload(void)
 
             /* Read the monitor counter for PARTID_X */
             counter[0] = val_mpam_read_csumon(msc_index);
-            val_print(INFO, "\n       PARTID_X Counter: 0x%x", counter[0]);
+            val_print(DEBUG, "\n       PARTID_X Counter: 0x%x", counter[0]);
 
             /* Disable CSU MON */
             val_mpam_csumon_disable(msc_index);
@@ -237,7 +237,7 @@ payload(void)
 
             /* Read the monitor counter for PARTID_Y */
             counter[1] = val_mpam_read_csumon(msc_index);
-            val_print(INFO, "\n       PARTID_Y Counter: 0x%x", counter[1]);
+            val_print(DEBUG, "\n       PARTID_Y Counter: 0x%x", counter[1]);
 
             /* Read PARTID_X counter after the second buffer copy */
             val_mpam_configure_csu_mon(msc_index, partid_x, DEFAULT_PMG, 0);
@@ -248,7 +248,7 @@ payload(void)
             }
 
             counter[0] = val_mpam_read_csumon(msc_index);
-            val_print(INFO,
+            val_print(DEBUG,
                             "\n       PARTID_X Counter after PARTID_Y workload: 0x%x", counter[0]);
 
             val_pe_cache_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
@@ -271,7 +271,7 @@ payload(void)
             val_mpam_configure_csu_mon(msc_index, partid_z, DEFAULT_PMG, 0);
 
             counter[2] = val_mpam_read_csumon(msc_index);
-            val_print(INFO,
+            val_print(DEBUG,
                                     "\n       PARTID_Z Counter before workload: 0x%x", counter[2]);
 
             /* Step 8: Perform a memory workload for PARTID_Z */
@@ -295,7 +295,7 @@ payload(void)
             }
 
             counter[2] = val_mpam_read_csumon(msc_index);
-            val_print(INFO, "\n       PARTID_Z Counter after workload: %x", counter[2]);
+            val_print(DEBUG, "\n       PARTID_Z Counter after workload: %x", counter[2]);
 
             /* Read PARTID_X and PARTID_Y counters after PARTID_Z workload */
             val_mpam_configure_csu_mon(msc_index, partid_x, DEFAULT_PMG, 0);
@@ -306,7 +306,7 @@ payload(void)
             }
 
             counter[0] = val_mpam_read_csumon(msc_index);
-            val_print(INFO,
+            val_print(DEBUG,
                             "\n       PARTID_X Counter after PARTID_Z workload: 0x%x", counter[0]);
 
             val_mpam_configure_csu_mon(msc_index, partid_y, DEFAULT_PMG, 0);
@@ -317,7 +317,7 @@ payload(void)
             }
 
             counter[1] = val_mpam_read_csumon(msc_index);
-            val_print(INFO,
+            val_print(DEBUG,
                             "\n       PARTID_Y Counter after PARTID_Z workload: 0x%x", counter[1]);
 
             if (counter[1] > counter[0]) {
@@ -393,11 +393,13 @@ cleanup:
     return;
 }
 
-uint32_t partition006_entry(void)
+uint32_t partition006_entry(uint32_t num_pe)
 {
     uint32_t status  = ACS_STATUS_FAIL;
-    uint32_t num_pe  = 1;
 
+    num_pe = 1;
+
+    val_log_context((char8_t *)__FILE__, (char8_t *)__func__, __LINE__);
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 
     /* Check if test needs to be skipped - based on user configuration */

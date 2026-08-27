@@ -189,23 +189,9 @@ val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index)
   msc_entry = &g_mpam_info_table->msc_node[0];
   for (i = 0; i < g_mpam_info_table->msc_count; i++, msc_entry = MPAM_NEXT_MSC(msc_entry)) {
       if (msc_index == i) {
-          if (rsrc_index > msc_entry->rsrc_count - 1) {
-              val_print(ERROR,
-                      "\n   Invalid MSC resource index = 0x%lx for", rsrc_index);
-              val_print(ERROR, "MSC index = 0x%lx ", msc_index);
-              return MPAM_INVALID_INFO;
-          }
           switch (type) {
           case MPAM_MSC_RSRC_COUNT:
               return msc_entry->rsrc_count;
-          case MPAM_MSC_RSRC_RIS:
-              return msc_entry->rsrc_node[rsrc_index].ris_index;
-          case MPAM_MSC_RSRC_TYPE:
-              return msc_entry->rsrc_node[rsrc_index].locator_type;
-          case MPAM_MSC_RSRC_DESC1:
-              return msc_entry->rsrc_node[rsrc_index].descriptor1;
-          case MPAM_MSC_RSRC_DESC2:
-              return msc_entry->rsrc_node[rsrc_index].descriptor2;
           case MPAM_MSC_BASE_ADDR:
               return msc_entry->msc_base_addr;
           case MPAM_MSC_ADDR_LEN:
@@ -224,6 +210,26 @@ val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index)
               return msc_entry->identifier;
           case MPAM_MSC_INTERFACE_TYPE:
               return msc_entry->intrf_type;
+          default:
+              break;
+          }
+
+          if (rsrc_index >= msc_entry->rsrc_count) {
+              val_print(ERROR,
+                      "\n   Invalid MSC resource index = 0x%lx for", rsrc_index);
+              val_print(ERROR, "MSC index = 0x%lx ", msc_index);
+              return MPAM_INVALID_INFO;
+          }
+
+          switch (type) {
+          case MPAM_MSC_RSRC_RIS:
+              return msc_entry->rsrc_node[rsrc_index].ris_index;
+          case MPAM_MSC_RSRC_TYPE:
+              return msc_entry->rsrc_node[rsrc_index].locator_type;
+          case MPAM_MSC_RSRC_DESC1:
+              return msc_entry->rsrc_node[rsrc_index].descriptor1;
+          case MPAM_MSC_RSRC_DESC2:
+              return msc_entry->rsrc_node[rsrc_index].descriptor2;
           default:
               val_print(ERROR,
                        "\n   This MPAM info option for type %d is not supported", type);
@@ -1068,6 +1074,7 @@ val_mpam_memory_configure_ris_sel(uint32_t msc_index, uint32_t rsrc_index)
        field to be 0 */
     data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MON_SEL);
     data = BITFIELD_WRITE(data, MON_SEL_RIS, ris_index);
+    data = BITFIELD_WRITE(data, MON_SEL_MON_SEL, 0);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MON_SEL, data);
 
     /* configure MPAMCFG_PART_SEL.RIS field and write MPAMCFG_PART_SEL.
@@ -1102,8 +1109,10 @@ val_mpam_memory_configure_mbwumon(uint32_t msc_index)
     /* disable monitor instance before configuration */
     val_mpam_memory_mbwumon_disable(msc_index);
 
-    /* configure monitor ctrl reg for default partid and default pmg */
-    data = BITFIELD_SET(MBWU_CTL_MATCH_PARTID, 1) | BITFIELD_SET(MBWU_CTL_MATCH_PMG, 1);
+    /* configure matching controls while preserving other monitor settings */
+    data = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+    data = BITFIELD_WRITE(data, MBWU_CTL_MATCH_PARTID, 1);
+    data = BITFIELD_WRITE(data, MBWU_CTL_MATCH_PMG, 1);
     val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, data);
 
     data = 0;
@@ -1181,6 +1190,7 @@ val_mpam_memory_mbwumon_read_count(uint32_t msc_index)
     uint64_t count = MPAM_MON_NOT_READY;
     uint64_t msmon_mbwu_l;
     uint32_t msmon_mbwu;
+    uint32_t mbwu_ctl;
     uint32_t mbwumon_idr = val_mpam_mmr_read(msc_index, REG_MPAMF_MBWUMON_IDR);
 
     /* Check HAS_LONG to determine if MSMON_MBWU_L is implemented. */
@@ -1204,7 +1214,9 @@ val_mpam_memory_mbwumon_read_count(uint32_t msc_index)
         if (BITFIELD_READ(MSMON_MBWU_NRDY, msmon_mbwu) == 0) {
             count = BITFIELD_READ(MSMON_MBWU_VALUE, msmon_mbwu);
             /* shift the count if scaling is enabled */
-            count = count << BITFIELD_READ(MBWUMON_IDR_SCALE, mbwumon_idr);
+            mbwu_ctl = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+            if (BITFIELD_READ(MBWU_CTL_SCLEN, mbwu_ctl))
+                count = count << BITFIELD_READ(MBWUMON_IDR_SCALE, mbwumon_idr);
         }
     }
     return(count);
@@ -1221,11 +1233,26 @@ val_mpam_memory_mbwumon_read_count(uint32_t msc_index)
 void
 val_mpam_memory_mbwumon_reset(uint32_t msc_index)
 {
-    /*if MSMON_MBWU_L is implemented*/
+    uint32_t mbwu_ctl;
+    uint32_t monitor_enabled;
+
+    mbwu_ctl = val_mpam_mmr_read(msc_index, REG_MSMON_CFG_MBWU_CTL);
+    monitor_enabled = BITFIELD_READ(MBWU_CTL_EN, mbwu_ctl);
+
+    if (monitor_enabled) {
+        val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL,
+                           BITFIELD_WRITE(mbwu_ctl, MBWU_CTL_EN, 0));
+        val_mem_issue_dsb();
+    }
+
+    val_mpam_mmr_write(msc_index, REG_MSMON_MBWU, 0);
     if (val_mpam_mbwu_supports_long(msc_index))
         val_mpam_mmr_write64(msc_index, REG_MSMON_MBWU_L, 0);
-    else
-        val_mpam_mmr_write(msc_index, REG_MSMON_MBWU, 0);
+
+    if (monitor_enabled)
+        val_mpam_mmr_write(msc_index, REG_MSMON_CFG_MBWU_CTL, mbwu_ctl);
+
+    val_mem_issue_dsb();
 }
 
 
@@ -1300,16 +1327,18 @@ memory_map_msc(void)
 {
   uint32_t msc_index;
   uint32_t intrf_type;
+  uint32_t msc_addr_len;
   uint64_t msc_base;
   uint32_t msc_node_cnt = val_mpam_get_msc_count();
 
   for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
         msc_base  = val_mpam_get_info(MPAM_MSC_BASE_ADDR, msc_index, 0);
+        msc_addr_len = val_mpam_get_info(MPAM_MSC_ADDR_LEN, msc_index, 0);
         intrf_type = val_mpam_get_info(MPAM_MSC_INTERFACE_TYPE, msc_index, 0);
 
         /* If interface is MMIO, make sure the MSC registers are mapped in PE MMU */
         if (intrf_type == MPAM_INTERFACE_TYPE_MMIO) {
-            val_mmu_update_entry(msc_base, MPAM_MSC_REGISTER_SPACE, DEVICE_nGnRnE);
+            val_mmu_update_entry(msc_base, msc_addr_len, DEVICE_nGnRnE);
 
         /* If interface is PCC, make sure the Doorbell registers, etc. are mapped */
         } else if (intrf_type == MPAM_INTERFACE_TYPE_PCC) {
@@ -1482,7 +1511,10 @@ val_hmat_create_info_table(uint64_t *hmat_info_table)
 void
 val_hmat_free_info_table(void)
 {
-    pal_mem_free_aligned((void *)g_hmat_info_table);
+    if (g_hmat_info_table != NULL) {
+        pal_mem_free_aligned((void *)g_hmat_info_table);
+        g_hmat_info_table = NULL;
+    }
 }
 
 /**
@@ -1520,7 +1552,10 @@ val_srat_create_info_table(uint64_t *srat_info_table)
 void
 val_srat_free_info_table(void)
 {
-    pal_mem_free_aligned((void *)g_srat_info_table);
+    if (g_srat_info_table != NULL) {
+        pal_mem_free_aligned((void *)g_srat_info_table);
+        g_srat_info_table = NULL;
+    }
 }
 
 /**
@@ -1597,6 +1632,68 @@ val_mpam_get_bwa_wd(uint32_t msc_index)
 {
     return BITFIELD_READ(BWA_WD, val_mpam_mmr_read(msc_index, REG_MPAMF_MBW_IDR));
 }
+
+static uint16_t
+mpam_encode_fraction(uint32_t width, uint32_t percentage, uint8_t subtract_one)
+{
+    uint32_t fraction;
+    uint32_t max_fraction;
+
+    if (width > 16) {
+        val_print(WARN, "\n       Fractional width %d exceeds 16; clamping", width);
+        width = 16;
+    }
+    if (percentage > 100) {
+        val_print(WARN, "\n       Percentage %d exceeds 100; clamping", percentage);
+        percentage = 100;
+    }
+    if (width == 0)
+        return 0;
+
+    max_fraction = (1U << width) - 1U;
+    fraction = ((1U << width) * percentage) / 100;
+    if (subtract_one && fraction != 0)
+        fraction--;
+    if (fraction > max_fraction)
+        fraction = max_fraction;
+
+    return (uint16_t)(fraction << (16 - width));
+}
+
+static void
+mpam_program_bitmap(uint32_t msc_index, uint32_t reg, uint32_t width,
+                    uint32_t max_width, uint32_t percentage)
+{
+    uint32_t bit_count;
+    uint32_t total_words;
+    uint32_t word;
+    uint32_t word_value;
+
+    if (width > max_width) {
+        val_print(WARN, "\n       Bitmap width %d exceeds supported maximum; clamping", width);
+        width = max_width;
+    }
+    if (percentage > 100) {
+        val_print(WARN, "\n       Percentage %d exceeds 100; clamping", percentage);
+        percentage = 100;
+    }
+
+    bit_count = (width * percentage) / 100;
+    total_words = (width + 31) / 32;
+
+    for (word = 0; word < total_words; word++) {
+        if (bit_count >= 32)
+            word_value = ACS_UINT32_MAX;
+        else if (bit_count != 0)
+            word_value = (1U << bit_count) - 1U;
+        else
+            word_value = 0;
+
+        val_mpam_mmr_write(msc_index, reg + (word * sizeof(uint32_t)), word_value);
+        bit_count = (bit_count > 32) ? bit_count - 32 : 0;
+    }
+}
+
 /**
   @brief   This API Configures CPOR settings for given MSC
            Prerequisite - If MSC supports RIS, Resource instance should be
@@ -1612,10 +1709,7 @@ val_mpam_get_bwa_wd(uint32_t msc_index)
 void
 val_mpam_configure_cpor(uint32_t msc_index, uint16_t partid, uint32_t cpbm_percentage)
 {
-    uint16_t index;
-    uint32_t unset_bitmask;
-    uint32_t num_unset_bits;
-    uint16_t num_cpbm_bits;
+    uint32_t num_cpbm_bits;
     uint32_t data;
 
     /* Get CPBM width */
@@ -1628,19 +1722,8 @@ val_mpam_configure_cpor(uint32_t msc_index, uint16_t partid, uint32_t cpbm_perce
     data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
-    /*
-     * Configure CPBM register to have a 1 in cpbm_percentage
-     * bits in the overall CPBM_WD bit positions
-     */
-    num_cpbm_bits = (num_cpbm_bits * cpbm_percentage) / 100 ;
-    for (index = 0; index < (num_cpbm_bits - 31) && index < MAX_CPBM_WIDTH; index += 32)
-        val_mpam_mmr_write(msc_index, REG_MPAMCFG_CPBM + (index / 8), CPOR_BITMAP_DEF_VAL);
-
-    /* Unset bits from above step are set */
-    num_unset_bits = num_cpbm_bits - index;
-    unset_bitmask = (1 << num_unset_bits) - 1;
-    if (unset_bitmask)
-        val_mpam_mmr_write(msc_index, REG_MPAMCFG_CPBM + (index / 8), unset_bitmask);
+    mpam_program_bitmap(msc_index, REG_MPAMCFG_CPBM, num_cpbm_bits,
+                        MAX_CPBM_WIDTH, cpbm_percentage);
 
     /* Issue a DSB instruction */
     val_mem_issue_dsb();
@@ -1668,7 +1751,7 @@ void val_mpam_configure_ccap(uint32_t msc_index, uint16_t partid,
     uint32_t data;
 
     num_fractional_bits = val_mpam_get_cmax_wd(msc_index);
-    fixed_point_fraction = ((1 << num_fractional_bits) * ccap_percentage / 100) - 1;
+    fixed_point_fraction = mpam_encode_fraction(num_fractional_bits, ccap_percentage, 1);
 
     /* Select the PARTID to configure capacity partition parameters */
     data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
@@ -1681,8 +1764,8 @@ void val_mpam_configure_ccap(uint32_t msc_index, uint16_t partid,
      * Use num_fractional_bits fixed-point representation
      */
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_CMAX,
-                      (softlim << MPAMCFG_CMAX_SOFTLIM_SHIFT) |
-                      ((fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF));
+                      ((uint32_t)softlim << MPAMCFG_CMAX_SOFTLIM_SHIFT) |
+                      fixed_point_fraction);
 
     val_mem_issue_dsb();
     return;
@@ -1707,18 +1790,19 @@ void val_mpam_configure_cassoc(uint32_t msc_index, uint16_t partid,
     uint32_t data;
 
     num_fractional_bits = val_mpam_get_cassoc_wd(msc_index);
-    fixed_point_fraction = ((1 << num_fractional_bits) * cassoc_percentage / 100) - 1;
+    fixed_point_fraction = mpam_encode_fraction(num_fractional_bits, cassoc_percentage, 1);
 
     /* Select the PARTID to configure CASSOC partition parameters */
     data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, (data | partid));
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure the CASSOC register for the cache associativity control settings.
      * Use num_fractional_bits fixed-point representation
      */
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_CASSOC,
-                      (fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF);
+                      fixed_point_fraction);
 
     val_mem_issue_dsb();
     return;
@@ -1739,27 +1823,22 @@ void val_mpam_configure_cmin(uint32_t msc_index, uint16_t partid, uint32_t cmin_
 
     uint8_t num_fractional_bits;
     uint16_t fixed_point_fraction;
+    uint32_t data;
 
     num_fractional_bits = val_mpam_get_cmax_wd(msc_index);
-    if (num_fractional_bits > 16) {
-        val_print(ERROR, "\n       Number of fractional bits = %d not permitted",
-                                                                            num_fractional_bits);
-        num_fractional_bits = 16;
-    }
-
-    fixed_point_fraction = ((1 << num_fractional_bits) * cmin_percentage / 100);
-    if (fixed_point_fraction != 0)
-        fixed_point_fraction -= 1;
+    fixed_point_fraction = mpam_encode_fraction(num_fractional_bits, cmin_percentage, 0);
 
     /* Select the PARTID to configure capacity partition parameters */
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure the CMIN register -  min cache capacity to be allocated for the PARTID.
      * Use num_fractional_bits fixed-point representation
      */
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_CMIN,
-                      ((fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF));
+                      fixed_point_fraction);
 
     val_mem_issue_dsb();
     return;
@@ -1779,30 +1858,18 @@ void
 val_mpam_configure_mbwpbm(uint32_t msc_index, uint16_t partid, uint32_t mbwpbm_percentage)
 {
 
-    uint16_t index;
-    uint32_t unset_bitmask;
-    uint32_t num_unset_bits;
-    uint16_t num_mbwpbm_bits;
+    uint32_t num_mbwpbm_bits;
+    uint32_t data;
 
     num_mbwpbm_bits = val_mpam_get_mbwpbm_width(msc_index);
 
     /* Select the PARTID to configure portion partition parameters */
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
-    /*
-     * Configure MBWPBM register to have a 1 in mbwpbm_percentage
-     * bits in the overall MBWBM_WD bit positions
-     */
-    num_mbwpbm_bits = num_mbwpbm_bits * mbwpbm_percentage / 100;
-    for (index = 0; index < (num_mbwpbm_bits - 31) && index < MAX_BWPBM_WIDTH; index += 32) {
-        val_mpam_mmr_write(msc_index, REG_MPAMCFG_MBW_PBM + (index / 8), MBWPOR_BITMAP_DEF_VAL);
-    }
-
-    num_unset_bits = num_mbwpbm_bits - index;
-    unset_bitmask = (1 << num_unset_bits) - 1;
-    if (unset_bitmask) {
-        val_mpam_mmr_write(msc_index, REG_MPAMCFG_MBW_PBM + (index / 8), unset_bitmask);
-    }
+    mpam_program_bitmap(msc_index, REG_MPAMCFG_MBW_PBM, num_mbwpbm_bits,
+                        MAX_BWPBM_WIDTH, mbwpbm_percentage);
 
     val_mem_issue_dsb();
     return;
@@ -1821,19 +1888,22 @@ void val_mpam_msc_configure_mbwmin(uint32_t msc_index, uint16_t partid, uint32_t
 {
     uint8_t num_fractional_bits;
     uint16_t fixed_point_fraction;
+    uint32_t data;
 
     num_fractional_bits = val_mpam_get_bwa_wd(msc_index);
-    fixed_point_fraction = ((1 << num_fractional_bits) * mbwmin_percentage / 100) - 1;
+    fixed_point_fraction = mpam_encode_fraction(num_fractional_bits, mbwmin_percentage, 0);
 
     /* Select the PARTID to configure minimum bandwidth limit parameters */
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure the MBW_MIN register for minimum bandwidth limit.
      * Use num_fractional_bits fixed-point representation
      */
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_MBW_MIN,
-                                  (fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF);
+                                  fixed_point_fraction);
 
     /* Issue a DSB instruction */
     val_mem_issue_dsb();
@@ -1855,20 +1925,23 @@ void val_mpam_msc_configure_mbwmax(uint32_t msc_index, uint16_t partid,
 {
     uint8_t num_fractional_bits;
     uint16_t fixed_point_fraction;
+    uint32_t data;
 
     num_fractional_bits = val_mpam_get_bwa_wd(msc_index);
-    fixed_point_fraction = ((1 << num_fractional_bits) * mbwmax_percentage / 100) - 1;
+    fixed_point_fraction = mpam_encode_fraction(num_fractional_bits, mbwmax_percentage, 1);
 
     /* Select the PARTID to configure maximum bandwidth partition parameters */
-    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, partid);
+    data = val_mpam_mmr_read(msc_index, REG_MPAMCFG_PART_SEL);
+    data = BITFIELD_WRITE(data, PART_SEL_PARTID_SEL, partid);
+    val_mpam_mmr_write(msc_index, REG_MPAMCFG_PART_SEL, data);
 
     /*
      * Configure the MBW_MAX register for maximum bandwidth limit.
      * Use num_fractional_bits fixed-point representation
      */
     val_mpam_mmr_write(msc_index, REG_MPAMCFG_MBW_MAX,
-                      (hardlim << MPAMCFG_MBW_MAX_HARDLIM_SHIFT) |
-                      ((fixed_point_fraction << (16 - num_fractional_bits)) & 0xFFFF));
+                      ((uint32_t)hardlim << MPAMCFG_MBW_MAX_HARDLIM_SHIFT) |
+                      fixed_point_fraction);
 
     /* Issue a DSB instruction */
     val_mem_issue_dsb();
@@ -1993,7 +2066,7 @@ val_mpam_csumon_disable(uint32_t msc_index)
 }
 
 /**
-  @brief   This API reads the CSU montior counter value.
+  @brief   This API waits for MAX_NRDY and reads the CSU monitor counter value.
            Prerequisite - val_mpam_configure_csu_mon,
            This API can be called only after configuring CSU monitor.
 
@@ -2005,12 +2078,17 @@ uint32_t
 val_mpam_read_csumon(uint32_t msc_index)
 {
     uint32_t count;
+    uint64_t nrdy_timeout;
 
-    if (BITFIELD_READ(MSMON_CSU_NRDY, val_mpam_mmr_read(msc_index, REG_MSMON_CSU)) == 0) {
-        count = BITFIELD_READ(MSMON_CSU_VALUE,
-                                      val_mpam_mmr_read(msc_index, REG_MSMON_CSU));
-        return count;
-    }
+    /* Avoid repeated MMIO polling while allowing the monitor update to complete. */
+    nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, msc_index, 0);
+    if ((nrdy_timeout != 0) && (nrdy_timeout != MPAM_INVALID_INFO))
+        val_time_delay_ms(nrdy_timeout);
+
+    count = val_mpam_mmr_read(msc_index, REG_MSMON_CSU);
+    if (BITFIELD_READ(MSMON_CSU_NRDY, count) == 0)
+        return BITFIELD_READ(MSMON_CSU_VALUE, count);
+
     return 0;
 }
 
@@ -2444,14 +2522,14 @@ uint32_t val_mpam_program_el2(uint16_t partid, uint8_t pmg)
     @param   enable - 1 to enable, 0 to disable PARTID
     @param   nfu_flag - No future Use if PARTID is to be disabled
     @param   partid - PARTID to be enabled/disabled
-    @return  1 on success, 0 on failure.
+    @return  0 on success, 1 on failure.
 */
 uint32_t
 val_mpam_msc_endis_partid(uint32_t msc_index, bool enable, bool nfu_flag, uint16_t partid)
 {
 
     /* Check if the PARTID is valid */
-    if (partid >= val_mpam_get_max_partid(msc_index)) {
+    if (partid > val_mpam_get_max_partid(msc_index)) {
         val_print(ERROR, "\n       PARTID value (0x%x)", partid);
         val_print(ERROR, " specified more than MSC supported value (0x%x)",
                   val_mpam_get_max_partid(msc_index));
@@ -2670,10 +2748,12 @@ val_mpam_msc_enable_msi(uint32_t msc_index, uint32_t is_oflow_msi)
     uint32_t attr;
 
     if (is_oflow_msi) {
-        attr = BITFIELD_SET(OFLOW_MSI_ATTR_MSIEN, 1);
+        attr = val_mpam_mmr_read(msc_index, REG_MSMON_OFLOW_MSI_ATTR);
+        attr = BITFIELD_WRITE(attr, OFLOW_MSI_ATTR_MSIEN, 1);
         val_mpam_mmr_write(msc_index, REG_MSMON_OFLOW_MSI_ATTR, attr);
     } else {
-        attr = BITFIELD_SET(ERR_MSI_ATTR_MSIEN, 1);
+        attr = val_mpam_mmr_read(msc_index, REG_MPAMF_ERR_MSI_ATTR);
+        attr = BITFIELD_WRITE(attr, ERR_MSI_ATTR_MSIEN, 1);
         val_mpam_mmr_write(msc_index, REG_MPAMF_ERR_MSI_ATTR, attr);
     }
 

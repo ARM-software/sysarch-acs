@@ -35,6 +35,8 @@
   ../
   ../../
   app.c
+  acs_globals.c
+  acs_helpers.c
   mpam_main.c
   ../../test_pool/mpam/reg001.c
   ../../test_pool/mpam/reg002.c

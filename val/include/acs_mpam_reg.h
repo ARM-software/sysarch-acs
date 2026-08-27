@@ -34,7 +34,7 @@
 /* Macro can be used write a particular bitfield with name##_MASK and name##_SHIFT
    already defined or declared  for it without affecting other fields*/
 #define BITFIELD_WRITE(reg_val, name, val) \
-        ((reg_val & ~(name##_MASK << name##_SHIFT)) | (val << name##_SHIFT))
+        (((reg_val) & ~((name##_MASK) << (name##_SHIFT))) | BITFIELD_SET(name, val))
 
 /*******************************************************************************
  * MPAM memory mapped register offsets
@@ -193,7 +193,7 @@ BITFIELD_DECL(uint32_t, MPAMCFG_DIS_NFU, 31, 31)
 
 /* MS Monitor Counter Max values */
 #define MSMON_COUNT_63BIT   0x7fffffffffffffff
-#define MSMON_COUNT_44BIT   0x1FFFFFFFFFFF
+#define MSMON_COUNT_44BIT   0xFFFFFFFFFFFULL
 #define MSMON_COUNT_31BIT   0x7FFFFFFF
 
 /* MPAMF_ESR bit values */
@@ -236,6 +236,7 @@ BITFIELD_DECL(uint32_t, MBWU_CTL_OFLOW_INTR_L, 14, 14)
 BITFIELD_DECL(uint32_t, MBWU_CTL_OFLOW_STATUS_L, 15, 15)
 BITFIELD_DECL(uint32_t, MBWU_CTL_MATCH_PARTID, 16, 16)
 BITFIELD_DECL(uint32_t, MBWU_CTL_MATCH_PMG, 17, 17)
+BITFIELD_DECL(uint32_t, MBWU_CTL_SCLEN, 19, 19)
 BITFIELD_DECL(uint32_t, MBWU_CTL_SUBTYPE, 23, 20)
 BITFIELD_DECL(uint32_t, MBWU_CTL_OFLOW_FRZ, 24, 24)
 BITFIELD_DECL(uint32_t, MBWU_CTL_OFLOW_INTR, 25, 25)
