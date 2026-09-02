@@ -32,6 +32,9 @@ const pcbsa_rule_entry_t pcbsa_rule_list[] = {
     { P_L1PE_06,   PCBSA_LEVEL_1 },
     { P_L1PE_07,   PCBSA_LEVEL_1 },
     { P_L1PE_08,   PCBSA_LEVEL_1 },
+    { YKRHG,       PCBSA_LEVEL_2 },
+    { CNBRV,       PCBSA_LEVEL_2 },
+    { PBCRQ,       PCBSA_LEVEL_2 },
 
     /* Memory map */
     { P_L1MM_01,   PCBSA_LEVEL_1 },

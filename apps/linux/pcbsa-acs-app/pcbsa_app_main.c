@@ -52,7 +52,7 @@ void print_help(void)
          "-v      Verbosity of the Prints\n"
          "        1 shows all prints, 5 shows Errors\n"
          "-l      Level of compliance to be tested for\n"
-         "        As per PC BSA spec only level 1\n"
+         "        As per PC BSA spec levels 1 and 2\n"
          "--skip  Test(s) to be skipped\n"
          "        To skip a module, use Module_id as mentioned in user guide\n"
          "        To skip a particular test within a module, use the exact testcase number\n"

@@ -19,7 +19,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  36)
+#ifdef PC_BSA
+#define TEST_RULE  "YKRHG"
+#else
 #define TEST_RULE  "S_L5PE_07"
+#endif
 #define TEST_DESC  "Check for nested virtualization       "
 
 static void payload(void)

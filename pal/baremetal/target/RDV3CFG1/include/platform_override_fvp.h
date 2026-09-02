@@ -19,7 +19,7 @@
 #define PLATFORM_OVERRIDE_PRINT_LEVEL        0x3     /* Console log level (1-5)                  */
 #define PLATFORM_OVERRIDE_BSA_LEVEL          0x1     /* Target BSA compliance level (only 1)     */
 #define PLATFORM_OVERRIDE_SBSA_LEVEL         0x7     /* Target SBSA compliance level (3-7)       */
-#define PLATFORM_OVERRIDE_PCBSA_LEVEL        0x1     /* Target PCBSA compliance level (only 1)   */
+#define PLATFORM_OVERRIDE_PCBSA_LEVEL        0x2     /* Target PCBSA compliance level (1-2)      */
 
 /* ------------------------------  MMU page table ------------------------------ */
 #define PLATFORM_PAGE_SIZE              0x1000       /* MMU Memory Page Size                     */

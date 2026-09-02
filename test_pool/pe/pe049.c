@@ -20,7 +20,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  49)
+#ifdef PC_BSA
+#define TEST_RULE  "PBCRQ"
+#else
 #define TEST_RULE  "S_L7PE_02"
+#endif
 #define TEST_DESC  "Check for ECV support                 "
 
 static void payload(void)

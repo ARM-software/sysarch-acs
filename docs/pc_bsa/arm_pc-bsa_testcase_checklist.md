@@ -106,6 +106,36 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
+      <td>36</td>
+      <td>Check for nested virtualization</td>
+      <td>2</td>
+      <td>YKRHG</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>48</td>
+      <td>Check Fine Grain Trap Support</td>
+      <td>2</td>
+      <td>CNBRV</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>49</td>
+      <td>Check for ECV support</td>
+      <td>2</td>
+      <td>PBCRQ</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
       <td>105</td>
       <td>NS-EL2 Stage-2 64KB Mapping Check</td>
       <td>1</td>

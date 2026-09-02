@@ -107,6 +107,9 @@ typedef enum {
     P_L1PE_06,
     P_L1PE_07,
     P_L1PE_08,
+    YKRHG,
+    CNBRV,
+    PBCRQ,
 
     /* GIC rules */
     B_GIC_01,
@@ -1068,6 +1071,7 @@ typedef enum {
 /* PCBSA levels enum */
 typedef enum {
     PCBSA_LEVEL_1 = 1,
+    PCBSA_LEVEL_2,
     PCBSA_LEVEL_FR,
     PCBSA_LEVEL_SENTINEL /* Keep last */
 } PCBSA_LEVEL_e;

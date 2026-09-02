@@ -33,7 +33,7 @@
 
 #define G_PCBSA_LEVEL             1
 #define PCBSA_MIN_LEVEL_SUPPORTED 1
-#define PCBSA_MAX_LEVEL_SUPPORTED 1
+#define PCBSA_MAX_LEVEL_SUPPORTED 2
 
 #define LEVEL_PRINT_FORMAT(level, filter_mode, fr_level) ((filter_mode == LVL_FILTER_FR) ? \
     "\nStarting tests for level FR " : \

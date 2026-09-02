@@ -20,7 +20,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  48)
+#ifdef PC_BSA
+#define TEST_RULE  "CNBRV"
+#else
 #define TEST_RULE  "S_L7PE_01"
+#endif
 #define TEST_DESC  "Check Fine Grain Trap Support         "
 
 static void payload(void)
