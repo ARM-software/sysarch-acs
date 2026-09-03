@@ -51,8 +51,8 @@ payload(void)
 
       data = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_IDR0, num_smmu), 6, 7);
 
-      /* Check If SMMU_IDR0.HTTU == 0b10 */
-      if (data != 2) {
+      /* Check If SMMU_IDR0.HTTU == (0b10 or 0b11) */
+      if ((data != 2) && (data != 3)) {
           val_set_status(index, RESULT_FAIL(01));
           return;
       }
