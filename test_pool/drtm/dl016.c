@@ -50,6 +50,34 @@ static const uint8_t sha512_zero_digest[] = {
   0xc3, 0x84, 0x38, 0xf0, 0xe3, 0x69, 0x10, 0xee
 };
 
+/* Hash(Hash(0x00)), as recorded for the DCE measurement after TPM_HASH_DATA. */
+static const uint8_t sha256_dce_measurement[] = {
+  0x14, 0x06, 0xe0, 0x58, 0x81, 0xe2, 0x99, 0x36,
+  0x77, 0x66, 0xd3, 0x13, 0xe2, 0x6c, 0x05, 0x56,
+  0x4e, 0xc9, 0x1b, 0xf7, 0x21, 0xd3, 0x17, 0x26,
+  0xbd, 0x6e, 0x46, 0xe6, 0x06, 0x89, 0x53, 0x9a
+};
+
+static const uint8_t sha384_dce_measurement[] = {
+  0xe9, 0x74, 0x20, 0xbf, 0x0d, 0x8d, 0xcd, 0x22,
+  0x11, 0xcb, 0x5f, 0xb2, 0x20, 0x50, 0x27, 0xaa,
+  0x7f, 0x74, 0x0e, 0xad, 0xf0, 0xe5, 0x87, 0x28,
+  0x88, 0xf7, 0x1a, 0x17, 0xaa, 0x16, 0x44, 0xb9,
+  0xc3, 0x6d, 0x9e, 0xd5, 0x3e, 0xb2, 0x94, 0xd1,
+  0x33, 0xae, 0xb3, 0xbf, 0x86, 0xa5, 0x35, 0xd8
+};
+
+static const uint8_t sha512_dce_measurement[] = {
+  0x74, 0x1f, 0x4e, 0x71, 0x2f, 0x4a, 0x69, 0x07,
+  0x14, 0xb5, 0x51, 0xd3, 0x4b, 0xae, 0x0c, 0x03,
+  0xfe, 0x71, 0xf2, 0xa4, 0x85, 0x3d, 0xe6, 0x3a,
+  0xce, 0x43, 0xfe, 0x0b, 0xc4, 0x8e, 0x2c, 0xed,
+  0x52, 0x2a, 0xd2, 0x12, 0x25, 0x25, 0x7f, 0x03,
+  0x59, 0x98, 0x89, 0x2c, 0x51, 0x9e, 0xa8, 0xc6,
+  0x27, 0xbb, 0x44, 0xfd, 0x5a, 0x27, 0x1e, 0xe5,
+  0x1c, 0x71, 0xe2, 0xe4, 0x27, 0x16, 0x48, 0x3e
+};
+
 static
 const uint8_t *
 get_zero_digest(uint16_t hash_alg, uint32_t *digest_size)
@@ -72,10 +100,26 @@ get_zero_digest(uint16_t hash_alg, uint32_t *digest_size)
 }
 
 static
+const uint8_t *
+get_dce_measurement(uint16_t hash_alg)
+{
+  switch (hash_alg) {
+  case DRTM_TPM_ALG_SHA256:
+    return sha256_dce_measurement;
+  case DRTM_TPM_ALG_SHA384:
+    return sha384_dce_measurement;
+  case DRTM_TPM_ALG_SHA512:
+    return sha512_dce_measurement;
+  default:
+    return NULL;
+  }
+}
+
+static
 int32_t
-validate_zero_digest_event(const DRTM_EVENT_LOG_STATE *event_log,
-                           const DRTM_EVENT_LOG_ENTRY *entry, uint16_t hash_alg,
-                           const uint8_t *expected_digest, uint32_t expected_digest_size)
+validate_event_digest(const DRTM_EVENT_LOG_STATE *event_log,
+                      const DRTM_EVENT_LOG_ENTRY *entry, uint16_t hash_alg,
+                      const uint8_t *expected_digest, uint32_t expected_digest_size)
 {
   int32_t  status;
   uint8_t  *digest;
@@ -95,6 +139,39 @@ validate_zero_digest_event(const DRTM_EVENT_LOG_STATE *event_log,
 }
 
 static
+int32_t
+validate_dce_event_data(const DRTM_EVENT_LOG_ENTRY *entry, uint16_t hash_alg,
+                        const uint8_t *expected_digest, uint32_t expected_digest_size)
+{
+  uint16_t event_hash_alg;
+  uint8_t  *event_data;
+
+  if ((entry == NULL) || (entry->event_data == NULL) || (expected_digest == NULL)) {
+    val_print(ERROR, "\n       Invalid DCE event data parameters");
+    return ACS_STATUS_FAIL;
+  }
+
+  event_data = entry->event_data->event;
+  if (event_data == NULL) {
+    val_print(ERROR, "\n       DCE event data is NULL");
+    return ACS_STATUS_FAIL;
+  }
+
+  if (entry->event_data->event_size != (sizeof(event_hash_alg) + expected_digest_size))
+    return ACS_STATUS_FAIL;
+
+  val_memcpy(&event_hash_alg, event_data, sizeof(event_hash_alg));
+  if (event_hash_alg != hash_alg)
+    return ACS_STATUS_FAIL;
+
+  if (val_memory_compare(event_data + sizeof(event_hash_alg), (void *)expected_digest,
+                         expected_digest_size))
+    return ACS_STATUS_FAIL;
+
+  return ACS_STATUS_PASS;
+}
+
+static
 void
 payload(uint32_t num_pe)
 {
@@ -106,6 +183,7 @@ payload(uint32_t num_pe)
   uint32_t dce_pubkey_seen = 0;
   uint64_t drtm_params_size = DRTM_SIZE_4K;
   const uint8_t *zero_digest;
+  const uint8_t *dce_measurement;
 
   DRTM_PARAMETERS      *drtm_params;
   DRTM_EVENT_LOG_STATE event_log;
@@ -120,9 +198,10 @@ payload(uint32_t num_pe)
   /* Get the firmware hash algorithm from DRTM features */
   fw_hash_alg = (uint16_t)val_drtm_get_feature(DRTM_DRTM_FEATURES_FW_HASH_ALGOROTHM);
   zero_digest = get_zero_digest(fw_hash_alg, &digest_size);
-  if ((zero_digest == NULL) || (digest_size == 0)) {
+  dce_measurement = get_dce_measurement(fw_hash_alg);
+  if ((zero_digest == NULL) || (dce_measurement == NULL) || (digest_size == 0)) {
     val_print(ERROR, "\n       Unsupported hash algorithm: 0x%x", fw_hash_alg);
-    val_set_status(index, RESULT_FAIL(1));
+    val_set_status(index, RESULT_SKIP(2));
     return;
   }
 
@@ -130,14 +209,14 @@ payload(uint32_t num_pe)
   drtm_params = (DRTM_PARAMETERS *)((uint64_t)val_aligned_alloc(DRTM_SIZE_4K, drtm_params_size));
   if (!drtm_params) {
     val_print(ERROR, "\n    Failed to allocate memory for DRTM Params");
-    val_set_status(index, RESULT_FAIL(2));
+    val_set_status(index, RESULT_FAIL(1));
     return;
   }
 
   status = val_drtm_init_drtm_params(drtm_params);
   if (status != ACS_STATUS_PASS) {
     val_print(ERROR, "\n       DRTM Init Params failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(3));
+    val_set_status(index, RESULT_FAIL(2));
     goto free_drtm_params;
   }
 
@@ -146,7 +225,7 @@ payload(uint32_t num_pe)
   /* This will return only in fail*/
   if (status < DRTM_ACS_SUCCESS) {
     val_print(ERROR, "\n       DRTM Dynamic Launch failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(4));
+    val_set_status(index, RESULT_FAIL(3));
     goto free_dlme_region;
   }
 
@@ -154,14 +233,14 @@ payload(uint32_t num_pe)
   status = val_drtm_unprotect_memory();
   if (status < DRTM_ACS_SUCCESS) {
     val_print(ERROR, "\n       DRTM Unprotect Memory failed err=%d", status);
-    val_set_status(index, RESULT_FAIL(5));
+    val_set_status(index, RESULT_FAIL(4));
     goto free_dlme_region;
   }
 
   status = val_drtm_event_log_init(drtm_params, &event_log);
   if (status != ACS_STATUS_PASS) {
     val_print(ERROR, "\n       Event log initialization failed");
-    val_set_status(index, RESULT_FAIL(6));
+    val_set_status(index, RESULT_FAIL(5));
     goto free_dlme_region;
   }
 
@@ -169,7 +248,7 @@ payload(uint32_t num_pe)
   while ((status = val_drtm_event_log_next(&event_log, &entry)) != DRTM_ACS_NOT_FOUND) {
     if (status != ACS_STATUS_PASS) {
       val_print(ERROR, "\n       Event log parsing failed");
-      val_set_status(index, RESULT_FAIL(7));
+      val_set_status(index, RESULT_FAIL(6));
       goto free_dlme_region;
     }
 
@@ -178,14 +257,22 @@ payload(uint32_t num_pe)
       /* DCE must be recorded in PCR[17] */
       if (entry.event->pcr_index != 17) {
         val_print(ERROR, "\n       DCE event recorded in wrong PCR");
+        val_set_status(index, RESULT_FAIL(7));
+        goto free_dlme_region;
+      }
+
+      /* TPM_HASH_DATA hashes DCE_digest before recording the DCE measurement. */
+      if (validate_event_digest(&event_log, &entry, fw_hash_alg,
+                                dce_measurement, digest_size) != ACS_STATUS_PASS) {
+        val_print(ERROR, "\n       DCE event digest does not match Hash(DCE_digest)");
         val_set_status(index, RESULT_FAIL(8));
         goto free_dlme_region;
       }
 
-      /* DCE digest must match digest of the 1-byte value zero */
-      if (validate_zero_digest_event(&event_log, &entry, fw_hash_alg,
-                                     zero_digest, digest_size) != ACS_STATUS_PASS) {
-        val_print(ERROR, "\n       DCE event digest does not match zero digest");
+      /* Event data must be a TPMT_HA containing DCE_digest = Hash(0x00). */
+      if (validate_dce_event_data(&entry, fw_hash_alg,
+                                  zero_digest, digest_size) != ACS_STATUS_PASS) {
+        val_print(ERROR, "\n       DCE event data does not contain the expected TPMT_HA");
         val_set_status(index, RESULT_FAIL(9));
         goto free_dlme_region;
       }
@@ -199,9 +286,9 @@ payload(uint32_t num_pe)
         goto free_dlme_region;
       }
 
-      /* DCE_PUBKEY digest must match digest of the 1-byte value zero */
-      if (validate_zero_digest_event(&event_log, &entry, fw_hash_alg,
-                                     zero_digest, digest_size) != ACS_STATUS_PASS) {
+      /* DCE_PUBKEY digest must match digest of the 1-byte value zero. */
+      if (validate_event_digest(&event_log, &entry, fw_hash_alg,
+                                zero_digest, digest_size) != ACS_STATUS_PASS) {
         val_print(ERROR, "\n       DCE_PUBKEY event digest does not match zero digest");
         val_set_status(index, RESULT_FAIL(11));
         goto free_dlme_region;

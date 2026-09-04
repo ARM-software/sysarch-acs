@@ -30,6 +30,20 @@ payload(uint32_t num_pe)
   int64_t  status = g_drtm_features.tcb_hash_features.status;
   uint64_t features_tcb_hashes = g_drtm_features.tcb_hash_features.value;
 
+  /* TCB hash support is optional */
+  if (g_drtm_features.set_tcb_hash == DRTM_ACS_NOT_SUPPORTED) {
+    val_print(DEBUG, "\n       DRTM_SET_TCB_HASH function not supported, skip check");
+    val_set_status(index, RESULT_SKIP(1));
+    return;
+  }
+
+  if (g_drtm_features.set_tcb_hash != DRTM_ACS_SUCCESS) {
+    val_print(ERROR, "\n       DRTM query SET_TCB_HASH function failed err=%d",
+              g_drtm_features.set_tcb_hash);
+    val_set_status(index, RESULT_SKIP(2));
+    return;
+  }
+
   /*Status value lessthan zero are error case*/
   if (status < DRTM_ACS_SUCCESS) {
     val_print(ERROR, "\n       DRTM query TCB hash feature failed err=%d", status);
