@@ -4152,6 +4152,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE053_ENTRY] = pe053_entry,
     [PE036_ENTRY] = pe036_entry,
     [PE023_ENTRY] = pe023_entry,
+    [PE044_ENTRY] = pe044_entry,
     [PE049_ENTRY] = pe049_entry,
     [PE051_ENTRY] = pe051_entry,
     [PE034_ENTRY] = pe034_entry,
@@ -4257,7 +4258,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #endif /* BAREMETAL_BSA_BUILD */
     [PE037_ENTRY] = pe037_entry,
     [PE043_ENTRY] = pe043_entry,
-    [PE044_ENTRY] = pe044_entry,
     [PE045_ENTRY] = pe045_entry,
     [PE046_ENTRY] = pe046_entry,
     [PE047_ENTRY] = pe047_entry,

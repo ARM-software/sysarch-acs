@@ -328,7 +328,6 @@ const bsa_rule_entry_t bsa_rule_list[] = {
     { B_PE_25,  BSA_LEVEL_FR, SW_OS },
     { XRPZG,    BSA_LEVEL_FR, SW_OS },
     { B_SEC_01, BSA_LEVEL_FR, SW_OS },
-    { B_SEC_02, BSA_LEVEL_FR, SW_OS },
     { B_SEC_03, BSA_LEVEL_FR, SW_OS },
     { B_SEC_04, BSA_LEVEL_FR, SW_OS },
     { B_SEC_05, BSA_LEVEL_FR, SW_OS },

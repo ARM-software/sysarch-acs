@@ -2077,18 +2077,6 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>FR</td>
-      <td>B_SEC_02</td>
-      <td>B_SEC_02</td>
-      <td>44</td>
-      <td>Check Speculative Str Bypass Safe</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>FR</td>
       <td>B_SEC_03</td>
       <td>B_SEC_03</td>
       <td>45</td>
@@ -4176,6 +4164,7 @@ The checklist provides information about:
 - **RI_ Removed:** RI_RST_1
 - **PCI_ Removed:** PCI_LI_02
 - **IE_ Removed:** IE_ACS_1, IE_ACS_2
+- **B_ Removed:** B_SEC_02
 
 ### v26.03_BSA_1.2.1
 - **RI_ Added:** RI_PWR_1
