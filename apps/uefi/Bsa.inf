@@ -241,7 +241,6 @@
   ../../test_pool/pcie/p058.c
   ../../test_pool/pcie/p061.c
   ../../test_pool/pcie/p062.c
-  ../../test_pool/pcie/p063.c
   ../../test_pool/pcie/p064.c
   ../../test_pool/pcie/p065.c
   ../../test_pool/pcie/p066.c

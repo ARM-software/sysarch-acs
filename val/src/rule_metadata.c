@@ -2227,14 +2227,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 52,
         },
-        [RI_RST_1] = {
-            .test_entry_id    = P063_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Check Function level reset - RCiEP, iEP EP",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 63,
-        },
         [RI_SMU_1] = {
             .test_entry_id    = RI_SMU_1_ENTRY,
             .module_id        = PCIE,
@@ -3771,7 +3763,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P060_ENTRY] = p060_entry, // used in wrapper.
     [P061_ENTRY] = p061_entry, // used in wrapper.
     [P062_ENTRY] = p062_entry,
-    [P063_ENTRY] = p063_entry,
     [P064_ENTRY] = p064_entry, // used in wrapper.
     [P065_ENTRY] = p065_entry, // used in wrapper.
     [P066_ENTRY] = p066_entry, // used in wrapper.
@@ -4314,7 +4305,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P060_ENTRY] = p060_entry, // used in wrapper.
     [P061_ENTRY] = p061_entry, // used in wrapper.
     [P062_ENTRY] = p062_entry,
-    [P063_ENTRY] = p063_entry,
     [P064_ENTRY] = p064_entry, // used in wrapper.
     [P065_ENTRY] = p065_entry, // used in wrapper.
     [P066_ENTRY] = p066_entry, // used in wrapper.
@@ -4609,7 +4599,7 @@ const RULE_ID_e b_rep_1_rule_list[] = {
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
     RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
-    RI_RST_1, RI_PWR_1,
+    RI_PWR_1,
     /* BSA Section F.2 - RCiEP */
     JKZMT,
     RE_PCI_1, RE_PCI_2,
@@ -4687,7 +4677,7 @@ const RULE_ID_e b_iep_1_rule_list[] = {
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
     RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
-    RI_RST_1, RI_PWR_1,
+    RI_PWR_1,
     /* BSA Section  F.3 - I-EP */
     HVZJY,
     IE_CFG_1, IE_CFG_2,

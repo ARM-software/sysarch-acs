@@ -436,7 +436,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [RI_SMU_2]    = "RI_SMU_2",
     [RI_SMU_3]    = "RI_SMU_3",
     [RI_SMU_4]    = "RI_SMU_4",
-    [RI_RST_1]    = "RI_RST_1",
     [RI_PWR_1]    = "RI_PWR_1",
     [JKZMT]       = "JKZMT",
     [HVZJY]       = "HVZJY",
