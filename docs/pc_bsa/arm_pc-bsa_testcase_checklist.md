@@ -383,6 +383,16 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>-</td>
+      <td>Check PCIe On-chip Peripherals</td>
+      <td>2</td>
+      <td>RVFLY</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td>-</td>
       <td>RuntimeServices/VariableServicesTest</td>
       <td>1</td>
       <td>P_L1NV_01</td>

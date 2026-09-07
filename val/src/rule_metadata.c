@@ -3404,6 +3404,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 87,
         },
+        [RVFLY] = {
+            .test_entry_id    = S_L6PCI_1_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Check PCIe On-chip Peripherals",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
+            .flag             = ALIAS_RULE,
+        },
         /* VBSA ACS entries */
         [V_L1PE_01] = {
             .test_entry_id    = NULL_ENTRY,
@@ -4887,6 +4894,11 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P028_ENTRY] = p028_entry,
     [P009_ENTRY] = p009_entry,
     [P011_ENTRY] = p011_entry,
+    [P012_ENTRY] = p012_entry,
+    [P013_ENTRY] = p013_entry,
+    [P014_ENTRY] = p014_entry,
+    [P015_ENTRY] = p015_entry,
+    [P016_ENTRY] = p016_entry,
     [P017_ENTRY] = p017_entry,
     [P018_ENTRY] = p018_entry,
     [P019_ENTRY] = p019_entry,
@@ -4911,15 +4923,43 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P042_ENTRY] = p042_entry,
     [P045_ENTRY] = p045_entry, // used in wrapper.
     [P046_ENTRY] = p046_entry,
+    [P048_ENTRY] = p048_entry, // used in wrapper.
+    [P049_ENTRY] = p049_entry, // used in wrapper.
+    [P050_ENTRY] = p050_entry, // used in wrapper.
+    [P051_ENTRY] = p051_entry, // used in wrapper.
+    [P052_ENTRY] = p052_entry,
+    [P053_ENTRY] = p053_entry, // used in wrapper.
+    [P054_ENTRY] = p054_entry, // used in wrapper.
+    [P056_ENTRY] = p056_entry,
+    [P057_ENTRY] = p057_entry,
+    [P058_ENTRY] = p058_entry, // used in wrapper.
+    [P059_ENTRY] = p059_entry, // used in wrapper.
+    [P060_ENTRY] = p060_entry, // used in wrapper.
+    [P061_ENTRY] = p061_entry, // used in wrapper.
+    [P062_ENTRY] = p062_entry,
     [P064_ENTRY] = p064_entry, // used in wrapper.
+    [P065_ENTRY] = p065_entry, // used in wrapper.
+    [P066_ENTRY] = p066_entry, // used in wrapper.
+    [P067_ENTRY] = p067_entry, // used in wrapper.
     [P068_ENTRY] = p068_entry, // used in wrapper.
+    [P069_ENTRY] = p069_entry,
+    [P070_ENTRY] = p070_entry,
     [P071_ENTRY] = p071_entry, // used in wrapper.
     [P072_ENTRY] = p072_entry, // used in wrapper.
     [P078_ENTRY] = p078_entry, // used in wrapper.
+    [P079_ENTRY] = p079_entry,
+    [P080_ENTRY] = p080_entry,
+    [P083_ENTRY] = p083_entry,
+    [P084_ENTRY] = p084_entry,
+    [P085_ENTRY] = p085_entry,
+    [P087_ENTRY] = p087_entry,
+    [P088_ENTRY] = p088_entry, // used in wrapper.
+    [P092_ENTRY] = p092_entry,
     [P095_ENTRY] = p095_entry,
     [P097_ENTRY] = p097_entry, // used in wrapper.
+    [P098_ENTRY] = p098_entry, // used in wrapper.
+    [P099_ENTRY] = p099_entry, // used in wrapper.
     [P101_ENTRY] = p101_entry,
-    [P087_ENTRY] = p087_entry,
     [P094_ENTRY] = p094_entry, // used in wrapper.
     [P103_ENTRY] = p103_entry, // used in wrapper.
     [P104_ENTRY] = p104_entry, // used in wrapper.
@@ -4945,6 +4985,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E003_ENTRY] = e003_entry,
     [E004_ENTRY] = e004_entry,
     [E007_ENTRY] = e007_entry,
+    [E008_ENTRY] = e008_entry,
     [E010_ENTRY] = e010_entry,
     [E011_ENTRY] = e011_entry,
     [E012_ENTRY] = e012_entry,
@@ -4953,8 +4994,12 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E015_ENTRY] = e015_entry, // used in wrapper.
     [E016_ENTRY] = e016_entry, // used in wrapper.
     [E017_ENTRY] = e017_entry, // used in wrapper.
+    [E019_ENTRY] = e019_entry, // used in wrapper.
+    [E020_ENTRY] = e020_entry, // used in wrapper.
+    [E021_ENTRY] = e021_entry,
     [E033_ENTRY] = e033_entry, // used in wrapper.
-    [E036_ENTRY] = e036_entry, // used in wrapper.
+    [E036_ENTRY] = e036_entry,
+    [E038_ENTRY] = e038_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
     [B_WAK_03_07_ENTRY] = b_wak_03_07_entry,
     [TPM001_ENTRY] = tpm001_entry,
@@ -4974,6 +5019,16 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry, // used in wrapper.
     [PCI_MM_07_ENTRY]  = pci_mm_07_entry,
+    [S_L6PCI_1_ENTRY]  = s_l6pci_1_entry,
+    [IE_REG_1_ENTRY]   = ie_reg_1_entry,
+    [IE_REG_2_ENTRY]   = ie_reg_2_entry,
+    [IE_REG_3_ENTRY]   = ie_reg_3_entry,
+    [IE_REG_4_ENTRY]   = ie_reg_4_entry,
+    [RE_REC_1_ENTRY]   = re_rec_1_entry,
+    [RE_REG_1_ENTRY]   = re_reg_1_entry,
+    [RI_SMU_1_ENTRY]   = ri_smu_1_entry,
+    [B_IEP_1_ENTRY]    = b_iep_1_entry,
+    [B_REP_1_ENTRY]    = b_rep_1_entry,
 #else
 /* Drop compiling entries not required for Bare Metal BSA compliance */
 #ifndef BAREMETAL_BSA_BUILD
@@ -5593,6 +5648,9 @@ const RULE_ID_e xdgkz_rule_list[] = {GPU_03, GPU_01, GPU_02, GPU_04, RULE_ID_SEN
 /* S_L6PCI_1 */
 const RULE_ID_e s_l6pci_1_rule_list[] = {B_REP_1, B_IEP_1, RULE_ID_SENTINEL};
 
+/* RVFLY */
+const RULE_ID_e rvfly_rule_list[] = {B_REP_1, B_IEP_1, RULE_ID_SENTINEL};
+
 /* S_L6PE_01 */
 const RULE_ID_e s_l6pe_01_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
                                      RULE_ID_SENTINEL};
@@ -5770,6 +5828,7 @@ const alias_rule_map_t alias_rule_map[] = {
     {P_L1MM_01, p_l1mm_01_rule_list},
     {P_L1SM_04, p_l1sm_04_s_l4sm_03_rule_list},
     {GFRQR, gfrqr_rule_list},
+    {RVFLY,     rvfly_rule_list},
 
     /* VBSA alias rules */
     {V_L1PE_01, v_l1pe_01_rule_list},

@@ -710,6 +710,7 @@ typedef enum {
 
     P_L1PCI_1,
     P_L1PCI_2,
+    RVFLY,
     S_L7TME_1,
     S_L7TME_2,
     S_L7TME_3,

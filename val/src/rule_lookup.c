@@ -61,6 +61,7 @@ const pcbsa_rule_entry_t pcbsa_rule_list[] = {
     /* PCIe */
     { P_L1PCI_1,   PCBSA_LEVEL_1 },
     { P_L1PCI_2,   PCBSA_LEVEL_1 },
+    { RVFLY,       PCBSA_LEVEL_2 },
 
     /* NV Store */
     { P_L1NV_01,   PCBSA_LEVEL_1 },
