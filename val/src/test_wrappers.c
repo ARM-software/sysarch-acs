@@ -215,16 +215,6 @@ pci_in_04_entry(uint32_t num_pe)
     return run_test_entries(tst_entry_list, num_pe);
 }
 
-/* PCI_LI_02 */
-uint32_t
-pci_li_02_entry(uint32_t num_pe)
-{
-    TEST_ENTRY_ID_e p_list[] = { P096_ENTRY, TEST_ENTRY_SENTINEL };
-    TEST_ENTRY_ID_e e_list[] = { E006_ENTRY, TEST_ENTRY_SENTINEL };
-
-    return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
-}
-
 /* PCI_LI_03 */
 uint32_t
 pci_li_03_entry(uint32_t num_pe)

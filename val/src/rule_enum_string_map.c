@@ -383,7 +383,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [PCI_IN_19]   = "PCI_IN_19",
     [PCI_IN_20]   = "PCI_IN_20",
     [PCI_LI_01]   = "PCI_LI_01",
-    [PCI_LI_02]   = "PCI_LI_02",
     [PCI_LI_03]   = "PCI_LI_03",
     [PCI_LI_04]   = "PCI_LI_04",
     [PCI_MM_01]   = "PCI_MM_01",

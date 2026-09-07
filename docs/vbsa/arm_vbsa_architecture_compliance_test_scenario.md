@@ -324,7 +324,6 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
 - E.6 - Legacy Interrupts
 
     - PCI_LI_01
-    - PCI_LI_02
     - PCI_LI_03
     - PCI_LI_04
 

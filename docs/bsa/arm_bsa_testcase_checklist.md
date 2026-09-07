@@ -1561,16 +1561,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="2">PCI_LI_02</td>
-      <td>896</td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>1506</td>
       <td>Generate PCIe legacy interrupt</td>
       <td>Yes</td>
@@ -2766,16 +2756,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_LI_02</td>
-      <td>896</td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_LI_03</td>
       <td>823</td>
       <td>Check Legacy Intr SPI level sensitive</td>
@@ -3780,16 +3760,6 @@ The checklist provides information about:
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_LI_02</td>
-      <td>896</td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
       <td></td>
       <td></td>
     </tr>
