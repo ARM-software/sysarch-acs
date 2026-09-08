@@ -121,7 +121,7 @@ payload()
 
       err_in_params.rec_index = rec_index;
       err_in_params.node_index = node_index;
-      err_in_params.ras_error_type = ERR_CE;
+      err_in_params.ras_error_type = (fhi_id) ? ERR_CE : ERR_UC;
       /* Pass the selected interrupt type so common RAS setup can enable FHI or ERI. */
       err_in_params.intr_type = (fhi_id) ? RAS_INTR_TYPE_FHI : RAS_INTR_TYPE_ERI;
       intr_node_index = node_index;

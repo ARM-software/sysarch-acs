@@ -74,7 +74,6 @@ payload_poison_supported()
   uint64_t num_node;
   uint64_t value;
   uint64_t num_mc_node;
-  uint64_t mc_status;
   uint64_t pe_status;
   uint32_t node_index;
   uint32_t poison_check;
@@ -144,7 +143,7 @@ payload_poison_supported()
 
     err_in_params.rec_index = rec_index;
     err_in_params.node_index = node_index;
-    err_in_params.ras_error_type = ERR_CE;
+    err_in_params.ras_error_type = ERR_DE;
     err_in_params.intr_type = RAS_INTR_TYPE_ERI;
 
     /* Get Interrupt details for this node */
@@ -158,16 +157,16 @@ payload_poison_supported()
 
     test_skip = 0;
 
-    /* Install sync and async handlers to handle exceptions.*/
+    /* Install handlers so an unexpected abort does not terminate the test. */
     status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
     status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
-    if (status)
-    {
-      val_print(ERROR, "\n      Failed in installing the exception handler");
+    if (status) {
+      val_print(ERROR, "\n       Failed to install exception handlers");
       val_set_status(index, RESULT_FAIL(03));
       return;
     }
     branch_to_test = &&exception_return;
+    esr_pending = 1;
 
     /* Install handler for interrupt */
     val_gic_install_isr(int_id, intr_handler);
@@ -196,6 +195,12 @@ payload_poison_supported()
     }
 
 exception_return:
+    if (!esr_pending) {
+      val_print(ERROR, "\n       Unexpected exception for node %d", node_index);
+      fail_cnt++;
+      continue;
+    }
+
     /* Read Status Register for Memory Controller RAS Node */
     status = val_ras_check_err_record(node_index, err_in_params.ras_error_type);
     if (status) {
@@ -212,19 +217,7 @@ exception_return:
       continue;
     }
 
-    /* Poison Check only if Poison Storage & Forwarding Supported */
-    /* Read Status Register for RAS Nodes */
-    mc_status = val_ras_reg_read(node_index, RAS_ERR_STATUS, rec_index);
-    if (mc_status == INVALID_RAS_REG_VAL) {
-        val_print(ERROR,
-                  "\n       Couldn't read ERR<%d>STATUS register for ",
-                  rec_index);
-        val_print(ERROR,
-                  "RAS node index: 0x%lx",
-                  node_index);
-        fail_cnt++;
-        continue;
-    }
+    /* Check that poison was propagated to the PE RAS node. */
     pe_status = val_ras_reg_read(pe_node_index, RAS_ERR_STATUS, rec_index);
     if (pe_status == INVALID_RAS_REG_VAL) {
         val_print(ERROR,
@@ -237,12 +230,6 @@ exception_return:
         continue;
     }
 
-    /* Check Poison Information Storage/Forwarding in MC/PE Ras Node */
-    if (!(mc_status & ERR_STATUS_PN_MASK)) {
-      val_print(DEBUG, "\n       Poison Storage Fail, for node %d", node_index);
-      fail_cnt++;
-      continue;
-    }
     if (!(pe_status & ERR_STATUS_PN_MASK)) {
       val_print(DEBUG, "\n       Poison Frwding Fail, for node %d", pe_node_index);
       fail_cnt++;
@@ -345,7 +332,7 @@ payload_poison_unsupported()
 
     err_in_params.rec_index = rec_index;
     err_in_params.node_index = node_index;
-    err_in_params.ras_error_type = ERR_CE;
+    err_in_params.ras_error_type = ERR_DE;
     err_in_params.intr_type = RAS_INTR_TYPE_ERI;
 
     /* Get Interrupt details for this node */
@@ -372,6 +359,8 @@ payload_poison_unsupported()
 
     /* Install handler for interrupt */
     val_gic_install_isr(int_id, intr_handler);
+
+    esr_pending = 1;
 
     /* Setup an error in an implementation defined way */
     status = val_ras_setup_error(err_in_params, &err_out_params);
