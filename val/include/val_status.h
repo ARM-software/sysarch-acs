@@ -103,6 +103,7 @@ void val_data_cache_ops_by_va(addr_t addr, uint32_t type);
 void     val_set_status(uint32_t index, uint32_t status);
 uint32_t val_get_status(uint32_t index);
 void     test_report_status(uint32_t status);
+void     val_report_subtest(uint32_t status);
 
 #endif /* VAL_STATUS_H */
 

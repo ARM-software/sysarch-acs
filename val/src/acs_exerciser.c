@@ -511,18 +511,22 @@ val_exerciser_get_init_result(const char8_t *rule_id)
 #ifndef COMPILE_RB_EXE
     return RESULT_PASS;
 #else
+    uint32_t status = g_exerciser_init_result;
+
     /* Surface the cached warning for each caller when no exerciser is present. */
-    if (GET_STATE(g_exerciser_init_result) == TEST_WARNING) {
+    if (GET_STATE(status) == TEST_WARNING) {
         if (rule_is_conditional(rule_id)) {
-            return RESULT_SKIP(0);
+            status = RESULT_SKIP(0);
+        } else {
+            val_print(WARN,
+                      "\n     This test requires PCIe exerciser.");
+            val_print(WARN,
+                      "\n     Please rerun with a supported exerciser device");
+            val_print(WARN,
+                      "\n     or conduct manual review.");
         }
-        val_print(WARN,
-                  "\n     This test requires PCIe exerciser.");
-        val_print(WARN,
-                  "\n     Please rerun with a supported exerciser device");
-        val_print(WARN,
-                  "\n     or conduct manual review.");
     }
-    return g_exerciser_init_result;
+    val_report_subtest(status);
+    return status;
 #endif
 }

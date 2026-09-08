@@ -25,6 +25,39 @@
 
 uint32_t g_override_skip;
 static acs_test_status_counters_t g_rule_test_stats;
+#ifdef COMPILE_RB_EXE
+static char8_t *g_current_test_desc;
+static uint32_t g_current_test_num;
+static bool g_current_test_reported;
+bool g_print_subtests;
+#endif
+
+/**
+  @brief  Print the current subtest result once when rule-based subtest reporting is enabled.
+          1. Caller       - val_check_for_error, val_exerciser_get_init_result
+          2. Prerequisite - val_initialize_test
+
+  @param status   Encoded test result
+
+  @return None
+ **/
+void
+val_report_subtest(uint32_t status)
+{
+#ifdef COMPILE_RB_EXE
+  if (!g_print_subtests || g_current_test_reported)
+      return;
+
+  val_print(INFO, "\n          Test %4d : ", g_current_test_num);
+  val_print(INFO, g_current_test_desc);
+  val_print(INFO, " : ");
+  test_report_status(status);
+  g_current_test_reported = true;
+#else
+  (void)status;
+#endif
+}
+
 /**
   @brief  Print standardized log context prefix.
           1. Caller       - Application/VAL layers
@@ -450,8 +483,12 @@ uint32_t
 val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
 {
   uint32_t i;
-  (void)desc;
   (void)num_pe;
+
+  /* Retain internal test details for rule-level subtest reporting. */
+  g_current_test_desc = desc;
+  g_current_test_num = test_num;
+  g_current_test_reported = false;
 
   /* Set TEST_PENDING_VAL status for all PEs, hint for val_wait_for_test_completion */
   for (i = 0; i < num_pe; i++)
@@ -747,6 +784,7 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
   uint32_t overall_status;
   uint32_t status = RESULT_FAIL(0);
   uint32_t my_index = val_pe_get_primary_index();
+  uint8_t state;
 
   if (num_pe == 1) {
       status = val_get_status(my_index);
@@ -767,11 +805,15 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
   }
 
   checkpoint = (uint32_t)GET_CODE(overall_status);
-  if (GET_STATE(overall_status) == TEST_FAIL) {
+  state = GET_STATE(overall_status);
+
+  val_report_subtest(overall_status);
+
+  if (state == TEST_FAIL) {
       val_print(ERROR, "\nFailed at checkpoint - %2d", checkpoint);
-  } else if (GET_STATE(overall_status) == TEST_SKIP) {
+  } else if (state == TEST_SKIP) {
       val_print(ERROR, "\nSkipped at checkpoint - %2d", checkpoint);
-  } else if (GET_STATE(overall_status) == TEST_WARNING) {
+  } else if (state == TEST_WARNING) {
       val_print(WARN, "\ncheckpoint - %2d", checkpoint);
   }
 

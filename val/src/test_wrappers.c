@@ -31,6 +31,7 @@
 #include "rule_based_execution.h"
 
 extern test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL];
+extern bool g_print_subtests;
 
 /* Helper to execute test entries  */
 static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_pe)
@@ -41,7 +42,9 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
     bool test_pass_flag = 0;
     bool test_ns_flag = 0;
     bool test_warn_flag = 0;
+    bool previous_print_subtests = g_print_subtests;
 
+    g_print_subtests = true;
 
     for (i = 0; tst_entry_list[i] != TEST_ENTRY_SENTINEL ; i++) {
         if (test_entry_func_table[tst_entry_list[i]] != NULL) {
@@ -66,6 +69,8 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
             rule_status = entry_status;
         }
     }
+
+    g_print_subtests = previous_print_subtests;
 
     /* Mixed PASS+SKIP/WARN or PASS+unsupported entry should be reported as partial coverage
        rather than worst-case max. */
