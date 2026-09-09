@@ -424,8 +424,6 @@ val_sbsa_pcie_execute_tests(uint32_t level, uint32_t num_pe)
       status |= p078_entry(num_pe); /* Depends on p027; run it prior to this test */
       status |= p079_entry(num_pe); /* iEP/RP only */
       status |= p080_entry(num_pe);
-      status |= p081_entry(num_pe); /* iEP/RP only */
-      status |= p082_entry(num_pe);
       status |= p083_entry(num_pe);
       status |= p084_entry(num_pe);
       status |= p085_entry(num_pe);

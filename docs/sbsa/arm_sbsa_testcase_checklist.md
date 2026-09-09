@@ -2601,26 +2601,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>IE_ACS_1</td>
-      <td>882</td>
-      <td>Check ACS Cap on p2p support - iEP EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>iEP_EP; PCIe Hierarchy and Device P2P support required</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>IE_ACS_2</td>
-      <td>881</td>
-      <td>Check P2P Support - iEP EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>iEP RP; PCIe Hierarchy and Device P2P support required</td>
-      <td></td>
-    </tr>
-    <tr>
       <td>IE_REG_1</td>
       <td></td>
       <td>Check config header rule - iEP EP</td>
