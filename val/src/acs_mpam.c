@@ -866,33 +866,32 @@ uint64_t
 val_mpam_memory_mbwumon_read_count(uint32_t msc_index)
 {
     uint64_t count = MPAM_MON_NOT_READY;
+    uint64_t msmon_mbwu_l;
+    uint32_t msmon_mbwu;
+    uint32_t mbwumon_idr = val_mpam_mmr_read(msc_index, REG_MPAMF_MBWUMON_IDR);
 
-    /*if MSMON_MBWU_L is implemented*/
-    if (BITFIELD_READ(MBWUMON_IDR_LWD, val_mpam_mmr_read64(msc_index, REG_MPAMF_MBWUMON_IDR))) {
-        if (BITFIELD_READ(MBWUMON_IDR_HAS_LONG,
-            val_mpam_mmr_read64(msc_index, REG_MPAMF_MBWUMON_IDR))) {
+    /* Check HAS_LONG to determine if MSMON_MBWU_L is implemented. */
+    if (BITFIELD_READ(MBWUMON_IDR_HAS_LONG, mbwumon_idr)) {
+        msmon_mbwu_l = val_mpam_mmr_read64(msc_index, REG_MSMON_MBWU_L);
+
+        if (BITFIELD_READ(MBWUMON_IDR_LWD, mbwumon_idr)) {
             // (63 bits)
-            if (BITFIELD_READ(MSMON_MBWU_L_NRDY,
-                val_mpam_mmr_read64(msc_index, REG_MSMON_MBWU_L)) == 0)
-                count = BITFIELD_READ(MSMON_MBWU_L_63BIT_VALUE,
-                                      val_mpam_mmr_read64(msc_index, REG_MSMON_MBWU_L));
+            if (BITFIELD_READ(MSMON_MBWU_L_NRDY, msmon_mbwu_l) == 0)
+                count = BITFIELD_READ(MSMON_MBWU_L_63BIT_VALUE, msmon_mbwu_l);
         }
         else {
             // (44 bits)
-            if (BITFIELD_READ(MSMON_MBWU_L_NRDY,
-                val_mpam_mmr_read64(msc_index, REG_MSMON_MBWU_L)) == 0)
-                count = BITFIELD_READ(MSMON_MBWU_L_44BIT_VALUE,
-                                      val_mpam_mmr_read64(msc_index, REG_MSMON_MBWU_L));
+            if (BITFIELD_READ(MSMON_MBWU_L_NRDY, msmon_mbwu_l) == 0)
+                count = BITFIELD_READ(MSMON_MBWU_L_44BIT_VALUE, msmon_mbwu_l);
         }
     }
     else {
         // (31 bits)
-        if (BITFIELD_READ(MSMON_MBWU_NRDY, val_mpam_mmr_read(msc_index, REG_MSMON_MBWU)) == 0) {
-            count = BITFIELD_READ(MSMON_MBWU_VALUE,
-                                  val_mpam_mmr_read(msc_index, REG_MSMON_MBWU));
+        msmon_mbwu = val_mpam_mmr_read(msc_index, REG_MSMON_MBWU);
+        if (BITFIELD_READ(MSMON_MBWU_NRDY, msmon_mbwu) == 0) {
+            count = BITFIELD_READ(MSMON_MBWU_VALUE, msmon_mbwu);
             /* shift the count if scaling is enabled */
-            count = count << BITFIELD_READ(MBWUMON_IDR_SCALE,
-                                  val_mpam_mmr_read(msc_index, REG_MPAMF_MBWUMON_IDR));
+            count = count << BITFIELD_READ(MBWUMON_IDR_SCALE, mbwumon_idr);
         }
     }
     return(count);
@@ -910,10 +909,10 @@ void
 val_mpam_memory_mbwumon_reset(uint32_t msc_index)
 {
     /*if MSMON_MBWU_L is implemented*/
-    if (BITFIELD_READ(MBWUMON_IDR_LWD, val_mpam_mmr_read64(msc_index, REG_MPAMF_MBWUMON_IDR)))
+    if (val_mpam_mbwu_supports_long(msc_index))
         val_mpam_mmr_write64(msc_index, REG_MSMON_MBWU_L, 0);
     else
-       val_mpam_mmr_write(msc_index, REG_MSMON_MBWU, 0);
+        val_mpam_mmr_write(msc_index, REG_MSMON_MBWU, 0);
 }
 
 
