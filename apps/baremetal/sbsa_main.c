@@ -60,20 +60,27 @@ freeAcsMeM(void)
         val_cache_free_info_table();
         val_mpam_free_info_table();
         val_hmat_free_info_table();
-        val_srat_free_info_table();
         val_pcc_free_info_table();
     }
+
+    if (acs_is_module_enabled(MPAM)         ||
+        acs_is_module_enabled(PMU)          ||
+        acs_is_module_enabled(RAS))
+       val_srat_free_info_table();
 
     if (acs_is_module_enabled(PCIE)        ||
         acs_is_module_enabled(GIC)         ||
         acs_is_module_enabled(GPU)         ||
-        acs_is_module_enabled(SMMU))
+        acs_is_module_enabled(SMMU)        ||
+        acs_is_module_enabled(PMU)         ||
+        acs_is_module_enabled(CXL))
        val_pcie_free_info_table();
 
    if (acs_is_module_enabled(SMMU)         ||
        acs_is_module_enabled(GIC)          ||
        acs_is_module_enabled(MEM_MAP)      ||
        acs_is_module_enabled(GPU)          ||
+       acs_is_module_enabled(CXL)          ||
        acs_is_module_enabled(PCIE))
        val_iovirt_free_info_table();
 
@@ -93,6 +100,9 @@ freeAcsMeM(void)
        val_ras2_free_info_table();
        val_ras_free_info_table();
    }
+
+   if (acs_is_module_enabled(CXL))
+       val_cxl_free_info_table();
 
    val_free_shared_mem();
 }
@@ -253,19 +263,26 @@ ShellAppMainsbsa()
         createPccInfoTable();
         createMpamInfoTable();
         createHmatInfoTable();
-        createSratInfoTable();
     }
+
+    if (acs_is_module_enabled(MPAM)         ||
+        acs_is_module_enabled(PMU)          ||
+        acs_is_module_enabled(RAS))
+        createSratInfoTable();
 
     if (acs_is_module_enabled(PCIE)       ||
         acs_is_module_enabled(GIC)        ||
         acs_is_module_enabled(GPU)        ||
-        acs_is_module_enabled(SMMU))
+        acs_is_module_enabled(SMMU)       ||
+        acs_is_module_enabled(PMU)        ||
+        acs_is_module_enabled(CXL))
         createPcieInfoTable();
 
     if (acs_is_module_enabled(GIC)        ||
         acs_is_module_enabled(PCIE)       ||
         acs_is_module_enabled(MEM_MAP)    ||
         acs_is_module_enabled(GPU)        ||
+        acs_is_module_enabled(CXL)        ||
         acs_is_module_enabled(SMMU))
         createIoVirtInfoTable();
 
