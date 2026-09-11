@@ -106,6 +106,16 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
+      <td>32</td>
+      <td>Check for addr authentication support</td>
+      <td>2</td>
+      <td>MHCBW</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
       <td>36</td>
       <td>Check for nested virtualization</td>
       <td>2</td>

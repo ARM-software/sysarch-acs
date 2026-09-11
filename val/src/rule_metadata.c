@@ -2531,6 +2531,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE  + 30,
         },
+        [MHCBW] = {
+            .test_entry_id    = PE032_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check for addr and generic auth",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE  +  32,
+        },
         [YKRHG] = {
             .test_entry_id    = PE036_ENTRY,
             .module_id        = PE,
@@ -3981,6 +3989,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE028_ENTRY] = pe028_entry,
     [PE029_ENTRY] = pe029_entry,
     [PE030_ENTRY] = pe030_entry,
+    [PE032_ENTRY] = pe032_entry,
     [PE036_ENTRY] = pe036_entry,
     [PE040_ENTRY] = pe040_entry,
     [PE048_ENTRY] = pe048_entry,

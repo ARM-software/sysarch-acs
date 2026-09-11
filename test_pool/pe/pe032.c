@@ -19,7 +19,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM (ACS_PE_TEST_NUM_BASE + 32)
+#ifdef PC_BSA
+#define TEST_RULE  "MHCBW"
+#else
 #define TEST_RULE "S_L5PE_02"
+#endif
 #define TEST_DESC "Check for addr authentication support  "
 
 static void payload(void)

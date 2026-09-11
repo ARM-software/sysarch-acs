@@ -107,6 +107,7 @@ typedef enum {
     P_L1PE_06,
     P_L1PE_07,
     P_L1PE_08,
+    MHCBW,
     YKRHG,
     CNBRV,
     PBCRQ,
