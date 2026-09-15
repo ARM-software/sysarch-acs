@@ -83,6 +83,7 @@
   ../../test_pool/gic/g016.c
   ../../test_pool/timer/t006.c
   ../../test_pool/watchdog/w003.c
+  ../../test_pool/smmu/i007.c
   ../../test_pool/smmu/i008.c
   ../../test_pool/smmu/i009.c
   ../../test_pool/smmu/i010.c
@@ -94,11 +95,11 @@
   ../../test_pool/smmu/i017.c
   ../../test_pool/smmu/i018.c
   ../../test_pool/smmu/i019.c
-  ../../test_pool/smmu/i020.c
   ../../test_pool/smmu/i021.c
   ../../test_pool/smmu/i022.c
   ../../test_pool/smmu/i024.c
   ../../test_pool/smmu/i025.c
+  ../../test_pool/smmu/i026.c
   ../../test_pool/memory_map/m001.c
   ../../test_pool/memory_map/m005.c
   ../../test_pool/pcie/p001.c

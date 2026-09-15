@@ -1321,6 +1321,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 7,
         },
+        [SMMU_02] = {
+            .test_entry_id    = I032_ENTRY,
+            .module_id        = SMMU,
+            .rule_desc        = "Check SMMU stall flow support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_SMMU_TEST_NUM_BASE + 32,
+        },
         [S_L4SM_01] = {
             .test_entry_id    = I008_ENTRY,
             .module_id        = SMMU,
@@ -1338,12 +1346,11 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 25,
         },
         [S_L4SM_03] = {
-            .test_entry_id    = I020_ENTRY,
+            .test_entry_id    = NULL_ENTRY,
             .module_id        = SMMU,
-            .rule_desc        = "Check SMMU Coherent Access Support",
+            .rule_desc        = "Check integration of SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_SMMU_TEST_NUM_BASE + 20,
+            .flag             = ALIAS_RULE,
         },
         [S_L5SM_01] = {
             .test_entry_id    = I009_ENTRY,
@@ -2580,12 +2587,11 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 25,
         },
         [P_L1SM_04] = {
-            .test_entry_id    = I020_ENTRY,
+            .test_entry_id    = NULL_ENTRY,
             .module_id        = SMMU,
-            .rule_desc        = "Check SMMU Coherent Access Support",
+            .rule_desc        = "Check integration of SMMU",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_SMMU_TEST_NUM_BASE + 20,
+            .flag             = ALIAS_RULE,
         },
         [P_L1SM_05] = {
             .test_entry_id    = I022_ENTRY,
@@ -3196,9 +3202,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [B_SMMU_25] = {
             .module_id        = SMMU,
         },
-        [SMMU_02] = {
-            .module_id        = SMMU,
-        },
         [S_L3SM_01] = {
             .module_id        = SMMU,
         },
@@ -3668,7 +3671,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I017_ENTRY] = i017_entry,
     [I018_ENTRY] = i018_entry,
     [I019_ENTRY] = i019_entry,
-    [I020_ENTRY] = i020_entry,
     [I021_ENTRY] = i021_entry,
     [I022_ENTRY] = i022_entry,
     [I024_ENTRY] = i024_entry, // used in wrapper
@@ -3679,6 +3681,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I029_ENTRY] = i029_entry,
     [I030_ENTRY] = i030_entry,
     [I031_ENTRY] = i031_entry,
+    [I032_ENTRY] = i032_entry,
     [INTERFACE010_ENTRY] = interface010_entry,
     [INTERFACE011_ENTRY] = interface011_entry,
     [ITS001_ENTRY] = its001_entry,
@@ -4011,10 +4014,10 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I006_ENTRY] = i006_entry,
     [I007_ENTRY] = i007_entry,
     [I008_ENTRY] = i008_entry,
-    [I020_ENTRY] = i020_entry,
     [I022_ENTRY] = i022_entry,
     [I025_ENTRY] = i025_entry,
     [I029_ENTRY] = i029_entry,
+    [I032_ENTRY] = i032_entry,
     [T001_ENTRY] = t001_entry,
     [T002_ENTRY] = t002_entry,
     [T003_ENTRY] = t003_entry,
@@ -4217,7 +4220,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I024_ENTRY] = i024_entry, // used in wrapper
     [I025_ENTRY] = i025_entry,
     [I014_ENTRY] = i014_entry,
-    [I020_ENTRY] = i020_entry,
     [I021_ENTRY] = i021_entry,
     [I027_ENTRY] = i027_entry,
     [I023_ENTRY] = i023_entry,
@@ -4448,6 +4450,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I005_ENTRY] = i005_entry,
     [I029_ENTRY] = i029_entry,
     [I007_ENTRY] = i007_entry,
+    [I032_ENTRY] = i032_entry,
     [P042_ENTRY] = p042_entry,
     [P030_ENTRY] = p030_entry, // used in wrapper.
     [P032_ENTRY] = p032_entry, // used in wrapper.
@@ -4807,6 +4810,9 @@ const RULE_ID_e s_l5sm_04_rule_list[]   = {B_SMMU_09, B_SMMU_20, RULE_ID_SENTINE
 const RULE_ID_e s_l6sm_04_rule_list[]   = {B_SMMU_03, B_SMMU_04, B_SMMU_05, B_SMMU_13,
                                      B_SMMU_14, B_SMMU_23, RULE_ID_SENTINEL};
 
+const RULE_ID_e p_l1sm_04_s_l4sm_03_rule_list[] = {
+    SMMU_01, SMMU_02, RULE_ID_SENTINEL};
+
 /* PCBSA alias lists */
 /* P_L2WD_01 */
 const RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B_WD_05,
@@ -4904,12 +4910,13 @@ const alias_rule_map_t alias_rule_map[] = {
     {XDGKZ,     xdgkz_rule_list},
     {S_L5SM_04, s_l5sm_04_rule_list},
     {S_L6SM_04, s_l6sm_04_rule_list},
+    {S_L4SM_03, p_l1sm_04_s_l4sm_03_rule_list},
 
     /* PCBSA alias rules */
     {P_L1_01,   bsa_l1_rule_list},
     {P_L2WD_01, p_l2wd_01_rule_list},
     {P_L1MM_01, p_l1mm_01_rule_list},
-
+    {P_L1SM_04, p_l1sm_04_s_l4sm_03_rule_list},
     /* VBSA alias rules */
     {V_L1PE_01, v_l1pe_01_rule_list},
     {V_L1MM_01, v_l1mm_01_rule_list},
