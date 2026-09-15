@@ -2540,6 +2540,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE  + 49,
         },
+        [NWCYZ] = {
+            .test_entry_id    = PE061_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check for FEAT_BRBE support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 61,
+        },
         [HBCCD] = {
             .test_entry_id    = PE040_ENTRY,
             .module_id        = PE,
@@ -3960,6 +3968,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE040_ENTRY] = pe040_entry,
     [PE048_ENTRY] = pe048_entry,
     [PE049_ENTRY] = pe049_entry,
+    [PE061_ENTRY] = pe061_entry,
     [PE063_ENTRY] = pe063_entry,
     [PE070_ENTRY] = pe070_entry,
     [G001_ENTRY] = g001_entry,

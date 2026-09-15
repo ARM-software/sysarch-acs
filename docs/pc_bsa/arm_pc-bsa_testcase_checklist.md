@@ -146,6 +146,16 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
+      <td>61</td>
+      <td>Check for FEAT_BRBE support</td>
+      <td>2</td>
+      <td>NWCYZ</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
       <td>105</td>
       <td>NS-EL2 Stage-2 64KB Mapping Check</td>
       <td>1</td>

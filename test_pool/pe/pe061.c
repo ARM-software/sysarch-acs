@@ -20,7 +20,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE + 61)
+#ifdef PC_BSA
+#define TEST_RULE  "NWCYZ"
+#else
 #define TEST_RULE  "S_L8PE_06"
+#endif
 #define TEST_DESC  "Check for FEAT_BRBE support         "
 
 static void payload(void)
