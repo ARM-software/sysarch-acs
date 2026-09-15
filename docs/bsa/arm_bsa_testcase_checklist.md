@@ -681,7 +681,7 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
+      <td>ACS detects advertised stall support through IDR0.STALL_MODEL only; rule compliance requires integration/DV evidence.</td>
       <td></td>
     </tr>
     <tr>

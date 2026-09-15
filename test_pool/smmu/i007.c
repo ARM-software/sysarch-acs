@@ -34,13 +34,6 @@ payload()
 
   index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  data = val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
-  if (data == 0) {
-      val_print(WARN, "\n       PCIe Subsystem not  discovered   ");
-      val_set_status(index, RESULT_SKIP(1));
-      return;
-  }
-
   num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
 
   if (num_smmu == 0) {

@@ -236,14 +236,22 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
-      <td>320</td>
-      <td>Check SMMU Coherent Access Support</td>
-      <td>1</td>
-      <td>P_L1SM_04</td>
+      <td>307</td>
+      <td>SMMU_01: SMMUv3 Integration compliance</td>
+      <td rowspan="2">1</td>
+      <td rowspan="2">P_L1SM_04</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
+    </tr>
+    <tr>
+      <td>Not Covered</td>
+      <td>SMMU_02: ACS detects advertised stall support through IDR0.STALL_MODEL only; rule compliance requires integration/DV evidence.</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <td>322</td>
