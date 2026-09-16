@@ -292,5 +292,6 @@ uint32_t pe066_entry(uint32_t num_pe);
 uint32_t pe067_entry(uint32_t num_pe);
 uint32_t pe068_entry(uint32_t num_pe);
 uint32_t pe069_entry(uint32_t num_pe);
+uint32_t pe070_entry(uint32_t num_pe);
 
 #endif

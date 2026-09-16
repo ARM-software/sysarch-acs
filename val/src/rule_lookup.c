@@ -76,6 +76,7 @@ const pcbsa_rule_entry_t pcbsa_rule_list[] = {
 
     /* Future Level */
     { P_L2WD_01,   PCBSA_LEVEL_FR },
+    { KQQWG,       PCBSA_LEVEL_FR },
 
     /* sentinel */
     { RULE_ID_SENTINEL, PCBSA_LEVEL_SENTINEL }

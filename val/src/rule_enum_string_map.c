@@ -488,6 +488,7 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [CNBRV]       = "CNBRV",
     [PBCRQ]       = "PBCRQ",
     [HBCCD]       = "HBCCD",
+    [KQQWG]       = "KQQWG",
     [P_L1MM_01]   = "P_L1MM_01",
     [P_L1GI_01]   = "P_L1GI_01",
     [P_L1GI_03]   = "P_L1GI_03",

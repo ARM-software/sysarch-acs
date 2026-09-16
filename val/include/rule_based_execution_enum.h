@@ -112,6 +112,7 @@ typedef enum {
     CNBRV,
     PBCRQ,
     HBCCD,
+    KQQWG,
 
     /* GIC rules */
     B_GIC_01,
@@ -661,6 +662,7 @@ typedef enum {
     PE067_ENTRY,
     PE068_ENTRY,
     PE069_ENTRY,
+    PE070_ENTRY,
     V_L1PE_02_ENTRY,
     PE065_ENTRY,
     G001_ENTRY,

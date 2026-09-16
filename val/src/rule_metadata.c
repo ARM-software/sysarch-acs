@@ -584,6 +584,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE + 65,
         },
+        [KQQWG] = {
+            .test_entry_id    = PE070_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check for FEAT_NV2 support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_PE_TEST_NUM_BASE + 70,
+        },
     /* GIC */
         [B_GIC_01] = {
             .test_entry_id    = G001_ENTRY,
@@ -3860,6 +3868,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE067_ENTRY] = pe067_entry,
     [PE068_ENTRY] = pe068_entry,
     [PE069_ENTRY] = pe069_entry,
+    [PE070_ENTRY] = pe070_entry,
     [CXL001_ENTRY] = cxl001_entry,
     [CXL002_ENTRY] = cxl002_entry,
     [CXL003_ENTRY] = cxl003_entry,
@@ -3998,6 +4007,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE048_ENTRY] = pe048_entry,
     [PE049_ENTRY] = pe049_entry,
     [PE063_ENTRY] = pe063_entry,
+    [PE070_ENTRY] = pe070_entry,
     [G001_ENTRY] = g001_entry,
     [G002_ENTRY] = g002_entry,
     [G003_ENTRY] = g003_entry,

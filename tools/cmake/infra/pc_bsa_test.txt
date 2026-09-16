@@ -29,6 +29,7 @@ pe036.c
 pe040.c
 pe048.c
 pe049.c
+pe070.c
 g001.c
 g002.c
 g003.c
