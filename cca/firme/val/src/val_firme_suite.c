@@ -475,6 +475,11 @@ const firme_test_case_t g_firme_test_cases[] = {
      * no executable bodies or registry entries until a service-specific ABI
      * driver can validate mappings, PAS/GPI, size bounds and alignment.
      */
+    /*
+     * R0073, R0074 and R0075 have documented deferred algorithms but no
+     * executable bodies or registry entries until an attestation retrieval ABI
+     * driver can exercise final, intermediate and no-data paths against the DUT.
+     */
 #endif
 #if FIRME_ENABLE_MEC
     {

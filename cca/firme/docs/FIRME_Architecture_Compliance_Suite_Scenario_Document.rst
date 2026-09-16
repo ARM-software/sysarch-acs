@@ -24,6 +24,22 @@ caller security states BL31 expects in real deployments:
 Testcase checklist
 ==================
 
+Deferred coverage
+-----------------
+
+The following rules have documented algorithms but no executable body or
+registry entry because the ACS cannot yet drive the required observable ABI
+flow:
+
+- R0063, R0064, R0069, and R0070 need a service-specific ABI that
+  consumes a shared buffer. Until such a service driver is added, the ACS
+  cannot validate mapping attributes, PAS/GPI ownership, size bounds, or
+  base alignment from an actual service invocation.
+- R0073, R0074, and R0075 need a service-specific ABI that supports
+  partial retrieval. Until such a service driver is added, the ACS cannot
+  observe written-size and remaining-size semantics for last, intermediate,
+  or no-data chunks.
+
 .. list-table::
   :header-rows: 1
   :widths: 22 20 58
@@ -542,6 +558,48 @@ Testcase checklist
          consumes a shared buffer.
       2. Invoke that ABI with aligned and deliberately misaligned buffer addresses.
       3. Validate alignment handling from observable DUT responses.
+
+  * -
+
+      Deferred last-chunk retrieval algorithm
+
+    -
+
+      R0073: Last-chunk partial retrieval reports non-zero written size and zero remaining size.
+
+    -
+
+      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
+      2. Exercise a final chunk that writes data and completes retrieval.
+      3. Validate non-zero written size and zero remaining size from the real ABI response.
+
+  * -
+
+      Deferred intermediate-chunk retrieval algorithm
+
+    -
+
+      R0074: First or intermediate partial-retrieval chunks report written data and remaining data.
+
+    -
+
+      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
+      2. Exercise a first or intermediate chunk with data still remaining.
+      3. Validate non-zero written and remaining sizes from the real ABI response.
+
+  * -
+
+      Deferred no-chunk retrieval algorithm
+
+    -
+
+      R0075: No-data partial retrieval reports zero written size and zero remaining size.
+
+    -
+
+      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
+      2. Exercise completion where no data chunk is returned.
+      3. Validate zero written size and zero remaining size from the real ABI response.
 
   * -
 

@@ -105,6 +105,13 @@ static void log_rule_status(const char *rule, const firme_acs_call_res_t *r)
     }
     if (r->x0 == (uint64_t)ACS_STATUS_SKIP) {
         LOG_TEST(NULL, "Result: SKIPPED");
+        if ((r->x1 != 0ULL) || (r->x2 != 0ULL) || (r->x3 != 0ULL)) {
+            LOG_TEST(NULL,
+                     "  Skip: reason=%llu detail_x0=%llx detail_x1=%llx",
+                     (unsigned long long)r->x1,
+                     (unsigned long long)r->x2,
+                     (unsigned long long)r->x3);
+        }
         return;
     }
     LOG_TEST(NULL, "Result: FAIL");
