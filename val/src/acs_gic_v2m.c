@@ -25,6 +25,13 @@
 extern GIC_INFO_TABLE * g_gic_info_table;
 GICv2m_MSI_FRAME_INFO *g_v2m_msi_info;
 
+uint32_t
+val_gic_is_v2m(void)
+{
+  return ((val_gic_get_info(GIC_INFO_VERSION) == 2) &&
+          (val_gic_get_info(GIC_INFO_NUM_MSI_FRAME) > 0));
+}
+
 /**
   @brief   This function parses the V2M MSI Information from gic info table
            1. Caller       -  Validation Layer

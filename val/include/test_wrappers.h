@@ -22,6 +22,7 @@
 #ifndef TEST_WRAPPERS_H
 #define TEST_WRAPPERS_H
 
+uint32_t b_gic_02_entry(uint32_t num_pe);
 uint32_t b_ppi_00_entry(uint32_t num_pe);
 uint32_t b_ppi_01_entry(uint32_t num_pe);
 uint32_t b_ppi_02_entry(uint32_t num_pe);

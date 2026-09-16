@@ -195,7 +195,7 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
-  uint32_t gic_version, num_msi_frame;
+  uint32_t gic_version;
 
   if (!(g_bsa_level >= 1 || g_bsa_only_level == 1))
       return ACS_STATUS_SKIP;
@@ -229,9 +229,7 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
           /* B_GIC_01 and B_GIC_02 only for BSA */
           if (!g_build_sbsa) {
               status |= g001_entry(num_pe);
-              /* Run B_GIC_02 test only if system has GICv2 */
-              if (gic_version == 2)
-                  status |= g002_entry(num_pe);
+              status |= g002_entry(num_pe);
           }
           if (gic_version > 2) {
               status |= g003_entry(num_pe);
@@ -262,9 +260,7 @@ val_bsa_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_bsa_level >= 1 || g_bsa_only_level == 1) {
 
       /* Run GICv2m only if GIC Version is v2m. */
-      num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
-
-      if ((gic_version != 2) || (num_msi_frame == 0)) {
+      if (!val_gic_is_v2m()) {
           val_print(TRACE, "\n       No GICv2m, Skipping all GICv2m tests\n");
           goto its_test;
       }

@@ -210,6 +210,7 @@ typedef enum {
   V2M_MSI_FLAGS
 } V2M_MSI_INFO_e;
 
+uint32_t val_gic_is_v2m(void);
 uint32_t val_gic_v2m_parse_info(void);
 uint64_t val_gic_v2m_get_info(V2M_MSI_INFO_e type, uint32_t instance);
 void     val_gic_free_info_table(void);

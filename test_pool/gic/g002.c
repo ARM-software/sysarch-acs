@@ -23,37 +23,68 @@
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 2)
 #define TEST_RULE  "B_GIC_02"
-#define TEST_DESC  "Check GICv2 Valid Configuration       "
+#define TEST_DESC  "Check GIC Valid Configuration         "
+
+#define GIC_V2_MAX_PE  8U
+#define GIC_V3_MAX_PE  (1U << 28)
 
 static
 void
 payload()
 {
-  /* PE Limitations are covered in PE Rules */
-  /* GICv3 + No ITS is covered in RB_GIC_03 */
-
-  /* Check If PCIe Support and GicV2 -> Invalid Configuration */
-
   uint32_t gic_version;
   uint32_t num_msi_frame;
+  uint32_t num_its;
+  uint32_t lpi_support;
+  uint32_t pe_count;
   uint32_t num_ecam = 0;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
+  pe_count = val_pe_get_num();
   num_ecam = val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
   num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
+  num_its = val_gic_get_info(GIC_INFO_NUM_ITS);
 
   val_print(TRACE, "\n       Received GIC version = %4d      ", gic_version);
 
   if (gic_version < 3) {
-    if ((num_ecam > 0) && (num_msi_frame == 0)) {
-      val_print(ERROR, "\n       GICv2 with PCIe : Invalid Configuration");
+    if (pe_count > GIC_V2_MAX_PE) {
+      val_print(ERROR, "\n       GICv2 supports a maximum of %d PEs", GIC_V2_MAX_PE);
+      val_print(ERROR, ", but system has %d PEs", pe_count);
       val_set_status(index, RESULT_FAIL(1));
       return;
     }
+
+    if ((num_ecam > 0) && (num_msi_frame == 0)) {
+      val_print(ERROR, "\n       GICv2 with PCIe : Invalid Configuration");
+      val_set_status(index, RESULT_FAIL(2));
+      return;
+    }
   } else {
-    val_set_status(index, RESULT_SKIP(1));
-    return;
+    if (pe_count > GIC_V3_MAX_PE) {
+      val_print(ERROR, "\n       GICv3 supports a maximum of 2^28 PEs");
+      val_print(ERROR, ", but system has %d PEs", pe_count);
+      val_set_status(index, RESULT_FAIL(3));
+      return;
+    }
+
+    if ((num_ecam > 0) && (num_its == 0)) {
+      val_print(ERROR, "\n       GICv3 with PCIe and no ITS : Invalid Configuration");
+      val_set_status(index, RESULT_FAIL(4));
+      return;
+    }
+
+    if (num_its > 0) {
+      lpi_support = VAL_EXTRACT_BITS(
+                        val_mmio_read(val_get_gicd_base() + GICD_TYPER),
+                        GICV3_LPIS_BIT, GICV3_LPIS_BIT);
+      if (lpi_support == 0) {
+        val_print(ERROR, "\n       GICv3 with ITS does not support LPIs");
+        val_set_status(index, RESULT_FAIL(5));
+        return;
+      }
+    }
   }
 
   val_set_status(index, RESULT_PASS);
