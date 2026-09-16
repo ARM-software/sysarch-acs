@@ -470,6 +470,11 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_mandatory_run_secure,
         .run_realm = firme_base_service_mandatory_run_realm,
     },
+    /*
+     * R0063, R0064, R0069 and R0070 have documented deferred algorithms but
+     * no executable bodies or registry entries until a service-specific ABI
+     * driver can validate mappings, PAS/GPI, size bounds and alignment.
+     */
 #endif
 #if FIRME_ENABLE_MEC
     {

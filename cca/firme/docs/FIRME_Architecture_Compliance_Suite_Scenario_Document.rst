@@ -484,6 +484,67 @@ Testcase checklist
 
   * -
 
+      Deferred shared-buffer mapping algorithm
+
+    -
+
+      R0063: A shared buffer is mapped as Normal, Write-Back Cacheable, Outer-shareable memory.
+
+    -
+
+      1. Add an executable body and registry entry when a service-specific ABI
+         consumes a shared buffer.
+      2. Validate the EL3 mapping as Normal, Write-Back Cacheable and Outer-shareable.
+      3. Do not infer mapping behavior from Base feature-register metadata.
+
+  * -
+
+      Deferred shared-buffer PAS/GPI algorithm
+
+    -
+
+      R0064: The shared-buffer PAS and GPT GPI correspond to the FIRME instance state.
+
+    -
+
+      1. Add an executable body and registry entry when a service-specific ABI
+         consumes a shared buffer.
+      2. Validate the buffer PAS and GPT GPI for the invoking FIRME instance.
+      3. Do not infer ownership from the caller world without an actual service invocation.
+
+  * -
+
+      Deferred shared-buffer size algorithm
+
+    -
+
+      R0069: The shared-buffer size is within the advertised minimum and maximum bounds.
+
+    -
+
+      1. Add an executable body and registry entry when a service-specific ABI
+         consumes a shared buffer.
+      2. Invoke that ABI with buffers below, within and above the advertised bounds.
+      3. Validate acceptance and rejection from observable DUT responses; decoding the
+         related fields alone does not validate the size rule.
+
+  * -
+
+      Deferred shared-buffer alignment algorithm
+
+    -
+
+      R0070: The shared-buffer physical base address is aligned to the minimum shared-buffer size.
+
+    -
+
+      1. Add an executable body and registry entry when a service-specific ABI
+         consumes a shared buffer.
+      2. Invoke that ABI with aligned and deliberately misaligned buffer addresses.
+      3. Validate alignment handling from observable DUT responses.
+
+  * -
+
       `mec_common_mecid_width <../test/mec/mec_common_mecid_width.c>`_
 
     -
