@@ -117,6 +117,49 @@ static uint32_t run_pcie_static_and_exerciser(TEST_ENTRY_ID_e *static_list,
     return rule_status;
 }
 
+/* B_GIC_02 */
+uint32_t
+b_gic_02_entry(uint32_t num_pe)
+{
+    uint32_t status      = TEST_STATE_UNKNOWN;
+    uint32_t v2m_status  = TEST_STATE_UNKNOWN;
+    uint32_t rule_status = TEST_STATE_UNKNOWN;
+
+    TEST_ENTRY_ID_e gic_list[] = {G002_ENTRY, TEST_ENTRY_SENTINEL};
+    TEST_ENTRY_ID_e gic_v2m_list[] = {V2M001_ENTRY, V2M002_ENTRY,
+                                      V2M003_ENTRY, V2M004_ENTRY,
+                                      TEST_ENTRY_SENTINEL};
+
+    status = run_test_entries(gic_list, num_pe);
+
+    if (!val_gic_is_v2m()) {
+        return status;
+    }
+
+    if (val_gic_v2m_parse_info()) {
+        val_print(ERROR, "\n       GICv2m info mismatch, skipping Appendix tests");
+        return (GET_STATE(status) == TEST_PASS) ? RESULT_PARTIAL_COVERED : status;
+    }
+
+    v2m_status = run_test_entries(gic_v2m_list, num_pe);
+
+    /* Report partial coverage for mixed PASS+SKIP/WARN aggregated results. */
+    if (((GET_STATE(status) == TEST_PASS) &&
+        ((GET_STATE(v2m_status) == TEST_SKIP) || (GET_STATE(v2m_status) == TEST_WARNING))) ||
+        ((GET_STATE(v2m_status) == TEST_PASS) &&
+        ((GET_STATE(status) == TEST_SKIP) || (GET_STATE(status) == TEST_WARNING))))
+        return RESULT_PARTIAL_COVERED;
+
+    /* For all other combinations, fall back to severity-based aggregation. */
+    rule_status = max_status(status, v2m_status);
+    /* If the combined result only saw WARN/SKIP outcomes, prefer WARN over SKIP. */
+    if (((GET_STATE(status) == TEST_WARNING) || (GET_STATE(v2m_status) == TEST_WARNING)) &&
+        (GET_STATE(rule_status) == TEST_SKIP)) {
+        rule_status = RESULT_WARNING(0);
+    }
+    return rule_status;
+}
+
 /* B_PPI_00 */
 uint32_t
 b_ppi_00_entry(uint32_t num_pe)

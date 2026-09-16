@@ -47,7 +47,8 @@ payload()
         return;
     }
 
-    data = VAL_EXTRACT_BITS(val_mmio_read(val_get_gicd_base() + GICD_TYPER), 17, 17);
+    data = VAL_EXTRACT_BITS(val_mmio_read(val_get_gicd_base() + GICD_TYPER),
+           GICV3_LPIS_BIT, GICV3_LPIS_BIT);
     if (data == 0)
     {
         val_print(ERROR, "\n       GICv3 and PCIe : LPI Not Supported");
