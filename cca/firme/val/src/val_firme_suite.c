@@ -79,6 +79,12 @@ extern int firme_base_reserved_output_bits_run_secure(uint64_t base_pa,
 extern int firme_base_reserved_output_bits_run_realm(uint64_t base_pa,
                                                      firme_rule_res_t *out);
 extern int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_version_compatibility_run_secure(uint64_t base_pa,
+                                                               firme_rule_res_t *out);
+extern int firme_base_service_version_compatibility_run_realm(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_base_service_version_compatibility_run_ns(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -287,6 +293,27 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_ns = firme_base_service_presence_run_ns,
         .run_secure = firme_base_service_presence_run_secure,
         .run_realm = firme_base_service_presence_run_realm,
+    },
+    /*
+     * R0031 is a specification release-policy requirement with no executable
+     * test because it is not observable through a FIRME ABI.
+     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0033,
+        .rule_str = "R0033",
+        .suite = "firme",
+        .test_name = "service_version_compatibility",
+        .desc = "Service major and minor versions follow compatibility rules",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Service version compatibility from Secure world",
+        .check_realm = "Service version compatibility from Realm world",
+        .check_ns = "Service version compatibility from NS world",
+        .run_ns = firme_base_service_version_compatibility_run_ns,
+        .run_secure = firme_base_service_version_compatibility_run_secure,
+        .run_realm = firme_base_service_version_compatibility_run_realm,
     },
     {
         .chapter = FIRME_CHAPTER_BASE,

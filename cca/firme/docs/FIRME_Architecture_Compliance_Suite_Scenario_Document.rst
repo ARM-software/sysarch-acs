@@ -272,6 +272,42 @@ Testcase checklist
 
   * -
 
+      Static specification version policy review
+
+    -
+
+      R0031: FIRME specification version increments track service version changes and new services.
+
+    -
+
+      1. Compare specification revisions and their service-version/allocation tables.
+      2. Do not require DUT service versions to equal the specification version.
+      3. Do not add a runtime body or registry entry: R0031 is a specification
+         release-policy requirement, not an observable DUT constraint.
+
+  * -
+
+      `service_version_compatibility <../test/base/service_version_compatibility.c>`_
+
+    -
+
+      R0033: FIRME service major/minor version values follow compatibility rules.
+
+    -
+
+      1. Discover every allocated service and reject unexpected version errors.
+      2. For a newer Base 1.x minor revision, execute the Base 1.0 ABI algorithms
+         for R0038, R0051, R0053 and R0055 in the current caller world.
+      3. Preserve failures from those baseline tests; missing or skipped baseline
+         bodies mean incomplete coverage, not PASS.
+      4. For a non-Base service with a newer minor revision, require a complete
+         service-specific 1.0 baseline driver; otherwise report incomplete SKIP.
+      5. Treat a baseline-only 1.0 implementation as PASS. Report SKIP for a
+         newer revision whose baseline cannot be exercised; never infer
+         compatibility from its version value or Base presence bits alone.
+
+  * -
+
       `service_versions <../test/base/service_versions.c>`_
 
     -
