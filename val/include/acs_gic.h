@@ -50,6 +50,8 @@
 #define GICv2m_MSI_SETSPI          0x040
 #define GICv2m_MSI_IIDR            0xFCC
 
+#define GICV3_LPIS_BIT             17
+
 /**
   @brief  structure instance for MSI Frame Entry
 **/
