@@ -229,6 +229,70 @@ Testcase checklist
 
   * -
 
+      Static feature register size review
+
+    -
+
+      R0041: The size of a feature register is a non-zero multiple of 64 bits.
+
+    -
+
+      1. Discover every allocated service and read all registers defined in its
+         ALP3 feature table, using the complete 64-bit result.
+      2. Fail unexpected discovery responses or a missing defined register.
+      3. Review the non-zero, 64-bit-multiple sizes against the interface tables.
+         ``FIRME_SERVICE_FEATURES`` does not return a size field; neither the
+         register count nor a local ``sizeof`` check proves DUT width.
+      4. Do not add a runtime body or registry entry; classify R0041 as a
+         static interface-table requirement until size metadata is observable.
+
+  * -
+
+      `feature_register_result_encoding <../test/base/feature_register_result_encoding.c>`_
+
+    -
+
+      R0044: SMC64 result register N encodes the corresponding 64-bit feature register range.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 0.
+      2. Verify the mandatory Base ABI bits are visible in ``x1``.
+      3. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 1.
+      4. Verify the Base feature fields are decoded from ``x1``.
+
+  * -
+
+      `feature_register_index <../test/base/feature_register_index.c>`_
+
+    -
+
+      R0047: A feature register index is an 8-bit unsigned integer.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_FEATURES`` for allocated Base indices 0 and 1.
+      2. Expect ``SUCCESS`` for the allocated indices.
+      3. Invoke ``FIRME_SERVICE_FEATURES`` for Base index ``0xff``.
+      4. Expect ``NOT_SUPPORTED`` because the maximum 8-bit index is unallocated.
+
+  * -
+
+      `feature_register_abi_presence <../test/base/feature_register_abi_presence.c>`_
+
+    -
+
+      R0048: Feature register 0 reports which ABIs of an implemented service are implemented.
+
+    -
+
+      1. Invoke Base feature register 0 and verify the mandatory Base ABI bits are set.
+      2. Iterate over implemented ALP3 service IDs using ``FIRME_SERVICE_VERSION``.
+      3. For each implemented service, read feature register 0.
+      4. Verify only allocated ABI-bit positions are used for that service.
+
+  * -
+
       `service_feature_registers <../test/base/service_feature_registers.c>`_
 
     -
@@ -259,6 +323,25 @@ Testcase checklist
       3. Iterate over all unallocated Base feature register indices.
       4. Expect ``NOT_SUPPORTED`` for every unallocated Base feature register index.
       5. Iterate over all unallocated 8-bit service IDs and expect ``NOT_SUPPORTED``.
+
+  * -
+
+      `service_abi_compliance <../test/base/service_abi_compliance.c>`_
+
+    -
+
+      R0054: Implemented service ABIs follow their mandatory, optional, or not-supported classification.
+
+    -
+
+      1. Discover each service at each caller instance; allow clean service absence.
+      2. For each implemented service, require successful feature register 0 discovery.
+      3. Check mandatory, optional and prohibited bits against its compliance table.
+      4. Require the GM L1 CREATE/DESTROY pair to be both present or both absent.
+      5. Require the attestation extension-claims STAGE/FINALISE/CLEAR group to
+         be all present or all absent; RAT_SIGN is independent of that group.
+      6. Keep the rule registry-gated while the reference DUT lacks ALP3 mandatory
+         ABIs. The strict body remains available and must be re-enabled for release.
 
   * -
 

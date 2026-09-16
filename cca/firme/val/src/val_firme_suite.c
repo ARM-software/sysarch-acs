@@ -35,6 +35,28 @@ extern int firme_base_smc64_calling_convention_run_ns(uint64_t base_pa,
 extern int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_status_codes_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_feature_register_result_encoding_run_secure(uint64_t base_pa,
+                                                                  firme_rule_res_t *out);
+extern int firme_base_feature_register_result_encoding_run_realm(uint64_t base_pa,
+                                                                 firme_rule_res_t *out);
+extern int firme_base_feature_register_result_encoding_run_ns(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_base_feature_register_index_run_secure(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
+extern int firme_base_feature_register_index_run_realm(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_base_feature_register_index_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_feature_register_abi_presence_run_secure(uint64_t base_pa,
+                                                               firme_rule_res_t *out);
+extern int firme_base_feature_register_abi_presence_run_realm(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_base_feature_register_abi_presence_run_ns(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_base_service_abi_compliance_run_secure(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
+extern int firme_base_service_abi_compliance_run_realm(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_base_service_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_id_allocation_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -256,6 +278,52 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_version_run_secure,
         .run_realm = firme_base_service_version_run_realm,
     },
+    /*
+     * R0041 is a static interface-table requirement with no executable test:
+     * SERVICE_FEATURES exposes register contents and indices, not observable
+     * register-size metadata.
+     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0044,
+        .rule_str = "R0044",
+        .suite = "firme",
+        .test_name = "feature_register_result_encoding",
+        .desc = "SMC64 result registers encode feature register bit ranges",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Feature register result encoding from Secure world",
+        .check_realm = "Feature register result encoding from Realm world",
+        .check_ns = "Feature register result encoding from NS world",
+        .run_ns = firme_base_feature_register_result_encoding_run_ns,
+        .run_secure = firme_base_feature_register_result_encoding_run_secure,
+        .run_realm = firme_base_feature_register_result_encoding_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0047,
+        .rule_str = "R0047",
+        .suite = "firme",
+        .test_name = "feature_register_index",
+        .desc = "Feature register indices are 8-bit unsigned integers",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Feature register index from Secure world",
+        .check_realm = "Feature register index from Realm world",
+        .check_ns = "Feature register index from NS world",
+        .run_ns = firme_base_feature_register_index_run_ns,
+        .run_secure = firme_base_feature_register_index_run_secure,
+        .run_realm = firme_base_feature_register_index_run_realm,
+    },
+    /*
+     * R0048 is implemented in test/base/feature_register_abi_presence.c,
+     * but is intentionally not scheduled until the reference DUT advertises
+     * all ALP3 mandatory ABI bits for each implemented service. Current TF-A
+     * reports Granule Management feature register 0 as 0x1, missing the
+     * mandatory OP_CONTINUE bit, so this rule currently fails by design.
+     */
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0051,
@@ -290,6 +358,13 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_features_run_secure,
         .run_realm = firme_base_service_features_run_realm,
     },
+    /*
+     * R0054 is implemented in test/base/service_abi_compliance.c, but is
+     * intentionally not scheduled until the reference DUT advertises all
+     * ALP3 mandatory ABI bits for each implemented service. Do not relax the
+     * strict rule body to match older DUT behavior; re-enable the registry
+     * entry when the DUT claims the applicable ALP3 semantics.
+     */
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0055,
