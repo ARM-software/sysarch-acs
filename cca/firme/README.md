@@ -20,14 +20,17 @@ same hosting model.
 ## ACS release details
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
-- **Current coverage:** Base service (R0038, R0051, R0053, R0055), MECID management (R0206, R0208), and GPT Management (R0085, R0086, R0089)
+- **Current coverage:** Base service / Concepts (R0025, R0026, R0034, R0035, R0038, R0051, R0053, R0055), MECID management (R0206, R0208), and GPT Management (R0085, R0086, R0089)
+- **Deferred or not runtime-scheduled:** R0023 because legal calls cannot
+  observe decoder width; R0024 until service-specific checks identify every
+  allocated non-Base service ID.
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
 ## FIRME spec version mapping
 
 | FIRME-ACS version | Git tag | FIRME spec version |
 |---|---|---|
-| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Base service, MECID management, and GPT management coverage |
+| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Concepts/Base service, MECID management, and GPT management coverage |
 
 ## How it works (high level)
 1. TF-A boots three ACS payload images: **Secure shim** (BL32), **Realm shim**

@@ -17,6 +17,26 @@
 /* Chapter selection is controlled by build-time macros (from CMake/Make). */
 
 #if FIRME_ENABLE_BASE
+extern int firme_base_service_id_allocation_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_id_allocation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_id_allocation_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_instance_presence_run_secure(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_base_service_instance_presence_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_base_service_instance_presence_run_ns(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_base_service_presence_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_presence_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_presence_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_versions_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_versions_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_versions_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_service_base_dependency_run_secure(uint64_t base_pa,
+                                                         firme_rule_res_t *out);
+extern int firme_base_service_base_dependency_run_realm(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
+extern int firme_base_service_base_dependency_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_version_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_version_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_version_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -52,6 +72,81 @@ extern int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res
 /* Global, self-describing registry (ordered by chapter). */
 const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_BASE
+    /*
+     * R0023 is a static interface-definition check with no executable test:
+     * legal calls keep bits [63:8] SBZ and cannot distinguish a wider decoder.
+     * R0024 validates the allocated/unallocated discovery ranges, but remains
+     * unscheduled until service-specific behavior identifies every implemented
+     * ID 1 through 5.
+     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0025,
+        .rule_str = "R0025",
+        .suite = "firme",
+        .test_name = "service_instance_presence",
+        .desc = "FIRME service presence respects instance applicability",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Service instance presence from Secure world",
+        .check_realm = "Service instance presence from Realm world",
+        .check_ns = "Service instance presence from NS world",
+        .run_ns = firme_base_service_instance_presence_run_ns,
+        .run_secure = firme_base_service_instance_presence_run_secure,
+        .run_realm = firme_base_service_instance_presence_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0026,
+        .rule_str = "R0026",
+        .suite = "firme",
+        .test_name = "base_service_presence",
+        .desc = "FIRME Base service is implemented at every FIRME instance",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Base service presence from Secure world",
+        .check_realm = "Base service presence from Realm world",
+        .check_ns = "Base service presence from NS world",
+        .run_ns = firme_base_service_presence_run_ns,
+        .run_secure = firme_base_service_presence_run_secure,
+        .run_realm = firme_base_service_presence_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0034,
+        .rule_str = "R0034",
+        .suite = "firme",
+        .test_name = "service_versions",
+        .desc = "Implemented FIRME services report ALP3 service version 1.0",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Service versions from Secure world",
+        .check_realm = "Service versions from Realm world",
+        .check_ns = "Service versions from NS world",
+        .run_ns = firme_base_service_versions_run_ns,
+        .run_secure = firme_base_service_versions_run_secure,
+        .run_realm = firme_base_service_versions_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0035,
+        .rule_str = "R0035",
+        .suite = "firme",
+        .test_name = "service_base_dependency",
+        .desc = "Implemented FIRME services depend on Base service version 1.0",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Base service dependency from Secure world",
+        .check_realm = "Base service dependency from Realm world",
+        .check_ns = "Base service dependency from NS world",
+        .run_ns = firme_base_service_base_dependency_run_ns,
+        .run_secure = firme_base_service_base_dependency_run_secure,
+        .run_realm = firme_base_service_base_dependency_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0038,

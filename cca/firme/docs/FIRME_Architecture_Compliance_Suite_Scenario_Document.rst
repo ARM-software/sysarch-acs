@@ -34,6 +34,103 @@ Testcase checklist
 
   * -
 
+      Static service ID width review
+
+    -
+
+      R0023: FIRME service IDs are 8-bit unsigned integers.
+
+    -
+
+      1. Review the service-ID field definition against the specification.
+      2. Statically check that ACS allocations fit the eight-bit field.
+      3. Do not add a runtime body or registry entry: upper input bits are SBZ,
+         so legal calls cannot distinguish an eight-bit decoder from a wider one.
+      4. Unallocated-ID behavior is handled separately by R0024.
+
+  * -
+
+      `service_id_allocation <../test/base/service_id_allocation.c>`_
+
+    -
+
+      R0024: FIRME services use the service IDs allocated by Table 2.2; unallocated values are unused.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the Base service ID ``0`` and expect a version.
+      2. Query VERSION and feature register 0 at every allocated service ID.
+      3. Require a version and successful feature discovery for implemented
+         services; an absent service must return exactly NOT_SUPPORTED for both.
+      4. Query both ABIs for every unallocated eight-bit service ID and require
+         NOT_SUPPORTED.
+      5. This validates discovery allocation but cannot identify services that
+         expose identical discovery data. Keep R0024 out of the runtime registry
+         until service-specific ABI checks identify every implemented ID 1-5.
+
+  * -
+
+      `service_instance_presence <../test/base/service_instance_presence.c>`_
+
+    -
+
+      R0025: FIRME service presence follows the per-instance applicability table.
+
+    -
+
+      1. Invoke Base service discovery from each caller world and expect the Base service to be present.
+      2. For services marked ``No`` for the current FIRME instance in Table 2.3, invoke ``FIRME_SERVICE_VERSION``.
+      3. Expect ``NOT_SUPPORTED`` for every forbidden service at that instance.
+      4. Invoke ``FIRME_SERVICE_FEATURES`` register 0 for each forbidden service and expect ``NOT_SUPPORTED``.
+      5. Services marked ``Yes`` are permitted but not required by this test unless covered by a service-specific rule.
+
+  * -
+
+      `base_service_presence <../test/base/base_service_presence.c>`_
+
+    -
+
+      R0026: The FIRME Base service is implemented at all FIRME instances.
+
+    -
+
+      1. From each caller world, invoke ``FIRME_SERVICE_VERSION`` for the Base service.
+      2. Expect the Base service version to be reported.
+      3. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature registers 0 and 1.
+      4. Expect SUCCESS for both Base feature registers.
+
+  * -
+
+      `service_versions <../test/base/service_versions.c>`_
+
+    -
+
+      R0034: Implemented FIRME services report the versions listed for this FIRME revision.
+
+    -
+
+      1. Iterate over all ALP3 service IDs at each FIRME instance.
+      2. Invoke ``FIRME_SERVICE_VERSION`` for each service ID.
+      3. Ignore ``NOT_SUPPORTED`` services because they are not implemented at that instance.
+      4. For implemented services, verify the reported service version is 1.0.
+
+  * -
+
+      `service_base_dependency <../test/base/service_base_dependency.c>`_
+
+    -
+
+      R0035: Implemented FIRME services depend on FIRME Base service version 1.0.
+
+    -
+
+      1. Invoke ``FIRME_SERVICE_VERSION`` for the Base service at the current FIRME instance.
+      2. Verify the Base major version is 1; newer minor revisions are compatible.
+      3. Iterate over non-Base ALP3 service IDs.
+      4. If a non-Base service is implemented, use the already checked Base version as the dependency anchor.
+
+  * -
+
       `service_version <../test/base/service_version.c>`_
 
     -
