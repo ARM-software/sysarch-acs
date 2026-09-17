@@ -28,22 +28,58 @@
 #define TEST_RULE  "S_L7MP_05"
 #define TEST_DESC  "Check for MPAM MBWUs Monitor func     "
 
-#define BUFFER_SIZE 65536 /* 64 Kilobytes*/
+/* Test algorithm -
+1. Check that the PE implements FEAT_MPAM and that MPAM memory resource groups are present.
+   (Groups contain resources with matching locator type, descriptor1, and descriptor2)
+2. For each memory resource group, identify every MSC and resource that manages the group.
+3. Select the resource instance when RIS is supported, and verify that every MSC implements at
+   least one Memory Bandwidth Usage (MBWU) monitor.
+4. Obtain a memory range for the resource and allocate source and destination buffers from
+   that range.
+5. Clean and invalidate the buffers so that the test traffic reaches the monitored memory resource.
+6. Configure an MBWU monitor in every MSC in the resource group for the default PARTID and PMG,
+   and program MPAM2_EL2 with the same identifiers.
+7. Enable all group monitors, wait for the maximum reported NRDY interval, and copy the source
+   buffer to the destination buffer. Clean the destination buffer to push the writes to memory.
+8. Restore MPAM2_EL2, disable the monitors, and wait for the monitors to become ready.
+9. Read and add the byte counts from every MSC to obtain the aggregate bandwidth usage for the
+   memory resource group.
+10. Verify that the aggregate count is greater than the minimum permitted count (the expected read
+    and write traffic minus the allowed implementation margin).
+11. Reset all configured monitors, free the buffers, and repeat the test for every memory resource
+    group. The test passes when all tested groups report a valid aggregate byte count.
+*/
+
+#define BUFFER_SIZE               65536 /* 64 Kilobytes*/
+#define EXPECTED_BYTE_COUNT       (2ULL * BUFFER_SIZE)
+#define BYTE_COUNT_MARGIN_PERCENT 30ULL
 
 static void payload(void)
 {
     uint32_t pe_index;
-    uint32_t msc_node_cnt, msc_index;
-    uint32_t rsrc_node_cnt, rsrc_index;
-    uint64_t mpam2_el2, mpam2_el2_temp;
+    uint32_t msc_index, rsrc_index;
+    uint32_t rsrc_group_count;
+    uint32_t rsrc_group_index;
+    uint32_t group_member_count;
+    uint32_t group_member_index;
+    uint32_t group_msc_index;
+    uint32_t group_rsrc_index;
+    uint32_t configured_count;
+    uint64_t mpam2_el2;
     uint64_t byte_count;
+    uint64_t total_byte_count;
     uint64_t byte_count_min;
+    uint64_t byte_count_margin;
     uint64_t addr_base, addr_len;
     uint64_t nrdy_timeout;
+    uint64_t msc_nrdy_timeout;
     uint32_t test_fails = 0;
     uint32_t test_skip = 1;
-    void *src_buf = 0;
-    void *dest_buf = 0;
+    bool group_valid;
+    bool mpam2_programmed = false;
+    void *mem_buf  = NULL;
+    void *src_buf  = NULL;
+    void *dest_buf = NULL;
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
@@ -55,129 +91,247 @@ static void payload(void)
             return;
     }
 
+    /* resource groups are created when the MPAM platform table is enumerated */
+    rsrc_group_count = val_mpam_get_rsrc_group_count();
+    val_print(DEBUG, "\n       Resource group count = %d", rsrc_group_count);
 
-    /* get total number of MSCs reported by MPAM ACPI table */
-    msc_node_cnt = val_mpam_get_msc_count();
-    val_print(DEBUG, "\n       MSC count = %d", msc_node_cnt);
-
-    if (!msc_node_cnt) {
+    if (!rsrc_group_count) {
         val_set_status(pe_index, RESULT_FAIL(02));
         return;
     }
 
     /* read MPAM2_EL2 and store the value for restoring later */
     mpam2_el2 = val_mpam_reg_read(MPAM2_EL2);
-    mpam2_el2_temp = mpam2_el2;
 
-    /* Write DEFAULT_PARTID & DEFAULT PMG to mpam2_el2 to generate PE traffic */
-    mpam2_el2 = (mpam2_el2 & ~(MPAMn_ELx_PARTID_D_MASK << MPAMn_ELx_PARTID_D_SHIFT)) |
-                                                       DEFAULT_PARTID << MPAMn_ELx_PARTID_D_SHIFT;
-    mpam2_el2 = (mpam2_el2 & ~(MPAMn_ELx_PMG_D_MASK << MPAMn_ELx_PMG_D_SHIFT)) |
-                                                             DEFAULT_PMG << MPAMn_ELx_PMG_D_SHIFT;
+    /* visit each resource location group and check only memory resources */
+    for (rsrc_group_index = 0; rsrc_group_index < rsrc_group_count; rsrc_group_index++) {
+        if (val_mpam_get_rsrc_group_type(rsrc_group_index) != MPAM_RSRC_TYPE_MEMORY)
+            continue;
 
-    val_print(DEBUG, "\n       Value written to MPAM2_EL2 = 0x%llx", mpam2_el2);
-    val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+        test_skip = 0;
+        group_member_count = val_mpam_get_rsrc_group_member_count(rsrc_group_index);
 
-    /* visit each MSC node and check for memory resources */
-    for (msc_index = 0; msc_index < msc_node_cnt; msc_index++) {
-        rsrc_node_cnt = val_mpam_get_info(MPAM_MSC_RSRC_COUNT, msc_index, 0);
+        /* Each group must have atleast one member at index 0 */
+        if (!group_member_count ||
+            !val_mpam_get_rsrc_group_member(rsrc_group_index, 0, &msc_index, &rsrc_index)) {
+            val_print(ERROR, "\n       Failed to identify resource group members", 0);
+            test_fails++;
+            continue;
+        }
 
-        val_print(DEBUG, "\n       msc index  = %d", msc_index);
-        val_print(DEBUG, "\n       Resource count = %d", rsrc_node_cnt);
+        nrdy_timeout = 0;
+        configured_count = 0;
+        group_valid = true;
 
-        for (rsrc_index = 0; rsrc_index < rsrc_node_cnt; rsrc_index++) {
-
-            /* check whether the resource location is memory */
-            if (val_mpam_get_info(MPAM_MSC_RSRC_TYPE, msc_index, rsrc_index) ==
-                                                                         MPAM_RSRC_TYPE_MEMORY) {
-
-                /* As per S_L7MP_05, MBWU monitoring must be supported for general purpose mem */
-                if (!val_mpam_msc_supports_mbwumon(msc_index)) {
-                    val_print(ERROR, "\n       MBWU MON unsupported by MSC %d", msc_index);
-                    test_fails++;
-                    break;
-                }
-
-                test_skip = 0;
-                /* select resource instance if RIS feature implemented */
-                if (val_mpam_msc_supports_ris(msc_index))
-                    val_mpam_memory_configure_ris_sel(msc_index, rsrc_index);
-
-                val_print(DEBUG, "\n       rsrc index = %d", rsrc_index);
-
-                /* Allocate source and destination memory buffers*/
-                addr_base = val_mpam_memory_get_base(msc_index, rsrc_index);
-                addr_len  = val_mpam_memory_get_size(msc_index, rsrc_index);
-
-                if ((addr_base == SRAT_INVALID_INFO) || (addr_len == SRAT_INVALID_INFO) ||
-                    (addr_len <= 2 * BUFFER_SIZE)) { /* src and dst buffer size */
-                    val_print(ERROR, "\n       No SRAT mem range info found");
-                    val_set_status(pe_index, RESULT_FAIL(03));
-
-                    /* Restore MPAM2_EL2 settings */
-                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-                    return;
-                }
-
-
-                src_buf = (void *)val_mem_alloc_at_address(addr_base, BUFFER_SIZE);
-                dest_buf = (void *)val_mem_alloc_at_address(addr_base + BUFFER_SIZE, BUFFER_SIZE);
-
-                if ((src_buf == NULL) || (dest_buf == NULL)) {
-                    val_print(ERROR, "\n       Memory allocation of buffers failed");
-                    val_set_status(pe_index, RESULT_FAIL(04));
-
-                    /* Restore MPAM2_EL2 settings */
-                    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
-                    return;
-                }
-
-                /* configure MBWU Monitor for this memory resource node */
-                val_mpam_memory_configure_mbwumon(msc_index);
-
-                /* enable MBWU monitoring */
-                val_mpam_memory_mbwumon_enable(msc_index);
-
-
-                /* wait for MAX_NRDY_USEC after msc config change */
-                nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, msc_index, 0);
-                while (nrdy_timeout) {
-                    --nrdy_timeout;
-                };
-
-                /* perform memory operation */
-                val_memcpy(src_buf, dest_buf, BUFFER_SIZE);
-
-                /* read the memory bandwidth usage monitor */
-                byte_count = val_mpam_memory_mbwumon_read_count(msc_index);
-
-                /* disable and reset the MBWU monitor */
-                val_mpam_memory_mbwumon_disable(msc_index);
-                val_mpam_memory_mbwumon_reset(msc_index);
-
-                val_print(DEBUG, "\n       byte_count = 0x%llx bytes", byte_count);
-
-                /* the monitor must count both read and write bandwidth,
-                   hence count must be twice of the buffer size
-                   with 30% room for implementation differences */
-                byte_count_min = 2 * BUFFER_SIZE - ((2 * BUFFER_SIZE * 3) / 10);
-
-                /* Report fail if the monitor count does not belong within permitted range */
-                if (!((byte_count > byte_count_min) && (byte_count <= 2 * BUFFER_SIZE))) {
-                    val_print(ERROR, "\n       Monitor count incorrect for MSC %d",
-                                                                                       msc_index);
-                    val_print(ERROR, "       rsrc node %d", rsrc_index);
-                    test_fails++;
-                }
-
-                /* free the buffers */
-                val_mem_free_at_address((uint64_t)src_buf, BUFFER_SIZE);
-                val_mem_free_at_address((uint64_t)dest_buf, BUFFER_SIZE);
+        /* check the MBWU monitor capabilities of every MSC in the group */
+        for (group_member_index = 0; group_member_index < group_member_count; group_member_index++)
+        {
+            /* Get the indices of each msc and resource in the group */
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to identify resource group member %d",
+                          group_member_index);
+                test_fails++;
+                goto group_cleanup;
             }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+
+            if (!val_mpam_msc_supports_mbwumon(group_msc_index) ||
+                !val_mpam_get_mbwumon_count(group_msc_index)) {
+                val_print(ERROR, "\n       MBWU MON unsupported by MSC %d", group_msc_index);
+                group_valid = false;
+            }
+
+            msc_nrdy_timeout = val_mpam_get_info(MPAM_MSC_NRDY, group_msc_index, 0);
+            if (msc_nrdy_timeout > nrdy_timeout)
+                nrdy_timeout = msc_nrdy_timeout;
+        }
+
+        if (!group_valid) {
+            test_fails++;
+            continue;
+        }
+
+        addr_base = val_mpam_memory_get_base(msc_index, rsrc_index);
+        addr_len = val_mpam_memory_get_size(msc_index, rsrc_index);
+        if ((addr_base == SRAT_INVALID_INFO) || (addr_len == SRAT_INVALID_INFO) ||
+            (addr_len < 2 * BUFFER_SIZE)) {
+            val_print(ERROR, "\n       No usable SRAT mem range info found", 0);
+            test_fails++;
+            continue;
+        }
+
+        /* allocate one memory block and divide it into source and destination buffers */
+        mem_buf = val_mem_alloc_at_address(addr_base, 2 * BUFFER_SIZE);
+        if (mem_buf == NULL) {
+            val_print(ERROR, "\n       Memory allocation of buffers failed", 0);
+            test_fails++;
+            continue;
+        }
+
+        src_buf = mem_buf;
+        dest_buf = (void *)((uint8_t *)mem_buf + BUFFER_SIZE);
+
+        /* Remove the buffer cache lines so the monitored copy accesses memory. */
+        val_pe_cache_clean_invalidate_range((uint64_t)src_buf, BUFFER_SIZE);
+        val_pe_cache_clean_invalidate_range((uint64_t)dest_buf, BUFFER_SIZE);
+        val_mem_issue_dsb();
+
+        /* configure the MBWU monitor in every MSC which manages this memory resource */
+        configured_count = 0;
+        for (group_member_index = 0; group_member_index < group_member_count; group_member_index++)
+        {
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to identify resource group member %d",
+                          group_member_index);
+                test_fails++;
+                goto group_cleanup;
+            }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+
+            val_mpam_memory_configure_mbwumon(group_msc_index);
+            configured_count++;
+        }
+
+        /* program the PE to generate traffic with the PARTID selected by the monitors */
+        if (val_mpam_program_el2(DEFAULT_PARTID, DEFAULT_PMG)) {
+            val_print(ERROR, "\n       MPAM2_EL2 programming failed", 0);
+            test_fails++;
+            goto group_cleanup;
+        }
+        mpam2_programmed = true;
+
+        /* enable all group monitors before generating the memory traffic */
+        for (group_member_index = 0; group_member_index < group_member_count; group_member_index++)
+        {
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to identify resource group member %d",
+                          group_member_index);
+                test_fails++;
+                goto group_cleanup;
+            }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+            val_mpam_memory_mbwumon_enable(group_msc_index);
+        }
+
+        /* wait for the maximum NRDY time reported by the resource group */
+        if (nrdy_timeout)
+            val_time_delay_ms(nrdy_timeout);
+
+        /* perform the memory operation and push destination writes to the memory resource */
+        val_memcpy(dest_buf, src_buf, BUFFER_SIZE);
+        val_pe_cache_clean_range((uint64_t)dest_buf, BUFFER_SIZE);
+        val_mem_issue_dsb();
+
+        /* restore MPAM2_EL2 to avoid counting monitor-management traffic */
+        val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+        mpam2_programmed = false;
+
+        /* disable all group monitors before reading their count values */
+        for (group_member_index = 0;
+             group_member_index < group_member_count;
+             group_member_index++) {
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to identify resource group member %d",
+                          group_member_index);
+                test_fails++;
+                goto group_cleanup;
+            }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+            val_mpam_memory_mbwumon_disable(group_msc_index);
+        }
+
+        /* Disabling a monitor can assert NRDY again. Wait for every group member to settle. */
+        if (nrdy_timeout)
+            val_time_delay_ms(nrdy_timeout);
+
+        /* add each group monitor value to get the total usage of the memory resource */
+        total_byte_count = 0;
+        for (group_member_index = 0; group_member_index < group_member_count; group_member_index++)
+        {
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to identify resource group member %d",
+                          group_member_index);
+                test_fails++;
+                goto group_cleanup;
+            }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+
+            byte_count = val_mpam_memory_mbwumon_read_count(group_msc_index);
+            if (byte_count == (uint64_t)MPAM_MON_NOT_READY) {
+                val_print(ERROR, "\n       MBWU MON not ready for MSC %d", group_msc_index);
+                group_valid = false;
+            } else {
+                val_print(DEBUG, "\n       MSC %d byte_count = 0x%llx bytes",
+                          group_msc_index, byte_count);
+                total_byte_count += byte_count;
+            }
+
+            val_mpam_memory_mbwumon_reset(group_msc_index);
+        }
+        configured_count = 0;
+
+        if (!group_valid) {
+            test_fails++;
+            goto group_cleanup;
+        }
+
+        val_print(DEBUG, "\n       Group byte_count = 0x%llx bytes", total_byte_count);
+
+        /* Allow implementation variation below the expected read and write traffic. */
+        byte_count_margin = (EXPECTED_BYTE_COUNT * BYTE_COUNT_MARGIN_PERCENT) / 100;
+        byte_count_min = EXPECTED_BYTE_COUNT - byte_count_margin;
+        if (!(total_byte_count > byte_count_min)) {
+            val_print(ERROR,
+                      "\n       Aggregate monitor count incorrect for SRAT domain 0x%llx",
+                      val_mpam_get_info(MPAM_MSC_RSRC_DESC1, msc_index, rsrc_index));
+            test_fails++;
+        }
+
+group_cleanup:
+        /* restore PE settings and reset all monitors configured for this group */
+        if (mpam2_programmed) {
+            val_mpam_reg_write(MPAM2_EL2, mpam2_el2);
+            mpam2_programmed = false;
+        }
+
+        for (group_member_index = 0;
+             group_member_index < configured_count;
+             group_member_index++) {
+            if (!val_mpam_get_rsrc_group_member(rsrc_group_index, group_member_index,
+                                                &group_msc_index, &group_rsrc_index)) {
+                val_print(ERROR, "\n       Failed to clean resource group member %d",
+                          group_member_index);
+                break;
+            }
+
+            if (val_mpam_msc_supports_ris(group_msc_index))
+                val_mpam_memory_configure_ris_sel(group_msc_index, group_rsrc_index);
+            val_mpam_memory_mbwumon_disable(group_msc_index);
+            val_mpam_memory_mbwumon_reset(group_msc_index);
+        }
+
+        if (mem_buf != NULL) {
+            val_mem_free_at_address((uint64_t)mem_buf, 2 * BUFFER_SIZE);
+            mem_buf = NULL;
+            src_buf = NULL;
+            dest_buf = NULL;
         }
     }
-    /* Restore MPAM2_EL2 settings */
-    val_mpam_reg_write(MPAM2_EL2, mpam2_el2_temp);
 
     if (test_fails)
         val_set_status(pe_index, RESULT_FAIL(05));
@@ -185,8 +339,6 @@ static void payload(void)
         val_set_status(pe_index, RESULT_SKIP(01));
     else
         val_set_status(pe_index, RESULT_PASS);
-
-    return;
 }
 
 uint32_t mpam003_entry(uint32_t num_pe)

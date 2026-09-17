@@ -29,8 +29,12 @@ static MPAM_INFO_TABLE *g_mpam_info_table;
 static SRAT_INFO_TABLE *g_srat_info_table;
 static HMAT_INFO_TABLE *g_hmat_info_table;
 extern GIC_ITS_INFO    *g_gic_its_info;
+static uint32_t        g_mpam_rsrc_group_count;
 
 uint8_t **g_shared_memcpy_buffer;
+
+static MPAM_RSRC_GROUP        *g_mpam_rsrc_groups;
+static MPAM_RSRC_GROUP_MEMBER *g_mpam_rsrc_group_members;
 
 static char8_t *
 mpam_reg_offset_name(uint32_t reg_offset)
@@ -228,6 +232,315 @@ val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index)
       }
   }
   return MPAM_INVALID_INFO;
+}
+
+/* Returns true when two MPAM resource nodes describe the same known location. */
+static bool
+mpam_rsrc_locations_match(const MPAM_RESOURCE_NODE *rsrc_a,
+                          const MPAM_RESOURCE_NODE *rsrc_b)
+{
+  /* An unknown location cannot be used to prove that two nodes describe one resource */
+  if ((rsrc_a->locator_type == MPAM_RSRC_TYPE_UNKNOWN) ||
+      (rsrc_b->locator_type == MPAM_RSRC_TYPE_UNKNOWN))
+      return false;
+
+  return ((rsrc_a->locator_type == rsrc_b->locator_type) &&
+          (rsrc_a->descriptor1 == rsrc_b->descriptor1) &&
+          (rsrc_a->descriptor2 == rsrc_b->descriptor2));
+}
+
+/* Returns a hash of the location described by an MPAM resource node. */
+static uint32_t
+mpam_rsrc_location_hash(const MPAM_RESOURCE_NODE *rsrc_entry)
+{
+  uint32_t hash;
+
+  /* Hash all location fields into 32 bits. Hash collisions are harmless - the  caller compares the
+     complete location before assigning an existing group. */
+  hash = (uint32_t)rsrc_entry->descriptor1;
+  hash ^= (uint32_t)(rsrc_entry->descriptor1 >> MPAM_RSRC_HASH_WORD_SHIFT);
+  hash ^= rsrc_entry->descriptor2;
+  hash ^= rsrc_entry->locator_type;
+
+  return hash;
+}
+
+/* Frees the resource group index created from the MPAM info table. */
+static void
+mpam_free_rsrc_groups(void)
+{
+  if (g_mpam_rsrc_groups != NULL) {
+      val_memory_free(g_mpam_rsrc_groups);
+      g_mpam_rsrc_groups = NULL;
+  }
+
+  if (g_mpam_rsrc_group_members != NULL) {
+      val_memory_free(g_mpam_rsrc_group_members);
+      g_mpam_rsrc_group_members = NULL;
+  }
+
+  g_mpam_rsrc_group_count = 0;
+}
+
+/* Counts all resource nodes in the MPAM info table. */
+static bool
+mpam_get_total_rsrc_count(uint32_t *total_rsrc_count)
+{
+  uint32_t msc_index;
+  uint64_t count = 0;
+  MPAM_MSC_NODE *msc_entry;
+
+  if ((g_mpam_info_table == NULL) || (total_rsrc_count == NULL))
+      return false;
+
+  msc_entry = &g_mpam_info_table->msc_node[0];
+  for (msc_index = 0; msc_index < g_mpam_info_table->msc_count; msc_index++) {
+      count += msc_entry->rsrc_count;
+      if (count > (uint64_t)~0U)
+          return false;
+      msc_entry = MPAM_NEXT_MSC(msc_entry);
+  }
+
+  *total_rsrc_count = (uint32_t)count;
+  return true;
+}
+
+/*
+  Assigns group IDs and builds group member lookup tables.
+
+  A resource location is identified by locator_type, descriptor1 and
+  descriptor2. The temporary hash slots speed up the search for a group with
+  the same location. Each occupied slot contains a group index; it does not
+  contain a resource node.
+
+  After creating a logical group, the members are stored in one flat table.
+
+  Eg: Assume a system with 2 MSC nodes + 1 resource each forming a logical group
+        MSC2/res0:                               MSC7/res0:
+            locator type = 0x01                      locator type = 0x01
+            descriptor1  = 0x1234                    descriptor1  = 0x1234
+            descriptor2  = 0                         descriptor2  = 0
+
+        MSC 2:
+        hash1 = 0x1234 ^ 0 ^ 0 ^ 1 = 0x1235
+        hash slot = 0x1235 & (2 x resource count - 1)
+                  = 0x1235 & 3 = 1
+        hash slots = [empty, group 0, empty, empty]
+
+        MSC7 also reaches the same hash slot. The slot is taken so we check the full location.
+        It matches with MSC2. So they both belong to the group.
+*/
+static void
+mpam_create_rsrc_groups(void)
+{
+  uint32_t group_index;
+  uint32_t hash_slot;
+  uint32_t hash_slot_count = MPAM_RSRC_HASH_INITIAL_SLOT_COUNT;
+  uint32_t member_index = 0;
+  uint32_t msc_index;
+  uint32_t rsrc_index;
+  uint32_t total_rsrc_count;
+  uint64_t group_alloc_size;
+  uint64_t member_alloc_size;
+  uint64_t hash_alloc_size;
+  uint64_t required_hash_slots;
+  uint32_t *hash_slots = NULL;
+  MPAM_MSC_NODE *msc_entry;
+  MPAM_RSRC_GROUP *group_entry;
+  MPAM_RESOURCE_NODE *rsrc_entry;
+
+  mpam_free_rsrc_groups();
+  if (!mpam_get_total_rsrc_count(&total_rsrc_count)) {
+      val_print(ERROR, "\n       Invalid MPAM resource count", 0);
+      return;
+  }
+
+  if (total_rsrc_count == 0)
+      return;
+
+  /* Use a power-of-two slot count at least twice the resource count. Keeping at least half of
+     the slots empty limits linear probing after collisions. */
+  required_hash_slots = (uint64_t)MPAM_RSRC_HASH_SLOT_SCALE * total_rsrc_count;
+  while ((uint64_t)hash_slot_count < required_hash_slots) {
+      if (hash_slot_count > (~0U >> 1)) {
+          val_print(ERROR, "\n       MPAM resource hash slot count overflow", 0);
+          return;
+      }
+      hash_slot_count <<= 1;
+  }
+
+  group_alloc_size = (uint64_t)total_rsrc_count * sizeof(MPAM_RSRC_GROUP);
+  member_alloc_size = (uint64_t)total_rsrc_count * sizeof(MPAM_RSRC_GROUP_MEMBER);
+  hash_alloc_size = (uint64_t)hash_slot_count * sizeof(uint32_t);
+  if ((group_alloc_size > (uint64_t)~0U) || (member_alloc_size > (uint64_t)~0U) ||
+      (hash_alloc_size > (uint64_t)~0U)) {
+      val_print(ERROR, "\n       MPAM resource group allocation size overflow", 0);
+      return;
+  }
+
+  g_mpam_rsrc_groups        = val_memory_alloc((uint32_t)group_alloc_size);
+  g_mpam_rsrc_group_members = val_memory_alloc((uint32_t)member_alloc_size);
+  hash_slots                = val_memory_alloc((uint32_t)hash_alloc_size);
+
+  if ((g_mpam_rsrc_groups == NULL) || (g_mpam_rsrc_group_members == NULL) || (hash_slots == NULL)) {
+      val_print(ERROR, "\n       Memory allocation for MPAM resource groups failed", 0);
+      if (hash_slots != NULL)
+          val_memory_free(hash_slots);
+      mpam_free_rsrc_groups();
+      return;
+  }
+
+  /* MPAM_INVALID_INFO marks an empty slot; zero remains a valid group index. */
+  for (hash_slot = 0; hash_slot < hash_slot_count; hash_slot++)
+      hash_slots[hash_slot] = MPAM_INVALID_INFO;
+
+  /* Phase 1: assign every resource node to a location group. */
+  msc_entry = &g_mpam_info_table->msc_node[0];
+  for (msc_index = 0; msc_index < g_mpam_info_table->msc_count; msc_index++) {
+      for (rsrc_index = 0; rsrc_index < msc_entry->rsrc_count; rsrc_index++) {
+          rsrc_entry = &msc_entry->rsrc_node[rsrc_index];
+          group_index = g_mpam_rsrc_group_count;
+
+          if (rsrc_entry->locator_type != MPAM_RSRC_TYPE_UNKNOWN) {
+              /* The mask maps the hash to a slot because the slot count is a power of two. */
+              hash_slot = MPAM_RSRC_HASH_SLOT(mpam_rsrc_location_hash(rsrc_entry), hash_slot_count);
+              while (hash_slots[hash_slot] != MPAM_INVALID_INFO) {
+                  group_index = hash_slots[hash_slot];
+
+                  /* A matching hash is not enough; compare the complete location. */
+                  if (mpam_rsrc_locations_match(
+                          rsrc_entry, g_mpam_rsrc_groups[group_index].rsrc_entry))
+                      break;
+
+                  /* Hash collision: inspect the next slot (linear probing). */
+                  group_index = g_mpam_rsrc_group_count;
+                  hash_slot = MPAM_RSRC_HASH_NEXT_SLOT(hash_slot, hash_slot_count);
+              }
+          }
+
+          /* No matching group was found, so create one for this location. */
+          if (group_index == g_mpam_rsrc_group_count) {
+              group_entry = &g_mpam_rsrc_groups[group_index];
+              group_entry->rsrc_entry = rsrc_entry;
+              group_entry->member_count = 0;
+              g_mpam_rsrc_group_count++;
+
+              if (rsrc_entry->locator_type != MPAM_RSRC_TYPE_UNKNOWN)
+                  hash_slots[hash_slot] = group_index;
+          }
+
+          rsrc_entry->group_id = group_index;
+          g_mpam_rsrc_groups[group_index].member_count++;
+      }
+      msc_entry = MPAM_NEXT_MSC(msc_entry);
+  }
+
+  /* The hash slots are needed only while discovering the groups. */
+  val_memory_free(hash_slots);
+
+  /* Phase 2: reserve one contiguous range in the member table for each group. */
+  for (group_index = 0; group_index < g_mpam_rsrc_group_count; group_index++) {
+      group_entry = &g_mpam_rsrc_groups[group_index];
+      group_entry->member_offset = member_index;
+      group_entry->member_write_index = 0;
+      member_index += group_entry->member_count;
+  }
+
+  /* Phase 3: populate each range in the same order as the MPAM info table. */
+  msc_entry = &g_mpam_info_table->msc_node[0];
+  for (msc_index = 0; msc_index < g_mpam_info_table->msc_count; msc_index++) {
+      for (rsrc_index = 0; rsrc_index < msc_entry->rsrc_count; rsrc_index++) {
+
+          group_index = msc_entry->rsrc_node[rsrc_index].group_id;
+          group_entry = &g_mpam_rsrc_groups[group_index];
+          member_index = group_entry->member_offset + group_entry->member_write_index++;
+          g_mpam_rsrc_group_members[member_index].msc_index = msc_index;
+          g_mpam_rsrc_group_members[member_index].rsrc_index = rsrc_index;
+      }
+
+      msc_entry = MPAM_NEXT_MSC(msc_entry);
+  }
+}
+
+/**
+  @brief   Returns the number of MPAM resource location groups.
+
+  @return  Resource group count, or zero if no resource nodes are present.
+**/
+uint32_t
+val_mpam_get_rsrc_group_count(void)
+{
+  return g_mpam_rsrc_group_count;
+}
+
+/**
+  @brief   Returns the locator type shared by a resource group.
+
+  @param   group_index  Resource group index.
+
+  @return  Resource locator type, or MPAM_INVALID_INFO for an invalid group.
+**/
+uint32_t
+val_mpam_get_rsrc_group_type(uint32_t group_index)
+{
+  if ((g_mpam_rsrc_groups == NULL) || (group_index >= g_mpam_rsrc_group_count))
+      return MPAM_INVALID_INFO;
+
+  return g_mpam_rsrc_groups[group_index].rsrc_entry->locator_type;
+}
+
+/**
+  @brief   Returns the number of resource nodes in a resource location group.
+
+  @param   group_index  Resource group index.
+
+  @return  Number of group members, or zero for an invalid group.
+**/
+uint32_t
+val_mpam_get_rsrc_group_member_count(uint32_t group_index)
+{
+  if ((g_mpam_rsrc_groups == NULL) || (group_index >= g_mpam_rsrc_group_count))
+      return 0;
+
+  return g_mpam_rsrc_groups[group_index].member_count;
+}
+
+/**
+  @brief   Returns the MSC and resource indices of one group member.
+
+           Each group owns a contiguous range in g_mpam_rsrc_group_members.
+           member_offset identifies the start of that range and member_index
+           selects an entry relative to it.
+
+  @param   group_index   Resource group index.
+  @param   member_index  Member index within the resource group.
+  @param   msc_index     Receives the MSC index.
+  @param   rsrc_index    Receives the resource index within the MSC.
+
+  @return  true if the requested member was found, otherwise false.
+**/
+bool
+val_mpam_get_rsrc_group_member(uint32_t group_index, uint32_t member_index,
+                               uint32_t *msc_index, uint32_t *rsrc_index)
+{
+  MPAM_RSRC_GROUP *group_entry;
+  MPAM_RSRC_GROUP_MEMBER *group_member;
+
+  if ((g_mpam_rsrc_groups == NULL) || (g_mpam_rsrc_group_members == NULL) ||
+      (msc_index == NULL) || (rsrc_index == NULL) ||
+      (group_index >= g_mpam_rsrc_group_count))
+      return false;
+
+  group_entry = &g_mpam_rsrc_groups[group_index];
+  if (member_index >= group_entry->member_count)
+      return false;
+
+  /* Convert the group-relative member index into an index in the flat member table. */
+  group_member = &g_mpam_rsrc_group_members[group_entry->member_offset + member_index];
+  *msc_index = group_member->msc_index;
+  *rsrc_index = group_member->rsrc_index;
+
+  return true;
 }
 
 /**
@@ -1029,8 +1342,13 @@ val_mpam_create_info_table(uint64_t *mpam_info_table)
 #ifndef TARGET_LINUX
   pal_mpam_create_info_table(g_mpam_info_table);
 
+  /* assign stable group IDs after PAL has enumerated all MPAM resource nodes */
+  mpam_create_rsrc_groups();
+
   val_print(INFO,
                 "\n    MPAM_INFO: Number of MSC nodes     :  %d", g_mpam_info_table->msc_count);
+  val_print(INFO,
+                "\n    MPAM_INFO: Number of RSRC groups   :  %d", g_mpam_rsrc_group_count);
   val_print(DEBUG, "\n       Memory mapping MSC nodes");
 
   memory_map_msc();
@@ -1065,6 +1383,7 @@ void
 val_mpam_free_info_table(void)
 {
     if (g_mpam_info_table != NULL) {
+        mpam_free_rsrc_groups();
         pal_mem_free_aligned((void *)g_mpam_info_table);
         g_mpam_info_table = NULL;
     }
