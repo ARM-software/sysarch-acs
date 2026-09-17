@@ -844,6 +844,7 @@ typedef struct {
     uint8_t    locator_type;  /* Identifies location of this resource */
     uint64_t   descriptor1;   /* Primary acpi description of location */
     uint32_t   descriptor2;   /* Secondary acpi description of location */
+    uint32_t   group_id;      /* VAL assigned resource location group */
 } MPAM_RESOURCE_NODE;
 
 /*

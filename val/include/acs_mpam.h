@@ -78,10 +78,36 @@ typedef enum {
 #define MAX_CPBM_WIDTH      32768
 #define MAX_BWPBM_WIDTH     4096
 
+/* Resource-group hash configuration; the slot count is kept as a power of two. */
+#define MPAM_RSRC_HASH_WORD_SHIFT          32U
+#define MPAM_RSRC_HASH_SLOT_SCALE           2U
+#define MPAM_RSRC_HASH_INITIAL_SLOT_COUNT   1U
+#define MPAM_RSRC_HASH_SLOT(hash, count)    ((hash) & ((count) - 1U))
+#define MPAM_RSRC_HASH_NEXT_SLOT(slot, count) \
+        (((slot) + 1U) & ((count) - 1U))
+
+/* MPAM resource-location group bookkeeping. */
+typedef struct {
+  MPAM_RESOURCE_NODE *rsrc_entry;
+  uint32_t member_offset;
+  uint32_t member_count;
+  uint32_t member_write_index;
+} MPAM_RSRC_GROUP;
+
+typedef struct {
+  uint32_t msc_index;
+  uint32_t rsrc_index;
+} MPAM_RSRC_GROUP_MEMBER;
+
 void val_mpam_reg_write(MPAM_SYS_REGS reg_id, uint64_t write_data);
 uint64_t val_mpam_reg_read(MPAM_SYS_REGS reg_id);
 
 uint64_t val_mpam_get_info(MPAM_INFO_e type, uint32_t msc_index, uint32_t rsrc_index);
+uint32_t val_mpam_get_rsrc_group_count(void);
+uint32_t val_mpam_get_rsrc_group_type(uint32_t group_index);
+uint32_t val_mpam_get_rsrc_group_member_count(uint32_t group_index);
+bool     val_mpam_get_rsrc_group_member(uint32_t group_index, uint32_t member_index,
+                                        uint32_t *msc_index, uint32_t *rsrc_index);
 uint32_t val_mpam_msc_supports_mbwpart(uint32_t msc_index);
 uint32_t val_mpam_msc_supports_mbwpbm(uint32_t msc_index);
 uint32_t val_mpam_msc_supports_mbw_min(uint32_t msc_index);
