@@ -360,11 +360,47 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>L1</td>
-      <td>B_GIC_02</td>
-      <td>B_GIC_02</td>
+      <td rowspan="5">L1</td>
+      <td rowspan="5">B_GIC_02</td>
+      <td rowspan="5">B_GIC_02</td>
       <td>202</td>
-      <td>Check GICv2 Valid Configuration</td>
+      <td>Check GIC Valid Configuration</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>229</td>
+      <td>Check GICv2m SPI allocated to MSI Ctrl</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>226</td>
+      <td>Check MSI SPI are Edge Triggered</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>228</td>
+      <td>Check GICv2m MSI to SPI Generation</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>227</td>
+      <td>Check GICv2m MSI Frame Register</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
@@ -454,44 +490,6 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td rowspan="4">L1</td>
-      <td rowspan="4">B_GIC_02</td>
-      <td>Appendix I.5</td>
-      <td>229</td>
-      <td>Check GICv2m SPI allocated to MSI Ctrl</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Appendix I.6</td>
-      <td>226</td>
-      <td>Check MSI SPI are Edge Triggered</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Appendix I.6</td>
-      <td>228</td>
-      <td>Check GICv2m MSI to SPI Generation</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Appendix I.9</td>
-      <td>227</td>
-      <td>Check GICv2m MSI Frame Register</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
       <td></td>
     </tr>
     <tr>
