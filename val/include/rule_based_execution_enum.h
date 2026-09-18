@@ -135,9 +135,6 @@ typedef enum {
     S_L5GI_01,
     S_L5PP_01,
     S_L8GI_01,
-    Appendix_I_5,   /* Appendix I.5 remapped to a legal identifier */
-    Appendix_I_6,   /* Appendix I.6 remapped */
-    Appendix_I_9,   /* Appendix I.9 remapped */
     P_L1GI_01,
     P_L1GI_02,
     P_L1GI_03,
@@ -693,7 +690,6 @@ typedef enum {
     G015_ENTRY,
     V2M004_ENTRY,
     V2M001_ENTRY,
-    APPENDIX_I_6_ENTRY,
     V2M002_ENTRY,
     V2M003_ENTRY,
     D001_ENTRY,

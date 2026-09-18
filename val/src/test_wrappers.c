@@ -137,7 +137,7 @@ b_gic_02_entry(uint32_t num_pe)
     }
 
     if (val_gic_v2m_parse_info()) {
-        val_print(ERROR, "\n       GICv2m info mismatch, skipping Appendix tests");
+        val_print(ERROR, "\n       GICv2m info mismatch, skipping GICv2m tests");
         return (GET_STATE(status) == TEST_PASS) ? RESULT_PARTIAL_COVERED : status;
     }
 
@@ -224,15 +224,6 @@ s_l7mp_03_entry(uint32_t num_pe)
 {
     TEST_ENTRY_ID_e tst_entry_list[] = {MPAM002_ENTRY, MPAM006_ENTRY, MPAM007_ENTRY,
                                         TEST_ENTRY_SENTINEL};
-
-    return run_test_entries(tst_entry_list, num_pe);
-}
-
-/* Appendix I.6 */
-uint32_t
-appendix_i_6_entry(uint32_t num_pe)
-{
-    TEST_ENTRY_ID_e tst_entry_list[] = {V2M001_ENTRY, V2M003_ENTRY, TEST_ENTRY_SENTINEL};
 
     return run_test_entries(tst_entry_list, num_pe);
 }
