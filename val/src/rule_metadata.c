@@ -1656,22 +1656,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_GPU_TEST_NUM_BASE + 02,
         },
-        [IE_ACS_1] = {
-            .test_entry_id    = P082_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Check ACS Cap on p2p support - iEP EP",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 82,
-        },
-        [IE_ACS_2] = {
-            .test_entry_id    = P081_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Check P2P Support - iEP EP",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 81,
-        },
         [IE_ORD_4] = {
             .test_entry_id    = E038_ENTRY,
             .module_id        = PCIE,
@@ -3784,8 +3768,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P078_ENTRY] = p078_entry, // used in wrapper.
     [P079_ENTRY] = p079_entry,
     [P080_ENTRY] = p080_entry,
-    [P081_ENTRY] = p081_entry,
-    [P082_ENTRY] = p082_entry,
     [P083_ENTRY] = p083_entry,
     [P084_ENTRY] = p084_entry,
     [P085_ENTRY] = p085_entry,
@@ -4324,8 +4306,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P072_ENTRY] = p072_entry, // used in wrapper.
     [P079_ENTRY] = p079_entry,
     [P080_ENTRY] = p080_entry,
-    [P081_ENTRY] = p081_entry,
-    [P082_ENTRY] = p082_entry,
     [P083_ENTRY] = p083_entry,
     [P084_ENTRY] = p084_entry,
     [P085_ENTRY] = p085_entry,
@@ -4696,7 +4676,6 @@ const RULE_ID_e b_iep_1_rule_list[] = {
     IE_ORD_4,
     IE_RST_2, IE_RST_3,
     IE_PWR_2, IE_PWR_3,
-    IE_ACS_1, IE_ACS_2,
     /* G.2 - I-EP */
     IE_REG_1, IE_REG_2, IE_REG_3,
     IE_REG_4, IE_REG_5, IE_REG_6,
