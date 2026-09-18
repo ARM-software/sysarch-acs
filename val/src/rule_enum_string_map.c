@@ -117,10 +117,6 @@ char *rule_id_string[RULE_ID_SENTINEL] = {
     [S_L5GI_01]   = "S_L5GI_01",
     [S_L5PP_01]   = "S_L5PP_01",
     [S_L8GI_01]   = "S_L8GI_01",
-    [Appendix_I_5] = "Appendix_I_5",
-    [Appendix_I_6] = "Appendix_I_6",
-    [Appendix_I_9] = "Appendix_I_9",
-
     /* PERIPHERAL rules */
     [B_PER_01]    = "B_PER_01",
     [B_PER_02]    = "B_PER_02",
