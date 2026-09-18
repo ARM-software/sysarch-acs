@@ -1283,16 +1283,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_LI_02</td>
-      <td></td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>PCI_LI_03</td>
       <td></td>
       <td>Check Legacy Intr SPI level sensitive</td>
@@ -2298,16 +2288,6 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>RCiEP, RCEC</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>PCI_LI_02</td>
-      <td></td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
       <td></td>
     </tr>
     <tr>

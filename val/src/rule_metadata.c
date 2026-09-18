@@ -1997,13 +1997,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
         },
-        [PCI_LI_02] = {
-            .test_entry_id    = PCI_LI_02_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "PCI legacy intr SPI ID unique",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
-            .flag             = BASE_RULE,
-        },
         [PCI_LI_03] = {
             .test_entry_id    = PCI_LI_03_ENTRY,
             .module_id        = PCIE,
@@ -3532,7 +3525,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P104_ENTRY] = p104_entry, // used in wrapper.
     [P107_ENTRY] = p107_entry, // used in wrapper.
     [P105_ENTRY] = p105_entry,
-    [PCI_LI_02_ENTRY] = pci_li_02_entry,
     [PCI_MM_01_ENTRY] = pci_mm_01_entry,
     [PCI_MM_02_ENTRY] = pci_mm_02_entry,
     [PCI_MM_03_ENTRY] = pci_mm_03_entry,
@@ -3542,7 +3534,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [D004_ENTRY] = d004_entry,
     [D007_ENTRY] = d007_entry,
     [M004_ENTRY] = m004_entry,
-    [P096_ENTRY] = p096_entry, // used in wrapper.
     [P097_ENTRY] = p097_entry, // used in wrapper.
     [M006_ENTRY] = m006_entry,
     [P095_ENTRY] = p095_entry,
@@ -3569,7 +3560,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E002_ENTRY] = e002_entry, // used in wrapper.
     [E003_ENTRY] = e003_entry,
     [E004_ENTRY] = e004_entry,
-    [E006_ENTRY] = e006_entry, // used in wrapper.
     [E007_ENTRY] = e007_entry, // used in wrapper.
     [E008_ENTRY] = e008_entry,
     [E010_ENTRY] = e010_entry,
@@ -3646,7 +3636,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_IN_17_ENTRY]  = pci_in_17_entry,
     [PCI_IN_19_ENTRY]  = pci_in_19_entry,
     [PCI_LI_01_ENTRY]  = pci_li_01_entry,
-    [PCI_LI_02_ENTRY]  = pci_li_02_entry,
     [PCI_LI_03_ENTRY]  = pci_li_03_entry,
     [PCI_MM_01_ENTRY]  = pci_mm_01_entry,
     [PCI_MM_02_ENTRY]  = pci_mm_02_entry,
@@ -3797,7 +3786,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P092_ENTRY] = p092_entry,
     [P093_ENTRY] = p093_entry,
     [P094_ENTRY] = p094_entry,
-    [P096_ENTRY] = p096_entry,
     [P098_ENTRY] = p098_entry, // used in wrapper.
     [P099_ENTRY] = p099_entry, // used in wrapper.
     [P100_ENTRY] = p100_entry,
@@ -4088,7 +4076,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P072_ENTRY] = p072_entry, // used in wrapper.
     [P078_ENTRY] = p078_entry, // used in wrapper.
     [P095_ENTRY] = p095_entry,
-    [P096_ENTRY] = p096_entry, // used in wrapper.
     [P097_ENTRY] = p097_entry, // used in wrapper.
     [P101_ENTRY] = p101_entry,
     [P087_ENTRY] = p087_entry,
@@ -4104,7 +4091,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_IN_17_ENTRY] = pci_in_17_entry,
     [PCI_IN_19_ENTRY] = pci_in_19_entry,
     [PCI_LI_01_ENTRY] = pci_li_01_entry,
-    [PCI_LI_02_ENTRY] = pci_li_02_entry,
     [PCI_LI_03_ENTRY] = pci_li_03_entry,
     [PCI_MM_01_ENTRY] = pci_mm_01_entry,
     [PCI_MM_02_ENTRY] = pci_mm_02_entry,
@@ -4115,7 +4101,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E001_ENTRY] = e001_entry,
     [E002_ENTRY] = e002_entry,
     [E003_ENTRY] = e003_entry,
-    [E006_ENTRY] = e006_entry,
     [E007_ENTRY] = e007_entry,
     [E010_ENTRY] = e010_entry,
     [E014_ENTRY] = e014_entry,
@@ -4360,7 +4345,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_IN_17_ENTRY]  = pci_in_17_entry,
     [PCI_IN_19_ENTRY]  = pci_in_19_entry,
     [PCI_LI_01_ENTRY]  = pci_li_01_entry,
-    [PCI_LI_02_ENTRY]  = pci_li_02_entry,
     [PCI_LI_03_ENTRY]  = pci_li_03_entry,
     [PCI_MM_01_ENTRY]  = pci_mm_01_entry,
     [PCI_MM_02_ENTRY]  = pci_mm_02_entry,
@@ -4440,7 +4424,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E016_ENTRY] = e016_entry, // used in wrapper.
     [E004_ENTRY] = e004_entry,
     [E033_ENTRY] = e033_entry, // used in wrapper.
-    [E006_ENTRY] = e006_entry, // used in wrapper.
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry,
     [E048_ENTRY] = e048_entry,
@@ -4486,7 +4469,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P017_ENTRY] = p017_entry, // used in wrapper.
     [P005_ENTRY] = p005_entry, // used in wrapper.
     [P023_ENTRY] = p023_entry, // used in wrapper.
-    [P096_ENTRY] = p096_entry, // used in wrapper.
     [P037_ENTRY] = p037_entry,
     [P002_ENTRY] = p002_entry,
     [P018_ENTRY] = p018_entry, // used in wrapper.
@@ -4583,7 +4565,7 @@ const RULE_ID_e jkzmt_rule_list[] = {
     /* E.4 - Message Signaled Interrupts */
     PCI_MSI_1, PCI_MSI_2,
     /* E.6 - Legacy Interrupts */
-    PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+    PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
     PCI_SM_01, PCI_SM_02,
     /* E.8 - I/O Coherency */
@@ -4650,7 +4632,7 @@ const RULE_ID_e hvzjy_rule_list[] = {
     /* E.4 - Message Signaled Interrupts */
     PCI_MSI_1, PCI_MSI_2,
     /* E.6 - Legacy Interrupts */
-    PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+    PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
     PCI_SM_01, PCI_SM_02,
     /* E.8 - I/O Coherency */
@@ -4720,7 +4702,7 @@ const RULE_ID_e b_per_08_rule_list[] = {
     /* E.4 - Message Signaled Interrupts */
     PCI_MSI_1, PCI_MSI_2,
     /* E.6 - Legacy Interrupts */
-    PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+    PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
     PCI_SM_01, PCI_SM_02,
     /* E.8 - I/O Coherency */
@@ -4881,7 +4863,7 @@ const RULE_ID_e v_l1pr_02_rule_list[]   = {
                                      /* E.4 - Message Signaled Interrupts */
                                      PCI_MSI_1, PCI_MSI_2,
                                      /* E.6 - Legacy Interrupts */
-                                     PCI_LI_01, PCI_LI_02, PCI_LI_03, PCI_LI_04,
+                                     PCI_LI_01, PCI_LI_03, PCI_LI_04,
                                      /* E.7 - System MMU and Device Assignment */
                                      PCI_SM_01, PCI_SM_02,
                                      /* E.8 - I/O Coherency */

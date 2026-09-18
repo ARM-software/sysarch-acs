@@ -961,14 +961,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_LI_02</td>
-      <td>896</td>
-      <td>PCI legacy intr SPI ID unique</td>
-      <td>❌</td>
-      <td>✅</td>
-      <td></td>
-    </tr>
-    <tr>
       <td></td>
       <td>1506</td>
       <td>Generate PCIe legacy interrupt</td>
