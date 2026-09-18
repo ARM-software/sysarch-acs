@@ -673,3 +673,48 @@ val_pe_get_uid(uint64_t mpidr)
 
   return INVALID_PE_INFO;
 }
+
+/**
+  @brief  Invoke an ACS EL3 service through an SMC call.
+
+  @param  fid      SMC function identifier to pass in Arg0/x0.
+  @param  service  ACS service identifier to pass in Arg1/x1.
+  @param  arg0     Service-specific argument passed in Arg2/x2.
+  @param  arg1     Service-specific argument passed in Arg3/x3.
+  @param  arg2     Service-specific argument passed in Arg4/x4.
+  @param  ret1     Optional pointer to receive returned Arg1/x1.
+  @param  ret2     Optional pointer to receive returned Arg2/x2.
+  @param  ret3     Optional pointer to receive returned Arg3/x3.
+
+  @return Value returned in Arg0/x0 by the SMC call. The interpretation of
+          this value is service-specific.
+**/
+uint64_t val_smc_call(uint64_t fid, uint64_t service,
+                      uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                      uint64_t *ret1, uint64_t *ret2, uint64_t *ret3)
+{
+    ARM_SMC_ARGS smc_params = {0};
+
+    smc_params.Arg0 = fid;       /* Arg0: FID (ARM_VEN_EL3_ACS_SMC_HANDLER), 0xC7000030 */
+    smc_params.Arg1 = service;   /* Arg1: services */
+    smc_params.Arg2 = arg0;      /* Arg2..Arg4: args */
+    smc_params.Arg3 = arg1;
+    smc_params.Arg4 = arg2;
+
+    val_print(DEBUG, "\n    SMC call fid:0x%llx svc:0x%llx args:0x%llx 0x%llx 0x%llx",
+               fid, service, arg0, arg1, arg2);
+
+    /* Force SMC conduit */
+    pal_pe_call_smc(&smc_params, gPsciConduit);
+    if (smc_params.Arg0 == ACS_SMC_UNK_RET) {
+        val_print(WARN, "\n    EL3 ACS SMC handler not present");
+    }
+
+    val_print(DEBUG, "\n    SMC ret st:0x%llx r1:0x%llx r2:0x%llx r3:0x%llx",
+               smc_params.Arg0, smc_params.Arg1, smc_params.Arg2, smc_params.Arg3);
+
+    if (ret1) *ret1 = smc_params.Arg1;
+    if (ret2) *ret2 = smc_params.Arg2;
+    if (ret3) *ret3 = smc_params.Arg3;
+    return smc_params.Arg0;  /* status */
+}

@@ -442,8 +442,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="6">L1</td>
-      <td rowspan="6">B_PPI_00</td>
+      <td rowspan="8">L1</td>
+      <td rowspan="8">B_PPI_00</td>
       <td rowspan="2">B_PPI_01</td>
       <td>206</td>
       <td>Check EL1 timer PPI assignments</td>
@@ -491,14 +491,30 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>B_PPI_03</td>
-      <td>Not Covered</td>
+      <td rowspan="3">B_PPI_03</td>
+      <td>221</td>
+      <td>Verify Secure Physical timer (CNTPS) mapping</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
       <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+    </tr>
+    <tr>
+      <td>222</td>
+      <td>Verify S-EL2 CNTHPS PPI mapping</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Requires ACS SMC handler support in EL3 firmware</td>
+    </tr>
+    <tr>
+      <td>223</td>
+      <td>Verify S-EL2 CNTHVS PPI mapping </td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Requires ACS SMC handler support in EL3 firmware</td>
     </tr>
     <tr>
       <td rowspan="4">L1</td>
@@ -700,13 +716,12 @@ The checklist provides information about:
       <td>L1</td>
       <td>B_TIME_02</td>
       <td>B_TIME_02</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>411</td>
+      <td>System counter freq at least 10MHz</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>Requires ACS SMC handler support in EL3 firmware</td>
     </tr>
     <tr>
       <td>L1</td>
@@ -4242,6 +4257,7 @@ The checklist provides information about:
 - Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
 - Updated ITS_08, ITS_DEV_5
 - Updated B_SMMU_21
+- **B_ Added:** B_PPI_03, B_TIME_02
 
 ### v26.03_BSA_1.2.1
 - **RI_ Added:** RI_PWR_1

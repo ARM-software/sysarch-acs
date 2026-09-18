@@ -122,7 +122,8 @@ uint32_t
 b_ppi_00_entry(uint32_t num_pe)
 {
     TEST_ENTRY_ID_e tst_entry_list[] = {G006_ENTRY, G007_ENTRY, G009_ENTRY,
-                                        G010_ENTRY, G011_ENTRY, TEST_ENTRY_SENTINEL};
+                                        G010_ENTRY, G011_ENTRY, G017_ENTRY,
+                                        G018_ENTRY, G019_ENTRY, TEST_ENTRY_SENTINEL};
 
     return run_test_entries(tst_entry_list, num_pe);
 }
@@ -145,6 +146,16 @@ uint32_t
 b_ppi_02_entry(uint32_t num_pe)
 {
     TEST_ENTRY_ID_e tst_entry_list[] = {G009_ENTRY, G010_ENTRY, G011_ENTRY,
+                                        TEST_ENTRY_SENTINEL};
+
+    return run_test_entries(tst_entry_list, num_pe);
+}
+
+/* B_PPI_03 */
+uint32_t
+b_ppi_03_entry(uint32_t num_pe)
+{
+    TEST_ENTRY_ID_e tst_entry_list[] = {G017_ENTRY, G018_ENTRY, G019_ENTRY,
                                         TEST_ENTRY_SENTINEL};
 
     return run_test_entries(tst_entry_list, num_pe);

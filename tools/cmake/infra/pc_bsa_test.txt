@@ -37,6 +37,9 @@ g004.c
 g005.c
 g012.c
 g014.c
+g017.c
+g018.c
+g019.c
 interface010.c
 interface011.c
 i001.c
@@ -107,6 +110,7 @@ t003.c
 t004.c
 t005.c
 t009.c
+t010.c
 tpm001.c
 tpm002.c
 e001.c

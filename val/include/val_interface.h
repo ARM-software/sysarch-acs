@@ -116,6 +116,22 @@ void view_print_info(uint32_t view);
 void val_log_context(char8_t *file, char8_t *func, uint32_t line);
 uint32_t val_exit_acs(void);
 
+/* ACS SMC service APIs, structures and macros */
+#define ACS_SMC_UNK_RET              0xFFFFFFFFFFFFFFFFULL
+#define ARM_VEN_EL3_ACS_SMC_HANDLER  0xC7000030
+
+/* ACS service selectors (x1) */
+typedef enum {
+    ACS_SMC_READ_BASE_CNTFREQ = 0x01,
+    ACS_SMC_GET_CNTHPS_INTID,
+    ACS_SMC_GET_CNTHVS_INTID,
+} acs_service_t;
+
+/* SMC handler wrapper for ACS services */
+uint64_t val_smc_call(uint64_t fid, uint64_t service,
+                      uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                      uint64_t *ret1, uint64_t *ret2, uint64_t *ret3);
+
 /* Print consolidated ACS test status summary from global counters */
 void val_print_acs_test_status_summary(void);
 
@@ -219,6 +235,8 @@ void val_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_
 uint32_t val_gic_get_espi_intr_trigger_type(uint32_t int_id,
                                                           INTR_TRIGGER_INFO_TYPE_e *trigger_type);
 uint32_t val_get_num_nongic_ctrl(void);
+uint64_t val_el3_get_cnthps_intid(uint64_t timeout, uint64_t gicr_base, uint64_t *intid);
+uint64_t val_el3_get_cnthvs_intid(uint64_t timeout, uint64_t gicr_base, uint64_t *intid);
 
 /*TIMER VAL APIs */
 typedef enum {
@@ -237,7 +255,9 @@ typedef enum {
   TIMER_INFO_SYS_CNT_BASE_N,
   TIMER_INFO_FRAME_NUM,
   TIMER_INFO_SYS_INTID,
-  TIMER_INFO_SYS_TIMER_STATUS
+  TIMER_INFO_SYS_TIMER_STATUS,
+  TIMER_INFO_SEC_PHY_EL1_INTID,
+  TIMER_INFO_SEC_PHY_EL1_FLAGS,
 }TIMER_INFO_e;
 
 #define BSA_TIMER_FLAG_ALWAYS_ON 0x4
@@ -253,6 +273,7 @@ uint32_t val_timer_skip_if_cntbase_access_not_allowed(uint64_t index);
 uint64_t val_get_phy_el1_timer_count(void);
 uint32_t val_get_safe_timeout_ticks(void);
 uint64_t val_get_timeout_to_ticks(uint32_t timeout_us);
+uint64_t val_el3_read_base_freq(uint64_t *freq);
 
 /* Watchdog VAL APIs */
 typedef enum {

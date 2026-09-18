@@ -25,6 +25,7 @@
 uint32_t b_ppi_00_entry(uint32_t num_pe);
 uint32_t b_ppi_01_entry(uint32_t num_pe);
 uint32_t b_ppi_02_entry(uint32_t num_pe);
+uint32_t b_ppi_03_entry(uint32_t num_pe);
 uint32_t b_wak_03_07_entry(uint32_t num_pe);
 uint32_t s_l7mp_03_entry(uint32_t num_pe);
 uint32_t appendix_i_6_entry(uint32_t num_pe);

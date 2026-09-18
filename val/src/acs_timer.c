@@ -567,3 +567,28 @@ val_get_timeout_to_ticks(uint32_t timeout_us)
 
     return ticks;
 }
+
+/**
+  @brief  Read CNTFID0 frequency through the ACS EL3 SMC service.
+
+  @param  freq  Pointer to returned frequency in Hz.
+
+  @return 0         CNTFID0 read completed successfully.
+  @return Non-zero  EL3 SMC service returned an error status.
+**/
+uint64_t
+val_el3_read_base_freq(uint64_t *freq)
+{
+    uint64_t ret = 0;
+    uint64_t status;
+
+    status = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SMC_READ_BASE_CNTFREQ, 0, 0, 0,
+                          &ret, 0, 0);
+    if (status)
+        return status;
+
+    if (freq)
+        *freq = ret;
+
+    return 0;
+}

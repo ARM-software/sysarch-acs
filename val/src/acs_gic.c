@@ -619,3 +619,61 @@ void val_gic_set_intr_trigger(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e trigger_
 
    val_mmio_write(val_get_gicd_base() + GICD_ICFGR + (4 * reg_offset), reg_value);
 }
+
+/**
+  @brief  Get CNTHPS INTID through the ACS EL3 SMC service.
+
+  @param  timeout  Timer timeout in counter ticks.
+  @param  gicr_base  Redistributor base for the current PE.
+  @param  intid      Pointer to returned CNTHPS PPI INTID.
+
+  @return 0         CNTHPS INTID probe completed successfully.
+  @return Non-zero  EL3 SMC service returned an error status.
+**/
+uint64_t
+val_el3_get_cnthps_intid(uint64_t timeout, uint64_t gicr_base, uint64_t *intid)
+{
+    uint64_t ret = 0;
+    uint64_t status;
+
+    status = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SMC_GET_CNTHPS_INTID,
+                          timeout, gicr_base, 0,
+                          &ret, 0, 0);
+
+    if (status)
+        return status;
+
+    if (intid)
+        *intid = ret;
+
+    return 0;
+}
+
+/**
+  @brief  Get CNTHVS INTID through the ACS EL3 SMC service.
+
+  @param  timeout  Timer timeout in counter ticks.
+  @param  gicr_base  Redistributor base for the current PE.
+  @param  intid      Pointer to returned CNTHVS PPI INTID.
+
+  @return 0         CNTHVS INTID probe completed successfully.
+  @return Non-zero  EL3 SMC service returned an error status.
+**/
+uint64_t
+val_el3_get_cnthvs_intid(uint64_t timeout, uint64_t gicr_base, uint64_t *intid)
+{
+    uint64_t ret = 0;
+    uint64_t status;
+
+    status = val_smc_call(ARM_VEN_EL3_ACS_SMC_HANDLER, ACS_SMC_GET_CNTHVS_INTID,
+                          timeout, gicr_base, 0,
+                          &ret, 0, 0);
+
+    if (status)
+        return status;
+
+    if (intid)
+        *intid = ret;
+
+    return 0;
+}

@@ -87,6 +87,10 @@ val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance)
       return g_timer_info_table->header.el2_timer_flag;
   case TIMER_INFO_SYS_TIMER_STATUS:
       return g_timer_info_table->header.sys_timer_status;
+  case TIMER_INFO_SEC_PHY_EL1_INTID:
+      return g_timer_info_table->header.s_el1_timer_gsiv;
+  case TIMER_INFO_SEC_PHY_EL1_FLAGS:
+      return g_timer_info_table->header.s_el1_timer_flag;
   default:
       return 0;
   }

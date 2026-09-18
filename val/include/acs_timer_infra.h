@@ -50,4 +50,6 @@ uint32_t t006_entry(uint32_t num_pe);
 uint32_t t007_entry(uint32_t num_pe);
 uint32_t t008_entry(uint32_t num_pe);
 uint32_t t009_entry(uint32_t num_pe);
+uint32_t t010_entry(uint32_t num_pe);
+uint32_t t011_entry(uint32_t num_pe);
 #endif // __ACS_TIMER_INFRA_H__

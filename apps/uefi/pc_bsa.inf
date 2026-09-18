@@ -73,6 +73,8 @@
   ../../test_pool/gic/g009.c
   ../../test_pool/gic/g010.c
   ../../test_pool/gic/g011.c
+  ../../test_pool/gic/g017.c
+  ../../test_pool/gic/g018.c
   ../../test_pool/gic/v2m001.c
   ../../test_pool/gic/v2m002.c
   ../../test_pool/gic/v2m003.c
@@ -91,6 +93,7 @@
   ../../test_pool/timer/t006.c
   ../../test_pool/timer/t008.c
   ../../test_pool/timer/t009.c
+  ../../test_pool/timer/t010.c
   ../../test_pool/watchdog/w001.c
   ../../test_pool/watchdog/w002.c
   ../../test_pool/peripherals/d001.c
