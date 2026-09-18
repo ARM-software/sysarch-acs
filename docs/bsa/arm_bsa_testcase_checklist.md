@@ -2566,16 +2566,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>RI_RST_1</td>
-      <td>863</td>
-      <td>Check Function level reset - RCiEP, iEP EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
       <td>RI_PWR_1</td>
       <td>870</td>
       <td>Check Power Mgmt rules - RCiEP, iEP Pair</td>
@@ -3442,16 +3432,6 @@ The checklist provides information about:
       <td></td>
       <td></td>
       <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>RI_RST_1</td>
-      <td>863</td>
-      <td>Check Function level reset - RCiEP, iEP EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
       <td></td>
       <td></td>
     </tr>
