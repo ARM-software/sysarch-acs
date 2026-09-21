@@ -834,7 +834,8 @@ treated as a DUT issue.
       3. Derive the ACS expected common MECID width from independently discovered requesters.
       4. The complete check requires the minimum width across all PEs and MEC-capable requesters such as SMMUs.
       5. If full requester discovery is unavailable, do not claim system common-width coverage.
-      6. Read the DUT-advertised ``COMMON_MECID_WIDTH`` only when the applicable specification revision defines its feature-register encoding.
+      6. Read feature register 1 and decode ``COMMON_MECID_WIDTH`` from
+         bits[3:0] as a width-minus-one value, as defined by ALP4 Table 5.1.
       7. Compare the DUT-advertised width against the ACS-derived expected width and fail on mismatch.
       8. Invoke ``FIRME_MEC_REFRESH`` with the largest MECID inside the common width and expect ``SUCCESS``.
       9. If encodable, invoke ``FIRME_MEC_REFRESH`` with the first MECID outside the common width.

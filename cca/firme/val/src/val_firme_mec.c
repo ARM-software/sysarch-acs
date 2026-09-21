@@ -34,8 +34,8 @@ int val_firme_mec_advertised_common_mecid_width(uint32_t *out_width, firme_res_t
         return VAL_ERROR;
 
     common_widthm1 =
-        (uint32_t)((res.x1 >> FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTH_SHIFT) &
-                   FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTH_MASK);
+        (uint32_t)((res.x1 >> FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTHM1_SHIFT) &
+                   FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTHM1_MASK);
     *out_width = common_widthm1 + 1U;
 
     return VAL_SUCCESS;
@@ -85,10 +85,10 @@ int val_firme_mec_expected_common_mecid_width(uint32_t *out_width)
     *out_width = 0U;
 
     /*
-     * Current FIRME-ACS bring-up executes on one discovered PE, so the common
-     * width is the local MECIDR_EL2 width. When MP execution and SMMU discovery
-     * are added, extend this helper to compute the minimum width across every
-     * discovered PE and MEC-capable requester, following the RME ACS method.
+     * The current target exposes one PE to FIRME-ACS, so MECIDR_EL2 supplies
+     * the expected width for this supported topology. Heterogeneous-system
+     * validation must use the common sysarch-acs topology discovery once it
+     * is available instead of introducing FIRME-specific topology hooks.
      */
     if (val_firme_mec_local_pe_mecid_width(&common_width) != VAL_SUCCESS)
         return VAL_ERROR;
