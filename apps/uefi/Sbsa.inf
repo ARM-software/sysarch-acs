@@ -78,8 +78,6 @@
   ../../test_pool/gic/v2m002.c
   ../../test_pool/gic/v2m003.c
   ../../test_pool/gic/v2m004.c
-  ../../test_pool/gic/its001.c
-  ../../test_pool/gic/its002.c
   ../../test_pool/gic/its003.c
   ../../test_pool/gic/its004.c
   ../../test_pool/gic/its005.c
@@ -161,7 +159,6 @@
   ../../test_pool/exerciser/e016.c
   ../../test_pool/exerciser/e017.c
   ../../test_pool/exerciser/e033.c
-  ../../test_pool/exerciser/e035.c
   ../../test_pool/exerciser/e039.c
   ../../test_pool/pe/pe023.c
   ../../test_pool/pe/pe024.c

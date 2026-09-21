@@ -42,8 +42,6 @@ v2m001.c
 v2m002.c
 v2m003.c
 v2m004.c
-its001.c
-its002.c
 its003.c
 its004.c
 its005.c
@@ -171,7 +169,6 @@ e020.c
 e021.c
 e030.c
 e033.c
-e035.c
 e036.c
 e039.c
 e046.c

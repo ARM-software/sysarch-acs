@@ -633,22 +633,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_GIC_TEST_NUM_BASE + 5,
         },
-        [ITS_01] = {
-            .test_entry_id    = ITS001_ENTRY,
-            .module_id        = GIC,
-            .rule_desc        = "Check number of ITS blocks in a group",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 1,
-        },
-        [ITS_02] = {
-            .test_entry_id    = ITS002_ENTRY,
-            .module_id        = GIC,
-            .rule_desc        = "Check ITS block association with group",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_GIC_ITS_TEST_NUM_BASE + 2,
-        },
         [ITS_DEV_2] = {
             .test_entry_id    = ITS003_ENTRY,
             .module_id        = GIC,
@@ -1741,14 +1725,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 11,
         },
-        [ITS_04] = {
-            .test_entry_id    = E035_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "MSI-cap device can target any ITS blk",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 35,
-        },
         [ITS_05] = {
             .test_entry_id    = E012_ENTRY,
             .module_id        = PCIE,
@@ -1756,14 +1732,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 12,
-        },
-        [ITS_08] = {
-            .test_entry_id    = E048_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "ITS blocks in group observe same DeviceID",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 48,
         },
         [ITS_DEV_4] = {
             .test_entry_id    = E013_ENTRY,
@@ -2216,7 +2184,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [RI_SMU_4] = {
             .test_entry_id    = NULL_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "Check BSA Section H ITS requirements",
+            .rule_desc        = "Check BSA Section F ITS requirements",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = ALIAS_RULE,
         },
@@ -3290,9 +3258,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [ITS_06] = {
             .module_id        = PCIE,
         },
-        [ITS_07] = {
-            .module_id        = PCIE,
-        },
         [ITS_DEV_1] = {
             .module_id        = PCIE,
         },
@@ -3556,7 +3521,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E032_ENTRY] = e032_entry,
     [E033_ENTRY] = e033_entry, // used in wrapper.
     [E034_ENTRY] = e034_entry, // used in wrapper.
-    [E035_ENTRY] = e035_entry,
     [E036_ENTRY] = e036_entry,
     [E038_ENTRY] = e038_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
@@ -3567,7 +3531,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E045_ENTRY] = e045_entry, // used for CXL_06.
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry,
-    [E048_ENTRY] = e048_entry,
     [ETE001_ENTRY] = ete001_entry,
     [ETE002_ENTRY] = ete002_entry,
     [ETE003_ENTRY] = ete003_entry,
@@ -3664,8 +3627,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I032_ENTRY] = i032_entry,
     [INTERFACE010_ENTRY] = interface010_entry,
     [INTERFACE011_ENTRY] = interface011_entry,
-    [ITS001_ENTRY] = its001_entry,
-    [ITS002_ENTRY] = its002_entry,
     [ITS003_ENTRY] = its003_entry,
     [ITS004_ENTRY] = its004_entry,
     [ITS005_ENTRY] = its005_entry,
@@ -4338,10 +4299,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [CXL_12_ENTRY]     = cxl_12_entry,
     [G002_ENTRY] = g002_entry,
     [B_GIC_02_ENTRY] = b_gic_02_entry,
-    [ITS002_ENTRY] = its002_entry,
     [ITS005_ENTRY] = its005_entry,
     [ITS006_ENTRY] = its006_entry,
-    [ITS001_ENTRY] = its001_entry,
     [G005_ENTRY] = g005_entry,
     [G017_ENTRY] = g017_entry,
     [G018_ENTRY] = g018_entry,
@@ -4394,7 +4353,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [T010_ENTRY] = t010_entry,
     [T011_ENTRY] = t011_entry,
     [E039_ENTRY] = e039_entry, // used in wrapper.
-    [E035_ENTRY] = e035_entry,
     [E013_ENTRY] = e013_entry,
     [E003_ENTRY] = e003_entry,
     [E002_ENTRY] = e002_entry, // used in wrapper.
@@ -4410,7 +4368,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [E033_ENTRY] = e033_entry, // used in wrapper.
     [E046_ENTRY] = e046_entry,
     [E047_ENTRY] = e047_entry,
-    [E048_ENTRY] = e048_entry,
     [E015_ENTRY] = e015_entry, // used in wrapper.
     [E001_ENTRY] = e001_entry, // used in wrapper.
     [U005_ENTRY] = u005_entry, // used in wrapper.
@@ -4591,12 +4548,12 @@ const RULE_ID_e b_rep_1_rule_list[] = {
 
 /* RI_SMU_4 */
 const RULE_ID_e ri_smu_4_rule_list[] = {
-    /* BSA section H.1 and H.2 */
+    /* BSA section F.1 and F.2 */
     /* PCIE-tagged ITS rules */
-    ITS_03, ITS_04, ITS_05, ITS_06, ITS_07, ITS_08,
+    ITS_03, ITS_05, ITS_06,
     ITS_DEV_1, ITS_DEV_3, ITS_DEV_4, ITS_DEV_5, ITS_DEV_6, ITS_DEV_9,
     /* GIC-tagged ITS rules */
-    ITS_01, ITS_02, ITS_DEV_2, ITS_DEV_7, ITS_DEV_8,
+    ITS_DEV_2, ITS_DEV_7, ITS_DEV_8,
     RULE_ID_SENTINEL
 };
 
@@ -4703,11 +4660,10 @@ const RULE_ID_e b_per_08_rule_list[] = {
     /* E.13 - PCIe Precision Time Measurement */
     PCI_PTM_1,
 
-    /* BSA Section H */
-    /* H.1 - ITS Groups */
-    ITS_01, ITS_02, ITS_03, ITS_04,
-    ITS_05, ITS_06, ITS_07, ITS_08,
-    /* H.2 - Generation of DeviceID Values */
+    /* BSA Section F */
+    /* F.1 - ITS Groups */
+    ITS_03, ITS_05, ITS_06,
+    /* F.2 - Generation of DeviceID Values */
     ITS_DEV_1, ITS_DEV_2, ITS_DEV_3,
     ITS_DEV_4, ITS_DEV_5, ITS_DEV_6,
     ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,

@@ -290,8 +290,6 @@ its_test:
       val_print_test_start("DeviceID generation and ITS");
       if (g_sw_view[G_SW_OS]) {
           view_print_info(OPERATING_SYSTEM);
-          status |= its001_entry(num_pe);
-          status |= its002_entry(num_pe);
           status |= its003_entry(num_pe);
           status |= its004_entry(num_pe);
           status |= its005_entry(num_pe);
@@ -898,8 +896,6 @@ val_bsa_exerciser_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
              status |= e011_entry(num_pe);
              status |= e012_entry(num_pe);
              status |= e013_entry(num_pe);
-             status |= e035_entry(num_pe);
-             status |= e048_entry(num_pe);
          }
 
          status |= e014_entry(num_pe);
