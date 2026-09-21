@@ -31,11 +31,11 @@ The following rules have documented algorithms but no executable body or
 registry entry because the ACS cannot yet drive the required observable ABI
 flow:
 
-- R0063, R0064, R0069, and R0070 need a service-specific ABI that
+- R0070, R0071, R0076, and R0077 need a service-specific ABI that
   consumes a shared buffer. Until such a service driver is added, the ACS
   cannot validate mapping attributes, PAS/GPI ownership, size bounds, or
   base alignment from an actual service invocation.
-- R0073, R0074, and R0075 need a service-specific ABI that supports
+- R0080, R0081, and R0082 need a service-specific ABI that supports
   partial retrieval. Until such a service driver is added, the ACS cannot
   observe written-size and remaining-size semantics for last, intermediate,
   or no-data chunks.
@@ -46,23 +46,23 @@ Expected runtime SKIP coverage
 The active IDE tests report an intentional ``SKIP`` when the required
 CXL.cachemem path is not exposed by the DUT:
 
-- R0175, R0177, and R0178 require CXL.cachemem IDE handling. A valid baseline
+- R0207, R0209, and R0210 require CXL.cachemem IDE handling. A valid baseline
   request returning ``NOT_SUPPORTED`` reports ``SKIP``. Any other unexpected
   status, including ``INVALID_PARAMETERS`` or unfinished completion, fails.
 
 Implemented but not scheduled by default
 ----------------------------------------
 
-The following strict ALP3 rule bodies are implemented in source but not
+The following strict ALP4 rule bodies are implemented in source but not
 registered in the default regression until the reference DUT implements
-the corresponding ALP3 ``FIRME_GM_GPI_SET`` semantics:
+the corresponding ALP4 ``FIRME_GM_GPI_SET`` semantics:
 
-- R0085: same-GPI transitions are nops that complete with ``SUCCESS``.
-- R0106: multi-granule ``SUCCESS`` reports the number of transitioned granules.
-- R0116: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
+- R0092: same-GPI transitions are nops that complete with ``SUCCESS``.
+- R0113: multi-granule ``SUCCESS`` reports the number of transitioned granules.
+- R0123: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
 
 The rule algorithms must remain spec-driven. If a DUT claims the matching
-ALP3 behavior, these rules should be scheduled and any failure should be
+ALP4 behavior, these rules should be scheduled and any failure should be
 treated as a DUT issue.
 
 .. list-table::
@@ -136,7 +136,7 @@ treated as a DUT issue.
 
     -
 
-      1. Verify every ALP3 FIRME ABI function ID carries the SMC64 convention bit.
+      1. Verify every ALP4 FIRME ABI function ID carries the SMC64 convention bit.
       2. Discover each ABI advertised at the current FIRME instance.
       3. Invoke every advertised ABI using its SMC64 function ID and require an ABI-defined response.
 
@@ -357,7 +357,7 @@ treated as a DUT issue.
 
     -
 
-      1. Iterate over all ALP3 service IDs at each FIRME instance.
+      1. Iterate over all ALP4 service IDs at each FIRME instance.
       2. Invoke ``FIRME_SERVICE_VERSION`` for each service ID.
       3. Ignore ``NOT_SUPPORTED`` services because they are not implemented at that instance.
       4. For implemented services, verify the reported service version is 1.0.
@@ -374,7 +374,7 @@ treated as a DUT issue.
 
       1. Invoke ``FIRME_SERVICE_VERSION`` for the Base service at the current FIRME instance.
       2. Verify the Base major version is 1; newer minor revisions are compatible.
-      3. Iterate over non-Base ALP3 service IDs.
+      3. Iterate over non-Base ALP4 service IDs.
       4. If a non-Base service is implemented, use the already checked Base version as the dependency anchor.
 
   * -
@@ -403,7 +403,7 @@ treated as a DUT issue.
     -
 
       1. Discover every allocated service and read all registers defined in its
-         ALP3 feature table, using the complete 64-bit result.
+         ALP4 feature table, using the complete 64-bit result.
       2. Fail unexpected discovery responses or a missing defined register.
       3. Review the non-zero, 64-bit-multiple sizes against the interface tables.
          ``FIRME_SERVICE_FEATURES`` does not return a size field; neither the
@@ -452,9 +452,10 @@ treated as a DUT issue.
     -
 
       1. Invoke Base feature register 0 and verify the mandatory Base ABI bits are set.
-      2. Iterate over implemented ALP3 service IDs using ``FIRME_SERVICE_VERSION``.
+      2. Iterate over implemented ALP4 service IDs using ``FIRME_SERVICE_VERSION``.
       3. For each implemented service, read feature register 0.
-      4. Verify only allocated ABI-bit positions are used for that service.
+      4. Verify mandatory ABI bits are set and prohibited ABI bits are clear.
+         Ignore unused output bits; they are not required to be zero.
 
   * -
 
@@ -470,7 +471,8 @@ treated as a DUT issue.
       2. Expect SUCCESS and verify the mandatory Base ABI bits are set.
       3. Invoke ``FIRME_SERVICE_FEATURES`` for Base feature register 1.
       4. Expect SUCCESS and verify the shared-buffer size encoding is allocated.
-      5. Verify the service-list bits contain only services permitted by Table 2.3 for the caller world.
+      5. Verify allocated service-list bits contain only services permitted by Table 2.3
+         for the caller world; ignore unused service-list bits.
       6. Do not require every optional Table 2.3 service to be present.
 
   * -
@@ -505,7 +507,7 @@ treated as a DUT issue.
       4. Require the GM L1 CREATE/DESTROY pair to be both present or both absent.
       5. Require the attestation extension-claims STAGE/FINALISE/CLEAR group to
          be all present or all absent; RAT_SIGN is independent of that group.
-      6. Keep the rule registry-gated while the reference DUT lacks ALP3 mandatory
+      6. Keep the rule registry-gated while the reference DUT lacks ALP4 mandatory
          ABIs. The strict body remains available and must be re-enabled for release.
 
   * -
@@ -525,17 +527,66 @@ treated as a DUT issue.
 
   * -
 
+      Planned concurrent-operation count discovery
+
+    -
+
+      R0064: Every implemented non-Base service exposes a 16-bit
+      ``MAX_CONCURRENT_OP_CNT`` field in feature register 1.
+
+    -
+
+      1. Discover every implemented non-Base service at each caller instance
+         with ``FIRME_SERVICE_VERSION``.
+      2. Read feature register 1 for every discovered service and require
+         ``SUCCESS``.
+      3. Decode the 16-bit ``MAX_CONCURRENT_OP_CNT`` field at the
+         service-specific position defined by its ALP4 feature table.
+      4. Interpret zero as no advertised maximum and a non-zero value as the
+         advertised maximum.
+      5. Fail if an implemented service does not expose feature register 1.
+
+  * -
+
+      Planned collective concurrent-operation limit validation
+
+    -
+
+      R0065: A service advertises the same ``MAX_CONCURRENT_OP_CNT`` at every
+      implemented instance and applies it collectively across its ABIs and
+      instances.
+
+    -
+
+      1. Collect the R0064 value for every implemented instance of each
+         non-Base service.
+      2. Compare values for the same service across all caller worlds and fail
+         any mismatch.
+      3. If the common value is zero, record that no maximum is advertised and
+         do not infer a capacity limit.
+      4. For a non-zero value, retain stateful or asynchronous operations across
+         the service ABIs and caller worlds, counting each operation once.
+      5. Verify the number of simultaneously retained operations never exceeds
+         the advertised value; use MP execution only where synchronous
+         invocations must overlap.
+      6. If other permitted resource limits prevent saturation, report the
+         capacity subcase as not demonstrable rather than claiming full
+         behavioral coverage.
+      7. Complete or terminate every retained operation during cleanup.
+
+  * -
+
       Deferred shared-buffer mapping algorithm
 
     -
 
-      R0063: A shared buffer is mapped as Normal, Write-Back Cacheable, Outer-shareable memory.
+      R0070: A shared buffer is mapped as Normal, Write-Back Cacheable, Inner-shareable memory.
 
     -
 
       1. Add an executable body and registry entry when a service-specific ABI
          consumes a shared buffer.
-      2. Validate the EL3 mapping as Normal, Write-Back Cacheable and Outer-shareable.
+      2. Validate the EL3 mapping as Normal, Write-Back Cacheable and Inner-shareable.
       3. Do not infer mapping behavior from Base feature-register metadata.
 
   * -
@@ -544,7 +595,7 @@ treated as a DUT issue.
 
     -
 
-      R0064: The shared-buffer PAS and GPT GPI correspond to the FIRME instance state.
+      R0071: The shared-buffer PAS and GPT GPI correspond to the FIRME instance state.
 
     -
 
@@ -559,7 +610,7 @@ treated as a DUT issue.
 
     -
 
-      R0069: The shared-buffer size is within the advertised minimum and maximum bounds.
+      R0076: The shared-buffer size is within the advertised minimum and maximum bounds.
 
     -
 
@@ -575,7 +626,7 @@ treated as a DUT issue.
 
     -
 
-      R0070: The shared-buffer physical base address is aligned to the minimum shared-buffer size.
+      R0077: The shared-buffer physical base address is aligned to the minimum shared-buffer size.
 
     -
 
@@ -590,7 +641,7 @@ treated as a DUT issue.
 
     -
 
-      R0073: Last-chunk partial retrieval reports non-zero written size and zero remaining size.
+      R0080: Last-chunk partial retrieval reports non-zero written size and zero remaining size.
 
     -
 
@@ -604,7 +655,7 @@ treated as a DUT issue.
 
     -
 
-      R0074: First or intermediate partial-retrieval chunks report written data and remaining data.
+      R0081: First or intermediate partial-retrieval chunks report written data and remaining data.
 
     -
 
@@ -618,7 +669,7 @@ treated as a DUT issue.
 
     -
 
-      R0075: No-data partial retrieval reports zero written size and zero remaining size.
+      R0082: No-data partial retrieval reports zero written size and zero remaining size.
 
     -
 
@@ -632,7 +683,7 @@ treated as a DUT issue.
 
     -
 
-      R0173: IDE keyset ID fields follow the DEN0149 bitmap encoding.
+      R0205: IDE keyset ID fields follow the DEN0149 bitmap encoding.
 
     -
 
@@ -648,7 +699,7 @@ treated as a DUT issue.
 
     -
 
-      R0175: CXL.cachemem IDE treats the Key Set field as unused.
+      R0207: CXL.cachemem IDE treats the Key Set field as unused.
 
     -
 
@@ -663,7 +714,7 @@ treated as a DUT issue.
 
     -
 
-      R0177: CXL.cachemem IDE Stream ID is zero.
+      R0209: CXL.cachemem IDE Stream ID is zero.
 
     -
 
@@ -678,7 +729,7 @@ treated as a DUT issue.
 
     -
 
-      R0178: CXL.cachemem IDE Substream ID is 0b1000.
+      R0210: CXL.cachemem IDE Substream ID is 0b1000.
 
     -
 
@@ -693,7 +744,7 @@ treated as a DUT issue.
 
     -
 
-      R0182: ``FIRME_IDE_KEYSET_PROG`` returns architected status codes.
+      R0214: ``FIRME_IDE_KEYSET_PROG`` returns architected status codes.
 
     -
 
@@ -715,7 +766,7 @@ treated as a DUT issue.
 
     -
 
-      R0184: ``FIRME_IDE_KEYSET_GO`` returns architected status codes.
+      R0216: ``FIRME_IDE_KEYSET_GO`` returns architected status codes.
 
     -
 
@@ -737,7 +788,7 @@ treated as a DUT issue.
 
     -
 
-      R0186: ``FIRME_IDE_KEYSET_STOP`` returns architected status codes.
+      R0218: ``FIRME_IDE_KEYSET_STOP`` returns architected status codes.
 
     -
 
@@ -760,7 +811,7 @@ treated as a DUT issue.
 
     -
 
-      R0192: ``FIRME_IDE_KEYSET_POLL`` returns architected status codes.
+      R0225: ``FIRME_IDE_KEYSET_POLL`` returns architected status codes.
 
     -
 
@@ -780,7 +831,7 @@ treated as a DUT issue.
 
     -
 
-      R0194: IDE key management ABIs return ``NOT_SUPPORTED`` from Secure state.
+      R0227: IDE key management ABIs return ``NOT_SUPPORTED`` from Secure state.
 
     -
 
@@ -794,7 +845,7 @@ treated as a DUT issue.
 
     -
 
-      R0198: IDE feature register 0 reports the defined ABI presence bits.
+      R0231: IDE feature register 0 reports the defined ABI presence bits.
 
     -
 
@@ -809,7 +860,7 @@ treated as a DUT issue.
 
     -
 
-      R0199: IDE key management ABIs follow the Table 4.2 compliance matrix.
+      R0232: IDE key management ABIs follow the Table 4.2 compliance matrix.
 
     -
 
@@ -825,7 +876,7 @@ treated as a DUT issue.
 
     -
 
-      R0206: MECID management uses the common MECID width.
+      R0239: MECID management uses the common MECID width.
 
     -
 
@@ -834,9 +885,10 @@ treated as a DUT issue.
       3. Derive the ACS expected common MECID width from independently discovered requesters.
       4. The complete check requires the minimum width across all PEs and MEC-capable requesters such as SMMUs.
       5. If full requester discovery is unavailable, do not claim system common-width coverage.
-      6. Read feature register 1 and decode ``COMMON_MECID_WIDTH`` from
-         bits[3:0] as a width-minus-one value, as defined by ALP4 Table 5.1.
-      7. Compare the DUT-advertised width against the ACS-derived expected width and fail on mismatch.
+      6. Read the DUT-advertised ``COMMON_MECID_WIDTH`` from feature register 1.
+         Decode bits[3:0] as width minus one, as specified by ALP4 Table 5.1.
+      7. Compare the DUT-advertised width against the independently derived
+         expected width and fail on mismatch.
       8. Invoke ``FIRME_MEC_REFRESH`` with the largest MECID inside the common width and expect ``SUCCESS``.
       9. If encodable, invoke ``FIRME_MEC_REFRESH`` with the first MECID outside the common width.
       10. Expect ``INVALID_PARAMETERS``.
@@ -847,7 +899,7 @@ treated as a DUT issue.
 
     -
 
-      R0208: ``FIRME_MEC_REFRESH`` returns architected status codes for caller and MECID-bound checks.
+      R0241: ``FIRME_MEC_REFRESH`` returns architected status codes for caller and MECID-bound checks.
 
     -
 
@@ -864,7 +916,7 @@ treated as a DUT issue.
 
     -
 
-      R0162: Granule Management feature-register size, index, and encoding follow Table 3.9.
+      R0194: Granule Management feature-register size, index, and encoding follow Table 3.9.
 
     -
 
@@ -882,7 +934,7 @@ treated as a DUT issue.
 
     -
 
-      R0163: Granule Management ABIs follow the Table 3.10 compliance matrix.
+      R0195: Granule Management ABIs follow the Table 3.10 compliance matrix.
 
     -
 
@@ -900,7 +952,7 @@ treated as a DUT issue.
 
     -
 
-      R0079: The GPI transition granule size is equal to the PGS advertised by the Granule Management service.
+      R0086: The GPI transition granule size is equal to the PGS advertised by the Granule Management service.
 
     -
 
@@ -914,14 +966,15 @@ treated as a DUT issue.
 
     -
 
-      R0083: ``FIRME_GM_GPI_SET`` base address is aligned to PGS.
+      R0090: ``FIRME_GM_GPI_SET`` base address is aligned to PGS.
 
     -
 
-      1. Treat alignment as a caller precondition rather than observable DUT behaviour.
-      2. Supply a PGS-aligned Base address in every valid ``FIRME_GM_GPI_SET`` scenario.
-      3. Cover rejection of an unaligned Base address under R0116.
-      4. Do not register a separate runtime test that misclassifies the R0116 negative case as R0083.
+      1. Read PGS from Granule Management feature register 1.
+      2. Invoke ``FIRME_GM_GPI_SET`` with a PGS-aligned Base address.
+      3. Repeat with a deliberately misaligned Base address.
+      4. Verify the aligned request reaches its normal policy path and the
+         misaligned request returns ``INVALID_PARAMETERS``.
 
   * -
 
@@ -929,7 +982,7 @@ treated as a DUT issue.
 
     -
 
-      R0085: Same-GPI transitions are always permitted and complete as nops.
+      R0092: Same-GPI transitions are always permitted and complete as nops.
 
     -
 
@@ -944,7 +997,7 @@ treated as a DUT issue.
 
     -
 
-      R0087: FEAT_RME permitted transitions (Table 3.1) via ``FIRME_GM_GPI_SET``.
+      R0094: FEAT_RME permitted transitions (Table 3.1) via ``FIRME_GM_GPI_SET``.
 
     -
 
@@ -965,7 +1018,7 @@ treated as a DUT issue.
 
     -
 
-      R0088: FEAT_RME_GPC2 additional NS<->NSO transitions (Table 3.2).
+      R0095: FEAT_RME_GPC2 additional NS<->NSO transitions (Table 3.2).
 
     -
 
@@ -985,7 +1038,7 @@ treated as a DUT issue.
 
     -
 
-      R0091: FEAT_RME_GDI NSP/SA transition policy (Table 3.3).
+      R0098: FEAT_RME_GDI NSP/SA transition policy (Table 3.3).
 
     -
 
@@ -1007,7 +1060,7 @@ treated as a DUT issue.
 
     -
 
-      R0104: ``FIRME_GM_GPI_SET`` starts at the granule at the Base address.
+      R0111: ``FIRME_GM_GPI_SET`` starts at the granule at the Base address.
 
     -
 
@@ -1024,7 +1077,7 @@ treated as a DUT issue.
 
     -
 
-      R0106: On ``SUCCESS``, the granule count output reports the number of successful transitions.
+      R0113: On ``SUCCESS``, the granule count output reports the number of successful transitions.
 
     -
 
@@ -1040,7 +1093,7 @@ treated as a DUT issue.
 
     -
 
-      R0113: On ``SUCCESS``, the granule count output is greater than or equal to 1.
+      R0120: On ``SUCCESS``, the granule count output is greater than or equal to 1.
 
     -
 
@@ -1050,7 +1103,7 @@ treated as a DUT issue.
       4. For ``INCOMPLETE``, resume with ``FIRME_GM_GPI_OP_CONTINUE`` and follow
          subsequent stateful or stateless phases until a terminal result.
       5. Require every observed ``SUCCESS`` to report a non-zero granule count.
-      6. Keep this test body registry-gated until TF-A implements the ALP3 same-GPI
+      6. Keep this test body registry-gated until TF-A implements the ALP4 same-GPI
          success behaviour needed by the NS path.
 
   * -
@@ -1059,7 +1112,7 @@ treated as a DUT issue.
 
     -
 
-      R0116: Invalid ``FIRME_GM_GPI_SET`` parameters return ``INVALID_PARAMETERS``.
+      R0123: Invalid ``FIRME_GM_GPI_SET`` parameters return ``INVALID_PARAMETERS``.
 
     -
 
@@ -1067,7 +1120,7 @@ treated as a DUT issue.
       2. Invoke with Granule count 0 and expect ``INVALID_PARAMETERS``.
       3. Invoke with an unallocated Target GPI in Attributes and expect ``INVALID_PARAMETERS``.
       4. Invoke with a Base address not aligned to PGS and expect ``INVALID_PARAMETERS``.
-      5. Keep this strict ALP3 body registry-gated until TF-A returns the required
+      5. Keep this strict ALP4 body registry-gated until TF-A returns the required
          status for all three malformed-input conditions.
 
   * -
@@ -1076,7 +1129,7 @@ treated as a DUT issue.
 
     -
 
-      R0120: Non-permitted ``FIRME_GM_GPI_SET`` transitions return ``DENIED``.
+      R0127: Non-permitted ``FIRME_GM_GPI_SET`` transitions return ``DENIED``.
 
     -
 

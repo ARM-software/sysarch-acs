@@ -41,7 +41,7 @@ typedef int (*firme_rule_post_fn_t)(
 typedef struct {
     firme_chapter_id_t chapter;
     firme_rule_id_t rule_id;          /* Numeric rule ID (DEN0149) */
-    const char *rule_str;             /* Printable rule string (e.g. "R0087") */
+    const char *rule_str;             /* Printable rule string (e.g. "R0094") */
     const char *suite;                /* Suite name (e.g. "firme") */
     const char *test_name;            /* Test name grouping (e.g. "gpt_transition_policy") */
     const char *desc;                 /* One-line description */

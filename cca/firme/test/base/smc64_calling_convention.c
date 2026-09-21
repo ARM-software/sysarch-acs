@@ -27,7 +27,7 @@ static void smc64_calling_init_result(firme_rule_res_t *out)
 }
 
 /**
- *   @brief    - Validate all ALP3 FIRME ABIs use and accept SMC64 calls.
+ *   @brief    - Validate all ALP4 FIRME ABIs use and accept SMC64 calls.
  *   @param    - out : Optional result record.
  *   @return   - VAL_SUCCESS with the architectural outcome stored in out.
  **/
@@ -35,7 +35,7 @@ static int smc64_calling_run(firme_rule_res_t *out)
 {
     smc64_calling_init_result(out);
 
-    /* Step 1: Every ALP3 FIRME ABI FID must carry the SMC64 convention bit. */
+    /* Step 1: Every ALP4 FIRME ABI FID must carry the SMC64 convention bit. */
     if (val_firme_smccc_check_fid_encodings(out) != VAL_SUCCESS) {
         if (out && (out->fail_step == 0U))
             out->fail_step = SMC64_CALLING_STEP_FID_ENCODING;

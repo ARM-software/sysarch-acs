@@ -76,7 +76,7 @@ static int service_base_dependency_run(firme_rule_res_t *out)
 
     base_major = FIRME_SERVICE_VERSION_MAJOR(base_res.x0);
 
-    /* Step 2: Base major version dependency for ALP3 services is 1. */
+    /* Step 2: Base major version dependency for ALP4 services is 1. */
     if (base_major != SERVICE_BASE_DEPENDENCY_MAJOR) {
         LOG_ERROR(NULL, "%s: base major=%u expected=%u",
                   SERVICE_BASE_DEPENDENCY_TEST_NAME, (unsigned int)base_major,

@@ -96,6 +96,8 @@
 #define FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK  0x3FFFU
 #define FIRME_BASE_SERVICE_LIST_SHIFT      16U
 #define FIRME_BASE_SERVICE_LIST_MASK       0xFFFFU
+#define FIRME_BASE_SERVICE_LIST_ALLOCATED_MASK \
+    ((UINT64_C(1) << (FIRME_SERVICE_ID_MAX - 1U)) - 1ULL)
 
 /* Service feature-register 0 ABI-presence bits. */
 #define FIRME_GM_FEATURE_REG0_INDEX           0U
@@ -160,7 +162,10 @@
 /* FIRME MECID management service feature register fields. */
 #define FIRME_MECID_FEATURE_REG0_INDEX           0U
 #define FIRME_MECID_FEATURE_REG0_MEC_REFRESH_BIT (UINT64_C(1) << 0)
-/* ALP4 Table 5.1 encodes COMMON_MECID_WIDTH minus one in bits[3:0]. */
+/*
+ * ALP4 I0240 and Table 5.1 encode COMMON_MECID_WIDTH minus one in
+ * feature register 1 bits[3:0].
+ */
 #define FIRME_MECID_FEATURE_REG1_INDEX 1U
 #define FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTHM1_SHIFT 0U
 #define FIRME_MECID_FEATURE_REG1_COMMON_MECID_WIDTHM1_MASK  0xFU

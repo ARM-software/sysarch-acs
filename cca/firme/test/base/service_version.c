@@ -79,7 +79,7 @@ static int service_version_run(firme_acs_world_t world, firme_rule_res_t *out)
         return VAL_SUCCESS;
     }
 
-    /* Step 2: Base service major version must be compatible with ALP3 v1.x. */
+    /* Step 2: Base service major version must be compatible with ALP4 v1.x. */
     major = FIRME_SERVICE_VERSION_MAJOR(res.x0);
     if (major != SERVICE_VERSION_EXPECTED_MAJOR) {
         LOG_ERROR(NULL, "%s: base service major=%u expected=%u",

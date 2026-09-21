@@ -81,7 +81,7 @@ static uint32_t service_feature_registers_check_service_list(uint64_t feature_re
                                                              firme_acs_world_t world,
                                                              firme_rule_res_t *out)
 {
-    uint64_t service_list_mask = (uint64_t)FIRME_BASE_SERVICE_LIST_MASK <<
+    uint64_t service_list_mask = FIRME_BASE_SERVICE_LIST_ALLOCATED_MASK <<
                                  FIRME_BASE_SERVICE_LIST_SHIFT;
     uint64_t actual_mask = feature_reg1 & service_list_mask;
     uint64_t allowed_mask = service_feature_registers_allowed_service_list(world);
@@ -102,7 +102,7 @@ static uint32_t service_feature_registers_check_service_list(uint64_t feature_re
  *   @brief    - Validate Base service feature register encodings.
  *   @param    - world : Caller world represented by the current payload.
  *   @param    - out   : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -118,7 +118,7 @@ static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_FEATURE_REGISTERS_TEST_NAME, (unsigned long long)res.x0);
         service_feature_registers_fail(out, SERVICE_FEATURE_REGISTERS_STEP_REG0_STATUS,
                                        res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Base feature register 0 must report both Base service ABIs. */
@@ -128,7 +128,7 @@ static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_FEATURE_REGISTERS_TEST_NAME, (unsigned long long)res.x1);
         service_feature_registers_fail(out, SERVICE_FEATURE_REGISTERS_STEP_REG0_BITS,
                                        res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Base feature register 1 must be readable. */
@@ -138,7 +138,7 @@ static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_FEATURE_REGISTERS_TEST_NAME, (unsigned long long)res.x0);
         service_feature_registers_fail(out, SERVICE_FEATURE_REGISTERS_STEP_REG1_STATUS,
                                        res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 4: MIN_SH_BUF_SZ encoding must use one of the allocated values. */
@@ -149,12 +149,12 @@ static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_FEATURE_REGISTERS_TEST_NAME, (unsigned long long)min_sh_buf_sz);
         service_feature_registers_fail(out, SERVICE_FEATURE_REGISTERS_STEP_MIN_BUF_ENCODING,
                                        res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 5: Feature register service list must be a Table 2.3 subset for this world. */
     if (service_feature_registers_check_service_list(res.x1, world, out) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -166,7 +166,7 @@ static int service_feature_registers_run(firme_acs_world_t world, firme_rule_res
  *   @brief    - Feature register rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_feature_registers_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -178,7 +178,7 @@ int firme_base_service_feature_registers_run_ns(uint64_t base_pa, firme_rule_res
  *   @brief    - Feature register rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_feature_registers_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -190,7 +190,7 @@ int firme_base_service_feature_registers_run_secure(uint64_t base_pa, firme_rule
  *   @brief    - Feature register rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_feature_registers_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

@@ -15,7 +15,6 @@
 #define FEATURE_REGISTER_ABI_STEP_BASE_REG0_STATUS UINT64_C(1)
 #define FEATURE_REGISTER_ABI_STEP_BASE_REG0_BITS   UINT64_C(2)
 #define FEATURE_REGISTER_ABI_STEP_SERVICE_REG0     UINT64_C(3)
-#define FEATURE_REGISTER_ABI_STEP_UNALLOCATED_BITS UINT64_C(4)
 #define FEATURE_REGISTER_ABI_STEP_MANDATORY_BITS   UINT64_C(5)
 #define FEATURE_REGISTER_ABI_STEP_PROHIBITED_BITS  UINT64_C(6)
 #define FEATURE_REGISTER_ABI_STEP_VERSION_STATUS   UINT64_C(7)
@@ -82,9 +81,11 @@ static uint32_t feature_register_abi_check_service(firme_acs_world_t world,
     }
 
     if (advertised == VAL_FALSE) {
-        LOG_DEBUG(NULL, "%s: service_id=%u reg0 not advertised; skipping ABI checks",
+        LOG_ERROR(NULL, "%s: implemented service_id=%u has no feature reg0",
                   FEATURE_REGISTER_ABI_TEST_NAME, (unsigned int)service_id);
-        return VAL_TRUE;
+        feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_SERVICE_REG0,
+                                  res.x0, (uint64_t)service_id);
+        return VAL_FALSE;
     }
 
     allocated_mask = val_firme_service_allocated_abi_mask(service_id);
@@ -110,15 +111,6 @@ static uint32_t feature_register_abi_check_service(firme_acs_world_t world,
         return VAL_FALSE;
     }
 
-    if ((feature_reg0 & ~allocated_mask) != 0ULL) {
-        LOG_ERROR(NULL, "%s: service_id=%u reg0 unallocated bits value=%llx mask=%llx",
-                  FEATURE_REGISTER_ABI_TEST_NAME, (unsigned int)service_id,
-                  (unsigned long long)feature_reg0, (unsigned long long)allocated_mask);
-        feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_UNALLOCATED_BITS,
-                                  feature_reg0, (uint64_t)service_id);
-        return VAL_FALSE;
-    }
-
     return VAL_TRUE;
 }
 
@@ -126,7 +118,7 @@ static uint32_t feature_register_abi_check_service(firme_acs_world_t world,
  *   @brief    - Validate feature register 0 ABI-bit reporting for advertised services.
  *   @param    - world : Caller world represented by the current payload.
  *   @param    - out   : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -144,7 +136,7 @@ static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *o
                   FEATURE_REGISTER_ABI_TEST_NAME, (unsigned long long)res.x0);
         feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_BASE_REG0_STATUS,
                                   res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Base feature register 0 must report both mandatory Base ABIs. */
@@ -154,7 +146,7 @@ static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *o
                   FEATURE_REGISTER_ABI_TEST_NAME, (unsigned long long)res.x1);
         feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_BASE_REG0_BITS,
                                   res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3-6: Advertised services must expose only valid ABI bits. */
@@ -167,7 +159,7 @@ static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *o
                       (long long)status);
             feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_VERSION_STATUS,
                                       res.x0, (uint64_t)service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (implemented == VAL_FALSE)
@@ -178,11 +170,11 @@ static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *o
                       FEATURE_REGISTER_ABI_TEST_NAME, (unsigned int)service_id);
             feature_register_abi_fail(out, FEATURE_REGISTER_ABI_STEP_VERSION_STATUS,
                                       res.x0, (uint64_t)service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (feature_register_abi_check_service(world, service_id, out) == VAL_FALSE)
-            return VAL_SUCCESS;
+            return VAL_ERROR;
     }
 
     if (out)
@@ -195,7 +187,7 @@ static int feature_register_abi_run(firme_acs_world_t world, firme_rule_res_t *o
  *   @brief    - Feature register ABI-presence rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_abi_presence_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -207,7 +199,7 @@ int firme_base_feature_register_abi_presence_run_ns(uint64_t base_pa, firme_rule
  *   @brief    - Feature register ABI-presence rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_abi_presence_run_secure(uint64_t base_pa,
                                                         firme_rule_res_t *out)
@@ -220,7 +212,7 @@ int firme_base_feature_register_abi_presence_run_secure(uint64_t base_pa,
  *   @brief    - Feature register ABI-presence rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_abi_presence_run_realm(uint64_t base_pa,
                                                        firme_rule_res_t *out)

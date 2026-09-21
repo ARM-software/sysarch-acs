@@ -22,10 +22,10 @@ same hosting model.
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
 - **Current coverage:** Base service / Concepts (R0007, R0008, R0009,
   R0010, R0012, R0013, R0025, R0026, R0033, R0034, R0035, R0038, R0044,
-  R0047, R0051, R0053, R0055), MECID management (R0206, R0208), GPT
-  Management (R0079, R0087, R0088, R0091, R0104, R0120), and IDE Key
-  Management (R0173, R0175, R0177, R0178, R0182, R0184, R0186, R0192,
-  R0194, R0198, R0199)
+  R0047, R0051, R0053, R0055), MECID management (R0239, R0241), GPT
+  Management (R0086, R0094, R0095, R0098, R0111, R0127, R0194), and IDE
+  Key Management (R0205, R0207, R0209, R0210, R0214, R0216, R0218, R0225,
+  R0227, R0231, R0232)
 - **Deferred or not runtime-scheduled:** R0011 until every architected status is
   reachable; R0014 and R0015 until all service/status output shapes and the
   callee non-disclosure clause are auditable; R0023 because legal calls cannot
@@ -33,16 +33,16 @@ same hosting model.
   allocated non-Base service ID; R0031 because it is a specification
   release-policy requirement rather than a runtime DUT check; R0041 because
   register size is not exposed by the ABI; R0048 and R0054 until TF-A advertises
-  all mandatory ALP3 ABI bits; R0083 because alignment is a caller precondition
-  (its negative case is covered by R0116); and R0085, R0106, R0113, and R0116
-  until TF-A implements the corresponding ALP3 GPI-management semantics.
+  all mandatory ALP4 ABI bits; R0090 until its aligned and misaligned
+  base-address cases have a dedicated body; and R0092, R0113, R0120, R0123,
+  and R0195 until TF-A implements the corresponding ALP4 semantics.
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
 ## FIRME spec version mapping
 
 | FIRME-ACS version | Git tag | FIRME spec version |
 |---|---|---|
-| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP3 Concepts/Base service, GPT, IDE, and MECID coverage |
+| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP4 Concepts/Base, GPT, IDE, and MECID coverage |
 
 ## How it works (high level)
 1. TF-A boots three ACS payload images: **Secure shim** (BL32), **Realm shim**

@@ -62,7 +62,7 @@ static int service_versions_run(firme_rule_res_t *out)
 
     service_versions_init_result(out);
 
-    /* Step 1: Every implemented ALP3 service must report a compatible 1.x version. */
+    /* Step 1: Every implemented ALP4 service must report a compatible 1.x version. */
     for (service_id = FIRME_SERVICE_ID_BASE; service_id < FIRME_SERVICE_ID_MAX;
          service_id++) {
         val_firme_service_version((uint64_t)service_id, &res);

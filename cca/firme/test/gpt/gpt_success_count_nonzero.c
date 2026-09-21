@@ -15,7 +15,7 @@
 #define GPT_SUCCESS_NONZERO_STEP_CLEANUP   UINT64_C(4)
 
 /**
- *   @brief    - Initialise an R0113 result record.
+ *   @brief    - Initialise an R0120 result record.
  *   @param    - out : Optional result record.
  *   @return   - void.
  **/
@@ -89,7 +89,7 @@ static uint32_t gpt_success_nonzero_invoke(uint64_t base_pa, uint64_t target_gpi
 }
 
 /**
- *   @brief    - Run the R0113 transition check for Secure or Realm callers.
+ *   @brief    - Run the R0120 transition check for Secure or Realm callers.
  *   @param    - base_pa    : Base PA for the GPT test window.
  *   @param    - target_gpi : Caller-world target GPI.
  *   @param    - out        : Optional rule result.

@@ -379,7 +379,7 @@ const firme_test_case_t g_firme_test_cases[] = {
         .rule_str = "R0034",
         .suite = "firme",
         .test_name = "service_versions",
-        .desc = "Implemented FIRME services report ALP3 service version 1.0",
+        .desc = "Implemented FIRME services report ALP4 service version 1.0",
         .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
                                 FIRME_WORLD_MASK_REALM,
         .optional_worlds_mask = 0u,
@@ -466,7 +466,7 @@ const firme_test_case_t g_firme_test_cases[] = {
     /*
      * R0048 is implemented in test/base/feature_register_abi_presence.c,
      * but is intentionally not scheduled until the reference DUT advertises
-     * all ALP3 mandatory ABI bits for each implemented service. Current TF-A
+     * all ALP4 mandatory ABI bits for each implemented service. Current TF-A
      * reports Granule Management feature register 0 as 0x1, missing the
      * mandatory OP_CONTINUE bit, so this rule currently fails by design.
      */
@@ -507,9 +507,9 @@ const firme_test_case_t g_firme_test_cases[] = {
     /*
      * R0054 is implemented in test/base/service_abi_compliance.c, but is
      * intentionally not scheduled until the reference DUT advertises all
-     * ALP3 mandatory ABI bits for each implemented service. Do not relax the
+     * ALP4 mandatory ABI bits for each implemented service. Do not relax the
      * strict rule body to match older DUT behavior; re-enable the registry
-     * entry when the DUT claims the applicable ALP3 semantics.
+     * entry when the DUT claims the applicable ALP4 semantics.
      */
     {
         .chapter = FIRME_CHAPTER_BASE,
@@ -529,12 +529,12 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_base_service_mandatory_run_realm,
     },
     /*
-     * R0063, R0064, R0069 and R0070 have documented deferred algorithms but
+     * R0070, R0071, R0076 and R0077 have documented deferred algorithms but
      * no executable bodies or registry entries until a service-specific ABI
      * driver can validate mappings, PAS/GPI, size bounds and alignment.
      */
     /*
-     * R0073, R0074 and R0075 have documented deferred algorithms but no
+     * R0080, R0081 and R0082 have documented deferred algorithms but no
      * executable bodies or registry entries until an attestation retrieval ABI
      * driver can exercise final, intermediate and no-data paths against the DUT.
      */
@@ -542,8 +542,8 @@ const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_IDE
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0173,
-        .rule_str = "R0173",
+        .rule_id = FIRME_RULE_R0205,
+        .rule_str = "R0205",
         .suite = "firme",
         .test_name = "ide_keyset_id_bitmap_encoding",
         .desc = "IDE keyset ID fields use the DEN0149 bitmap encoding",
@@ -556,11 +556,11 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0175,
-        .rule_str = "R0175",
+        .rule_id = FIRME_RULE_R0207,
+        .rule_str = "R0207",
         .suite = "firme",
         .test_name = "ide_cxl_key_set_unused",
-        .desc = "CXL.cachemem IDE ignores the Key Set field",
+        .desc = "CXL.cachemem requests keep the unused Key Set field zero",
         .required_worlds_mask = FIRME_WORLD_MASK_REALM,
         .optional_worlds_mask = 0u,
         .check_realm = "Invoke CXL.cachemem PROG with unused Key Set zero",
@@ -570,8 +570,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0177,
-        .rule_str = "R0177",
+        .rule_id = FIRME_RULE_R0209,
+        .rule_str = "R0209",
         .suite = "firme",
         .test_name = "ide_cxl_stream_id_zero",
         .desc = "CXL.cachemem IDE Stream ID is zero",
@@ -584,8 +584,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0178,
-        .rule_str = "R0178",
+        .rule_id = FIRME_RULE_R0210,
+        .rule_str = "R0210",
         .suite = "firme",
         .test_name = "ide_cxl_substream_id",
         .desc = "CXL.cachemem IDE Substream ID is 0b1000",
@@ -598,8 +598,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0182,
-        .rule_str = "R0182",
+        .rule_id = FIRME_RULE_R0214,
+        .rule_str = "R0214",
         .suite = "firme",
         .test_name = "ide_keyset_prog_status",
         .desc = "FIRME_IDE_KEYSET_PROG status and observable key programming",
@@ -613,8 +613,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0184,
-        .rule_str = "R0184",
+        .rule_id = FIRME_RULE_R0216,
+        .rule_str = "R0216",
         .suite = "firme",
         .test_name = "ide_keyset_go_status",
         .desc = "FIRME_IDE_KEYSET_GO status and observable traffic enablement",
@@ -628,8 +628,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0186,
-        .rule_str = "R0186",
+        .rule_id = FIRME_RULE_R0218,
+        .rule_str = "R0218",
         .suite = "firme",
         .test_name = "ide_keyset_stop_status",
         .desc = "FIRME_IDE_KEYSET_STOP status and observable traffic cessation",
@@ -643,8 +643,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0192,
-        .rule_str = "R0192",
+        .rule_id = FIRME_RULE_R0225,
+        .rule_str = "R0225",
         .suite = "firme",
         .test_name = "ide_keyset_poll_status",
         .desc = "FIRME_IDE_KEYSET_POLL status handling",
@@ -657,8 +657,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0194,
-        .rule_str = "R0194",
+        .rule_id = FIRME_RULE_R0227,
+        .rule_str = "R0227",
         .suite = "firme",
         .test_name = "ide_secure_caller_not_supported",
         .desc = "Secure FIRME instance does not support IDE key management",
@@ -671,8 +671,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0198,
-        .rule_str = "R0198",
+        .rule_id = FIRME_RULE_R0231,
+        .rule_str = "R0231",
         .suite = "firme",
         .test_name = "ide_feature_register",
         .desc = "IDE feature register 0 reports ABI presence bits only",
@@ -686,8 +686,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0199,
-        .rule_str = "R0199",
+        .rule_id = FIRME_RULE_R0232,
+        .rule_str = "R0232",
         .suite = "firme",
         .test_name = "ide_abi_compliance",
         .desc = "IDE key management ABIs follow Table 4.2 compliance",
@@ -704,8 +704,8 @@ const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_MEC
     {
         .chapter = FIRME_CHAPTER_MEC,
-        .rule_id = FIRME_RULE_R0206,
-        .rule_str = "R0206",
+        .rule_id = FIRME_RULE_R0239,
+        .rule_str = "R0239",
         .suite = "firme",
         .test_name = "mec_common_mecid_width",
         .desc = "MECID management uses the common MECID width",
@@ -718,8 +718,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_MEC,
-        .rule_id = FIRME_RULE_R0208,
-        .rule_str = "R0208",
+        .rule_id = FIRME_RULE_R0241,
+        .rule_str = "R0241",
         .suite = "firme",
         .test_name = "mec_refresh_abi",
         .desc = "FIRME_MEC_REFRESH return status and parameter checks",
@@ -737,8 +737,8 @@ const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_GPT
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0162,
-        .rule_str = "R0162",
+        .rule_id = FIRME_RULE_R0194,
+        .rule_str = "R0194",
         .suite = "firme",
         .test_name = "granule_management_feature_registers",
         .desc = "Granule Management feature registers use specified indices and encodings",
@@ -753,16 +753,16 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_gpt_granule_management_feature_registers_run_realm,
     },
     /*
-     * R0163 is implemented in test/gpt/granule_management_abi_compliance.c,
+     * R0195 is implemented in test/gpt/granule_management_abi_compliance.c,
      * but is intentionally not scheduled until the reference DUT advertises
-     * all ALP3 mandatory Granule Management ABIs. Current TF-A reports GM
+     * all ALP4 mandatory Granule Management ABIs. Current TF-A reports GM
      * feature register 0 as 0x1, missing FIRME_GM_GPI_OP_CONTINUE (bit 1),
      * so this rule currently fails by design.
      */
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0079,
-        .rule_str = "R0079",
+        .rule_id = FIRME_RULE_R0086,
+        .rule_str = "R0086",
         .suite = "firme",
         .test_name = "gpt_granule_size",
         .desc = "GPI transition granule size matches advertised PGS",
@@ -774,25 +774,25 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = 0,
     },
     /*
-     * R0083 is a caller precondition, so valid calls below always use an aligned
-     * Base address; the unaligned negative condition is covered by R0116.
+     * R0090 needs a dedicated test that exercises both an aligned request and
+     * the misaligned INVALID_PARAMETERS path.
      *
-     * Strict ALP3 rule bodies below are implemented in test/gpt/ but are not
-     * scheduled until the reference DUT implements their ALP3 semantics:
+     * Strict ALP4 rule bodies below are implemented in test/gpt/ but are not
+     * scheduled until the reference DUT implements their ALP4 semantics:
      *
-     * - R0085: same-GPI transitions are nops that complete with SUCCESS.
-     * - R0106: multi-granule SUCCESS reports the transitioned granule count.
-     * - R0113: all successful GPI management calls report non-zero progress;
+     * - R0092: same-GPI transitions are nops that complete with SUCCESS.
+     * - R0113: multi-granule SUCCESS reports the transitioned granule count.
+     * - R0120: all successful GPI management calls report non-zero progress;
      *   the body covers NS, Secure, Realm, and OP_CONTINUE handling.
-     * - R0116: malformed inputs complete with INVALID_PARAMETERS.
+     * - R0123: malformed inputs complete with INVALID_PARAMETERS.
      *
      * Do not relax these test bodies to match older DUT behavior. Enable each
-     * registry entry when the DUT claims the applicable ALP3 semantics.
+     * registry entry when the DUT claims the applicable ALP4 semantics.
      */
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0087,
-        .rule_str = "R0087",
+        .rule_id = FIRME_RULE_R0094,
+        .rule_str = "R0094",
         .suite = "firme",
         .test_name = "gpt_transition_feat_rme",
         .desc = "FEAT_RME permitted GM_GPI_SET transitions",
@@ -807,8 +807,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0088,
-        .rule_str = "R0088",
+        .rule_id = FIRME_RULE_R0095,
+        .rule_str = "R0095",
         .suite = "firme",
         .test_name = "gpt_transition_feat_gpc2",
         .desc = "FEAT_RME_GPC2 additional NS<->NSO transitions",
@@ -821,8 +821,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0091,
-        .rule_str = "R0091",
+        .rule_id = FIRME_RULE_R0098,
+        .rule_str = "R0098",
         .suite = "firme",
         .test_name = "gpt_transition_feat_gdi",
         .desc = "FEAT_RME_GDI additional NSP/SA transitions",
@@ -835,8 +835,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0104,
-        .rule_str = "R0104",
+        .rule_id = FIRME_RULE_R0111,
+        .rule_str = "R0111",
         .suite = "firme",
         .test_name = "gpt_start_granule",
         .desc = "GM_GPI_SET start granule is the granule at Base address",
@@ -851,8 +851,8 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
     {
         .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0120,
-        .rule_str = "R0120",
+        .rule_id = FIRME_RULE_R0127,
+        .rule_str = "R0127",
         .suite = "firme",
         .test_name = "gpt_denied_status",
         .desc = "GM_GPI_SET denied transition returns DENIED",

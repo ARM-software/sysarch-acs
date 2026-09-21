@@ -41,7 +41,7 @@ int val_firme_smccc_check_service(uint32_t service_id, uint64_t modes,
                                   firme_rule_res_t *out);
 
 /**
- * @brief Check that every ALP3 FIRME ABI uses an SMC64 function identifier.
+ * @brief Check that every ALP4 FIRME ABI uses an SMC64 function identifier.
  * @param out Optional result record populated on failure.
  * @return VAL_SUCCESS when every identifier is SMC64, otherwise VAL_ERROR.
  */
