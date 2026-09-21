@@ -19,7 +19,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  31)
+#ifdef PC_BSA
+#define TEST_RULE  "HQVRJ"
+#else
 #define TEST_RULE  "S_L5PE_01"
+#endif
 #define TEST_DESC  "Support Page table map size change    "
 
 static void payload(void)

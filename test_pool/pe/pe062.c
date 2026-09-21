@@ -20,7 +20,11 @@
 #include "val_interface.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE + 62)
+#ifdef PC_BSA
+#define TEST_RULE  "XRRTP"
+#else
 #define TEST_RULE  "S_L8PE_07"
+#endif
 #define TEST_DESC  "Check for unsupported PBHA bits       "
 
 static void payload(void)

@@ -113,6 +113,9 @@ typedef enum {
     CNBRV,
     PBCRQ,
     NWCYZ,
+    HQVRJ,
+    FNXTB,
+    XRRTP,
     HBCCD,
     KQQWG,
 

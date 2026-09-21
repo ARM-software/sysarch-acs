@@ -206,6 +206,36 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
+      <td>31</td>
+      <td>Support Page table map size change</td>
+      <td>2</td>
+      <td>HQVRJ</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>39</td>
+      <td>Check Protect Against Timing Fault</td>
+      <td>2</td>
+      <td>FNXTB</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>62</td>
+      <td>Check for unsupported PBHA bits</td>
+      <td>2</td>
+      <td>XRRTP</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
       <td>105</td>
       <td>NS-EL2 Stage-2 64KB Mapping Check</td>
       <td>1</td>
