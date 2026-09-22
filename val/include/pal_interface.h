@@ -613,7 +613,6 @@ void     pal_smmu_create_info_table(SMMU_INFO_TABLE *smmu_info_table);
 uint32_t pal_smmu_check_device_iova(void *port, uint64_t dma_addr);
 void     pal_smmu_device_start_monitor_iova(void *port);
 void     pal_smmu_device_stop_monitor_iova(void *port);
-uint64_t pal_smmu_pa2iova(uint64_t smmu_base, uint64_t pa, uint64_t *dram_buf_iova);
 
 
 /** Peripheral Tests related definitions **/

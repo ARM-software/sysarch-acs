@@ -20,27 +20,6 @@
 /* This is a place-holder file. Need to be implemented if needed in later releases */
 
 /**
-  @brief   This API converts physical address to IO virtual address
-  @param   SmmuBase       - Physical addr of the SMMU for pa to iova conversion
-  @param   Pa             - Physical address to use in conversion
-  @param   dram_buf_iova  - IOVA addresses for DMA purposes
-
-  @return
-  - 0               : Success
-  - PAL_STATUS_NOT_IMPLEMENTED : Feature not implemented
-  - non-zero        : Failure (implementation-specific error code)
-*/
-UINT64
-pal_smmu_pa2iova(
-  UINT64 SmmuBase,
-  UINT64 Pa, UINT64 *dram_buf_iova
-  )
-{
-  pal_warn_not_implemented(__func__);
-  return PAL_STATUS_NOT_IMPLEMENTED;
-}
-
-/**
   @brief   Begin monitoring DMA IOVAs for a device port
 **/
 VOID

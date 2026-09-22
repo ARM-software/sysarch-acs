@@ -66,11 +66,6 @@
       "parameters": []
     },
     {
-      "return_type": "uint64_t",
-      "function_name": "pal_smmu_pa2iova",
-      "parameters": ["uint64_t SmmuBase", "uint64_t Pa", "uint64_t *dram_buf_iova"]
-    },
-    {
       "return_type": "uint32_t",
       "function_name": "pal_smmu_check_device_iova",
       "parameters": ["void *port", "uint64_t dma_addr"]
