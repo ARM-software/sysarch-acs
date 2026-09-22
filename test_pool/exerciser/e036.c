@@ -27,7 +27,7 @@
 #include "acs_pcie.h"
 
 #define TEST_NUM   (ACS_EXERCISER_TEST_NUM_BASE + 36)
-#define TEST_RULE  "RI_SMU_3"
+#define TEST_RULE  "PCI_PAS_1"
 #define TEST_DESC  "Generate PASID transactions"
 
 #define TEST_DATA_NUM_PAGES  2

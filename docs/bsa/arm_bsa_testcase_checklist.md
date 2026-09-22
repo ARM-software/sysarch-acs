@@ -1142,8 +1142,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="79">L1</td>
-      <td rowspan="79">B_PER_08</td>
+      <td rowspan="84">L1</td>
+      <td rowspan="84">B_PER_08</td>
       <td>PCI_IN_01</td>
       <td>801</td>
       <td>Check ECAM Presence</td>
@@ -1610,6 +1610,46 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
+      <td>RTDTC / ITS_DEV_5</td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_7</td>
+      <td>254</td>
+      <td>Check Device's SID/RID/DID behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_8</td>
+      <td>255</td>
+      <td>Check Device IDs not behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_9</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>PCI_IC_11</td>
       <td>868</td>
       <td>PCIe RC,PE - Same Inr Shareable Domain</td>
@@ -1778,14 +1818,23 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_PAS_1</td>
+      <td rowspan="2">PCI_PAS_1</td>
       <td>842</td>
-      <td>PASID support atleast 16 bits</td>
+      <td>PASID support at least 16 bits</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>PASID support required</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>1536</td>
+      <td>Check PASID use as SubStreamID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>PASID support and Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -2206,8 +2255,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="81">FR</td>
-      <td rowspan="81">B_REP_1</td>
+      <td rowspan="73">FR</td>
+      <td rowspan="73">B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -2317,136 +2366,6 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>RI_SMU_2</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>RI_SMU_3</td>
-      <td>1536</td>
-      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
-    </tr>
-    <tr>
-      <td>ITS_03</td>
-      <td>1511</td>
-      <td>MSI-capable device linked to ITS group</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_05</td>
-      <td>1512</td>
-      <td>MSI to ITS Blk outside assigned group</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_ops (GENERATE_MSI)</td>
-    </tr>
-    <tr>
-      <td>ITS_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_1</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_2</td>
-      <td>253</td>
-      <td>Check uniqueness of StreamID</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_3</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_4</td>
-      <td>1513</td>
-      <td>MSI originating from different master</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_ops (GENERATE_MSI)</td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_5</td>
-      <td>256</td>
-      <td>MSI-capable devices have DeviceID</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_6</td>
-      <td>1504</td>
-      <td>Write to ITS GITS_TRANSLATER</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_7</td>
-      <td>254</td>
-      <td>Check Device's SID/RID/DID behind SMMU</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_8</td>
-      <td>255</td>
-      <td>Check Device IDs not behind SMMU</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_9</td>
       <td>Not Covered</td>
       <td></td>
       <td></td>
@@ -2686,6 +2605,46 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
+      <td>RTDTC / ITS_DEV_5</td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_7</td>
+      <td>254</td>
+      <td>Check Device's SID/RID/DID behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_8</td>
+      <td>255</td>
+      <td>Check Device IDs not behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_9</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>PCI_IC_11</td>
       <td>868</td>
       <td>PCIe RC,PE - Same Inr Shareable Domain</td>
@@ -2836,14 +2795,23 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_PAS_1</td>
+      <td rowspan="2">PCI_PAS_1</td>
       <td>842</td>
-      <td>PASID support atleast 16 bits</td>
+      <td>PASID support at least 16 bits</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>PASID support required</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>1536</td>
+      <td>Check PASID use as SubStreamID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>PASID support and Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -3016,8 +2984,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="96">FR</td>
-      <td rowspan="96">B_IEP_1</td>
+      <td rowspan="88">FR</td>
+      <td rowspan="88">B_IEP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -3127,136 +3095,6 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>RI_SMU_2</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>RI_SMU_3</td>
-      <td>1536</td>
-      <td>Generate PASID transactions - RCiEP, iEP and EP</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
-    </tr>
-    <tr>
-      <td>ITS_03</td>
-      <td>1511</td>
-      <td>MSI-capable device linked to ITS group</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_05</td>
-      <td>1512</td>
-      <td>MSI to ITS Blk outside assigned group</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_ops (GENERATE_MSI)</td>
-    </tr>
-    <tr>
-      <td>ITS_06</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_1</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_2</td>
-      <td>253</td>
-      <td>Check uniqueness of StreamID</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_3</td>
-      <td>Not Covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_4</td>
-      <td>1513</td>
-      <td>MSI originating from different master</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_ops (GENERATE_MSI)</td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_5</td>
-      <td>256</td>
-      <td>MSI-capable devices have DeviceID</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_6</td>
-      <td>1504</td>
-      <td>Write to ITS GITS_TRANSLATER</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_7</td>
-      <td>254</td>
-      <td>Check Device's SID/RID/DID behind SMMU</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_8</td>
-      <td>255</td>
-      <td>Check Device IDs not behind SMMU</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>ITS_DEV_9</td>
       <td>Not Covered</td>
       <td></td>
       <td></td>
@@ -3634,6 +3472,46 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
+      <td>RTDTC / ITS_DEV_5</td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_7</td>
+      <td>254</td>
+      <td>Check Device's SID/RID/DID behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_8</td>
+      <td>255</td>
+      <td>Check Device IDs not behind SMMU</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_9</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>PCI_IC_11</td>
       <td>868</td>
       <td>PCIe RC,PE - Same Inr Shareable Domain</td>
@@ -3784,14 +3662,23 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>PCI_PAS_1</td>
+      <td rowspan="2">PCI_PAS_1</td>
       <td>842</td>
-      <td>PASID support atleast 16 bits</td>
+      <td>PASID support at least 16 bits</td>
       <td>Yes</td>
       <td>Yes</td>
       <td>No</td>
       <td>PASID support required</td>
       <td></td>
+    </tr>
+    <tr>
+      <td>1536</td>
+      <td>Check PASID use as SubStreamID</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+      <td>PASID support and Exerciser VIP required</td>
+      <td>pal_exerciser_set_param (DMA_ATTRIBUTES)<br>pal_exerciser_ops (PASID_TLP_START, START_DMA, PASID_TLP_STOP)</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -4013,6 +3900,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Implemented BSA 1.3 Errata 1057: updated PCI_PAS_1, added RTDTC, and removed RI_SMU_3 and RI_SMU_4.
 - Implemented BSA 1.3 Errata 1084: removed ITS_01, ITS_02, ITS_04, ITS_07, ITS_08.
 - Updated PCI_MM_01, PCI_MM_02, PCI_MM_03, PCI_MSI_2, and PCI_LI_02 UEFI coverage.
 - Updated B_MEM_02, B_MEM_03, and B_MEM_06 UEFI coverage.

@@ -479,7 +479,7 @@ rule_is_conditional(const char8_t *rule_id)
         "RI_SMU_1",
         "PCI_ER_10",
         "B_PCIe_10",
-        "RI_SMU_3",
+        "PCI_PAS_1",
         "CXL_09",
         "CXL_06",
     };

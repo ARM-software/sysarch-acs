@@ -2002,12 +2002,11 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
         },
         [PCI_PAS_1] = {
-            .test_entry_id    = P042_ENTRY,
+            .test_entry_id    = PCI_PAS_1_ENTRY,
             .module_id        = PCIE,
-            .rule_desc        = "PASID support atleast 16 bits",
+            .rule_desc        = "Check PASID support and SubStreamID use",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
-            .test_num         = ACS_PCIE_TEST_NUM_BASE + 42,
         },
         [PCI_PP_02] = {
             .test_entry_id    = E014_ENTRY,
@@ -2046,6 +2045,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 35,
+        },
+        [RTDTC] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PCIE,
+            .rule_desc        = "Generate StreamID from PCIe RequesterID",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
         },
         [S_L4PCI_2] = {
             .test_entry_id    = P087_ENTRY,
@@ -2172,21 +2178,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 19,
-        },
-        [RI_SMU_3] = {
-            .test_entry_id    = E036_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Generate PASID transactions  -  RCiEP, iEP and EP",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_EXERCISER_TEST_NUM_BASE  +  36,
-        },
-        [RI_SMU_4] = {
-            .test_entry_id    = NULL_ENTRY,
-            .module_id        = PCIE,
-            .rule_desc        = "Check BSA Section F ITS requirements",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = ALIAS_RULE,
         },
         [S_L6PCI_1] = {
             .test_entry_id    = NULL_ENTRY,
@@ -3680,6 +3671,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P037_ENTRY] = p037_entry,
     [P038_ENTRY] = p038_entry,
     [P039_ENTRY] = p039_entry,
+    [PCI_PAS_1_ENTRY] = pci_pas_1_entry,
     [P042_ENTRY] = p042_entry,
     [P045_ENTRY] = p045_entry,
     [P048_ENTRY] = p048_entry, // used in wrapper.
@@ -4009,6 +4001,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P037_ENTRY] = p037_entry,
     [P038_ENTRY] = p038_entry,
     [P039_ENTRY] = p039_entry,
+    [PCI_PAS_1_ENTRY] = pci_pas_1_entry,
     [P042_ENTRY] = p042_entry,
     [P045_ENTRY] = p045_entry, // used in wrapper.
     [P046_ENTRY] = p046_entry,
@@ -4394,6 +4387,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I029_ENTRY] = i029_entry,
     [I007_ENTRY] = i007_entry,
     [I032_ENTRY] = i032_entry,
+    [PCI_PAS_1_ENTRY] = pci_pas_1_entry,
     [P042_ENTRY] = p042_entry,
     [P030_ENTRY] = p030_entry, // used in wrapper.
     [P032_ENTRY] = p032_entry, // used in wrapper.
@@ -4508,7 +4502,7 @@ const RULE_ID_e jkzmt_rule_list[] = {
     /* E.6 - Legacy Interrupts */
     PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
-    PCI_SM_01, PCI_SM_02,
+    PCI_SM_01, PCI_SM_02, RTDTC,
     /* E.8 - I/O Coherency */
     PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
     PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
@@ -4531,7 +4525,7 @@ const RULE_ID_e b_rep_1_rule_list[] = {
     /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
-    RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
+    RI_SMU_1, RI_SMU_2,
     RI_PWR_1,
     /* BSA Section F.2 - RCiEP */
     JKZMT,
@@ -4546,14 +4540,9 @@ const RULE_ID_e b_rep_1_rule_list[] = {
     RULE_ID_SENTINEL
 };
 
-/* RI_SMU_4 */
-const RULE_ID_e ri_smu_4_rule_list[] = {
-    /* BSA section F.1 and F.2 */
-    /* PCIE-tagged ITS rules */
-    ITS_03, ITS_05, ITS_06,
-    ITS_DEV_1, ITS_DEV_3, ITS_DEV_4, ITS_DEV_5, ITS_DEV_6, ITS_DEV_9,
-    /* GIC-tagged ITS rules */
-    ITS_DEV_2, ITS_DEV_7, ITS_DEV_8,
+/* RTDTC */
+const RULE_ID_e rtdtc_rule_list[] = {
+    ITS_DEV_5, ITS_DEV_7, ITS_DEV_8, ITS_DEV_9,
     RULE_ID_SENTINEL
 };
 
@@ -4575,7 +4564,7 @@ const RULE_ID_e hvzjy_rule_list[] = {
     /* E.6 - Legacy Interrupts */
     PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
-    PCI_SM_01, PCI_SM_02,
+    PCI_SM_01, PCI_SM_02, RTDTC,
     /* E.8 - I/O Coherency */
     PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
     PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
@@ -4609,7 +4598,7 @@ const RULE_ID_e b_iep_1_rule_list[] = {
     /* BSA Section F.1 - Rules Common for RCiEP and I-EP */
     RI_CRS_1, RI_BAR_1, RI_BAR_2, RI_BAR_3,
     RI_INT_1, RI_ORD_1, RI_ORD_2, RI_ORD_3,
-    RI_SMU_1, RI_SMU_2, RI_SMU_3, RI_SMU_4,
+    RI_SMU_1, RI_SMU_2,
     RI_PWR_1,
     /* BSA Section  F.3 - I-EP */
     HVZJY,
@@ -4644,7 +4633,7 @@ const RULE_ID_e b_per_08_rule_list[] = {
     /* E.6 - Legacy Interrupts */
     PCI_LI_01, PCI_LI_03, PCI_LI_04,
     /* E.7 - System MMU and Device Assignment */
-    PCI_SM_01, PCI_SM_02,
+    PCI_SM_01, PCI_SM_02, RTDTC,
     /* E.8 - I/O Coherency */
     PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
     PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
@@ -4804,7 +4793,7 @@ const RULE_ID_e v_l1pr_02_rule_list[]   = {
                                      /* E.6 - Legacy Interrupts */
                                      PCI_LI_01, PCI_LI_03, PCI_LI_04,
                                      /* E.7 - System MMU and Device Assignment */
-                                     PCI_SM_01, PCI_SM_02,
+                                     PCI_SM_01, PCI_SM_02, RTDTC,
                                      /* E.8 - I/O Coherency */
                                      PCI_IC_11, PCI_IC_12, PCI_IC_13, PCI_IC_14,
                                      PCI_IC_15, PCI_IC_16, PCI_IC_17, PCI_IC_18,
@@ -4830,7 +4819,7 @@ const alias_rule_map_t alias_rule_map[] = {
     {HVZJY,     hvzjy_rule_list},
     {IE_CFG_3,  ie_cfg_3_rule_list},
     {B_IEP_1,   b_iep_1_rule_list},
-    {RI_SMU_4,  ri_smu_4_rule_list},
+    {RTDTC,     rtdtc_rule_list},
     {B_PPI_00,  b_ppi_00_rule_list},
     {B_SMMU_21, b_smmu_21_rule_list},
 

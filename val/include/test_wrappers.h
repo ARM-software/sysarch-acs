@@ -35,6 +35,7 @@ uint32_t pci_in_04_entry(uint32_t num_pe);
 uint32_t pci_li_02_entry(uint32_t num_pe);
 uint32_t pci_li_03_entry(uint32_t num_pe);
 uint32_t pci_msi_2_entry(uint32_t num_pe);
+uint32_t pci_pas_1_entry(uint32_t num_pe);
 uint32_t pci_pp_04_entry(uint32_t num_pe);
 uint32_t pci_pp_05_entry(uint32_t num_pe);
 uint32_t re_rec_1_entry(uint32_t num_pe);

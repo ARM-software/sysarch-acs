@@ -331,6 +331,11 @@ Purpose: capture ACS scenario outlines for each VBSA rule. Each section:
 
     - PCI_SM_01
     - PCI_SM_02
+    - RTDTC
+        - ITS_DEV_5
+        - ITS_DEV_7
+        - ITS_DEV_8
+        - ITS_DEV_9
 
 - E.8 - I/O Coherency
     - PCI_IC_11

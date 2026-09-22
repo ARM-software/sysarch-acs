@@ -288,6 +288,16 @@ pci_msi_2_entry(uint32_t num_pe)
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
 }
 
+/* PCI_PAS_1 */
+uint32_t
+pci_pas_1_entry(uint32_t num_pe)
+{
+    TEST_ENTRY_ID_e p_list[] = {P042_ENTRY, TEST_ENTRY_SENTINEL};
+    TEST_ENTRY_ID_e e_list[] = {E036_ENTRY, TEST_ENTRY_SENTINEL};
+
+    return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
+}
+
 /* PCI_PP_04 */
 uint32_t
 pci_pp_04_entry(uint32_t num_pe)

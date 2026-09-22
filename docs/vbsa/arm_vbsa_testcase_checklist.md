@@ -615,8 +615,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="69">L1</td>
-      <td rowspan="69"><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1pr_02--check-virt-pcie-arch-compliance">V_L1PR_02</td>
+      <td rowspan="74">L1</td>
+      <td rowspan="74"><a href="arm_vbsa_architecture_compliance_test_scenario.md#v_l1pr_02--check-virt-pcie-arch-compliance">V_L1PR_02</td>
       <td></td>
       <td></td>
       <td>Check Virt PCIe arch compliance</td>
@@ -1001,6 +1001,38 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
+      <td>RTDTC / ITS_DEV_5</td>
+      <td>256</td>
+      <td>MSI-capable devices have DeviceID</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_7</td>
+      <td>254</td>
+      <td>Check Device's SID/RID/DID behind SMMU</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_8</td>
+      <td>255</td>
+      <td>Check Device IDs not behind SMMU</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>RTDTC / ITS_DEV_9</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
       <td>PCI_IC_11</td>
       <td>868</td>
       <td>PCIe RC,PE - Same Inr Shareable Domain</td>
@@ -1137,12 +1169,19 @@ The checklist provides information about:
       <td>PCIe Hierarchy and Device P2P support required</td>
     </tr>
     <tr>
-      <td>PCI_PAS_1</td>
+      <td rowspan="2">PCI_PAS_1</td>
       <td>842</td>
-      <td>PASID support atleast 16 bits</td>
+      <td>PASID support at least 16 bits</td>
       <td>✅</td>
       <td>❌</td>
       <td>PASID support required</td>
+    </tr>
+    <tr>
+      <td>1536</td>
+      <td>Check PASID use as SubStreamID</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>PASID support and Exerciser VIP required</td>
     </tr>
     <tr>
       <td>PCI_PTM_1</td>
@@ -1186,6 +1225,7 @@ The checklist provides information about:
 </table>
 
 ## Latest Checklist Changes
+- Updated V_L1PR_02 for BSA 1.3 Errata 1057: added RTDTC coverage and expanded PCI_PAS_1 coverage.
 - Removed PCI_PP_06 from the checklist, as rule statement got moved to recommendation.
 
 #### v25.12_VBSA_0.7.0 - *Dec, 2025*
