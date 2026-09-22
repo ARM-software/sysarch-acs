@@ -21,9 +21,9 @@
 #define TEST_RULE  "PCI_IN_20"
 #define TEST_DESC  "Vendor specific data is PCIe compliant"
 
-// Valid PCIe CapID ranges (PCIe 6.0 - v1.0)
+// Valid PCIe CapID ranges (PCIe 7.0)
 #define PCIE_CAP_ID_END     0x15
-#define PCIE_ECAP_ID_END    0x34
+#define PCIE_ECAP_ID_END    0x3A
 
 /*
  Check if vendor specific data are presented as non-PCIe compliant capabilities
