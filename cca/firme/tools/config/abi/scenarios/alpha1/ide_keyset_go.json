@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "IDE_KEYSET_GO",
+  "plans": [
+    {
+      "id": "IDE_KEYSET_GO_INPUTS",
+      "name": "ide_keyset_go_inputs",
+      "rule": "R0360",
+      "kind": "input",
+      "description": "Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs a successfully programmed IDE keyset as pre-state.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "IDE_KEYSET_GO_OUTPUTS",
+      "name": "ide_keyset_go_outputs",
+      "rule": "R0361",
+      "kind": "output",
+      "description": "Validate IDE_KEYSET_GO terminal and asynchronous status outputs.",
+      "enabled": false,
+      "disabled_reason": "Needs controlled programmed/running states and cleanup.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

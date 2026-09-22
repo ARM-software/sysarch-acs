@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "abi": "SERVICE_FEATURES",
+  "plans": [
+    {
+      "id": "SERVICE_FEATURES_INPUTS",
+      "name": "service_features_inputs",
+      "rule": "R0346",
+      "kind": "input",
+      "description": "Validate SERVICE_FEATURES service and feature-register input selection.",
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "base_register_zero", "mutation": "none", "expected": "SUCCESS", "step": 1, "priority": 0},
+        {"name": "unallocated_register", "mutation": "invalid_feature_index", "expected": "NOT_SUPPORTED", "step": 2, "priority": 1},
+        {"name": "unallocated_service", "mutation": "invalid_service_id", "expected": "NOT_SUPPORTED", "step": 3, "priority": 2}
+      ]
+    },
+    {
+      "id": "SERVICE_FEATURES_OUTPUTS",
+      "name": "service_features_outputs",
+      "rule": "R0347",
+      "kind": "output",
+      "description": "Validate SERVICE_FEATURES status and feature-register result encodings.",
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "base_register_zero", "mutation": "none", "expected": "SUCCESS", "step": 1, "priority": 0},
+        {"name": "unallocated_register", "mutation": "invalid_feature_index", "expected": "NOT_SUPPORTED", "step": 2, "priority": 1},
+        {"name": "unallocated_service", "mutation": "invalid_service_id", "expected": "NOT_SUPPORTED", "step": 3, "priority": 2}
+      ]
+    }
+  ]
+}

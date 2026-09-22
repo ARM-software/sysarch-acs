@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "GM_GPT_INFO",
+  "plans": [
+    {
+      "id": "GM_GPT_INFO_INPUTS",
+      "name": "gm_gpt_info_inputs",
+      "rule": "R0356",
+      "kind": "input",
+      "description": "Validate GM_GPT_INFO inclusive base and exclusive top inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs a portable protected-range discovery adapter and valid query window.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "secure", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_range", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "GM_GPT_INFO_OUTPUTS",
+      "name": "gm_gpt_info_outputs",
+      "rule": "R0357",
+      "kind": "output",
+      "description": "Validate GM_GPT_INFO status, returned top and protected-range state.",
+      "enabled": false,
+      "disabled_reason": "Needs returned range/state correlation against platform GPT data.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "secure", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_range", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

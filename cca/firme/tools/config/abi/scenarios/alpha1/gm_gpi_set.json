@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "GM_GPI_SET",
+  "plans": [
+    {
+      "id": "GM_GPI_SET_INPUTS",
+      "name": "gm_gpi_set_inputs",
+      "rule": "R0348",
+      "kind": "input",
+      "description": "Validate GM_GPI_SET base, count and target-GPI input allocation.",
+      "enabled": false,
+      "disabled_reason": "Needs a state-aware transition adapter with deterministic setup and rollback.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "secure", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "GM_GPI_SET_OUTPUTS",
+      "name": "gm_gpi_set_outputs",
+      "rule": "R0349",
+      "kind": "output",
+      "description": "Validate GM_GPI_SET status, count and continuation-cookie outputs.",
+      "enabled": false,
+      "disabled_reason": "Needs controlled terminal and progress paths plus transition cleanup.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "secure", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

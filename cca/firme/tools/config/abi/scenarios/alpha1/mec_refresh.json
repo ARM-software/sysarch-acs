@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "MEC_REFRESH",
+  "plans": [
+    {
+      "id": "MEC_REFRESH_INPUTS",
+      "name": "mec_refresh_inputs",
+      "rule": "R0366",
+      "kind": "input",
+      "description": "Validate MEC_REFRESH reason and MECID input encoding.",
+      "enabled": true,
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "realm_create", "mutation": "none", "expected": "SUCCESS", "step": 1, "priority": 0},
+        {"name": "realm_destroy", "mutation": "destroy_reason", "expected": "SUCCESS", "step": 2, "priority": 1}
+      ]
+    },
+    {
+      "id": "MEC_REFRESH_OUTPUTS",
+      "name": "mec_refresh_outputs",
+      "rule": "R0367",
+      "kind": "output",
+      "description": "Validate MEC_REFRESH terminal status output after BUSY retries.",
+      "enabled": true,
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "realm_create", "mutation": "none", "expected": "SUCCESS", "step": 1, "priority": 0},
+        {"name": "realm_destroy", "mutation": "destroy_reason", "expected": "SUCCESS", "step": 2, "priority": 1}
+      ]
+    }
+  ]
+}

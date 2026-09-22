@@ -225,3 +225,90 @@
 
     ret
     endfunc val_smccc_smc_call_x8
+
+/*
+ * void val_smccc_smc_call_frame(const smccc_call_frame_t *input,
+ *                               smccc_call_frame_t *output);
+ *
+ * The input and output frames are independent so diagnostic code retains the
+ * exact invocation while all x0-x17 results are captured before scratch
+ * registers are reused.
+ */
+    func val_smccc_smc_call_frame
+    cbz x0, .Lframe_return
+    cbz x1, .Lframe_return
+
+    /* Preserve AAPCS64 callee-saved registers across the monitor call. */
+    stp x29, x30, [sp, #-16]!
+    stp x27, x28, [sp, #-16]!
+    stp x25, x26, [sp, #-16]!
+    stp x23, x24, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+
+    /*
+     * Reserve 144 bytes for returned x0-x17 and one aligned slot for the
+     * output pointer. Never rely on a general-purpose register retaining that
+     * pointer across the SMC.
+     */
+    sub sp, sp, #160
+    str x1, [sp, #144]
+
+    mov x19, x0
+    ldp x0, x1, [x19, #0x00]
+    ldp x2, x3, [x19, #0x10]
+    ldp x4, x5, [x19, #0x20]
+    ldp x6, x7, [x19, #0x30]
+    ldp x8, x9, [x19, #0x40]
+    ldp x10, x11, [x19, #0x50]
+    ldp x12, x13, [x19, #0x60]
+    ldp x14, x15, [x19, #0x70]
+    ldp x16, x17, [x19, #0x80]
+
+    smc #0
+
+    /*
+     * Capture the complete result frame immediately. In particular, do not
+     * use any x0-x17 register to recover the output pointer first.
+     */
+    stp x0, x1, [sp, #0x00]
+    stp x2, x3, [sp, #0x10]
+    stp x4, x5, [sp, #0x20]
+    stp x6, x7, [sp, #0x30]
+    stp x8, x9, [sp, #0x40]
+    stp x10, x11, [sp, #0x50]
+    stp x12, x13, [sp, #0x60]
+    stp x14, x15, [sp, #0x70]
+    stp x16, x17, [sp, #0x80]
+
+    ldr x19, [sp, #144]
+    ldp x0, x1, [sp, #0x00]
+    stp x0, x1, [x19, #0x00]
+    ldp x2, x3, [sp, #0x10]
+    stp x2, x3, [x19, #0x10]
+    ldp x4, x5, [sp, #0x20]
+    stp x4, x5, [x19, #0x20]
+    ldp x6, x7, [sp, #0x30]
+    stp x6, x7, [x19, #0x30]
+    ldp x8, x9, [sp, #0x40]
+    stp x8, x9, [x19, #0x40]
+    ldp x10, x11, [sp, #0x50]
+    stp x10, x11, [x19, #0x50]
+    ldp x12, x13, [sp, #0x60]
+    stp x12, x13, [x19, #0x60]
+    ldp x14, x15, [sp, #0x70]
+    stp x14, x15, [x19, #0x70]
+    ldp x16, x17, [sp, #0x80]
+    stp x16, x17, [x19, #0x80]
+
+    add sp, sp, #160
+    ldp x19, x20, [sp], #16
+    ldp x21, x22, [sp], #16
+    ldp x23, x24, [sp], #16
+    ldp x25, x26, [sp], #16
+    ldp x27, x28, [sp], #16
+    ldp x29, x30, [sp], #16
+
+.Lframe_return:
+    ret
+    endfunc val_smccc_smc_call_frame

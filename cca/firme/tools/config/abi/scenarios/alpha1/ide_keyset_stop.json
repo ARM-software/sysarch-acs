@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "IDE_KEYSET_STOP",
+  "plans": [
+    {
+      "id": "IDE_KEYSET_STOP_INPUTS",
+      "name": "ide_keyset_stop_inputs",
+      "rule": "R0362",
+      "kind": "input",
+      "description": "Validate IDE_KEYSET_STOP ECAM, stream, keyset and handle inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs a running IDE keyset as deterministic pre-state.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_stop", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "IDE_KEYSET_STOP_OUTPUTS",
+      "name": "ide_keyset_stop_outputs",
+      "rule": "R0363",
+      "kind": "output",
+      "description": "Validate IDE_KEYSET_STOP terminal and asynchronous status outputs.",
+      "enabled": false,
+      "disabled_reason": "Needs controlled running/stopped states and cleanup.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_stop", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

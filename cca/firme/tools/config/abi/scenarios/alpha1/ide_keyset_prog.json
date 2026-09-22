@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "IDE_KEYSET_PROG",
+  "plans": [
+    {
+      "id": "IDE_KEYSET_PROG_INPUTS",
+      "name": "ide_keyset_prog_inputs",
+      "rule": "R0358",
+      "kind": "input",
+      "description": "Validate IDE_KEYSET_PROG ECAM, stream, key and handle inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs discovered IDE endpoint and Root Port programming state.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_program", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "IDE_KEYSET_PROG_OUTPUTS",
+      "name": "ide_keyset_prog_outputs",
+      "rule": "R0359",
+      "kind": "output",
+      "description": "Validate IDE_KEYSET_PROG terminal and asynchronous status outputs.",
+      "enabled": false,
+      "disabled_reason": "Needs endpoint programming, progress-path control and rollback.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_program", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

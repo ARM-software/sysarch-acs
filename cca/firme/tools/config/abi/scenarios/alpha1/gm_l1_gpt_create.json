@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "GM_L1_GPT_CREATE",
+  "plans": [
+    {
+      "id": "GM_L1_GPT_CREATE_INPUTS",
+      "name": "gm_l1_gpt_create_inputs",
+      "rule": "R0352",
+      "kind": "input",
+      "description": "Validate GM_L1_GPT_CREATE protected-range and L1 object inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs platform protected-range discovery and L1 GPT object setup.",
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_create", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "GM_L1_GPT_CREATE_OUTPUTS",
+      "name": "gm_l1_gpt_create_outputs",
+      "rule": "R0353",
+      "kind": "output",
+      "description": "Validate GM_L1_GPT_CREATE status outputs across terminal and progress paths.",
+      "enabled": false,
+      "disabled_reason": "Needs create, continuation, negative-path and cleanup orchestration.",
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_create", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

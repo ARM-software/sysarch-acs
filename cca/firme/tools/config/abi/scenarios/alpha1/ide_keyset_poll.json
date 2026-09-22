@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "IDE_KEYSET_POLL",
+  "plans": [
+    {
+      "id": "IDE_KEYSET_POLL_INPUTS",
+      "name": "ide_keyset_poll_inputs",
+      "rule": "R0364",
+      "kind": "input",
+      "description": "Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs.",
+      "enabled": false,
+      "disabled_reason": "Needs a pending asynchronous IDE operation and endpoint context.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "IDE_KEYSET_POLL_OUTPUTS",
+      "name": "ide_keyset_poll_outputs",
+      "rule": "R0365",
+      "kind": "output",
+      "description": "Validate IDE_KEYSET_POLL status, handle and keyset outputs.",
+      "enabled": false,
+      "disabled_reason": "Needs controllable pending, completed, absent and aborted operations.",
+      "required_worlds": [],
+      "optional_worlds": ["ns", "realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}

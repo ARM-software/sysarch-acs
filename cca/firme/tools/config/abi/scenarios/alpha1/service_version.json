@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "SERVICE_VERSION",
+  "plans": [
+    {
+      "id": "SERVICE_VERSION_INPUTS",
+      "name": "service_version_inputs",
+      "rule": "R0344",
+      "kind": "input",
+      "description": "Validate SERVICE_VERSION input register allocation and service ID selection.",
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "base_service", "mutation": "none", "expected": "positive", "step": 1, "priority": 0},
+        {"name": "unallocated_service", "mutation": "invalid_service_id", "expected": "NOT_SUPPORTED", "step": 2, "priority": 1}
+      ]
+    },
+    {
+      "id": "SERVICE_VERSION_OUTPUTS",
+      "name": "service_version_outputs",
+      "rule": "R0345",
+      "kind": "output",
+      "description": "Validate SERVICE_VERSION version and NOT_SUPPORTED result encodings.",
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
+      "baseline_policy": "positive_case",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "base_service", "mutation": "none", "expected": "positive", "step": 1, "priority": 0},
+        {"name": "unallocated_service", "mutation": "invalid_service_id", "expected": "NOT_SUPPORTED", "step": 2, "priority": 1}
+      ]
+    }
+  ]
+}

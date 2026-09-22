@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "abi": "GM_L1_GPT_DESTROY",
+  "plans": [
+    {
+      "id": "GM_L1_GPT_DESTROY_INPUTS",
+      "name": "gm_l1_gpt_destroy_inputs",
+      "rule": "R0354",
+      "kind": "input",
+      "description": "Validate GM_L1_GPT_DESTROY protected-range input allocation.",
+      "enabled": false,
+      "disabled_reason": "Needs a successfully created L1 GPT object as deterministic pre-state.",
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": false,
+      "cases": [
+        {"name": "valid_destroy", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    },
+    {
+      "id": "GM_L1_GPT_DESTROY_OUTPUTS",
+      "name": "gm_l1_gpt_destroy_outputs",
+      "rule": "R0355",
+      "kind": "output",
+      "description": "Validate GM_L1_GPT_DESTROY status and returned L1 object base.",
+      "enabled": false,
+      "disabled_reason": "Needs create/destroy lifecycle setup, output correlation and cleanup.",
+      "required_worlds": [],
+      "optional_worlds": ["realm"],
+      "baseline_policy": "adapter_validated",
+      "require_advertised": true,
+      "require_output_validation": true,
+      "cases": [
+        {"name": "valid_destroy", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+      ]
+    }
+  ]
+}
