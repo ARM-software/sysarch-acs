@@ -681,28 +681,6 @@ pal_gic_free_irq (
 #define SMMU_V3_IDR1_PASID_MASK  0x1f
 
 /**
-  @brief   This API converts physical address to IO virtual address
-  @param   SmmuBase       - Physical addr of the SMMU for pa to iova conversion
-  @param   Pa             - Physical address to use in conversion
-  @param   dram_buf_iova  - IOVA addresses for DMA purposes
-
-  @return
-    - 0               : Success
-    - PAL_STATUS_NOT_IMPLEMENTED : Feature not implemented
-    - non-zero        : Failure (implementation-specific error code)
-*/
-uint64_t
-pal_smmu_pa2iova(uint64_t SmmuBase, uint64_t Pa, uint64_t *dram_buf_iova)
-{
-  (void) SmmuBase;
-  (void) Pa;
-  (void) dram_buf_iova;
-
-  pal_warn_not_implemented(__func__);
-  return PAL_STATUS_NOT_IMPLEMENTED;
-}
-
-/**
   @brief   Check if input address is within the IOVA translation range for the device
   @param   port - Pointer to the DMA port
   @param   dma_addr   - The input address to be checked

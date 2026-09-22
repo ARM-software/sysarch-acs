@@ -19,7 +19,6 @@
 #include "acs_pcie_enumeration.h"
 #include "acs_pcie.h"
 #include "acs_pe.h"
-#include "acs_smmu.h"
 #include "acs_memory.h"
 #include "acs_exerciser.h"
 
@@ -67,14 +66,11 @@ payload(void *arg)
   uint32_t instance;
   uint64_t bar_base;
   uint32_t fail_cnt;
-  uint32_t smmu_index;
   uint32_t dma_len;
   uint32_t status;
   uint32_t reg_value;
   bool     test_skip = 1;
   void *dram_buf_virt;
-  void *dram_buf_phys;
-  void *dram_buf_iova;
   uint32_t page_size = val_memory_page_size();
   uint32_t dp_type;
   test_data_t *test_data = (test_data_t *)arg;
@@ -106,7 +102,6 @@ payload(void *arg)
       return;
   }
 
-  dram_buf_phys = val_memory_virt_to_phys(dram_buf_virt);
   dma_len = page_size * TEST_DATA_NUM_PAGES;;
 
   while (instance-- != 0) {
@@ -154,20 +149,9 @@ payload(void *arg)
        */
       val_pcie_clear_urd(erp_bdf);
 
-      /*
-       * Get SMMU node index for this exerciser instance to convert
-       * the dram physical addresses to IOVA addresses for DMA purposes.
-       */
-      smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
-                                                PCIE_CREATE_BDF_PACKED(e_bdf));
-      if (smmu_index == ACS_INVALID_INDEX)
-          dram_buf_iova = dram_buf_phys;
-      else
-          status = val_smmu_pa2iova(smmu_index, (uint64_t)dram_buf_phys,
-                                    (uint64_t *)&dram_buf_iova);
-
-      if (status == ACS_STATUS_PAL_NOT_IMPLEMENTED)
-        goto test_skip_unimplemented;
+      /* Clear any stale Received Master Abort status in the Exerciser */
+      val_pcie_read_cfg(e_bdf, COMMAND_REG_OFFSET, &reg_value);
+      val_pcie_write_cfg(e_bdf, COMMAND_REG_OFFSET, reg_value | MASTER_ABORT_MASK);
 
       /*
        * Issue a Memory Read request from exerciser to cause unsupported
@@ -175,7 +159,7 @@ payload(void *arg)
        * Based on platform configuration, this may even cause a
        * sync/async exception.
        */
-      val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dram_buf_iova, dma_len, instance);
+      val_exerciser_set_param(DMA_ATTRIBUTES, (uint64_t)dram_buf_virt, dma_len, instance);
       val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, instance);
 
 exception_return:
@@ -217,12 +201,6 @@ exception_return:
       val_set_status(pe_index, RESULT_PASS);
   return;
 
-test_skip_unimplemented:
-    /* Restore Rootport Bus Master Enable */
-      val_pcie_enable_bme(erp_bdf);
-    /* Return the buffer to the heap manager */
-    val_memory_free_pages(dram_buf_virt, TEST_DATA_NUM_PAGES);
-    val_set_status(pe_index, RESULT_WARNING(02));
 }
 
 uint32_t

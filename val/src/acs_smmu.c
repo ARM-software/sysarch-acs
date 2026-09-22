@@ -193,24 +193,3 @@ val_smmu_max_pasids(uint32_t smmu_index)
   pasid_bits = (reg >> SMMU_V3_IDR1_PASID_SHIFT) & SMMU_V3_IDR1_PASID_MASK;
   return pasid_bits;
 }
-
-/**
-  @brief  Converts physical address to I/Ovirtual address
-
-  @param  smmu_index    SMMU index
-  @param  pa            Physical address to use in conversion
-  @param  dram_buf_iova IOVA addresses for DMA purposes
-
-  @return
-    - 0               : Success
-    - NOT_IMPLEMENTED : Feature not implemented
-    - non-zero        : Failure (implementation-specific error code)
-**/
-uint64_t
-val_smmu_pa2iova(uint32_t smmu_index, uint64_t pa, uint64_t *dram_buf_iova)
-{
-  uint64_t smmu_base;
-
-  smmu_base = val_smmu_get_info(SMMU_CTRL_BASE, smmu_index);
-  return pal_smmu_pa2iova(smmu_base, pa, dram_buf_iova);
-}
