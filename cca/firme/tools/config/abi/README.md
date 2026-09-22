@@ -5,7 +5,8 @@ the Alpha1 allowlist. Per-ABI scenarios live in `scenarios/alpha1/` and define
 the input and output rule checks, mutations, expected results, caller worlds,
 and registry state.
 
-Generate the ABI catalog and test-plan declarations and definitions with:
+Generate the catalog, plans, one-rule test sources, and registry fragments
+with:
 
 ```sh
 python3 cca/firme/tools/scripts/generate_firme_abi_catalog.py
@@ -17,14 +18,15 @@ Verify checked-in generated files without modifying them with:
 python3 cca/firme/tools/scripts/generate_firme_abi_catalog.py --check
 ```
 
-This framework generates only `val_firme_abi_catalog.h` and
-`val_firme_abi_catalog.c`. It does not generate executable wrappers or registry
-entries. Those require service-specific adapters to prepare valid state,
-validate outputs and effects, and clean up, and are introduced with the
-generated ABI tests.
+Each enabled ABI has a handwritten adapter. The adapter supplies valid state
+and inputs, applies generated mutations, validates ABI-specific outputs or
+effects, and cleans up. The generator supplies the case loop, result
+aggregation, per-world wrappers, and suite registry entries. It emits one
+source per interface rule under `test/<module>/generated_abi_*.c`.
 
-Disabled plans must provide a non-empty `disabled_reason`. All plans are
-schema-validated; a plan declaration alone does not register a runnable test.
+Disabled plans must provide a non-empty `disabled_reason`. They remain in the
+generated Alpha1 coverage report and have a compiled one-rule entry point,
+but no registry entry is emitted until the required adapter is complete.
 
 Run the generator infrastructure regression checks with:
 

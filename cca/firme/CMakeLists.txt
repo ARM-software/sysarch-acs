@@ -11,6 +11,8 @@ project(firme_acs C ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(FIRME_VERIFY_ABI_CATALOG
+       "Verify generated FIRME ABI catalog files during every build" ON)
 option(FIRME_ENABLE_CXL_ENDPOINT_PROBE
        "Probe a Type-2 endpoint and its SPDM DOE protocols before FIRME tests" OFF)
 option(FIRME_ENABLE_CXL_SPDM
@@ -21,6 +23,50 @@ if(FIRME_ENABLE_CXL_SPDM)
     message(FATAL_ERROR "FIRME_ENABLE_CXL_SPDM requires FIRME_ENABLE_CXL_ENDPOINT_PROBE")
   endif()
   include("${CMAKE_CURRENT_LIST_DIR}/tools/cmake/firme_spdm.cmake")
+endif()
+
+if(FIRME_VERIFY_ABI_CATALOG)
+  find_program(FIRME_PYTHON3_EXECUTABLE NAMES python3 REQUIRED)
+  set(FIRME_ABI_CATALOG
+      "${CMAKE_CURRENT_LIST_DIR}/tools/config/abi/firme_1_0_alp4.json")
+  set(FIRME_ABI_GENERATOR
+      "${CMAKE_CURRENT_LIST_DIR}/tools/scripts/generate_firme_abi_catalog.py")
+  file(GLOB FIRME_ABI_SCENARIOS CONFIGURE_DEPENDS
+      "${CMAKE_CURRENT_LIST_DIR}/tools/config/abi/scenarios/alpha1/*.json")
+  set(FIRME_ABI_GENERATED_HEADER
+      "${CMAKE_CURRENT_LIST_DIR}/val/include/val_firme_abi_catalog.h")
+  set(FIRME_ABI_GENERATED_SOURCE
+      "${CMAKE_CURRENT_LIST_DIR}/val/src/val_firme_abi_catalog.c")
+  set(FIRME_ABI_GENERATED_WRAPPER_HEADER
+      "${CMAKE_CURRENT_LIST_DIR}/val/include/val_firme_abi_generated.h")
+  set(FIRME_ABI_GENERATED_WRAPPER_SOURCE
+      "${CMAKE_CURRENT_LIST_DIR}/val/src/val_firme_abi_generated.c")
+  set(FIRME_ABI_GENERATED_REGISTRY
+      "${CMAKE_CURRENT_LIST_DIR}/val/include/val_firme_abi_registry.inc")
+  set(FIRME_ABI_GENERATED_COVERAGE
+      "${CMAKE_CURRENT_LIST_DIR}/docs/FIRME_Alpha1_ABI_Interface_Coverage.md")
+  file(GLOB FIRME_ABI_GENERATED_TESTS CONFIGURE_DEPENDS
+      "${CMAKE_CURRENT_LIST_DIR}/test/base/generated_abi_*.c"
+      "${CMAKE_CURRENT_LIST_DIR}/test/gpt/generated_abi_*.c"
+      "${CMAKE_CURRENT_LIST_DIR}/test/ide/generated_abi_*.c"
+      "${CMAKE_CURRENT_LIST_DIR}/test/mec/generated_abi_*.c")
+
+  add_custom_target(firme_abi_catalog_check ALL
+    COMMAND "${FIRME_PYTHON3_EXECUTABLE}" "${FIRME_ABI_GENERATOR}" --check
+    DEPENDS
+      "${FIRME_ABI_CATALOG}"
+      "${FIRME_ABI_GENERATOR}"
+      ${FIRME_ABI_SCENARIOS}
+      "${FIRME_ABI_GENERATED_HEADER}"
+      "${FIRME_ABI_GENERATED_SOURCE}"
+      "${FIRME_ABI_GENERATED_WRAPPER_HEADER}"
+      "${FIRME_ABI_GENERATED_WRAPPER_SOURCE}"
+      "${FIRME_ABI_GENERATED_REGISTRY}"
+      "${FIRME_ABI_GENERATED_COVERAGE}"
+      ${FIRME_ABI_GENERATED_TESTS}
+    COMMENT "Checking generated FIRME ABI catalog"
+    VERBATIM
+  )
 endif()
 
 # Suite selection (build-time).
@@ -125,6 +171,10 @@ add_library(firme_common_obj OBJECT
     ${FIRME_COMMON_VAL_SRC}
     ${FIRME_VAL_SRC}
 )
+
+if(FIRME_VERIFY_ABI_CATALOG)
+  add_dependencies(firme_common_obj firme_abi_catalog_check)
+endif()
 
 target_include_directories(firme_common_obj PRIVATE ${FIRME_COMMON_INCLUDES})
 target_compile_options(firme_common_obj PRIVATE ${FIRME_COMMON_CFLAGS})

@@ -8,6 +8,8 @@
 #include "val_firme_suite.h"
 
 #include "pal_platform.h"
+#include "val_firme_abi_generated.h"
+#include "val_firme_abi_catalog.h"
 
 /*
  * Per-rule world bodies live under test/<module>/.
@@ -864,6 +866,7 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = 0,
     },
 #endif
+#include "val_firme_abi_registry.inc"
     /* Sentinel (keeps the array non-empty even if all chapters are disabled). */
     {0},
 };
