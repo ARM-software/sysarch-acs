@@ -185,8 +185,10 @@ def validate_abi(abi: dict[str, Any], identifiers: set[str], names: set[str],
     names.add(name)
 
     service_id = int(abi.get("service_id", -1))
-    if service_id < 0 or service_id > 5:
-        raise ValueError(f"{identifier}: invalid service_id")
+    if service_id < 0 or service_id > 0xFF:
+        raise ValueError(f"{identifier}: service_id is not an 8-bit value")
+    if service_id > 5:
+        raise ValueError(f"{identifier}: service_id is not allocated by ALP4")
 
     fid = parse_u64(abi.get("fid"), f"{identifier}.fid")
     if fid in fids:
@@ -235,6 +237,91 @@ def validate_abi(abi: dict[str, Any], identifiers: set[str], names: set[str],
     for policy in policies.values():
         if policy not in WORLD_POLICIES:
             raise ValueError(f"{identifier}: invalid world policy {policy}")
+
+
+def validate_feature_registers(catalog: dict[str, Any]) -> list[dict[str, int]]:
+    """Validate the reviewed feature-register metadata used by Base rules."""
+    registers = catalog.get("feature_registers")
+    if not isinstance(registers, list) or not registers:
+        raise ValueError("feature_registers must be a non-empty array")
+
+    validated: list[dict[str, int]] = []
+    keys: set[tuple[int, int]] = set()
+    for register in registers:
+        service_id = int(register.get("service_id", -1))
+        index = int(register.get("index", -1))
+        size_bits = int(register.get("size_bits", 0))
+        key = (service_id, index)
+
+        if service_id < 0 or service_id > 0xFF:
+            raise ValueError(
+                f"feature register service_id {service_id} is not an 8-bit value"
+            )
+        if service_id > 5:
+            raise ValueError(
+                f"feature register service_id {service_id} is not allocated by ALP4"
+            )
+        if index < 0 or index > 0xFF:
+            raise ValueError(
+                f"service {service_id}: feature register index is not 8-bit"
+            )
+        if key in keys:
+            raise ValueError(
+                f"service {service_id}: duplicate feature register {index}"
+            )
+        keys.add(key)
+
+        if size_bits <= 0 or (size_bits % 64) != 0:
+            raise ValueError(
+                f"service {service_id} register {index}: size is not a "
+                "non-zero multiple of 64 bits"
+            )
+
+        field = register.get("max_concurrent_op_count")
+        shift = 0
+        width = 0
+        if field is not None:
+            if not isinstance(field, dict):
+                raise ValueError(
+                    f"service {service_id} register {index}: invalid "
+                    "MAX_CONCURRENT_OP_CNT descriptor"
+                )
+            shift = int(field.get("shift", -1))
+            width = int(field.get("width", 0))
+            if shift < 0 or width != 16 or (shift + width) > size_bits:
+                raise ValueError(
+                    f"service {service_id} register {index}: "
+                    "MAX_CONCURRENT_OP_CNT must be a 16-bit in-range field"
+                )
+
+        validated.append({
+            "service_id": service_id,
+            "index": index,
+            "size_bits": size_bits,
+            "max_concurrent_op_shift": shift,
+            "max_concurrent_op_width": width,
+        })
+
+    for service_id in range(6):
+        if (service_id, 0) not in keys or (service_id, 1) not in keys:
+            raise ValueError(
+                f"service {service_id}: ALP4 feature registers 0 and 1 are required"
+            )
+
+        register1 = next(
+            register for register in validated
+            if register["service_id"] == service_id and register["index"] == 1
+        )
+        if service_id != 0 and register1["max_concurrent_op_width"] != 16:
+            raise ValueError(
+                f"service {service_id}: feature register 1 needs a 16-bit "
+                "MAX_CONCURRENT_OP_CNT field"
+            )
+
+    return sorted(
+        validated,
+        key=lambda register: (register["service_id"], register["index"]),
+    )
 
 
 def validate_plan(plan: dict[str, Any], abi: dict[str, Any],
@@ -349,6 +436,10 @@ def validate_model(catalog: dict[str, Any],
         raise ValueError("release_scope must be Alpha1")
     if catalog.get("register_count") != 18:
         raise ValueError("register_count must be 18")
+    if catalog.get("service_id_width") != 8:
+        raise ValueError("service_id_width must be 8")
+
+    feature_registers = validate_feature_registers(catalog)
 
     abis = catalog.get("abis")
     release_ids = catalog.get("release_abis")
@@ -410,6 +501,8 @@ def validate_model(catalog: dict[str, Any],
     return {
         "specification": catalog["specification"],
         "release_scope": catalog["release_scope"],
+        "service_id_width": catalog["service_id_width"],
+        "feature_registers": feature_registers,
         "abis": scoped_abis,
         "test_plans": plans,
         "mutations": ["none"] + sorted(mutations - {"none"}),
@@ -443,6 +536,7 @@ def generate_header(model: dict[str, Any]) -> str:
         "",
         "#define VAL_FIRME_ABI_REGISTER_COUNT 18U",
         "#define VAL_FIRME_ABI_WORLD_COUNT 3U",
+        f"#define VAL_FIRME_SERVICE_ID_WIDTH {model['service_id_width']}U",
         "#define VAL_FIRME_ABI_WORLD_MASK_NS (UINT32_C(1) << 0)",
         "#define VAL_FIRME_ABI_WORLD_MASK_SECURE (UINT32_C(1) << 1)",
         "#define VAL_FIRME_ABI_WORLD_MASK_REALM (UINT32_C(1) << 2)",
@@ -519,7 +613,7 @@ def generate_header(model: dict[str, Any]) -> str:
         "    uint64_t fid;",
         "    uint64_t feature_bit;",
         "    uint64_t input_bit_masks[VAL_FIRME_ABI_REGISTER_COUNT];",
-        "    uint32_t service_id;",
+        "    uint8_t service_id;",
         "    uint32_t input_register_mask;",
         "    uint32_t output_register_mask;",
         "    uint32_t allowed_status_mask;",
@@ -527,6 +621,14 @@ def generate_header(model: dict[str, Any]) -> str:
         "    val_firme_abi_result_model_t result_model;",
         "    val_firme_abi_world_policy_t world_policy[VAL_FIRME_ABI_WORLD_COUNT];",
         "} val_firme_abi_descriptor_t;",
+        "",
+        "typedef struct {",
+        "    uint16_t size_bits;",
+        "    uint8_t service_id;",
+        "    uint8_t index;",
+        "    uint8_t max_concurrent_op_shift;",
+        "    uint8_t max_concurrent_op_width;",
+        "} val_firme_feature_register_descriptor_t;",
         "",
         "typedef struct {",
         "    const char *name;",
@@ -557,6 +659,9 @@ def generate_header(model: dict[str, Any]) -> str:
         "",
         "extern const val_firme_abi_descriptor_t g_val_firme_abi_catalog[];",
         "extern const uint32_t g_val_firme_abi_catalog_count;",
+        "extern const val_firme_feature_register_descriptor_t",
+        "    g_val_firme_feature_register_catalog[];",
+        "extern const uint32_t g_val_firme_feature_register_catalog_count;",
         "extern const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[];",
         "extern const uint32_t g_val_firme_abi_test_plan_count;",
         "",
@@ -567,6 +672,11 @@ def generate_header(model: dict[str, Any]) -> str:
         "/** Return an ABI descriptor by function identifier, or NULL. */",
         "const val_firme_abi_descriptor_t *val_firme_abi_catalog_find_fid(",
         "    uint64_t fid);",
+        "",
+        "/** Return feature-register metadata by service and index, or NULL. */",
+        "const val_firme_feature_register_descriptor_t *",
+        "val_firme_feature_register_catalog_get(uint32_t service_id,",
+        "                                       uint32_t index);",
         "",
         "/** Return a generated test plan by stable identifier, or NULL. */",
         "const val_firme_abi_test_plan_t *val_firme_abi_test_plan_get(",
@@ -593,8 +703,32 @@ def generate_source(model: dict[str, Any]) -> str:
         "",
         "#include <stddef.h>",
         "",
-        "const val_firme_abi_descriptor_t g_val_firme_abi_catalog[] = {",
+        "const val_firme_feature_register_descriptor_t",
+        "    g_val_firme_feature_register_catalog[] = {",
     ]
+
+    for register in model["feature_registers"]:
+        lines.extend([
+            "    {",
+            f"        .size_bits = {register['size_bits']}U,",
+            f"        .service_id = {register['service_id']}U,",
+            f"        .index = {register['index']}U,",
+            "        .max_concurrent_op_shift = "
+            f"{register['max_concurrent_op_shift']}U,",
+            "        .max_concurrent_op_width = "
+            f"{register['max_concurrent_op_width']}U,",
+            "    },",
+        ])
+
+    lines.extend([
+        "};",
+        "",
+        "const uint32_t g_val_firme_feature_register_catalog_count =",
+        "    (uint32_t)(sizeof(g_val_firme_feature_register_catalog) /",
+        "               sizeof(g_val_firme_feature_register_catalog[0]));",
+        "",
+        "const val_firme_abi_descriptor_t g_val_firme_abi_catalog[] = {",
+    ])
 
     for abi in abis:
         input_masks = format_input_masks(abi)
@@ -718,6 +852,32 @@ def generate_source(model: dict[str, Any]) -> str:
         "               (sizeof(g_val_firme_abi_test_plans) /",
         "                sizeof(g_val_firme_abi_test_plans[0])),",
         "               \"FIRME ABI test plan count mismatch\");",
+        "",
+        "/**",
+        " * @brief Return feature-register metadata by service and index.",
+        " * @param service_id FIRME service identifier.",
+        " * @param index Feature-register index.",
+        " * @return Feature-register descriptor, or NULL when unallocated.",
+        " */",
+        "const val_firme_feature_register_descriptor_t *",
+        "val_firme_feature_register_catalog_get(uint32_t service_id,",
+        "                                       uint32_t index)",
+        "{",
+        "    uint32_t descriptor_index;",
+        "",
+        "    for (descriptor_index = 0U;",
+        "         descriptor_index < g_val_firme_feature_register_catalog_count;",
+        "         descriptor_index++) {",
+        "        const val_firme_feature_register_descriptor_t *descriptor =",
+        "            &g_val_firme_feature_register_catalog[descriptor_index];",
+        "",
+        "        if (((uint32_t)descriptor->service_id == service_id) &&",
+        "            ((uint32_t)descriptor->index == index))",
+        "            return descriptor;",
+        "    }",
+        "",
+        "    return NULL;",
+        "}",
         "",
         "/**",
         " * @brief Return an ABI descriptor by stable identifier.",

@@ -175,10 +175,10 @@ static void run_test_case(const firme_test_case_t *tc,
     firme_acs_call_res_t overall = {0};
     uint32_t check_idx = 1;
     uint32_t have_result = 0U;
-    int post_status;
     uint32_t secure_required = 0U;
     uint32_t realm_required = 0U;
     uint32_t ns_required = 0U;
+    int post_status = VAL_SUCCESS;
 
     if (!tc)
         return;
@@ -295,14 +295,11 @@ static void run_test_case(const firme_test_case_t *tc,
                      (unsigned long long)res_ns.x2,
                      (unsigned long long)res_ns.x3);
         }
-    } else {
-        res_ns.x0 = ns_required ? (uint64_t)ACS_STATUS_ERR : (uint64_t)ACS_STATUS_SKIP;
+    } else if (ns_required) {
+        res_ns.x0 = (uint64_t)ACS_STATUS_ERR;
         res_ns.x1 = FIRME_WORLD_MASK_NS;
-        if (ns_required) {
-            LOG_ERROR(NULL, "Check %u: required NS body missing", (unsigned)check_idx);
-        } else {
-            LOG_WARN(NULL, "Check %u: NS body missing", (unsigned)check_idx);
-        }
+        LOG_ERROR(NULL, "Check %u: required NS body missing",
+                  (unsigned int)check_idx);
     }
 
     /* Combine: fail if any required or executed world fails; otherwise prefer PASS over SKIP. */

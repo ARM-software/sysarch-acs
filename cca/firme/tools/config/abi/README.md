@@ -33,3 +33,9 @@ Run the generator infrastructure regression checks with:
 ```sh
 python3 cca/firme/tools/scripts/test_generate_firme_abi_catalog.py
 ```
+
+The catalog also records the eight-bit FIRME service-ID width and every ALP4
+feature-register size. Generator validation enforces R0023 and R0041 as
+interface checks without claiming runtime DUT coverage. Non-Base feature
+register 1 descriptors include the 16-bit `MAX_CONCURRENT_OP_CNT` field used
+by the strict R0064 and R0065 runtime bodies.

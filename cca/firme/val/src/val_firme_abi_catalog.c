@@ -10,6 +10,98 @@
 
 #include <stddef.h>
 
+const val_firme_feature_register_descriptor_t
+    g_val_firme_feature_register_catalog[] = {
+    {
+        .size_bits = 64U,
+        .service_id = 0U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 0U,
+        .index = 1U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 1U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 1U,
+        .index = 1U,
+        .max_concurrent_op_shift = 9U,
+        .max_concurrent_op_width = 16U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 2U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 2U,
+        .index = 1U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 16U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 3U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 3U,
+        .index = 1U,
+        .max_concurrent_op_shift = 4U,
+        .max_concurrent_op_width = 16U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 4U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 4U,
+        .index = 1U,
+        .max_concurrent_op_shift = 13U,
+        .max_concurrent_op_width = 16U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 5U,
+        .index = 0U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 0U,
+    },
+    {
+        .size_bits = 64U,
+        .service_id = 5U,
+        .index = 1U,
+        .max_concurrent_op_shift = 0U,
+        .max_concurrent_op_width = 16U,
+    },
+};
+
+const uint32_t g_val_firme_feature_register_catalog_count =
+    (uint32_t)(sizeof(g_val_firme_feature_register_catalog) /
+               sizeof(g_val_firme_feature_register_catalog[0]));
+
 const val_firme_abi_descriptor_t g_val_firme_abi_catalog[] = {
     {
         .id = VAL_FIRME_ABI_ID_SERVICE_VERSION,
@@ -1220,6 +1312,32 @@ _Static_assert(VAL_FIRME_TEST_PLAN_COUNT ==
                (sizeof(g_val_firme_abi_test_plans) /
                 sizeof(g_val_firme_abi_test_plans[0])),
                "FIRME ABI test plan count mismatch");
+
+/**
+ * @brief Return feature-register metadata by service and index.
+ * @param service_id FIRME service identifier.
+ * @param index Feature-register index.
+ * @return Feature-register descriptor, or NULL when unallocated.
+ */
+const val_firme_feature_register_descriptor_t *
+val_firme_feature_register_catalog_get(uint32_t service_id,
+                                       uint32_t index)
+{
+    uint32_t descriptor_index;
+
+    for (descriptor_index = 0U;
+         descriptor_index < g_val_firme_feature_register_catalog_count;
+         descriptor_index++) {
+        const val_firme_feature_register_descriptor_t *descriptor =
+            &g_val_firme_feature_register_catalog[descriptor_index];
+
+        if (((uint32_t)descriptor->service_id == service_id) &&
+            ((uint32_t)descriptor->index == index))
+            return descriptor;
+    }
+
+    return NULL;
+}
 
 /**
  * @brief Return an ABI descriptor by stable identifier.

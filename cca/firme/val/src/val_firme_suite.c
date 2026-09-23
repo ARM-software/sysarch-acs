@@ -355,8 +355,10 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_base_service_presence_run_realm,
     },
     /*
-     * R0031 is a specification release-policy requirement with no executable
-     * test because it is not observable through a FIRME ABI.
+     * The strict R0031 body is implemented in
+     * test/base/specification_version_policy.c. Keep its registry entry gated
+     * until consecutive specification-release metadata is supplied through
+     * the policy probe. It validates publication metadata, not DUT behavior.
      */
     {
         .chapter = FIRME_CHAPTER_BASE,
@@ -531,14 +533,25 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_base_service_mandatory_run_realm,
     },
     /*
-     * R0070, R0071, R0076 and R0077 have documented deferred algorithms but
-     * no executable bodies or registry entries until a service-specific ABI
-     * driver can validate mappings, PAS/GPI, size bounds and alignment.
+     * Strict R0064 and R0065 bodies are implemented in
+     * test/base/max_concurrent_operations.c. They remain registry-gated while
+     * current TF-A advertises IDE key management without the ALP4 feature
+     * register 1 required by R0064. R0065 additionally reports SKIP for a
+     * non-zero advertised limit until retained operations can be driven
+     * collectively across ABIs and FIRME instances.
      */
     /*
-     * R0080, R0081 and R0082 have documented deferred algorithms but no
-     * executable bodies or registry entries until an attestation retrieval ABI
-     * driver can exercise final, intermediate and no-data paths against the DUT.
+     * Strict R0070, R0071, R0076 and R0077 bodies are implemented in
+     * test/base/shared_buffer_*.c. Keep their registry entries gated
+     * until an Attestation or Integrated Device adapter overrides the shared-
+     * buffer probe and supplies caller/EL3 mapping, PAS/GPI and ABI evidence.
+     * Do not replace the strict checks with Base feature-register inference.
+     */
+    /*
+     * Strict R0080, R0081 and R0082 bodies are implemented in
+     * test/base/partial_retrieval_*.c. Keep their registry entries gated until
+     * an Attestation or Integrated Device adapter drives last, intermediate
+     * and no-data retrieval paths through a real shared-buffer ABI.
      */
 #endif
 #if FIRME_ENABLE_IDE

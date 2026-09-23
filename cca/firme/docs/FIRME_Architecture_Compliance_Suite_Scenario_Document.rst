@@ -255,10 +255,13 @@ treated as a DUT issue.
     -
 
       1. Review the service-ID field definition against the specification.
-      2. Statically check that ACS allocations fit the eight-bit field.
-      3. Do not add a runtime body or registry entry: upper input bits are SBZ,
+      2. Run the ABI catalog generator check, which requires an eight-bit
+         service-ID definition and stores descriptor IDs in an eight-bit type.
+      3. Confirm every reviewed ABI and feature-register descriptor uses an
+         allocated service ID within that field.
+      4. Do not add a runtime body or registry entry: upper input bits are SBZ,
          so legal calls cannot distinguish an eight-bit decoder from a wider one.
-      4. Unallocated-ID behavior is handled separately by R0024.
+      5. Unallocated-ID behavior is handled separately by R0024.
 
   * -
 
@@ -313,7 +316,7 @@ treated as a DUT issue.
 
   * -
 
-      Static specification version policy review
+      `specification_version_policy <../test/base/specification_version_policy.c>`_
 
     -
 
@@ -402,14 +405,14 @@ treated as a DUT issue.
 
     -
 
-      1. Discover every allocated service and read all registers defined in its
-         ALP4 feature table, using the complete 64-bit result.
-      2. Fail unexpected discovery responses or a missing defined register.
-      3. Review the non-zero, 64-bit-multiple sizes against the interface tables.
-         ``FIRME_SERVICE_FEATURES`` does not return a size field; neither the
-         register count nor a local ``sizeof`` check proves DUT width.
-      4. Do not add a runtime body or registry entry; classify R0041 as a
-         static interface-table requirement until size metadata is observable.
+      1. Record every ALP4 feature register in the reviewed ABI catalog.
+      2. Run generator validation and require each declared size to be non-zero
+         and divisible by 64.
+      3. Generate the runtime descriptor table only after that validation.
+      4. Do not add a runtime body or registry entry: ``FIRME_SERVICE_FEATURES``
+         returns register values but does not expose register-size metadata.
+         This check protects the ACS interface model and does not claim DUT
+         runtime coverage.
 
   * -
 
@@ -527,7 +530,7 @@ treated as a DUT issue.
 
   * -
 
-      Planned concurrent-operation count discovery
+      `max_concurrent_operations (R0064) <../test/base/max_concurrent_operations.c>`_
 
     -
 
@@ -548,7 +551,7 @@ treated as a DUT issue.
 
   * -
 
-      Planned collective concurrent-operation limit validation
+      `max_concurrent_operations (R0065) <../test/base/max_concurrent_operations.c>`_
 
     -
 
@@ -576,7 +579,7 @@ treated as a DUT issue.
 
   * -
 
-      Deferred shared-buffer mapping algorithm
+      Registry-gated shared-buffer mapping algorithm
 
     -
 
@@ -584,14 +587,20 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry when a service-specific ABI
-         consumes a shared buffer.
-      2. Validate the EL3 mapping as Normal, Write-Back Cacheable and Inner-shareable.
-      3. Do not infer mapping behavior from Base feature-register metadata.
+      1. Select an implemented Attestation or Integrated Device ABI that
+         consumes a shared buffer and prepare otherwise-valid service inputs.
+      2. Invoke the ABI and collect the caller and EL3 translation-regime
+         mapping attributes for the buffer used by that invocation.
+      3. Verify both mappings are Normal, Write-Back Cacheable and
+         Inner-shareable.
+      4. Clean up the service operation and buffer mappings.
+      5. Keep the body registry-gated until a service-specific probe can
+         provide both mapping observations; do not infer them from Base
+         feature-register metadata.
 
   * -
 
-      Deferred shared-buffer PAS/GPI algorithm
+      Registry-gated shared-buffer PAS/GPI algorithm
 
     -
 
@@ -599,14 +608,18 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry when a service-specific ABI
-         consumes a shared buffer.
-      2. Validate the buffer PAS and GPT GPI for the invoking FIRME instance.
-      3. Do not infer ownership from the caller world without an actual service invocation.
+      1. Select an implemented Attestation or Integrated Device ABI that
+         consumes a shared buffer and invoke it with otherwise-valid inputs.
+      2. Observe the PAS and GPT GPI of the actual buffer used by the ABI.
+      3. Verify both correspond to the invoking NS, Secure or Realm FIRME
+         instance.
+      4. Clean up the service operation and buffer state.
+      5. Keep the body registry-gated until a service-specific probe can
+         provide PAS and GPI evidence from a real invocation.
 
   * -
 
-      Deferred shared-buffer size algorithm
+      Registry-gated shared-buffer size algorithm
 
     -
 
@@ -614,15 +627,20 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry when a service-specific ABI
-         consumes a shared buffer.
-      2. Invoke that ABI with buffers below, within and above the advertised bounds.
-      3. Validate acceptance and rejection from observable DUT responses; decoding the
-         related fields alone does not validate the size rule.
+      1. Read ``MIN_SH_BUF_SZ`` and ``MAX_SH_BUF_PG_CNT`` from Base feature
+         register 1 and derive the minimum and maximum buffer sizes.
+      2. Invoke a real buffer-consuming ABI with Page count equal to zero and
+         verify that the minimum-size buffer is accepted.
+      3. Invoke it with Page count equal to ``MAX_SH_BUF_PG_CNT`` and verify
+         that the maximum-size buffer is accepted.
+      4. Invoke it with a Page count above the advertised maximum and expect
+         ``INVALID_PARAMETERS``.
+      5. Clean up each operation and keep the body registry-gated until the
+         required service-specific probe is available.
 
   * -
 
-      Deferred shared-buffer alignment algorithm
+      Registry-gated shared-buffer alignment algorithm
 
     -
 
@@ -630,14 +648,18 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry when a service-specific ABI
-         consumes a shared buffer.
-      2. Invoke that ABI with aligned and deliberately misaligned buffer addresses.
-      3. Validate alignment handling from observable DUT responses.
+      1. Read the minimum shared-buffer size and alignment from Base feature
+         register 1.
+      2. Invoke a real buffer-consuming ABI with a base address aligned to the
+         minimum size and verify that the buffer is accepted.
+      3. Repeat with a deliberately misaligned base and expect
+         ``INVALID_PARAMETERS``.
+      4. Clean up each operation and keep the body registry-gated until the
+         required service-specific probe is available.
 
   * -
 
-      Deferred last-chunk retrieval algorithm
+      `partial_retrieval_last_chunk <../test/base/partial_retrieval_last_chunk.c>`_
 
     -
 
@@ -645,13 +667,15 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
-      2. Exercise a final chunk that writes data and completes retrieval.
-      3. Validate non-zero written size and zero remaining size from the real ABI response.
+      1. Use the service adapter to drive a real Attestation or Integrated
+         Device retrieval through its final non-empty chunk.
+      2. Require ``SUCCESS``, non-zero Written size, and zero Remaining size.
+      3. Clean up the retrieval operation and shared buffer.
+      4. Keep the body registry-gated until the service adapter is available.
 
   * -
 
-      Deferred intermediate-chunk retrieval algorithm
+      `partial_retrieval_intermediate_chunk <../test/base/partial_retrieval_intermediate_chunk.c>`_
 
     -
 
@@ -659,13 +683,16 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
-      2. Exercise a first or intermediate chunk with data still remaining.
-      3. Validate non-zero written and remaining sizes from the real ABI response.
+      1. Use a controlled buffer size to force a real retrieval to return a
+         first or intermediate non-empty chunk.
+      2. Require ``INCOMPLETE``, non-zero Written size, and non-zero Remaining
+         size.
+      3. Continue and clean up the retrieval operation.
+      4. Keep the body registry-gated until the service adapter is available.
 
   * -
 
-      Deferred no-chunk retrieval algorithm
+      `partial_retrieval_no_chunk <../test/base/partial_retrieval_no_chunk.c>`_
 
     -
 

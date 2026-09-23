@@ -12,6 +12,7 @@
 
 #define VAL_FIRME_ABI_REGISTER_COUNT 18U
 #define VAL_FIRME_ABI_WORLD_COUNT 3U
+#define VAL_FIRME_SERVICE_ID_WIDTH 8U
 #define VAL_FIRME_ABI_WORLD_MASK_NS (UINT32_C(1) << 0)
 #define VAL_FIRME_ABI_WORLD_MASK_SECURE (UINT32_C(1) << 1)
 #define VAL_FIRME_ABI_WORLD_MASK_REALM (UINT32_C(1) << 2)
@@ -114,7 +115,7 @@ typedef struct {
     uint64_t fid;
     uint64_t feature_bit;
     uint64_t input_bit_masks[VAL_FIRME_ABI_REGISTER_COUNT];
-    uint32_t service_id;
+    uint8_t service_id;
     uint32_t input_register_mask;
     uint32_t output_register_mask;
     uint32_t allowed_status_mask;
@@ -122,6 +123,14 @@ typedef struct {
     val_firme_abi_result_model_t result_model;
     val_firme_abi_world_policy_t world_policy[VAL_FIRME_ABI_WORLD_COUNT];
 } val_firme_abi_descriptor_t;
+
+typedef struct {
+    uint16_t size_bits;
+    uint8_t service_id;
+    uint8_t index;
+    uint8_t max_concurrent_op_shift;
+    uint8_t max_concurrent_op_width;
+} val_firme_feature_register_descriptor_t;
 
 typedef struct {
     const char *name;
@@ -152,6 +161,9 @@ typedef struct {
 
 extern const val_firme_abi_descriptor_t g_val_firme_abi_catalog[];
 extern const uint32_t g_val_firme_abi_catalog_count;
+extern const val_firme_feature_register_descriptor_t
+    g_val_firme_feature_register_catalog[];
+extern const uint32_t g_val_firme_feature_register_catalog_count;
 extern const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[];
 extern const uint32_t g_val_firme_abi_test_plan_count;
 
@@ -162,6 +174,11 @@ const val_firme_abi_descriptor_t *val_firme_abi_catalog_get(
 /** Return an ABI descriptor by function identifier, or NULL. */
 const val_firme_abi_descriptor_t *val_firme_abi_catalog_find_fid(
     uint64_t fid);
+
+/** Return feature-register metadata by service and index, or NULL. */
+const val_firme_feature_register_descriptor_t *
+val_firme_feature_register_catalog_get(uint32_t service_id,
+                                       uint32_t index);
 
 /** Return a generated test plan by stable identifier, or NULL. */
 const val_firme_abi_test_plan_t *val_firme_abi_test_plan_get(
