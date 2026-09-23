@@ -68,8 +68,8 @@ static void test_reset(void)
     g_base_reg0 = TEST_UNUSED | FIRME_BASE_FEATURE_REG0_MANDATORY_BITS;
     g_base_reg1 = TEST_UNUSED | TEST_UNUSED_SERVICE |
                   val_firme_base_service_list_bit(FIRME_SERVICE_ID_GRANULE_MGMT);
-    g_gm_reg0 = TEST_UNUSED | FIRME_GM_FEATURE_REG0_GPI_SET_BIT |
-                FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT;
+    g_gm_reg0 = TEST_UNUSED | val_firme_service_mandatory_abi_mask(
+        FIRME_ACS_WORLD_NSEL2, FIRME_SERVICE_ID_GRANULE_MGMT);
 }
 
 /** @brief Validate ignored outputs without relaxing mandatory/prohibited fields. */

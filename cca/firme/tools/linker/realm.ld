@@ -44,4 +44,19 @@ SECTIONS {
         QUAD(0); /* 32 KiB, force stack into binary */
         __stack_end__ = .;
     } > RAM
+
+    /*
+     * Dedicated Realm page for alternate-MECID semantic tests. Keep this
+     * section loadable so the firmware loader assigns the complete page to
+     * the Realm PAS before the payload accesses it.
+     */
+    .mec_test ORIGIN(RAM) + LENGTH(RAM) - 0x1000 : {
+        __mec_test_pa__ = .;
+        . = . + 0xff8;
+        QUAD(0);
+        __mec_test_end__ = .;
+    } > RAM
+
+    ASSERT(__stack_end__ <= __mec_test_pa__,
+           "Realm payload overlaps the reserved MEC test page")
 }

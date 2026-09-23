@@ -5,147 +5,297 @@
  *
  */
 
-#include "pal_platform.h"
 #include "val_firme_gpt.h"
 #include "val_log.h"
 
 #define GPT_SUCCESS_COUNT_TEST_NAME "gpt_success_granule_count"
 #define GPT_SUCCESS_COUNT_STEP_ADVERTISE UINT64_C(1)
-#define GPT_SUCCESS_COUNT_STEP_RESULT    UINT64_C(2)
-#define GPT_SUCCESS_COUNT_STRICT_COUNT   UINT64_C(2)
+#define GPT_SUCCESS_COUNT_STEP_FEATURE   UINT64_C(2)
+#define GPT_SUCCESS_COUNT_STEP_SETUP     UINT64_C(10)
+#define GPT_SUCCESS_COUNT_STEP_RESULT    UINT64_C(20)
+#define GPT_SUCCESS_COUNT_STEP_PREFIX    UINT64_C(30)
+#define GPT_SUCCESS_COUNT_STEP_BOUNDARY  UINT64_C(40)
+#define GPT_SUCCESS_COUNT_STEP_CLEANUP   UINT64_C(50)
+#define GPT_SUCCESS_COUNT_GRANULES       UINT64_C(2)
 
+/**
+ *   @brief    - Initialise an R0113 result record.
+ *   @param    - out : Optional result record.
+ *   @return   - void.
+ **/
 static void gpt_success_count_init(firme_rule_res_t *out)
 {
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
-        out->fail_step = 0;
-        out->last_x0 = 0;
-        out->last_x1 = 0;
+        out->fail_step = 0ULL;
+        out->last_x0 = 0ULL;
+        out->last_x1 = 0ULL;
     }
 }
 
-static uint32_t gpt_success_count_expect(firme_res_t *res, uint64_t expected_count,
-                                         firme_rule_res_t *out, uint64_t fail_step)
+/**
+ *   @brief    - Record an ABI-result failure for R0113.
+ *   @param    - out       : Optional result record.
+ *   @param    - fail_step : Failure step identifier.
+ *   @param    - result    : ABI result to record.
+ *   @return   - void.
+ **/
+static void gpt_success_count_record(firme_rule_res_t *out,
+                                     uint64_t fail_step,
+                                     const firme_res_t *result)
 {
-    if (!val_firme_status_success(res->x0, res->x1, expected_count)) {
-        LOG_ERROR(NULL, "%s: expected count=%llu x0=%llx x1=%llx",
-                  GPT_SUCCESS_COUNT_TEST_NAME, (unsigned long long)expected_count,
-                  (unsigned long long)res->x0, (unsigned long long)res->x1);
+    if (out) {
+        out->fail_step = fail_step;
+        out->last_x0 = result ? result->x0 : 0ULL;
+        out->last_x1 = result ? result->x1 : 0ULL;
+    }
+}
+
+/**
+ *   @brief    - Check whether the current caller can access one granule.
+ *   @param    - address       : Granule address to probe.
+ *   @param    - expect_access : VAL_TRUE for access, VAL_FALSE for a GPF.
+ *   @param    - out           : Optional result record.
+ *   @param    - fail_step     : Failure step identifier.
+ *   @return   - VAL_TRUE when access matches the expected state.
+ **/
+static uint32_t gpt_success_count_expect_access(uint64_t address,
+                                                uint32_t expect_access,
+                                                firme_rule_res_t *out,
+                                                uint64_t fail_step)
+{
+    val_fault_info_t fault_info = {0};
+    uint64_t value = 0ULL;
+    uint32_t matched = VAL_FALSE;
+
+    val_probe_read64(address, &value, &fault_info);
+    if (expect_access == VAL_TRUE)
+        matched = (uint32_t)(fault_info.faulted == 0ULL);
+    else
+        matched = (uint32_t)((fault_info.faulted != 0ULL) &&
+                             val_fault_is_gpf(fault_info.esr));
+
+    if (matched == VAL_FALSE) {
+        LOG_ERROR(NULL,
+                  "%s: access mismatch PA=%llx expected=%u faulted=%llu esr=%llx",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)address,
+                  (unsigned int)expect_access,
+                  (unsigned long long)fault_info.faulted,
+                  (unsigned long long)fault_info.esr);
         if (out) {
             out->fail_step = fail_step;
-            out->last_x0 = res->x0;
-            out->last_x1 = res->x1;
+            out->last_x0 = fault_info.esr;
+            out->last_x1 = address;
         }
+    }
+
+    return matched;
+}
+
+/**
+ *   @brief    - Put one granule in NS state for setup or cleanup.
+ *   @param    - address   : Granule address.
+ *   @param    - out       : Optional result record.
+ *   @param    - fail_step : Failure step identifier.
+ *   @return   - VAL_TRUE when the granule is confirmed inaccessible to caller.
+ **/
+static uint32_t gpt_success_count_prepare_ns(uint64_t address,
+                                             firme_rule_res_t *out,
+                                             uint64_t fail_step)
+{
+    firme_res_t result = {0};
+    int64_t status = 0;
+    const uint64_t granule_count = UINT64_C(1);
+
+    if (val_firme_gm_gpi_set_complete(address, granule_count,
+                                      FIRME_GPI_NONSECURE,
+                                      &result) != VAL_SUCCESS) {
+        LOG_ERROR(NULL, "%s: NS setup did not complete PA=%llx",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)address);
+        gpt_success_count_record(out, fail_step, &result);
         return VAL_FALSE;
     }
 
-    return VAL_TRUE;
+    status = val_firme_as_i64(result.x0);
+    if ((status == (int64_t)FIRME_SUCCESS) &&
+        (result.x1 != granule_count)) {
+        LOG_ERROR(NULL, "%s: NS setup returned invalid count x0=%llx x1=%llx",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)result.x0,
+                  (unsigned long long)result.x1);
+        gpt_success_count_record(out, fail_step, &result);
+        return VAL_FALSE;
+    }
+
+    if ((status != (int64_t)FIRME_SUCCESS) &&
+        (status != (int64_t)FIRME_DENIED)) {
+        LOG_ERROR(NULL, "%s: NS setup returned unexpected status x0=%llx x1=%llx",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)result.x0,
+                  (unsigned long long)result.x1);
+        gpt_success_count_record(out, fail_step, &result);
+        return VAL_FALSE;
+    }
+
+    return gpt_success_count_expect_access(address, VAL_FALSE, out, fail_step);
 }
 
 /**
- *   @brief    - Validate Secure GM_GPI_SET SUCCESS reports transitioned count.
- *   @param    - base_pa : Base PA for the GPT test window.
- *   @param    - out     : Optional result record.
+ *   @brief    - Run the R0113 successful-prefix check from one caller world.
+ *   @param    - base_pa    : Platform GPT test-window base.
+ *   @param    - target_gpi : Caller-world target GPI.
+ *   @param    - out        : Optional result record.
  *   @return   - VAL_SUCCESS when a rule result is produced.
-**/
-int firme_gpt_success_granule_count_run_secure(uint64_t base_pa, firme_rule_res_t *out)
+ **/
+static int gpt_success_count_run(uint64_t base_pa,
+                                 uint64_t target_gpi,
+                                 firme_rule_res_t *out)
 {
-    firme_res_t res = {0};
-    const uint64_t first_pa = base_pa;
-    const uint64_t second_pa = base_pa + (uint64_t)PLAT_FIRME_GPT_GRANULE_SIZE;
-    const uint64_t single_granule = UINT64_C(1);
-    const uint64_t test_granules = GPT_SUCCESS_COUNT_STRICT_COUNT;
+    firme_res_t result = {0};
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t granule_size = 0ULL;
+    uint64_t current_pa = 0ULL;
+    uint64_t remaining = GPT_SUCCESS_COUNT_GRANULES;
+    uint64_t total = 0ULL;
+    uint64_t progress = 0ULL;
+    uint64_t index = 0ULL;
+    uint32_t main_passed = VAL_FALSE;
+    uint32_t cleanup_passed = VAL_TRUE;
 
     gpt_success_count_init(out);
 
-    if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
+    if (!val_firme_feat_rme_present() || (base_pa == 0ULL)) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
         return VAL_SUCCESS;
     }
 
-    if (val_firme_gpt_gpi_set_advertised(out, GPT_SUCCESS_COUNT_STEP_ADVERTISE) == VAL_FALSE)
+    if (val_firme_gpt_gpi_set_advertised(
+            out, GPT_SUCCESS_COUNT_STEP_ADVERTISE) == VAL_FALSE)
         return VAL_SUCCESS;
 
-    /* Step 1: seed two adjacent granules as NS. */
-    val_firme_gm_gpi_set_complete(first_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-    val_firme_gm_gpi_set_complete(second_pa, single_granule, FIRME_GPI_NONSECURE, &res);
+    /* Step 1: derive PGS and validate the two-granule platform window. */
+    if (val_firme_gpt_feature_reg1(&feature_reg1, out,
+                                   GPT_SUCCESS_COUNT_STEP_FEATURE) == VAL_FALSE)
+        return VAL_SUCCESS;
 
-    /* Step 2: transition both granules and verify the returned progress count. */
-    val_firme_gm_gpi_set_complete(first_pa, test_granules, FIRME_GPI_SECURE, &res);
-    if (gpt_success_count_expect(&res, test_granules, out,
-                                 GPT_SUCCESS_COUNT_STEP_RESULT) == VAL_FALSE)
+    granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    if ((granule_size == 0ULL) ||
+        ((base_pa % granule_size) != 0ULL) ||
+        (base_pa > (UINT64_MAX - granule_size))) {
+        LOG_ERROR(NULL, "%s: invalid test window base=%llx PGS=%llx",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)base_pa,
+                  (unsigned long long)granule_size);
+        if (out) {
+            out->fail_step = GPT_SUCCESS_COUNT_STEP_FEATURE;
+            out->last_x0 = base_pa;
+            out->last_x1 = granule_size;
+        }
+        return VAL_SUCCESS;
+    }
+
+    /* Step 2: establish both adjacent granules as Non-secure. */
+    if (gpt_success_count_prepare_ns(base_pa, out,
+                                     GPT_SUCCESS_COUNT_STEP_SETUP) == VAL_FALSE)
+        goto cleanup;
+    if (gpt_success_count_prepare_ns(base_pa + granule_size, out,
+                                     GPT_SUCCESS_COUNT_STEP_SETUP + UINT64_C(1)) ==
+        VAL_FALSE)
         goto cleanup;
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    /*
+     * Step 3: inspect each raw SUCCESS response. A partial count is valid,
+     * but it must identify exactly the contiguous transitioned prefix.
+     */
+    current_pa = base_pa;
+    while (remaining != 0ULL) {
+        val_firme_gm_gpi_set_do(current_pa, remaining, target_gpi, &result);
+        if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_SUCCESS) ||
+            (result.x1 == 0ULL) || (result.x1 > remaining)) {
+            LOG_ERROR(NULL,
+                      "%s: invalid progress remaining=%llu x0=%llx x1=%llx",
+                      GPT_SUCCESS_COUNT_TEST_NAME,
+                      (unsigned long long)remaining,
+                      (unsigned long long)result.x0,
+                      (unsigned long long)result.x1);
+            gpt_success_count_record(out, GPT_SUCCESS_COUNT_STEP_RESULT,
+                                     &result);
+            goto cleanup;
+        }
+
+        progress = result.x1;
+        for (index = 0ULL; index < progress; index++) {
+            if (gpt_success_count_expect_access(
+                    current_pa + (index * granule_size), VAL_TRUE, out,
+                    GPT_SUCCESS_COUNT_STEP_PREFIX + total + index) == VAL_FALSE)
+                goto cleanup;
+        }
+
+        if ((progress < remaining) &&
+            (gpt_success_count_expect_access(
+                 current_pa + (progress * granule_size), VAL_FALSE, out,
+                 GPT_SUCCESS_COUNT_STEP_BOUNDARY + total) == VAL_FALSE))
+            goto cleanup;
+
+        current_pa += progress * granule_size;
+        remaining -= progress;
+        total += progress;
+    }
+
+    if (total != GPT_SUCCESS_COUNT_GRANULES) {
+        LOG_ERROR(NULL, "%s: transitioned total=%llu expected=%llu",
+                  GPT_SUCCESS_COUNT_TEST_NAME,
+                  (unsigned long long)total,
+                  (unsigned long long)GPT_SUCCESS_COUNT_GRANULES);
+        if (out) {
+            out->fail_step = GPT_SUCCESS_COUNT_STEP_RESULT;
+            out->last_x0 = total;
+            out->last_x1 = GPT_SUCCESS_COUNT_GRANULES;
+        }
+        goto cleanup;
+    }
+
+    main_passed = VAL_TRUE;
 
 cleanup:
-    val_firme_gm_gpi_set_complete(first_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-    val_firme_gm_gpi_set_complete(second_pa, single_granule, FIRME_GPI_NONSECURE, &res);
+    /* Step 4: restore both granules to NS even after a partial failure. */
+    if (gpt_success_count_prepare_ns(base_pa, out,
+                                     GPT_SUCCESS_COUNT_STEP_CLEANUP) == VAL_FALSE)
+        cleanup_passed = VAL_FALSE;
+    if (gpt_success_count_prepare_ns(base_pa + granule_size, out,
+                                     GPT_SUCCESS_COUNT_STEP_CLEANUP + UINT64_C(1)) ==
+        VAL_FALSE)
+        cleanup_passed = VAL_FALSE;
+
+    if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
+        out->status = (uint64_t)ACS_STATUS_PASS;
+
     return VAL_SUCCESS;
 }
 
 /**
- *   @brief    - Validate Realm GM_GPI_SET SUCCESS reports transitioned count.
- *   @param    - base_pa : Base PA for the GPT test window.
+ *   @brief    - Validate R0113 from the Secure FIRME instance.
+ *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
  *   @return   - VAL_SUCCESS when a rule result is produced.
-**/
-int firme_gpt_success_granule_count_run_realm(uint64_t base_pa, firme_rule_res_t *out)
+ **/
+int firme_gpt_success_granule_count_run_secure(uint64_t base_pa,
+                                               firme_rule_res_t *out)
 {
-    firme_res_t res = {0};
-    const uint64_t first_pa = base_pa;
-    const uint64_t second_pa = base_pa + (uint64_t)PLAT_FIRME_GPT_GRANULE_SIZE;
-    const uint64_t single_granule = UINT64_C(1);
-    const uint64_t test_granules = GPT_SUCCESS_COUNT_STRICT_COUNT;
-
-    gpt_success_count_init(out);
-
-    if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
-        if (out)
-            out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
-    }
-
-    if (val_firme_gpt_gpi_set_advertised(out, GPT_SUCCESS_COUNT_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
-
-    /* Step 1: seed two adjacent granules as NS. */
-    val_firme_gm_gpi_set_complete(first_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-    val_firme_gm_gpi_set_complete(second_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-
-    /* Step 2: transition both granules and verify the returned progress count. */
-    val_firme_gm_gpi_set_complete(first_pa, test_granules, FIRME_GPI_REALM, &res);
-    if (gpt_success_count_expect(&res, test_granules, out,
-                                 GPT_SUCCESS_COUNT_STEP_RESULT) == VAL_FALSE)
-        goto cleanup;
-
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
-
-cleanup:
-    val_firme_gm_gpi_set_complete(first_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-    val_firme_gm_gpi_set_complete(second_pa, single_granule, FIRME_GPI_NONSECURE, &res);
-    return VAL_SUCCESS;
+    return gpt_success_count_run(base_pa, FIRME_GPI_SECURE, out);
 }
 
 /**
- *   @brief    - Report NS coverage as skipped when no NS changing transition is available.
- *   @param    - base_pa : Unused GPT test window base.
+ *   @brief    - Validate R0113 from the Realm FIRME instance.
+ *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
  *   @return   - VAL_SUCCESS when a rule result is produced.
-**/
-int firme_gpt_success_granule_count_run_ns(uint64_t base_pa, firme_rule_res_t *out)
+ **/
+int firme_gpt_success_granule_count_run_realm(uint64_t base_pa,
+                                              firme_rule_res_t *out)
 {
-    (void)base_pa;
-
-    if (out) {
-        out->status = (uint64_t)ACS_STATUS_SKIP;
-        out->fail_step = 0;
-        out->last_x0 = 0;
-        out->last_x1 = 0;
-    }
-
-    return VAL_SUCCESS;
+    return gpt_success_count_run(base_pa, FIRME_GPI_REALM, out);
 }

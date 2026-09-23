@@ -25,9 +25,15 @@ uint64_t read_id_aa64mmfr4_el1(void);
 uint64_t read_mecidr_el2(void);
 uint64_t val_read_id_aa64mmfr0_el1(void);
 uint64_t val_read_tcr_el2(void);
-void val_tlbi_all_el2(void);
 void val_cache_clean_poc(uintptr_t start, size_t size);
 void val_mp_relax(void);
+uint64_t read_ctr_el0(void);
+uint64_t read_tcr2_el2(void);
+void write_tcr2_el2(uint64_t v);
+uint64_t read_sctlr2_el2(void);
+void write_sctlr2_el2(uint64_t v);
+uint64_t read_mecid_a0_el2(void);
+void write_mecid_a0_el2(uint64_t v);
 
 uint64_t read_cptr_el2(void);
 void write_cptr_el2(uint64_t v);
@@ -54,6 +60,8 @@ void write_mair_el1(uint64_t v);
 
 void dsb_sy(void);
 void isb_sy(void);
+void val_tlbi_all_el2(void);
+void val_dcache_clean_invalidate_poe_realm(uint64_t pa);
 
 void enable_irq(void);
 void disable_irq(void);

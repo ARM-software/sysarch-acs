@@ -176,6 +176,8 @@ extern int firme_gpt_granule_management_abi_compliance_run_realm(uint64_t base_p
 extern int firme_gpt_granule_management_abi_compliance_run_ns(uint64_t base_pa,
                                                               firme_rule_res_t *out);
 extern int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_base_alignment_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_base_alignment_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_same_gpi_transition_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_same_gpi_transition_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_same_gpi_transition_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -189,10 +191,10 @@ extern int firme_gpt_start_granule_run_realm(uint64_t base_pa, firme_rule_res_t 
 extern int firme_gpt_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_success_granule_count_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_success_granule_count_run_realm(uint64_t base_pa, firme_rule_res_t *out);
-extern int firme_gpt_success_granule_count_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_gpi_set_progress_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_gpi_set_progress_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_success_count_nonzero_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_success_count_nonzero_run_realm(uint64_t base_pa, firme_rule_res_t *out);
-extern int firme_gpt_success_count_nonzero_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 #endif
@@ -717,6 +719,11 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
 #endif
 #if FIRME_ENABLE_MEC
+    /*
+     * Strict ALP4 bodies for R0236 and R0238 remain registry-gated because
+     * the current FVP TF-A refresh hook does not replace the MPE context.
+     * Re-enable them when the DUT provides an observable context refresh.
+     */
     {
         .chapter = FIRME_CHAPTER_MEC,
         .rule_id = FIRME_RULE_R0239,
@@ -788,21 +795,25 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = 0,
         .run_realm = 0,
     },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0090,
+        .rule_str = "R0090",
+        .suite = "firme",
+        .test_name = "gpt_base_alignment",
+        .desc = "GM_GPI_SET Base address is aligned to advertised PGS",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Secure GM_GPI_SET aligned and misaligned Base handling",
+        .check_realm = "Realm GM_GPI_SET aligned and misaligned Base handling",
+        .run_ns = 0,
+        .run_secure = firme_gpt_base_alignment_run_secure,
+        .run_realm = firme_gpt_base_alignment_run_realm,
+    },
     /*
-     * R0090 needs a dedicated test that exercises both an aligned request and
-     * the misaligned INVALID_PARAMETERS path.
-     *
-     * Strict ALP4 rule bodies below are implemented in test/gpt/ but are not
-     * scheduled until the reference DUT implements their ALP4 semantics:
-     *
-     * - R0092: same-GPI transitions are nops that complete with SUCCESS.
-     * - R0113: multi-granule SUCCESS reports the transitioned granule count.
-     * - R0120: all successful GPI management calls report non-zero progress;
-     *   the body covers NS, Secure, Realm, and OP_CONTINUE handling.
-     * - R0123: malformed inputs complete with INVALID_PARAMETERS.
-     *
-     * Do not relax these test bodies to match older DUT behavior. Enable each
-     * registry entry when the DUT claims the applicable ALP4 semantics.
+     * Strict ALP4 bodies for R0092, R0113, R0117, and R0123 remain
+     * registry-gated while current TF-A returns non-conformant status values
+     * for those scenarios. Re-enable them after the corresponding DUT fixes.
      */
     {
         .chapter = FIRME_CHAPTER_GPT,
@@ -863,6 +874,21 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_ns = firme_gpt_start_granule_run_ns,
         .run_secure = firme_gpt_start_granule_run_secure,
         .run_realm = firme_gpt_start_granule_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0120,
+        .rule_str = "R0120",
+        .suite = "firme",
+        .test_name = "gpt_success_count_nonzero",
+        .desc = "GM_GPI_SET SUCCESS reports non-zero progress",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Secure GM_GPI_SET SUCCESS count is non-zero",
+        .check_realm = "Realm GM_GPI_SET SUCCESS count is non-zero",
+        .run_ns = 0,
+        .run_secure = firme_gpt_success_count_nonzero_run_secure,
+        .run_realm = firme_gpt_success_count_nonzero_run_realm,
     },
     {
         .chapter = FIRME_CHAPTER_GPT,

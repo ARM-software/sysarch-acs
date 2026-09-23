@@ -42,11 +42,14 @@ static const val_firme_service_desc_t g_val_firme_service_desc[] = {
                           VAL_FIRME_SERVICE_WORLD_REALM,
         .allocated_abi_mask = FIRME_GM_FEATURE_REG0_ALLOCATED_BITS,
         .mandatory_ns_mask = FIRME_GM_FEATURE_REG0_GPI_SET_BIT |
-                             FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT,
+                             FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT |
+                             FIRME_GM_FEATURE_REG0_GPT_INFO_BIT,
         .mandatory_secure_mask = FIRME_GM_FEATURE_REG0_GPI_SET_BIT |
-                                 FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT,
+                                 FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT |
+                                 FIRME_GM_FEATURE_REG0_GPT_INFO_BIT,
         .mandatory_realm_mask = FIRME_GM_FEATURE_REG0_GPI_SET_BIT |
-                                FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT,
+                                FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT |
+                                FIRME_GM_FEATURE_REG0_GPT_INFO_BIT,
         .optional_realm_mask = FIRME_GM_FEATURE_REG0_L1_CREATE_BIT |
                                FIRME_GM_FEATURE_REG0_L1_DESTROY_BIT,
     },

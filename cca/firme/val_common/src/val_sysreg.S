@@ -17,10 +17,16 @@
  * ID_AA64PFR1_EL1  == S3_0_C0_C4_1.
  * ID_AA64MMFR4_EL1 == S3_0_C0_C7_4.
  * MECIDR_EL2       == S3_4_C10_C8_7.
+ * TCR2_EL2         == S3_4_C2_C0_3.
+ * SCTLR2_EL2       == S3_4_C1_C0_3.
+ * MECID_A0_EL2     == S3_4_C10_C8_1.
  */
 #define VAL_SYSREG_ID_AA64PFR1_EL1  S3_0_C0_C4_1
 #define VAL_SYSREG_ID_AA64MMFR4_EL1 S3_0_C0_C7_4
 #define VAL_SYSREG_MECIDR_EL2       S3_4_C10_C8_7
+#define VAL_SYSREG_TCR2_EL2         S3_4_C2_C0_3
+#define VAL_SYSREG_SCTLR2_EL2       S3_4_C1_C0_3
+#define VAL_SYSREG_MECID_A0_EL2     S3_4_C10_C8_1
 
     .global read_currentel
 read_currentel:
@@ -50,6 +56,44 @@ read_id_aa64mmfr4_el1:
     .global read_mecidr_el2
 read_mecidr_el2:
     mrs x0, VAL_SYSREG_MECIDR_EL2
+    ret
+
+    .global read_ctr_el0
+read_ctr_el0:
+    mrs x0, CTR_EL0
+    ret
+
+    .global read_tcr2_el2
+read_tcr2_el2:
+    mrs x0, VAL_SYSREG_TCR2_EL2
+    ret
+
+    .global write_tcr2_el2
+write_tcr2_el2:
+    msr VAL_SYSREG_TCR2_EL2, x0
+    isb
+    ret
+
+    .global read_sctlr2_el2
+read_sctlr2_el2:
+    mrs x0, VAL_SYSREG_SCTLR2_EL2
+    ret
+
+    .global write_sctlr2_el2
+write_sctlr2_el2:
+    msr VAL_SYSREG_SCTLR2_EL2, x0
+    isb
+    ret
+
+    .global read_mecid_a0_el2
+read_mecid_a0_el2:
+    mrs x0, VAL_SYSREG_MECID_A0_EL2
+    ret
+
+    .global write_mecid_a0_el2
+write_mecid_a0_el2:
+    msr VAL_SYSREG_MECID_A0_EL2, x0
+    isb
     ret
 
     .global read_cptr_el2
@@ -138,15 +182,6 @@ val_read_tcr_el2:
     mrs x0, TCR_EL2
     ret
 
-/** @brief Invalidate EL2 stage-1 translations after publishing descriptors. */
-    .global val_tlbi_all_el2
-val_tlbi_all_el2:
-    dsb sy
-    tlbi alle2is
-    dsb sy
-    isb
-    ret
-
 /** @brief Yield without waiting indefinitely for an event during an ABI retry. */
     .global val_mp_relax
 val_mp_relax:
@@ -216,6 +251,25 @@ dsb_sy:
 
     .global isb_sy
 isb_sy:
+    isb
+    ret
+
+    .global val_tlbi_all_el2
+val_tlbi_all_el2:
+    dsb ishst
+    tlbi alle2is
+    dsb ish
+    isb
+    ret
+
+    .global val_dcache_clean_invalidate_poe_realm
+val_dcache_clean_invalidate_poe_realm:
+    /* Encode the Realm PAS in DC CIPAE operand bits[63:62]. */
+    mov x1, #3
+    lsl x1, x1, #62
+    orr x0, x0, x1
+    sys #4, c7, c14, #0, x0
+    dsb sy
     isb
     ret
 

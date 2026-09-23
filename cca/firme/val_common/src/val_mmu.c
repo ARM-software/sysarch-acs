@@ -21,10 +21,16 @@
 
 #define PAGE_SIZE 4096UL
 #define L1_ENTRIES 512U
+#define L2_ENTRIES 512U
+#define L3_ENTRIES 512U
 
 /* Descriptor bits (Block at level 1). */
 #define DESC_TYPE_BLOCK 0x1UL
+#define DESC_TYPE_TABLE 0x3UL
+#define DESC_TYPE_PAGE  0x3UL
 #define DESC_AF (1UL << 10)
+#define DESC_AMEC (UINT64_C(1) << 63)
+#define DESC_ADDRESS_MASK UINT64_C(0x0000FFFFFFFFF000)
 
 /* AttrIndx in [4:2]. */
 #define DESC_ATTRINDX_SHIFT 2
@@ -46,7 +52,11 @@
 #define MAIR_ATTR_DEVICE_nGnRE 0x04UL
 #define MAIR_ATTR_NORMAL_WBWA  0xFFUL
 
-static uint64_t __attribute__((aligned(PAGE_SIZE))) g_l1[L1_ENTRIES];
+static _Alignas(PAGE_SIZE) uint64_t g_l1[L1_ENTRIES];
+static _Alignas(PAGE_SIZE) uint64_t g_alias_l2[L2_ENTRIES];
+static _Alignas(PAGE_SIZE) uint64_t g_alias_l3[L3_ENTRIES];
+static uint64_t g_alias_va;
+static uint32_t g_alias_active;
 static uint64_t g_device_base;
 static uint64_t g_device_tcr;
 static uint32_t g_device_active;
@@ -54,6 +64,7 @@ static uint32_t g_device_active;
 #define VAL_TCR_PS_SHIFT 16U
 #define VAL_TCR_PS_MASK (UINT64_C(7) << VAL_TCR_PS_SHIFT)
 #define VAL_TCR_PS_36 (UINT64_C(1) << VAL_TCR_PS_SHIFT)
+
 
 /**
  *   @brief    - Build a 1GiB block descriptor for an identity mapping.
@@ -64,17 +75,44 @@ static uint32_t g_device_active;
 **/
 static inline uint64_t make_block_desc(uint64_t pa, uint64_t attr, int xn)
 {
-    uint64_t d = 0;
-    d |= (pa & ~((1UL << 30) - 1)); /* 1GiB aligned */
-    d |= DESC_TYPE_BLOCK;
-    d |= DESC_AF;
-    d |= DESC_SH_IS;
-    d |= DESC_AP_RW;
-    d |= attr;
+    uint64_t descriptor = 0ULL;
+
+    descriptor |= (pa & ~((1UL << 30) - 1)); /* 1GiB aligned */
+    descriptor |= DESC_TYPE_BLOCK;
+    descriptor |= DESC_AF;
+    descriptor |= DESC_SH_IS;
+    descriptor |= DESC_AP_RW;
+    descriptor |= attr;
     if (xn) {
-        d |= DESC_PXN | DESC_UXN;
+        descriptor |= DESC_PXN | DESC_UXN;
     }
-    return d;
+    return descriptor;
+}
+
+/**
+ *   @brief    - Build a normal-memory page descriptor using the alternate MECID.
+ *   @param    - pa : Page-aligned physical address.
+ *   @return   - Descriptor value.
+ **/
+static uint64_t make_amec_page_desc(uint64_t pa)
+{
+    uint64_t descriptor = 0ULL;
+
+    descriptor = (pa & DESC_ADDRESS_MASK) | DESC_TYPE_PAGE | DESC_AF |
+                 DESC_SH_IS | DESC_AP_RW | DESC_ATTRINDX(1) | DESC_PXN |
+                 DESC_UXN | DESC_AMEC;
+    return descriptor;
+}
+
+/**
+ *   @brief    - Build a next-level translation-table descriptor.
+ *   @param    - table : Page-aligned translation-table address.
+ *   @return   - Descriptor value.
+ **/
+static uint64_t make_table_desc(const uint64_t *table)
+{
+    return ((uint64_t)(uintptr_t)table & DESC_ADDRESS_MASK) |
+           DESC_TYPE_TABLE;
 }
 
 /**
@@ -142,25 +180,33 @@ static void program_el1(void)
 void val_mmu_setup_identity_1g(mmu_el_t el, uint64_t dram_base, uint64_t dram_size)
 {
     const unsigned max_gib = 4;
-    uint64_t dram_end = 0;
+    uint64_t dram_end = 0ULL;
+    uint64_t pa = 0ULL;
+    unsigned int index = 0U;
 
-    for (unsigned i = 0; i < L1_ENTRIES; i++) {
-        g_l1[i] = 0;
-    }
+    for (index = 0U; index < L1_ENTRIES; index++)
+        g_l1[index] = 0ULL;
+    for (index = 0U; index < L2_ENTRIES; index++)
+        g_alias_l2[index] = 0ULL;
+    for (index = 0U; index < L3_ENTRIES; index++)
+        g_alias_l3[index] = 0ULL;
+    g_alias_va = 0ULL;
+    g_alias_active = 0U;
 
     /*
      * Map low 4GiB as Device (safe default for peripherals) and then override
      * the DRAM window as Normal memory.
      */
-    for (unsigned i = 0; i < max_gib; i++) {
-        uint64_t pa = (uint64_t)i << 30;
-        g_l1[i] = make_block_desc(pa, DESC_ATTRINDX(0), 1);
+    for (index = 0U; index < max_gib; index++) {
+        pa = (uint64_t)index << 30;
+        g_l1[index] = make_block_desc(pa, DESC_ATTRINDX(0), 1);
     }
 
     dram_end = dram_base + dram_size;
-    for (uint64_t pa = (dram_base & ~((1UL << 30) - 1)); pa < dram_end; pa += (1UL << 30)) {
-        unsigned idx = (unsigned)(pa >> 30);
-        g_l1[idx] = make_block_desc(pa, DESC_ATTRINDX(1), 0);
+    pa = dram_base & ~((1UL << 30) - 1);
+    for (; pa < dram_end; pa += (1UL << 30)) {
+        index = (unsigned int)(pa >> 30);
+        g_l1[index] = make_block_desc(pa, DESC_ATTRINDX(1), 0);
     }
 
     if (el == MMU_EL2) {
@@ -193,6 +239,7 @@ void val_mmu_enable(mmu_el_t el)
     dsb_sy();
     isb_sy();
 }
+
 /**
  * @brief Map an unused 1-GiB EL2 slot as non-executable Device memory.
  * @param base Aligned identity-mapped address below 64 GiB, on the primary PE.
@@ -249,5 +296,72 @@ int val_mmu_unmap_device_block_el2(uint64_t base)
     write_tcr_el2(g_device_tcr);
     val_tlbi_all_el2();
     g_device_active = VAL_FALSE;
+    return VAL_SUCCESS;
+}
+
+/**
+ *   @brief    - Map one EL2 page through the alternate MECID path.
+ *   @param    - va : Page-aligned virtual address.
+ *   @param    - pa : Page-aligned Realm physical address.
+ *   @return   - VAL_SUCCESS on success, otherwise VAL_ERROR.
+ **/
+int val_mmu_map_alternate_mecid_page_el2(uint64_t va, uint64_t pa)
+{
+    uint32_t l1_index = 0U;
+    uint32_t l2_index = 0U;
+    uint32_t l3_index = 0U;
+
+    if (((va | pa) & (PAGE_SIZE - 1UL)) != 0ULL)
+        return VAL_ERROR;
+    if ((va >> 39) != 0ULL)
+        return VAL_ERROR;
+    if (g_alias_active != 0U)
+        return VAL_ERROR;
+
+    l1_index = (uint32_t)((va >> 30) & UINT64_C(0x1FF));
+    l2_index = (uint32_t)((va >> 21) & UINT64_C(0x1FF));
+    l3_index = (uint32_t)((va >> 12) & UINT64_C(0x1FF));
+    if (g_l1[l1_index] != 0ULL)
+        return VAL_ERROR;
+
+    g_alias_l3[l3_index] = make_amec_page_desc(pa);
+    g_alias_l2[l2_index] = make_table_desc(g_alias_l3);
+    dsb_sy();
+    g_l1[l1_index] = make_table_desc(g_alias_l2);
+    val_tlbi_all_el2();
+
+    g_alias_va = va;
+    g_alias_active = 1U;
+    return VAL_SUCCESS;
+}
+
+/**
+ *   @brief    - Remove the active EL2 alternate-MECID page mapping.
+ *   @param    - va : Virtual address passed to the map operation.
+ *   @return   - VAL_SUCCESS on success, otherwise VAL_ERROR.
+ **/
+int val_mmu_unmap_alternate_mecid_page_el2(uint64_t va)
+{
+    uint32_t l1_index = 0U;
+    uint32_t l2_index = 0U;
+    uint32_t l3_index = 0U;
+
+    if ((g_alias_active == 0U) || (va != g_alias_va))
+        return VAL_ERROR;
+
+    l1_index = (uint32_t)((va >> 30) & UINT64_C(0x1FF));
+    l2_index = (uint32_t)((va >> 21) & UINT64_C(0x1FF));
+    l3_index = (uint32_t)((va >> 12) & UINT64_C(0x1FF));
+
+    g_alias_l3[l3_index] = 0ULL;
+    dsb_sy();
+    val_tlbi_all_el2();
+    g_alias_l2[l2_index] = 0ULL;
+    g_l1[l1_index] = 0ULL;
+    dsb_sy();
+    val_tlbi_all_el2();
+
+    g_alias_va = 0ULL;
+    g_alias_active = 0U;
     return VAL_SUCCESS;
 }

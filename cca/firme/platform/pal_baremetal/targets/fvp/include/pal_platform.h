@@ -61,6 +61,15 @@
 #define PLAT_DRAM_SIZE 0x80000000UL /* 2 GiB */
 #endif
 
+/* Realm-only alternate-MECID alias and ACS-reserved private test MECID. */
+#ifndef PLAT_FIRME_MEC_TEST_VA
+#define PLAT_FIRME_MEC_TEST_VA 0x4000000000ULL
+#endif
+
+#ifndef PLAT_FIRME_MEC_TEST_MECID
+#define PLAT_FIRME_MEC_TEST_MECID 3ULL
+#endif
+
 /*
  * Direct-messaging endpoint IDs (FVP default).
  *

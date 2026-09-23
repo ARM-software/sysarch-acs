@@ -24,21 +24,23 @@ caller security states BL31 expects in real deployments:
 Testcase checklist
 ==================
 
-Deferred coverage
------------------
+Registry-gated coverage
+-----------------------
 
-The following rules have documented algorithms but no executable body or
-registry entry because the ACS cannot yet drive the required observable ABI
-flow:
+R0031 has a strict executable release-policy body but remains outside the
+runtime registry. It needs reviewed consecutive specification and service
+version metadata; its result is a publication-policy check, not DUT behavior.
 
-- R0070, R0071, R0076, and R0077 need a service-specific ABI that
-  consumes a shared buffer. Until such a service driver is added, the ACS
-  cannot validate mapping attributes, PAS/GPI ownership, size bounds, or
-  base alignment from an actual service invocation.
-- R0080, R0081, and R0082 need a service-specific ABI that supports
-  partial retrieval. Until such a service driver is added, the ACS cannot
-  observe written-size and remaining-size semantics for last, intermediate,
-  or no-data chunks.
+R0070, R0071, R0076, and R0077 have strict executable bodies but remain
+outside the runtime registry. They need an Attestation or Integrated Device
+adapter that invokes a real shared-buffer ABI and supplies mapping, PAS/GPI,
+size, alignment, and DUT-status evidence.
+
+R0080, R0081, and R0082 have strict executable bodies but remain outside the
+runtime registry. They need a service-specific adapter that invokes an
+Attestation or Integrated Device ABI and supplies real status, written-size,
+remaining-size, and service evidence for last, intermediate, or no-data
+chunks.
 
 Expected runtime SKIP coverage
 ------------------------------
@@ -55,11 +57,32 @@ Implemented but not scheduled by default
 
 The following strict ALP4 rule bodies are implemented in source but not
 registered in the default regression until the reference DUT implements
-the corresponding ALP4 ``FIRME_GM_GPI_SET`` semantics:
+their required behavior:
 
+- R0064: every implemented non-Base service exposes feature register 1 with
+  the service-specific 16-bit ``MAX_CONCURRENT_OP_CNT`` field.
+- R0065: the advertised count is equal across implemented FIRME instances.
+  A non-zero value additionally requires controllable retained operations
+  across service ABIs and instances before collective-limit coverage can pass.
 - R0092: same-GPI transitions are nops that complete with ``SUCCESS``.
-- R0113: multi-granule ``SUCCESS`` reports the number of transitioned granules.
+- R0113: a successful multi-granule transition reports the transitioned
+  prefix in the Granule count output.
+- R0117: the status and Granule count outputs report operation progress
+  according to the ``FIRME_GM_GPI_SET`` result table.
 - R0123: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
+- R0236: a successful MEC refresh replaces the previous encryption context.
+- R0238: identical plaintext has different protected representations before
+  and after a successful MEC refresh.
+
+**Known TF-A behavior mismatches:** R0092 and R0123 return non-conformant
+status values on the current TF-A. R0113 and R0117 are also gated because
+TF-A rejects the required two-granule operation with
+``FIRME_INVALID_PARAMETERS``.
+
+**Unavailable TF-A/FVP feature support:** R0236 and R0238 are gated separately.
+The current FVP TF-A refresh hook returns ``SUCCESS`` without replacing the
+MPE context, so the old protected representation remains readable as the
+original plaintext.
 
 The rule algorithms must remain spec-driven. If a DUT claims the matching
 ALP4 behavior, these rules should be scheduled and any failure should be
@@ -324,10 +347,17 @@ treated as a DUT issue.
 
     -
 
-      1. Compare specification revisions and their service-version/allocation tables.
-      2. Do not require DUT service versions to equal the specification version.
-      3. Do not add a runtime body or registry entry: R0031 is a specification
-         release-policy requirement, not an observable DUT constraint.
+      1. Obtain consecutive specification versions and their service-version
+         maps from the release-metadata adapter.
+      2. Detect added or removed services and major or minor service-version
+         increments.
+      3. Require a specification major-version increment when a service is
+         removed or a service major version is incremented.
+      4. Require a specification minor-version increment when a service is
+         added or a service minor version is incremented and no major-version
+         transition supersedes it.
+      5. Keep the body registry-gated until reviewed release metadata is
+         supplied; do not report this publication-policy check as DUT behavior.
 
   * -
 
@@ -700,9 +730,11 @@ treated as a DUT issue.
 
     -
 
-      1. Add an executable body and registry entry only when an attestation retrieval ABI driver is available.
-      2. Exercise completion where no data chunk is returned.
-      3. Validate zero written size and zero remaining size from the real ABI response.
+      1. Drive a real partial-retrieval ABI through the architected path where
+         no output chunk is available and no remaining size is reported.
+      2. Require ``INCOMPLETE``, zero Written size, and zero Remaining size.
+      3. Continue or abort the operation as required and clean up the buffer.
+      4. Keep the body registry-gated until the service adapter is available.
 
   * -
 
@@ -899,6 +931,62 @@ treated as a DUT issue.
 
   * -
 
+      `mec_context_refresh <../test/mec/mec_context_refresh.c>`_
+
+    -
+
+      R0236: MEC refresh invalidates the previous encryption context and generates a new context.
+
+    -
+
+      1. Reserve a Realm page and a platform-owned MECID, then establish its
+         initial encryption context.
+      2. Map the page with that alternate MECID and write controlled plaintext
+         samples at fixed physical addresses.
+      3. Clean and invalidate every sample to the Point of Encryption so the
+         old protected representation is no longer hidden in a PE cache.
+      4. Refresh the same MECID, completing any architected ``BUSY`` retries.
+      5. Read the old protected representation through the replacement context.
+         Require either data different from the original plaintext or a
+         recovered integrity/data abort.
+      6. Rewrite the plaintext through the replacement context, clean and
+         invalidate it, then require a successful plaintext round trip. This
+         excludes a broken memory path from producing a false pass.
+      7. Retire the controlled context and restore the temporary mapping and
+         MEC configuration.
+
+  * -
+
+      `mec_ciphertext_decorrelation <../test/mec/mec_ciphertext_decorrelation.c>`_
+
+    -
+
+      R0238: Identical plaintext encrypted after MEC refresh does not match pre-refresh ciphertext.
+
+    -
+
+      1. Reserve a Realm page and platform-owned MECID, then write identical
+         plaintext samples through its initial context at fixed physical
+         addresses.
+      2. Clean and invalidate every sample to the Point of Encryption and
+         refresh the same MECID.
+      3. Read the old protected representations through the replacement
+         context. Every read must complete and return data different from the
+         original plaintext.
+      4. Rewrite the identical plaintext through the replacement context and
+         require a successful post-refresh plaintext round trip.
+      5. Infer decorrelation from the same-address stale-read mismatch: an old
+         protected representation that were identical to the new one would
+         decrypt to the original plaintext under the replacement context.
+      6. Treat an integrity abort as inconclusive for this rule because it
+         proves that the old protected representation no longer authenticates,
+         but not that the ciphertext bits themselves differ.
+      7. Retire the controlled context and restore all temporary state. The
+         observed plaintext values are evidence and are not reported as raw
+         ciphertext samples.
+
+  * -
+
       `mec_common_mecid_width <../test/mec/mec_common_mecid_width.c>`_
 
     -
@@ -989,7 +1077,7 @@ treated as a DUT issue.
 
   * -
 
-      Caller-side aligned-input requirement
+      `gpt_base_alignment <../test/gpt/gpt_base_alignment.c>`_
 
     -
 
@@ -998,10 +1086,11 @@ treated as a DUT issue.
     -
 
       1. Read PGS from Granule Management feature register 1.
-      2. Invoke ``FIRME_GM_GPI_SET`` with a PGS-aligned Base address.
-      3. Repeat with a deliberately misaligned Base address.
-      4. Verify the aligned request reaches its normal policy path and the
-         misaligned request returns ``INVALID_PARAMETERS``.
+      2. From Secure and Realm, invoke ``FIRME_GM_GPI_SET`` with a deliberately
+         misaligned Base address and expect ``INVALID_PARAMETERS``.
+      3. Repeat the same changing transition with the PGS-aligned Base address.
+      4. Expect ``SUCCESS`` with a one-granule count, then restore the granule
+         to Non-secure state.
 
   * -
 
@@ -1109,10 +1198,38 @@ treated as a DUT issue.
     -
 
       1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
-      2. From Secure and Realm worlds, seed two adjacent granules at the Current GPI.
-      3. Invoke ``FIRME_GM_GPI_SET`` for a two-granule permitted transition.
-      4. Expect ``SUCCESS`` and output granule count of 2.
-      5. Report NS coverage as skipped when no NS changing transition is available.
+      2. From Secure and Realm worlds, establish two adjacent granules as Non-secure.
+      3. Invoke raw ``FIRME_GM_GPI_SET`` requests for the remaining range until
+         both granules have transitioned; permit a partial ``SUCCESS`` count.
+      4. After each ``SUCCESS``, verify that exactly the reported contiguous
+         prefix changed to the caller GPI and that the first unreported granule
+         remains Non-secure.
+      5. Reissue the operation at the updated Base address for any remaining
+         granules, then restore both granules to Non-secure state.
+
+  * -
+
+      `gpt_gpi_set_progress <../test/gpt/gpt_gpi_set_progress.c>`_
+
+    -
+
+      R0117: ``FIRME_GM_GPI_SET`` progress follows the status, Granule count,
+      and operation-state relationships in Table 3.4.
+
+    -
+
+      1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
+      2. From Secure and Realm, establish two adjacent granules as Non-secure.
+      3. Invoke a two-granule changing transition and inspect each raw response.
+      4. Treat ``SUCCESS`` with a count equal to the request as complete; treat
+         a smaller non-zero count as stateless progress and reissue
+         ``FIRME_GM_GPI_SET`` for the remaining range.
+      5. Verify the reported prefix changed and the first unreported granule did
+         not change before reissuing the operation.
+      6. Invoke a non-permitted Root transition and require ``DENIED`` with a
+         valid count smaller than the input count and no state change.
+      7. Restore both granules to Non-secure state. Add currently unreachable
+         Table 3.4 status rows when the DUT exposes their prerequisites.
 
   * -
 
@@ -1125,13 +1242,13 @@ treated as a DUT issue.
     -
 
       1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
-      2. From NS, invoke the architecturally permitted NS-to-NS no-op.
-      3. From Secure and Realm, invoke successful one-granule changing transitions.
-      4. For ``INCOMPLETE``, resume with ``FIRME_GM_GPI_OP_CONTINUE`` and follow
-         subsequent stateful or stateless phases until a terminal result.
-      5. Require every observed ``SUCCESS`` to report a non-zero granule count.
-      6. Keep this test body registry-gated until TF-A implements the ALP4 same-GPI
-         success behaviour needed by the NS path.
+      2. From Secure and Realm, establish the test granule as Non-secure.
+      3. Invoke a one-granule changing transition using ``FIRME_GM_GPI_SET``.
+      4. Require every observed ``SUCCESS``, including successful setup and
+         cleanup responses, to report a non-zero Granule count.
+      5. Restore the granule to Non-secure state.
+      6. Extend this rule test to ``FIRME_GM_GPI_OP_CONTINUE`` when that ABI is
+         advertised by the DUT.
 
   * -
 
