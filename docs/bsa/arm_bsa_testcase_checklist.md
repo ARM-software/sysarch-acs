@@ -1570,15 +1570,6 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td>1506</td>
-      <td>Generate PCIe legacy interrupt</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Exerciser VIP required</td>
-      <td>pal_exerciser_ops (CLEAR_INTR, GENERATE_L_INTR)</td>
-    </tr>
-    <tr>
       <td>PCI_LI_03</td>
       <td>823</td>
       <td>Check Legacy Intr SPI level sensitive</td>
@@ -4182,6 +4173,9 @@ The checklist provides information about:
 - Updated ITS_08, ITS_DEV_5
 - Updated B_SMMU_21
 - **B_ Added:** B_PPI_03, B_TIME_02
+- **RI_ Removed:** RI_RST_1
+- **PCI_ Removed:** PCI_LI_02
+- **IE_ Removed:** IE_ACS_1, IE_ACS_2
 
 ### v26.03_BSA_1.2.1
 - **RI_ Added:** RI_PWR_1
