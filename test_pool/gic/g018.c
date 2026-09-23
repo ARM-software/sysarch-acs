@@ -45,7 +45,7 @@ payload_get_cnthps_intid(void)
     /* Check if Secure EL2 is implemented. */
     s_el2 = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 36, 39);
     if (!s_el2) {
-        val_print(ERROR, " Secure EL2 not implemented", 0);
+        val_print(ERROR, "\n       Secure EL2 not implemented", 0);
         val_set_status(index, RESULT_SKIP(1));
         return;
     }
@@ -102,7 +102,7 @@ payload_get_cnthvs_intid(void)
     /* Check if Secure EL2 is implemented. */
     s_el2 = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 36, 39);
     if (!s_el2) {
-        val_print(ERROR, " Secure EL2 not implemented", 0);
+        val_print(ERROR, "\n       Secure EL2 not implemented", 0);
         val_set_status(index, RESULT_SKIP(1));
         return;
     }
