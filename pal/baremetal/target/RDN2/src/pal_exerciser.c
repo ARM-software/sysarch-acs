@@ -340,6 +340,9 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         bdf = (uint32_t)Value2;
         Base = pal_exerciser_get_ecsr_base(bdf, 0);
         Base = Base & BAR64_MASK;
+        /* Clear a stale valid record before logging the next PCIe error. */
+        pal_mmio_write((Base + RAS_OFFSET + STATUS_OFFSET), RAS_STATUS_CLEAR);
+        (void)pal_mmio_read(Base + RAS_OFFSET + STATUS_OFFSET);
         pal_mmio_write((Base + RAS_OFFSET + CTRL_OFFSET), 0x1);
         return 0;
 
@@ -347,7 +350,7 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         pal_exerciser_find_pcie_capability(DVSEC, Bdf, PCIE_REG, &CapabilityOffset);
         Data = pal_mmio_read(Ecam + CapabilityOffset +
                              pal_exerciser_get_pcie_config_offset(Bdf) + DVSEC_CTRL);
-        Data = Data & (0 << 18);
+        Data &= ~(1U << 18);
         pal_mmio_write(Ecam + CapabilityOffset + DVSEC_CTRL +
                              pal_exerciser_get_pcie_config_offset(Bdf), Data);
         return 0;

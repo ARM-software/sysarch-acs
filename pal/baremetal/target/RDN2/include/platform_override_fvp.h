@@ -937,6 +937,7 @@
 #define RAS_OFFSET     0x10000
 #define CTRL_OFFSET    0x08
 #define STATUS_OFFSET  0x10
+#define RAS_STATUS_CLEAR 0xFFF80000U
 
 /* Cache config and MASKS*/
 #define SIZE_MASK           0x1

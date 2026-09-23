@@ -564,6 +564,7 @@
 #define RAS_OFFSET     0x10000                    /* Used in PAL APIs. Modify acc to the API impl */
 #define CTRL_OFFSET    0x08                       /* Used in PAL APIs. Modify acc to the API impl */
 #define STATUS_OFFSET  0x10                       /* Used in PAL APIs. Modify acc to the API impl */
+#define RAS_STATUS_CLEAR 0xFFF80000U               /* Clear ERR<n>STATUS writable fields */
 
 /* -----------------------------  CXL info  ----------------------------- */
 /* CXL platform config parameters */
