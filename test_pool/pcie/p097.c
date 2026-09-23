@@ -32,11 +32,11 @@
 **/
 static uint32_t check_msi_status(uint32_t bdf)
 {
-  uint32_t msi_cap_offset;
+  uint32_t cap_offset;
 
   /* Search for MSI/MSI-X Capability */
-  if ((val_pcie_find_capability(bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) ||
-      (val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &msi_cap_offset)))
+  if ((val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &cap_offset) == PCIE_CAP_NOT_FOUND)
+       && (val_pcie_find_capability(bdf, PCIE_CAP, CID_MSIX, &cap_offset) == PCIE_CAP_NOT_FOUND))
   {
       val_print(DEBUG, "\n       No MSI/MSI-X Capability for bdf 0x%x", bdf);
       return 0;
@@ -116,8 +116,8 @@ payload (void)
 
   uint32_t index = val_pe_get_index_mpid (val_pe_get_mpid());
   uint8_t status;
-  PERIPHERAL_VECTOR_LIST *current_dev_mvec;
-  PERIPHERAL_VECTOR_LIST *next_dev_mvec;
+  PERIPHERAL_VECTOR_LIST *current_dev_mvec = NULL;
+  PERIPHERAL_VECTOR_LIST *next_dev_mvec = NULL;
   uint64_t current_dev_bdf;
   uint64_t next_dev_bdf;
   uint32_t test_skip = 1;
