@@ -783,8 +783,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="88">L6</td>
-      <td rowspan="88">S_L6PCI_1 - B_REP_1</td>
+      <td rowspan="86">L6</td>
+      <td rowspan="86">S_L6PCI_1 - B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -1643,8 +1643,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="105">L6</td>
-      <td rowspan="105">S_L6PCI_1 - B_IEP_1</td>
+      <td rowspan="101">L6</td>
+      <td rowspan="101">S_L6PCI_1 - B_IEP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>

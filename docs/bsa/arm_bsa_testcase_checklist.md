@@ -1142,8 +1142,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="85">L1</td>
-      <td rowspan="85">B_PER_08</td>
+      <td rowspan="84">L1</td>
+      <td rowspan="84">B_PER_08</td>
       <td>PCI_IN_01</td>
       <td>801</td>
       <td>Check ECAM Presence</td>
@@ -2256,8 +2256,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="88">FR</td>
-      <td rowspan="88">B_REP_1</td>
+      <td rowspan="86">FR</td>
+      <td rowspan="86">B_REP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
@@ -3116,8 +3116,8 @@ The checklist provides information about:
       <td></td>
     </tr>
     <tr>
-      <td rowspan="105">FR</td>
-      <td rowspan="105">B_IEP_1</td>
+      <td rowspan="101">FR</td>
+      <td rowspan="101">B_IEP_1</td>
       <td>RI_CRS_1</td>
       <td>Not Covered</td>
       <td></td>
