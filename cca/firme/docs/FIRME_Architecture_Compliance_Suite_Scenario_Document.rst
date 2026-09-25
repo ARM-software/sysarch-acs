@@ -1045,6 +1045,41 @@ treated as a DUT issue.
 
   * -
 
+      `mec_feature_registers <../test/mec/mec_feature_registers.c>`_
+
+    -
+
+      R0245: MECID management feature registers follow ALP4 Table 5.1.
+
+    -
+
+      1. In Realm, require an implemented MECID management service version.
+      2. Read feature register 0 and require only the mandatory
+         ``FIRME_MEC_REFRESH`` bit to be set.
+      3. Read feature register 1 and require bits[63:20] to be zero;
+         bits[19:4] and bits[3:0] retain their defined ALP4 encodings.
+      4. Query the first unallocated register index and require
+         ``NOT_SUPPORTED``.
+
+  * -
+
+      `mec_abi_compliance <../test/mec/mec_abi_compliance.c>`_
+
+    -
+
+      R0246: ``FIRME_MEC_REFRESH`` follows ALP4 Table 5.2 compliance.
+
+    -
+
+      1. From Normal and Secure worlds, require service absence and
+         ``NOT_SUPPORTED`` from a direct refresh call.
+      2. From Realm, require an implemented service version and the
+         mandatory refresh ABI advertisement.
+      3. Invoke a valid refresh and require ``SUCCESS`` after bounded
+         ``BUSY`` retries; retire its test MECID before completion.
+
+  * -
+
       `granule_management_feature_registers <../test/gpt/granule_management_feature_registers.c>`_
 
     -

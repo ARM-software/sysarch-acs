@@ -165,6 +165,10 @@ extern int firme_mec_common_mecid_width_payload(firme_acs_world_t world,
 extern int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_feature_registers_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_abi_compliance_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 #endif
 
 #if FIRME_ENABLE_GPT
@@ -761,6 +765,35 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_ns = firme_mec_refresh_abi_run_ns,
         .run_secure = firme_mec_refresh_abi_run_secure,
         .run_realm = firme_mec_refresh_abi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0245,
+        .rule_str = "R0245",
+        .suite = "firme",
+        .test_name = "mec_feature_registers",
+        .desc = "MEC feature registers follow ALP4 Table 5.1",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate MEC feature register indices and fields",
+        .run_realm = firme_mec_feature_registers_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0246,
+        .rule_str = "R0246",
+        .suite = "firme",
+        .test_name = "mec_abi_compliance",
+        .desc = "MEC_REFRESH follows the ALP4 Table 5.2 caller policy",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "MEC_REFRESH is unavailable from Normal world",
+        .check_secure = "MEC_REFRESH is unavailable from Secure world",
+        .check_realm = "MEC_REFRESH is mandatory in Realm world",
+        .run_ns = firme_mec_abi_compliance_run_ns,
+        .run_secure = firme_mec_abi_compliance_run_secure,
+        .run_realm = firme_mec_abi_compliance_run_realm,
     },
 #endif
 #if FIRME_ENABLE_GPT
