@@ -6,6 +6,7 @@
  */
 
 #include "aarch64/asm_macros.S"
+#include "aarch64/val_mp_asm.inc"
 
     .section .text.entry, "ax"
 
@@ -30,10 +31,7 @@ func secure_entry
     msr daifset, #1
 
     /* Set up stack without clobbering incoming x0-x7 (SMC args). */
-    ldr x9, =__stack_end__
-    mov sp, x9
-    /* Also initialize SP_EL0 so accidental SPSel=0 does not crash. */
-    msr sp_el0, x9
+    val_set_pe_stack
 
     /* Save incoming x0-x7 as smc_args_t at SP. */
     sub sp, sp, #0x40

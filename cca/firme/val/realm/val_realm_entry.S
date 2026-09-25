@@ -6,6 +6,7 @@
  */
 
 #include "aarch64/asm_macros.S"
+#include "aarch64/val_mp_asm.inc"
 
     .section .text.entry, "ax"
 
@@ -28,24 +29,27 @@ func rel2_entry
     msr daifset, #1
 
     /* Set up stack */
-    ldr x0, =__stack_end__
-    mov sp, x0
-    /* Also initialize SP_EL0 so accidental SPSel=0 does not crash. */
-    msr sp_el0, x0
+    val_set_pe_stack
 
     /* Clear BSS exactly once across cold boot (shared image). */
     ldr x9, =g_rel2_cold_boot
     ldr w10, [x9]
-    cbz w10, 0f
+    mov w19, w10
+    cbz w10, 1f
     mov w10, #0
     str w10, [x9]
 
     ldr x0, =__bss_start__
     ldr x1, =__bss_end__
     bl  val_zero_bss
+    b 0f
+1:
+    /* Never carry an uncached C stack frame into coherent execution. */
+    bl val_mmu_attach_secondary_el2
 0:
 
     /* Per-CPU init (VBAR/MMU/FP). */
+    mov w0, w19
     bl  rel2_platform_init
 
     /* Signal boot complete to EL3 (RMMD). x1=status, x2=activation token. */

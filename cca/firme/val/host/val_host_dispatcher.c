@@ -14,6 +14,7 @@
 #include "val_log.h"
 #include "val_common/val_smccc.h"
 #include "val_firme_spmd_msg.h"
+#include "val_host_mp.h"
 
 static int is_pass_or_skip(uint64_t s)
 {
@@ -179,6 +180,8 @@ static void run_test_case(const firme_test_case_t *tc,
     uint32_t realm_required = 0U;
     uint32_t ns_required = 0U;
     int post_status = VAL_SUCCESS;
+    firme_rule_res_t mp_result = {.status = ACS_STATUS_ERR};
+    uint32_t num_pe = 0U;
 
     if (!tc)
         return;
@@ -191,6 +194,31 @@ static void run_test_case(const firme_test_case_t *tc,
                   VAL_TRUE : VAL_FALSE;
 
     print_test_begin(tc->suite, tc->test_name, tc->rule_str, tc->desc);
+
+    if (tc->mp_entry != NULL) {
+        num_pe = (tc->num_pe == VAL_TEST_ALL_PES) ? PAL_PE_COUNT : tc->num_pe;
+        if (num_pe > PAL_PE_COUNT) {
+            LOG_WARN(NULL, "MP test requires %u PEs; platform provides %u",
+                     num_pe, (unsigned int)PAL_PE_COUNT);
+            mp_result.status = ACS_STATUS_SKIP;
+        } else if ((num_pe != 0U) && (tc->mp_payload != NULL)) {
+            LOG_TEST(NULL, "MP test: selected PEs=%u", num_pe);
+            post_status = tc->mp_entry(num_pe, val_host_run_test_payload, &mp_result);
+            if ((post_status != VAL_SUCCESS) &&
+                ((mp_result.status == ACS_STATUS_PASS) ||
+                 (mp_result.status == ACS_STATUS_SKIP)))
+                mp_result.status = ACS_STATUS_ERR;
+        }
+
+        overall.x0 = mp_result.status;
+        overall.x1 = mp_result.fail_step;
+        overall.x2 = mp_result.last_x0;
+        overall.x3 = mp_result.last_x1;
+        log_rule_status(tc->rule_str, &overall);
+        print_test_end();
+        update_counts(overall.x0, total, passed, failed, skipped);
+        return;
+    }
 
     /* Secure world (optional/required depending on registry flags). */
     if (tc->run_secure) {
@@ -473,6 +501,10 @@ void dispatcher_main(void)
             LOG_TEST(NULL, "[Chapter] %s", val_firme_chapter_str(tc->chapter));
         }
         run_test_case(tc, &total, &passed, &failed, &skipped);
+        if (!val_host_test_payload_healthy()) {
+            LOG_ERROR(NULL, "MP cleanup unconfirmed; stopping before dependent tests");
+            return;
+        }
     }
 
     LOG_TEST(NULL, "");

@@ -6,6 +6,7 @@
  */
 
 #include "aarch64/asm_macros.S"
+#include "aarch64/val_mp_asm.inc"
 
     .section .text.entry, "ax"
 
@@ -25,10 +26,7 @@ func nsel2_entry
     msr daifset, #1
 
     /* Set up stack */
-    ldr x0, =__stack_end__
-    mov sp, x0
-    /* Also initialize SP_EL0 so accidental SPSel=0 does not crash. */
-    msr sp_el0, x0
+    val_set_pe_stack
 
     /* Zero BSS */
     ldr x0, =__bss_start__
@@ -41,3 +39,17 @@ func nsel2_entry
 1:  wfe
     b   1b
 endfunc nsel2_entry
+
+/** @brief PSCI CPU_ON entry; never clear another PE's BSS or stack. */
+func val_host_secondary_entry
+    msr daifset, #15
+    mov x9, #1
+    msr spsel, x9
+    .inst 0xd5033fdf
+    val_set_pe_stack
+    bl val_mmu_attach_secondary_el2
+    bl val_host_secondary_main
+1:
+    wfe
+    b 1b
+endfunc val_host_secondary_entry

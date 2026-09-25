@@ -79,6 +79,25 @@ than the FVP defaults.
   - R-EL2 payload enables the MMU in `cca/firme/val/realm/val_realm_main.c` (`rel2_platform_init()`).
   - Secure shim keeps MMU disabled by default (see `cca/firme/val/secure/val_secure_spmc.c`), unless a safe
     mapping is required for your BL32 load region.
+- **Compiler alignment:** all payload, PAL, VAL and test C sources are built
+  with `-mstrict-align` for both GCC and Clang. Shared code can execute before
+  MMU setup or in the MMU-disabled Secure shim, where unaligned memory accesses
+  can fault. Keep this option in partner builds; it prevents compiler-generated
+  unaligned accesses without disabling optimization or changing test behavior.
+
+## Multiprocessor infrastructure
+
+The FVP build includes per-PE worker boot, coherent job/result exchange,
+timeouts and verified CPU_OFF cleanup. Tests can register an MP entry with a
+specific PE count or `VAL_TEST_ALL_PES`, then coordinate payload phases through
+VAL. R0239 uses this normal execution path to collect every PE's MECID width,
+include every platform-listed SMMU's hardware width, and check the DUT against
+the system minimum. No separate qualification binary is required.
+Collection runs serially across PEs; concurrent scenarios require explicit
+synchronization rather than parallelizing existing rule bodies automatically.
+Enable modelled caches with `FVP_CACHE_STATE_MODELLED=1` when qualifying MP changes.
+See [MP execution](docs/MP_Execution.md) for APIs, cache ownership, platform
+requirements and the remaining limits on parallel rule execution.
 
 ## Build FIRME-ACS payloads
 Requires an AArch64 cross toolchain. Set `CROSS_COMPILE` to the toolchain prefix (it may include a full path),
@@ -120,7 +139,9 @@ Useful knobs:
 - `FVP_TIMEOUT_SECS=240` (auto-terminate the model)
 - `FVP_ENABLE_MEC=1` (enable FVP MEC/MPE parameters for MECID management tests)
 - `FVP_MECID_WIDTH=16` (default MECID width when MEC is enabled)
-- `FVP_ENABLE_SMMU_MEC=1` (optional device-side SMMU MECID plumbing; not required for current MEC ABI tests)
+- SMMU MEC discovery is enabled automatically when MEC is enabled, including
+  `SUITE=all` and `SUITE=mec`. `FVP_ENABLE_SMMU_MEC=0` is a diagnostic override;
+  without usable SMMU evidence R0239 cannot claim complete requester coverage.
 - `FVP_ENABLE_IDE=1` (enable TF-A/FVP IDE key management support when running `SUITE=all|ide`)
 - `FVP_IDE_KM_PENDING_OPS_MAX=1` (enable non-blocking IDE operation tracking for POLL coverage)
 - `FVP_SIMULATE_IDE_KM_UNIT=1` (enable the FVP IDE KM simulation path in TF-A)

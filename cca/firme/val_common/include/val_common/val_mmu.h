@@ -7,6 +7,10 @@
 
 #pragma once
 
+#define VAL_MMU_EL2_BOOT_TCR 0x3519
+#define VAL_MMU_BOOT_MAIR 0xff04
+
+#ifndef __ASSEMBLER__
 #include <stdint.h>
 
 typedef enum {
@@ -23,6 +27,8 @@ void val_mmu_setup_identity_1g(mmu_el_t el, uint64_t dram_base, uint64_t dram_si
 void val_mmu_enable(mmu_el_t el);
 int val_mmu_map_device_block_el2(uint64_t base);
 int val_mmu_unmap_device_block_el2(uint64_t base);
+void val_mmu_publish_tables(void);
+uint32_t val_mmu_is_controller_pe(void);
 
 /**
  *   @brief    - Map one EL2 page through the alternate MECID path.
@@ -38,3 +44,4 @@ int val_mmu_map_alternate_mecid_page_el2(uint64_t va, uint64_t pa);
  *   @return   - VAL_SUCCESS on success, otherwise VAL_ERROR.
  **/
 int val_mmu_unmap_alternate_mecid_page_el2(uint64_t va);
+#endif

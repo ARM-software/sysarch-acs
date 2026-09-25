@@ -49,6 +49,7 @@ typedef struct {
  * otherwise VAL_FALSE.
  */
 int val_fault_handle_sync(uint64_t esr, uint64_t far);
+void val_fault_reset(void);
 
 /**
  * @brief Arm scoped synchronous-exception recovery for the current PE.

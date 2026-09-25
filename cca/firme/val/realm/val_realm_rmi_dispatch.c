@@ -13,6 +13,7 @@
 #include "val_common/val_fault.h"
 #include "val_firme_test.h"
 #include "val_firme_ide_link.h"
+#include "val_firme_mp_test.h"
 
 #include <stddef.h>
 
@@ -67,6 +68,7 @@ void rel2_handle_smc(smc_args_t *args)
     uint64_t out0 = 0;
     uint64_t out1 = 0;
     firme_acs_call_res_t link_response = {0};
+    firme_acs_call_res_t mp_response = {0};
 
     if (args == NULL) {
         return;
@@ -98,6 +100,13 @@ void rel2_handle_smc(smc_args_t *args)
         status = link_response.x0;
         out0 = link_response.x1;
         out1 = link_response.x2;
+    } else if ((cmd == FIRME_ACS_CMD_RUN_TEST_PAYLOAD) ||
+               (cmd == FIRME_ACS_CMD_GET_TEST_RESULT)) {
+        val_firme_test_payload_command(FIRME_ACS_WORLD_REALM, (firme_acs_cmd_t)cmd,
+                                        a0, a1, a2, a3, &mp_response);
+        status = mp_response.x0;
+        out0 = mp_response.x1;
+        out1 = mp_response.x2;
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_RULE) {
         firme_rule_res_t rr = {0};
         val_firme_rule_run_realm((firme_rule_id_t)a0, a1, &rr);

@@ -11,6 +11,7 @@
 
 #include "val_firme_dispatch.h"
 #include "val_firme_rules.h"
+#include "val_firme_mp_test.h"
 
 /* FIRME-ACS release string printed by the host (NS-EL2) banner. */
 #define FIRME_ACS_VERSION_STR "FIRME Alpha1 ACS v0.5 Alpha"
@@ -61,6 +62,11 @@ typedef struct {
 
     /* Optional host-side validation that combines evidence from all worlds. */
     firme_rule_post_fn_t post_run;
+
+    /* An MP entry owns its phases; zero-initialized cases keep legacy dispatch. */
+    uint32_t num_pe;
+    val_test_mp_entry_t mp_entry;
+    val_test_mp_payload_t mp_payload;
 } firme_test_case_t;
 
 /*

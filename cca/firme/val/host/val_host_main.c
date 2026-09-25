@@ -15,6 +15,7 @@
 #include "val_firme_dispatch.h"
 #include "val_firme_suite.h"
 #include "pal_platform.h"
+#include "val_host_mp.h"
 #include "val_common/val_status.h"
 
 #if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
@@ -99,6 +100,14 @@ void nsel2_main(void)
 #endif
 
     nsel2_platform_init();
+    val_host_mp_init();
+#if FIRME_MP_SELF_TEST
+    if (val_host_mp_self_test() != VAL_SUCCESS) {
+        LOG_ERROR(NULL, "MP infrastructure FAIL; stopping before rule execution");
+        for (;;)
+            val_wfe();
+    }
+#endif
 #if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
     if ((val_host_doe_prepare_endpoint(&endpoint) != VAL_SUCCESS) ||
         (val_host_doe_discover_spdm(&endpoint) != VAL_SUCCESS)) {

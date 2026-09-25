@@ -65,6 +65,9 @@
 /* SPMD framework message IDs (TF-A implementation). */
 #define SPMD_FWK_MSG_FFA_VERSION_REQ 0x8U
 #define SPMD_FWK_MSG_FFA_VERSION_RESP 0x9U
+#define SPMD_FWK_MSG_PSCI 0x0U
+#define SPMD_FWK_MSG_PM_RESP 0x2U
+#define SPMD_PSCI_CPU_OFF 0x84000002U
 
 /* Common error codes (x2 for FFA_ERROR). */
 typedef enum {

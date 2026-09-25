@@ -8,7 +8,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stddef.h>
 
 /*
  * AArch64 system register / barrier helpers.
@@ -22,11 +21,10 @@ uint64_t read_mpidr_el1(void);
 uint64_t read_id_aa64pfr0_el1(void);
 uint64_t read_id_aa64pfr1_el1(void);
 uint64_t read_id_aa64mmfr4_el1(void);
+uint64_t read_id_aa64mmfr3_el1(void);
 uint64_t read_mecidr_el2(void);
 uint64_t val_read_id_aa64mmfr0_el1(void);
 uint64_t val_read_tcr_el2(void);
-void val_cache_clean_poc(uintptr_t start, size_t size);
-void val_mp_relax(void);
 uint64_t read_ctr_el0(void);
 uint64_t read_tcr2_el2(void);
 void write_tcr2_el2(uint64_t v);

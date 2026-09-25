@@ -23,6 +23,7 @@
  */
 #define VAL_SYSREG_ID_AA64PFR1_EL1  S3_0_C0_C4_1
 #define VAL_SYSREG_ID_AA64MMFR4_EL1 S3_0_C0_C7_4
+#define VAL_SYSREG_ID_AA64MMFR3_EL1 S3_0_C0_C7_3
 #define VAL_SYSREG_MECIDR_EL2       S3_4_C10_C8_7
 #define VAL_SYSREG_TCR2_EL2         S3_4_C2_C0_3
 #define VAL_SYSREG_SCTLR2_EL2       S3_4_C1_C0_3
@@ -54,6 +55,12 @@ read_id_aa64mmfr4_el1:
     ret
 
     .global read_mecidr_el2
+/** @brief Read the architectural MEC feature field's containing register. */
+    .global read_id_aa64mmfr3_el1
+read_id_aa64mmfr3_el1:
+    mrs x0, VAL_SYSREG_ID_AA64MMFR3_EL1
+    ret
+
 read_mecidr_el2:
     mrs x0, VAL_SYSREG_MECIDR_EL2
     ret
@@ -180,32 +187,6 @@ val_read_id_aa64mmfr0_el1:
     .global val_read_tcr_el2
 val_read_tcr_el2:
     mrs x0, TCR_EL2
-    ret
-
-/** @brief Yield without waiting indefinitely for an event during an ABI retry. */
-    .global val_mp_relax
-val_mp_relax:
-    yield
-    ret
-
-/** @brief Clean a bounded range to PoC using the current PE's cache-line size. */
-    .global val_cache_clean_poc
-val_cache_clean_poc:
-    cbz x1, 2f
-    add x1, x0, x1
-    mrs x2, ctr_el0
-    ubfx x2, x2, #16, #4
-    mov x3, #4
-    lsl x2, x3, x2
-    sub x3, x2, #1
-    bic x0, x0, x3
-1:
-    dc cvac, x0
-    add x0, x0, x2
-    cmp x0, x1
-    b.lo 1b
-2:
-    dsb sy
     ret
 
     .global write_tcr_el2

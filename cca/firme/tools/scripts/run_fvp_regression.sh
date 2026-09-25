@@ -108,7 +108,7 @@ if [[ -z "${FVP_SIMULATE_IDE_KM_UNIT+x}" ]]; then
 fi
 FVP_MEC_SUPPORT_LEVEL="${FVP_MEC_SUPPORT_LEVEL:-2}"
 FVP_MECID_WIDTH="${FVP_MECID_WIDTH:-16}"
-FVP_ENABLE_SMMU_MEC="${FVP_ENABLE_SMMU_MEC:-0}"
+FVP_ENABLE_SMMU_MEC="${FVP_ENABLE_SMMU_MEC:-${FVP_ENABLE_MEC}}"
 if [[ -z "${FVP_CACHE_STATE_MODELLED+x}" ]]; then
     if [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
         FVP_CACHE_STATE_MODELLED=0
@@ -443,10 +443,15 @@ if [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
 
     if [[ "${FVP_ENABLE_SMMU_MEC}" == "1" ]]; then
         FVP_ARGS+=(
-            # Device-side MECID plumbing is optional for the current
-            # FIRME_MEC_REFRESH ABI tests. Some FVP revisions reject these
-            # parameters unless the PCI SMMU Realm interface is also enabled.
-            # Keep it opt-in for future IDE/MEC memory-correlation scenarios.
+            # Match PAL: BA_REALM=2 places Realm page 0 at offset 0x40000.
+            -C pci.pci_smmuv3.mmu.root_register_page_offset=0x20000
+            -C pci.pci_smmuv3.mmu.SMMU_AIDR=3
+            -C pci.pci_smmuv3.mmu.SMMU_IDR0=0x484616BB
+            -C pci.pci_smmuv3.mmu.SMMU_IDR1=0x600010
+            -C pci.pci_smmuv3.mmu.SMMU_IDR3=0xF714
+            -C pci.pci_smmuv3.mmu.SMMU_IDR5=0xFFFF0475
+            -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0=0x80000D
+            -C pci.pci_smmuv3.mmu.SMMU_R_IDR0=0x1000400
             -C pci.pci_smmuv3.mmu.SMMU_R_IDR3=0x18000
             -C pci.pci_smmuv3.mmu.SMMU_R_MECIDR=15
             -C 'pci.pci_smmuv3.mmu.mec_attribute_transform=UserFlags[31:16]=MECID[15:0]'

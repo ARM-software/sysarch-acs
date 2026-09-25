@@ -1,0 +1,18 @@
+/dts-v1/;
+
+/ {
+    compatible = "arm,ffa-core-manifest-1.0";
+    #address-cells = <2>;
+    #size-cells = <2>;
+
+    attribute {
+        spmc_id = <0x8000>;
+        maj_ver = <1>;
+        min_ver = <3>;
+        exec_state = <0>;
+        load_address = <0x0 0x06000000>;
+        entrypoint = <0x0 0x06000000>;
+        /* Matches the complete Secure image reservation in secure.ld. */
+        binary_size = <0x100000>;
+    };
+};

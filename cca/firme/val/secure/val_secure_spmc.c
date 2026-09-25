@@ -11,12 +11,14 @@
 #include "val_common/val_fault.h"
 #include "val_common/val_smc_args.h"
 #include "val_common/val_arch_init.h"
+#include "val_common/val_mp.h"
 
 #include "aarch64/sysreg.h"
 #include "pal_platform.h"
 #include "val_log.h"
 #include "val_firme_diag.h"
 #include "val_firme_rules.h"
+#include "val_firme_mp_test.h"
 #include "val_firme_dispatch.h"
 #include "val_firme_test.h"
 #include "val_platform.h"
@@ -52,7 +54,7 @@ static const uint16_t k_ns_endpoint_id = (uint16_t)PLAT_FFA_NS_ENDPOINT_ID;
 static const uint16_t k_spmc_endpoint_id = (uint16_t)PLAT_FFA_SPMC_ENDPOINT_ID;
 static const uint16_t k_acs_endpoint_id = (uint16_t)PLAT_FFA_ACS_SECURE_ENDPOINT_ID;
 
-static uint32_t g_spmc_inited;
+static uint32_t g_spmc_inited[PAL_PE_COUNT];
 /* Non-BSS cold-boot flag: used to safely clear BSS exactly once. */
 uint32_t g_spmc_cold_boot = 1;
 
@@ -96,10 +98,11 @@ static unsigned int current_el_num(void)
 static void spmc_init_once(void)
 {
     unsigned int el = 0;
+    uint32_t pe_index = val_pe_index();
 
-    if (g_spmc_inited)
+    if (g_spmc_inited[pe_index] != 0U)
         return;
-    g_spmc_inited = 1;
+    g_spmc_inited[pe_index] = 1U;
 
     spmc_ensure_log_init();
     LOG_DEBUG(NULL, "init el=%u", current_el_num());
@@ -107,6 +110,7 @@ static void spmc_init_once(void)
               (unsigned int)k_acs_endpoint_id);
 
     el = current_el_num();
+    val_fault_reset();
     if (el == 2) {
         write_vbar_el2((uint64_t)(uintptr_t)&secure_vectors_el2);
         val_arch_init_basic(MMU_EL2);
@@ -354,6 +358,7 @@ static void dispatch_cmd(uint64_t cmd, uint64_t a0, uint64_t a1, uint64_t a2, ui
 {
     uint64_t st = (uint64_t)ACS_STATUS_PASS;
     uint64_t o0 = 0, o1 = 0, o2 = 0, o3 = 0;
+    firme_acs_call_res_t mp_response = {0};
 
     if (cmd == (uint64_t)FIRME_ACS_CMD_PING) {
         o0 = 0x504f4e47ULL; /* 'PONG' */
@@ -372,6 +377,13 @@ static void dispatch_cmd(uint64_t cmd, uint64_t a0, uint64_t a1, uint64_t a2, ui
         o1 = out.x1;
         o2 = out.x2;
         o3 = out.x3;
+    } else if ((cmd == FIRME_ACS_CMD_RUN_TEST_PAYLOAD) ||
+               (cmd == FIRME_ACS_CMD_GET_TEST_RESULT)) {
+        val_firme_test_payload_command(FIRME_ACS_WORLD_SECURE, (firme_acs_cmd_t)cmd,
+                                        a0, a1, a2, a3, &mp_response);
+        st = mp_response.x0;
+        o0 = mp_response.x1;
+        o1 = mp_response.x2;
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_RULE) {
         firme_rule_res_t rr = { 0 };
         val_firme_rule_run_secure((firme_rule_id_t)a0, a1, &rr);
@@ -470,6 +482,17 @@ static void handle_direct_req32(smc_args_t *args)
      */
     if ((x2 & FFA_FWK_MSG_BIT) != 0U) {
         uint32_t msg_id = x2 & FFA_FWK_MSG_ID_MASK;
+
+        if ((msg_id == SPMD_FWK_MSG_PSCI) &&
+            ((uint32_t)args->x[3] == SPMD_PSCI_CPU_OFF)) {
+            /* Local registers must be initialized again on the next CPU_ON. */
+            g_spmc_inited[val_pe_index()] = 0U;
+            ffa_direct_resp32(args, k_spmc_endpoint_id, src,
+                              FFA_FWK_MSG_BIT | SPMD_FWK_MSG_PM_RESP,
+                              VAL_SUCCESS, 0U, 0U, 0U, 0U);
+            return;
+        }
+
         if (msg_id == SPMD_FWK_MSG_FFA_VERSION_REQ) {
             /* Respond with SPMC supported version (v1.1). */
             ffa_direct_resp32(args, k_spmc_endpoint_id, src,

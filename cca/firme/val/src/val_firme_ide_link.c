@@ -9,6 +9,8 @@
 
 #include "val_firme_ide.h"
 #include "val_common/val_mem.h"
+#include "val_common/val_mp.h"
+#include "val_common/val_mmu.h"
 #include "val_firme_rules.h"
 #include "val_pcie.h"
 
@@ -74,6 +76,9 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
     memset(out, 0, sizeof(*out));
     out->x0 = ACS_STATUS_FAIL;
     out->x1 = (uint64_t)FIRME_INVALID_PARAMETERS;
+    if (!val_mmu_is_controller_pe())
+        return;
+
     if (operation == VAL_IDE_LINK_DISCOVER) {
         val_firme_service_version(FIRME_SERVICE_ID_IDE_KEY_MGMT, &res);
         out->x1 = res.x0;

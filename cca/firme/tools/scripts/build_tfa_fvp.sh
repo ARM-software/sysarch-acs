@@ -48,6 +48,7 @@ FIRME_ARTIFACT_DIR="${FIRME_ARTIFACT_DIR:-${ACS_DIR}/build}"
 FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE:-0}"
 FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
 ACS_PRINT_LEVEL="${ACS_PRINT_LEVEL:-3}"
+FIRME_MP_SELF_TEST="${FIRME_MP_SELF_TEST:-ON}"
 FIRME_TOOLCHAIN="${FIRME_TOOLCHAIN:-gcc}" # gcc|clang
 SUITE="${SUITE:-all}"
 SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
@@ -175,6 +176,7 @@ cmake -S "${ACS_DIR}" -B "${FIRME_BUILD_DIR}" \
     -DFIRME_SPDM_EMU_DIR="${FIRME_SPDM_EMU_DIR:-${ACS_DIR}/ext/spdm-emu}" \
     -DFIRME_SPDM_ROOT_CERT="${FIRME_SPDM_ROOT_CERT:-}" \
     -DACS_PRINT_LEVEL="${ACS_PRINT_LEVEL}" \
+    -DFIRME_MP_SELF_TEST="${FIRME_MP_SELF_TEST}" \
     ${SUITE:+-DSUITE=${SUITE}}
 cmake --build "${FIRME_BUILD_DIR}"
 
@@ -348,6 +350,7 @@ FVP_SIMULATE_IDE_KM_UNIT=${FVP_SIMULATE_IDE_KM_UNIT}
 FVP_FIRME_CXL_IDE=${FVP_FIRME_CXL_IDE}
 SP_LAYOUT_FILE=${ACS_DIR}/tools/config/sp_layout.json
 SP_LAYOUT_SHA256=$(sp_layout_sha256 "${ACS_DIR}/tools/config/sp_layout.json")
+SPMC_MANIFEST_SHA256=$(sp_layout_sha256 "${ACS_DIR}/tools/config/fvp_spmc_manifest.dts")
 EOF
 }
 
@@ -425,6 +428,7 @@ EOF
         FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT}" \
         FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE}" \
         SP_LAYOUT_FILE="${ACS_DIR}/tools/config/sp_layout.json" \
+        ARM_SPMC_MANIFEST_DTS="${ACS_DIR}/tools/config/fvp_spmc_manifest.dts" \
         BL32="${BL32_BIN}" \
         BL33="${BL33_BIN}" \
         RMM="${REL2_BIN}" \

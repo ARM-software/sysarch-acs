@@ -21,7 +21,18 @@ and update the platform configuration header:
 Key PAL knobs:
 
 - UART base for logs: `PLAT_NS_UART_BASE`
+- PE topology: `include/pal_pe.h` and `src/pal_pe.c` provide the immutable
+  `PAL_PE_COUNT` / `PAL_PE_MPIDRS` table. Match the actual affinities, including
+  the MPIDR.MT interpretation, rather than deriving them from a core count.
+  Provide only one entry on a genuine single-PE platform. Worker support
+  requires coherent memory and PSCI CPU_ON/CPU_OFF/AFFINITY_INFO over SMC.
+  See [MP execution](MP_Execution.md) for the full partner contract.
 - GIC bases: `PLAT_GICD_BASE`, `PLAT_GICR_BASE`
+- SMMU inventory: `platform/pal_baremetal/targets/<target>/include/pal_iovirt.h`
+  and the table in `src/pal_iovirt.c`. Enumerate every SMMU and its NS/Realm
+  page-0 addresses independently of DUT feature responses. A zero count means
+  the platform genuinely has no SMMUs, not that discovery failed. R0239 reads
+  hardware widths from Realm and combines them with widths from all PEs.
 - Direct messaging endpoint IDs (if Secure direct messaging is used): `PLAT_FFA_*_ENDPOINT_ID`
 - GPT test window + granule size:
   - `PLAT_FIRME_GPT_BASE_{NS,SECURE,REALM}`
@@ -115,7 +126,7 @@ export BUILD_TFA=auto            # auto (default) | always | never
 export TFA_LOG_LEVEL=40          # 10..50 (ERROR..VERBOSE)
 export FVP_ENABLE_MEC=1          # enable FVP MEC/MPE model parameters for MEC tests
 export FVP_MECID_WIDTH=16        # default MECID width for FVP MEC runs
-export FVP_ENABLE_SMMU_MEC=1     # optional SMMU MECID plumbing for future device-side MEC scenarios
+export FVP_ENABLE_SMMU_MEC=1     # automatic with MEC; includes SMMUs in common-width validation
 export FVP_ENABLE_IDE=1          # enable TF-A/FVP IDE key management support for IDE tests
 export FVP_IDE_KM_PENDING_OPS_MAX=1  # enable non-blocking IDE operation tracking
 export FVP_SIMULATE_IDE_KM_UNIT=1    # enable the FVP IDE KM simulation path in TF-A

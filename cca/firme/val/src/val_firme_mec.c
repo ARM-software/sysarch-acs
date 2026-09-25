@@ -8,6 +8,8 @@
 #include "val_firme_mec.h"
 #include "aarch64/sysreg.h"
 
+#define VAL_MEC_FEATURE_SHIFT 28U
+#define VAL_MEC_FEATURE_MASK UINT64_C(15)
 
 /**
  *   @brief    - Read the common MECID width advertised by the DUT.
@@ -46,7 +48,7 @@ int val_firme_mec_advertised_common_mecid_width(uint32_t *out_width, firme_res_t
  *   @param    - out_width : Returned local PE MECID width in bits.
  *   @return   - 0 on success, non-zero otherwise.
  **/
-static int val_firme_mec_local_pe_mecid_width(uint32_t *out_width)
+int val_firme_mec_local_pe_mecid_width(uint32_t *out_width)
 {
     uint64_t mecidr = 0ULL;
     uint32_t widthm1 = 0U;
@@ -56,6 +58,10 @@ static int val_firme_mec_local_pe_mecid_width(uint32_t *out_width)
         return VAL_ERROR;
 
     *out_width = 0U;
+    if (((read_id_aa64mmfr3_el1() >> VAL_MEC_FEATURE_SHIFT) &
+         VAL_MEC_FEATURE_MASK) == 0U)
+        return VAL_ERROR;
+
     mecidr = read_mecidr_el2();
     widthm1 = (uint32_t)((mecidr >> VAL_FIRME_MECIDR_WIDTH_SHIFT) &
                          VAL_FIRME_MECIDR_WIDTH_MASK);
@@ -67,33 +73,6 @@ static int val_firme_mec_local_pe_mecid_width(uint32_t *out_width)
     }
 
     *out_width = width;
-    return VAL_SUCCESS;
-}
-
-/**
- *   @brief    - Derive the expected common MECID width from discovered requesters.
- *   @param    - out_width : Returned expected common MECID width in bits.
- *   @return   - 0 on success, non-zero otherwise.
- **/
-int val_firme_mec_expected_common_mecid_width(uint32_t *out_width)
-{
-    uint32_t common_width = 0U;
-
-    if (!out_width)
-        return VAL_ERROR;
-
-    *out_width = 0U;
-
-    /*
-     * The current target exposes one PE to FIRME-ACS, so MECIDR_EL2 supplies
-     * the expected width for this supported topology. Heterogeneous-system
-     * validation must use the common sysarch-acs topology discovery once it
-     * is available instead of introducing FIRME-specific topology hooks.
-     */
-    if (val_firme_mec_local_pe_mecid_width(&common_width) != VAL_SUCCESS)
-        return VAL_ERROR;
-
-    *out_width = common_width;
     return VAL_SUCCESS;
 }
 

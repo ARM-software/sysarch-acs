@@ -28,11 +28,11 @@
 int val_firme_mec_advertised_common_mecid_width(uint32_t *out_width, firme_res_t *out_res);
 
 /**
- *   @brief    - Derive the expected common MECID width from all MEC-capable requesters.
- *   @param    - out_width : Returned expected common MECID width in bits.
+ *   @brief    - Read this PE's MECID width, not the system-wide common width.
+ *   @param    - out_width : Returned local PE MECID width in bits.
  *   @return   - 0 on success, non-zero otherwise.
  **/
-int val_firme_mec_expected_common_mecid_width(uint32_t *out_width);
+int val_firme_mec_local_pe_mecid_width(uint32_t *out_width);
 
 /**
  *   @brief    - Encode FIRME_MEC_REFRESH MEC params.

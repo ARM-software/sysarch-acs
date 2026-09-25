@@ -9,6 +9,7 @@
 
 #include "aarch64/sysreg.h"
 #include "val_common/val_status.h"
+#include "val_common/val_mp.h"
 
 /*
  * A very small identity-mapping MMU setup:
@@ -52,7 +53,7 @@
 #define MAIR_ATTR_DEVICE_nGnRE 0x04UL
 #define MAIR_ATTR_NORMAL_WBWA  0xFFUL
 
-static _Alignas(PAGE_SIZE) uint64_t g_l1[L1_ENTRIES];
+_Alignas(PAGE_SIZE) uint64_t g_val_mmu_l1[L1_ENTRIES];
 static _Alignas(PAGE_SIZE) uint64_t g_alias_l2[L2_ENTRIES];
 static _Alignas(PAGE_SIZE) uint64_t g_alias_l3[L3_ENTRIES];
 static uint64_t g_alias_va;
@@ -60,11 +61,11 @@ static uint32_t g_alias_active;
 static uint64_t g_device_base;
 static uint64_t g_device_tcr;
 static uint32_t g_device_active;
+static uint32_t g_mmu_controller_pe = PAL_PE_COUNT;
 
 #define VAL_TCR_PS_SHIFT 16U
 #define VAL_TCR_PS_MASK (UINT64_C(7) << VAL_TCR_PS_SHIFT)
 #define VAL_TCR_PS_36 (UINT64_C(1) << VAL_TCR_PS_SHIFT)
-
 
 /**
  *   @brief    - Build a 1GiB block descriptor for an identity mapping.
@@ -121,19 +122,14 @@ static uint64_t make_table_desc(const uint64_t *table)
 **/
 static void program_el2(void)
 {
-    const uint64_t tcr =
-        (25UL << 0) |        /* T0SZ */
-        (1UL << 8) |         /* IRGN0 */
-        (1UL << 10) |        /* ORGN0 */
-        (3UL << 12) |        /* SH0 */
-        (0UL << 14);         /* TG0=4KB */
+    const uint64_t tcr = VAL_MMU_EL2_BOOT_TCR;
 
     /*
      * MAIR_EL2:
      *  - Attr0: Device-nGnRE
      *  - Attr1: Normal WBWA
      */
-    write_mair_el2((MAIR_ATTR_DEVICE_nGnRE << 0) | (MAIR_ATTR_NORMAL_WBWA << 8));
+    write_mair_el2(VAL_MMU_BOOT_MAIR);
 
     /*
      * TCR_EL2: 4KB granule, 39-bit VA space.
@@ -143,7 +139,7 @@ static void program_el2(void)
      */
     write_tcr_el2(tcr);
 
-    write_ttbr0_el2((uint64_t)(uintptr_t)g_l1);
+    write_ttbr0_el2((uint64_t)(uintptr_t)g_val_mmu_l1);
     dsb_sy();
     isb_sy();
 }
@@ -165,7 +161,7 @@ static void program_el1(void)
 
     write_tcr_el1(tcr);
 
-    write_ttbr0_el1((uint64_t)(uintptr_t)g_l1);
+    write_ttbr0_el1((uint64_t)(uintptr_t)g_val_mmu_l1);
     dsb_sy();
     isb_sy();
 }
@@ -184,8 +180,9 @@ void val_mmu_setup_identity_1g(mmu_el_t el, uint64_t dram_base, uint64_t dram_si
     uint64_t pa = 0ULL;
     unsigned int index = 0U;
 
+    g_mmu_controller_pe = val_pe_index();
     for (index = 0U; index < L1_ENTRIES; index++)
-        g_l1[index] = 0ULL;
+        g_val_mmu_l1[index] = 0ULL;
     for (index = 0U; index < L2_ENTRIES; index++)
         g_alias_l2[index] = 0ULL;
     for (index = 0U; index < L3_ENTRIES; index++)
@@ -199,14 +196,14 @@ void val_mmu_setup_identity_1g(mmu_el_t el, uint64_t dram_base, uint64_t dram_si
      */
     for (index = 0U; index < max_gib; index++) {
         pa = (uint64_t)index << 30;
-        g_l1[index] = make_block_desc(pa, DESC_ATTRINDX(0), 1);
+        g_val_mmu_l1[index] = make_block_desc(pa, DESC_ATTRINDX(0), 1);
     }
 
     dram_end = dram_base + dram_size;
     pa = dram_base & ~((1UL << 30) - 1);
     for (; pa < dram_end; pa += (1UL << 30)) {
         index = (unsigned int)(pa >> 30);
-        g_l1[index] = make_block_desc(pa, DESC_ATTRINDX(1), 0);
+        g_val_mmu_l1[index] = make_block_desc(pa, DESC_ATTRINDX(1), 0);
     }
 
     if (el == MMU_EL2) {
@@ -240,6 +237,15 @@ void val_mmu_enable(mmu_el_t el)
     isb_sy();
 }
 
+/** @brief Publish boot tables before a cache-disabled secondary uses them. */
+void val_mmu_publish_tables(void)
+{
+    val_cache_clean_poc((uintptr_t)&g_mmu_controller_pe, sizeof(g_mmu_controller_pe));
+    val_cache_clean_poc((uintptr_t)g_val_mmu_l1, sizeof(g_val_mmu_l1));
+    val_cache_clean_poc((uintptr_t)g_alias_l2, sizeof(g_alias_l2));
+    val_cache_clean_poc((uintptr_t)g_alias_l3, sizeof(g_alias_l3));
+}
+
 /**
  * @brief Map an unused 1-GiB EL2 slot as non-executable Device memory.
  * @param base Aligned identity-mapped address below 64 GiB, on the primary PE.
@@ -251,11 +257,11 @@ int val_mmu_map_device_block_el2(uint64_t base)
     uint64_t tcr;
     uint64_t physical_range;
 
-    if (g_device_active ||
+    if (!val_mmu_is_controller_pe() || g_device_active || g_alias_active ||
         (base & ((UINT64_C(1) << 30) - 1U)) != 0ULL || (base >> 36) != 0ULL)
         return VAL_ERROR;
     index = (uint32_t)(base >> 30);
-    if (g_l1[index] != 0ULL)
+    if (g_val_mmu_l1[index] != 0ULL)
         return VAL_ERROR;
     tcr = val_read_tcr_el2();
     physical_range = val_read_id_aa64mmfr0_el1() & UINT64_C(0xf);
@@ -270,8 +276,8 @@ int val_mmu_map_device_block_el2(uint64_t base)
         write_tcr_el2(tcr | VAL_TCR_PS_36);
     }
 
-    g_l1[index] = make_block_desc(base, DESC_ATTRINDX(0), 1);
-    val_cache_clean_poc((uintptr_t)&g_l1[index], sizeof(uint64_t));
+    g_val_mmu_l1[index] = make_block_desc(base, DESC_ATTRINDX(0), 1);
+    val_cache_clean_poc((uintptr_t)&g_val_mmu_l1[index], sizeof(uint64_t));
     val_tlbi_all_el2();
     return VAL_SUCCESS;
 }
@@ -285,18 +291,28 @@ int val_mmu_unmap_device_block_el2(uint64_t base)
 {
     uint32_t index;
 
-    if (!g_device_active || base != g_device_base)
+    if (!val_mmu_is_controller_pe() || !g_device_active || base != g_device_base)
         return VAL_ERROR;
     index = (uint32_t)(base >> 30);
-    if (g_l1[index] != make_block_desc(base, DESC_ATTRINDX(0), 1))
+    if (g_val_mmu_l1[index] != make_block_desc(base, DESC_ATTRINDX(0), 1))
         return VAL_ERROR;
-    g_l1[index] = 0ULL;
-    val_cache_clean_poc((uintptr_t)&g_l1[index], sizeof(uint64_t));
+    g_val_mmu_l1[index] = 0ULL;
+    val_cache_clean_poc((uintptr_t)&g_val_mmu_l1[index], sizeof(uint64_t));
     val_tlbi_all_el2();
     write_tcr_el2(g_device_tcr);
     val_tlbi_all_el2();
     g_device_active = VAL_FALSE;
     return VAL_SUCCESS;
+}
+
+/**
+ * @brief Identify the PE that constructed this world's shared boot tables.
+ * @return VAL_TRUE only for the known controller PE after cold initialization.
+ */
+uint32_t val_mmu_is_controller_pe(void)
+{
+    return (g_mmu_controller_pe < PAL_PE_COUNT) &&
+           (val_pe_index() == g_mmu_controller_pe);
 }
 
 /**
@@ -321,13 +337,13 @@ int val_mmu_map_alternate_mecid_page_el2(uint64_t va, uint64_t pa)
     l1_index = (uint32_t)((va >> 30) & UINT64_C(0x1FF));
     l2_index = (uint32_t)((va >> 21) & UINT64_C(0x1FF));
     l3_index = (uint32_t)((va >> 12) & UINT64_C(0x1FF));
-    if (g_l1[l1_index] != 0ULL)
+    if (g_val_mmu_l1[l1_index] != 0ULL)
         return VAL_ERROR;
 
     g_alias_l3[l3_index] = make_amec_page_desc(pa);
     g_alias_l2[l2_index] = make_table_desc(g_alias_l3);
     dsb_sy();
-    g_l1[l1_index] = make_table_desc(g_alias_l2);
+    g_val_mmu_l1[l1_index] = make_table_desc(g_alias_l2);
     val_tlbi_all_el2();
 
     g_alias_va = va;
@@ -357,7 +373,7 @@ int val_mmu_unmap_alternate_mecid_page_el2(uint64_t va)
     dsb_sy();
     val_tlbi_all_el2();
     g_alias_l2[l2_index] = 0ULL;
-    g_l1[l1_index] = 0ULL;
+    g_val_mmu_l1[l1_index] = 0ULL;
     dsb_sy();
     val_tlbi_all_el2();
 

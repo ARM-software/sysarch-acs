@@ -7,7 +7,9 @@
 
 #pragma once
 
+#ifndef __ASSEMBLER__
 #include <stdint.h>
+#endif
 
 /*
  * ACS-style status codes (mirrors sysarch-acs conventions).

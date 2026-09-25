@@ -10,6 +10,7 @@
 #include "aarch64/sysreg.h"
 #include "val_pcie.h"
 #include "val_common/val_smccc.h"
+#include "val_common/val_mp.h"
 #include "val_common/val_status.h"
 
 #define VAL_FIRME_IDE_TEST_KEY_BASE UINT64_C(0x4649524d45494445)

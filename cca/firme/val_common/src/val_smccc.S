@@ -52,8 +52,16 @@
 
     /* Capture the final input frame and bypass the SMC while auditing callers. */
     adrp x16, g_val_smccc_input_capture_enabled
-    ldr x17, [x16, :lo12:g_val_smccc_input_capture_enabled]
+    add x16, x16, :lo12:g_val_smccc_input_capture_enabled
+    ldar x17, [x16]
     cbz x17, 2f
+
+    /* Capture is a serial audit scope, never an interceptor on another PE. */
+    adrp x16, g_val_smccc_input_capture_owner
+    ldr x17, [x16, :lo12:g_val_smccc_input_capture_owner]
+    mrs x16, mpidr_el1
+    cmp x16, x17
+    b.ne 2f
 
     adrp x16, g_val_smccc_input_capture_registers
     add x16, x16, :lo12:g_val_smccc_input_capture_registers
@@ -163,8 +171,15 @@
 
     /* Capture the x0-x8 input frame and bypass the audited SMC. */
     adrp x16, g_val_smccc_input_capture_enabled
-    ldr x17, [x16, :lo12:g_val_smccc_input_capture_enabled]
+    add x16, x16, :lo12:g_val_smccc_input_capture_enabled
+    ldar x17, [x16]
     cbz x17, 2f
+
+    adrp x16, g_val_smccc_input_capture_owner
+    ldr x17, [x16, :lo12:g_val_smccc_input_capture_owner]
+    mrs x16, mpidr_el1
+    cmp x16, x17
+    b.ne 2f
 
     adrp x16, g_val_smccc_input_capture_registers
     add x16, x16, :lo12:g_val_smccc_input_capture_registers

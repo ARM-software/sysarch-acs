@@ -37,10 +37,9 @@ SECTIONS {
 
     /* Keep stack loadable so firmware loaders assign the payload PAS. */
     .stack : {
-        . = ALIGN(16);
+        . = ALIGN(4096);
         __stack_start__ = .;
-        . = . + 0x3ff8;
-        QUAD(0); /* 16 KiB, force stack into binary */
+        KEEP(*(.mp_stacks))
         __stack_end__ = .;
     } > RAM
 }

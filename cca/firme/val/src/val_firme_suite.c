@@ -156,7 +156,12 @@ extern int firme_ide_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *o
 #endif
 
 #if FIRME_ENABLE_MEC
-extern int firme_mec_common_mecid_width_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_common_mecid_width_entry(uint32_t num_pe,
+                                             val_test_run_payload_t run_payload,
+                                             firme_rule_res_t *out);
+extern int firme_mec_common_mecid_width_payload(firme_acs_world_t world,
+                                               uint32_t phase, uint32_t argument,
+                                               firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -736,7 +741,9 @@ const firme_test_case_t g_firme_test_cases[] = {
         .check_realm = "Common MECID width enforcement from Realm world",
         .run_ns = 0,
         .run_secure = 0,
-        .run_realm = firme_mec_common_mecid_width_run_realm,
+        .num_pe = VAL_TEST_ALL_PES,
+        .mp_entry = firme_mec_common_mecid_width_entry,
+        .mp_payload = firme_mec_common_mecid_width_payload,
     },
     {
         .chapter = FIRME_CHAPTER_MEC,

@@ -1008,16 +1008,23 @@ treated as a DUT issue.
 
       1. Invoke ``FIRME_SERVICE_VERSION`` for the MECID management service.
       2. If the service is not implemented on the platform, report SKIP.
-      3. Derive the ACS expected common MECID width from independently discovered requesters.
-      4. The complete check requires the minimum width across all PEs and MEC-capable requesters such as SMMUs.
-      5. If full requester discovery is unavailable, do not claim system common-width coverage.
-      6. Read the DUT-advertised ``COMMON_MECID_WIDTH`` from feature register 1.
+      3. Select all platform PEs through the normal MP test entry. On each PE,
+         check MEC support and read its own ``MECIDR_EL2`` from Realm.
+      4. Enumerate all SMMUs from the independent platform inventory. Read each
+         SMMU's Realm MEC capability and ``SMMU_R_MECIDR`` without programming it.
+      5. Compute the minimum width across all PEs and SMMUs. Missing capability
+         leaves coverage incomplete; invalid inventory or failed register access
+         must not silently exclude a requester or produce PASS.
+      6. On every PE, read DUT-advertised ``COMMON_MECID_WIDTH`` from feature register 1.
          Decode bits[3:0] as width minus one, as specified by ALP4 Table 5.1.
       7. Compare the DUT-advertised width against the independently derived
          expected width and fail on mismatch.
-      8. Invoke ``FIRME_MEC_REFRESH`` with the largest MECID inside the common width and expect ``SUCCESS``.
+      8. On every PE, invoke ``FIRME_MEC_REFRESH`` with the largest MECID inside
+         the independently calculated common width and expect ``SUCCESS`` after
+         bounded BUSY retries.
       9. If encodable, invoke ``FIRME_MEC_REFRESH`` with the first MECID outside the common width.
-      10. Expect ``INVALID_PARAMETERS``.
+      10. Expect ``INVALID_PARAMETERS``. Preserve per-PE failures and confirm
+          secondary shutdown before proceeding; report one aggregated rule result.
 
   * -
 

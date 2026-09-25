@@ -42,9 +42,10 @@ void rel2_sync_handler(uint64_t esr, uint64_t elr, uint64_t far)
 
 /**
  *   @brief    - Minimal Realm payload initialization (vectors + MMU + FP/SIMD).
+ *   @param    - cold_boot : Non-zero only for initial table construction.
  *   @return   - void
 **/
-void rel2_platform_init(void)
+void rel2_platform_init(uint32_t cold_boot)
 {
     /*
      * Realm payloads should avoid direct device access (e.g. UART) because
@@ -54,8 +55,12 @@ void rel2_platform_init(void)
      */
     write_vbar_el2((uint64_t)(uintptr_t)&rel2_vectors_el2);
 
-    val_mmu_setup_identity_1g(MMU_EL2, PLAT_DRAM_BASE, PLAT_DRAM_SIZE);
-    val_mmu_enable(MMU_EL2);
+    if (cold_boot != 0U) {
+        val_mmu_setup_identity_1g(MMU_EL2, PLAT_DRAM_BASE, PLAT_DRAM_SIZE);
+        val_mmu_enable(MMU_EL2);
+        val_mmu_publish_tables();
+    }
 
     val_arch_init_basic(MMU_EL2);
+    val_fault_reset();
 }

@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(FIRME_VERIFY_ABI_CATALOG
        "Verify generated FIRME ABI catalog files during every build" ON)
+option(FIRME_MP_SELF_TEST "Validate secondary PE workers before running rules" ON)
 option(FIRME_ENABLE_CXL_ENDPOINT_PROBE
        "Probe a Type-2 endpoint and its SPDM DOE protocols before FIRME tests" OFF)
 option(FIRME_ENABLE_CXL_SPDM
@@ -134,6 +135,7 @@ set(FIRME_COMMON_CFLAGS
     -Wall -Wextra -Werror
     -Wdeclaration-after-statement
     -ffreestanding -fno-builtin -fno-stack-protector -fno-omit-frame-pointer
+    $<$<COMPILE_LANGUAGE:C>:-mstrict-align>
     -O2 -g
     -mstrict-align
 )
@@ -234,6 +236,7 @@ function(add_firme_payload target_name out_base link_script)
   target_compile_options(${target_name}.elf PRIVATE ${FIRME_COMMON_CFLAGS})
   target_compile_definitions(${target_name}.elf PRIVATE ACS_PRINT_LEVEL=${ACS_PRINT_LEVEL})
   target_compile_definitions(${target_name}.elf PRIVATE
+    FIRME_MP_SELF_TEST=$<BOOL:${FIRME_MP_SELF_TEST}>
     FIRME_ENABLE_BASE=$<BOOL:${FIRME_ENABLE_BASE}>
     FIRME_ENABLE_GPT=$<BOOL:${FIRME_ENABLE_GPT}>
     FIRME_ENABLE_MEC=$<BOOL:${FIRME_ENABLE_MEC}>
