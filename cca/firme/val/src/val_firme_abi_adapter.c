@@ -343,5 +343,11 @@ const val_firme_abi_test_ops_t *val_firme_abi_adapter_get(
     if (abi_id == VAL_FIRME_ABI_ID_GM_GPT_INFO)
         return &g_gpt_info_ops;
 
+    if ((abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_PROG) ||
+        (abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_GO) ||
+        (abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_STOP) ||
+        (abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_POLL))
+        return val_firme_ide_abi_adapter_get(abi_id);
+
     return NULL;
 }

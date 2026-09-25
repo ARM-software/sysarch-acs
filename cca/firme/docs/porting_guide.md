@@ -107,6 +107,19 @@ restore endpoint and platform state even after a failing check. The reference
 FVP PAL reports these scenarios unavailable, so both rules remain outside
 the runtime registry until an observable two-path setup is ported.
 
+The generated IDE interface plans R0358-R0365 use
+`platform/pal_baremetal/targets/<your_platform>/include/pal_firme_ide_abi.h`.
+Implement `pal_firme_ide_abi_prepare()` with one reserved Root Port/endpoint
+path, a valid keyset and key, a caller handle, an invalid ECAM address, and a
+cleanup token. The path must support safe PROG/GO/STOP sequencing and
+asynchronous POLL where available. `pal_firme_ide_abi_cleanup()` must restore
+Root Port and endpoint state even after a failed case; it must not return
+`READY` when cleanup is incomplete. Return `UNAVAILABLE` rather than a fake
+path on platforms without those facilities. The FVP PAL does so, and these
+eight generated plans remain registry-gated until the platform can exercise
+the required state and status paths without claiming simulated ABI responses
+as endpoint evidence.
+
 ## 2. Build + FVP regression
 
 FIRME-ACS is cross-compiled. Set `CROSS_COMPILE` to your AArch64 toolchain prefix (it may include a full path),

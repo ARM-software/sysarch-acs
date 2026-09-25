@@ -9,14 +9,17 @@
       "kind": "input",
       "description": "Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs.",
       "enabled": false,
-      "disabled_reason": "Needs a pending asynchronous IDE operation and endpoint context.",
+      "disabled_reason": "Adapter implemented; gated until PAL supplies a pending IDE operation and real endpoint context.",
       "required_worlds": [],
       "optional_worlds": ["ns", "realm"],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
-      "require_output_validation": false,
+      "require_output_validation": true,
       "cases": [
-        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "poll_any", "mutation": "ide_poll_any", "expected": "architected_status", "step": 2, "priority": 1},
+        {"name": "invalid_ecam", "mutation": "ide_invalid_ecam", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2},
+        {"name": "no_pending", "mutation": "ide_no_pending", "expected": "DENIED", "step": 4, "priority": 3}
       ]
     },
     {
@@ -26,14 +29,17 @@
       "kind": "output",
       "description": "Validate IDE_KEYSET_POLL status, handle and keyset outputs.",
       "enabled": false,
-      "disabled_reason": "Needs controllable pending, completed, absent and aborted operations.",
+      "disabled_reason": "Adapter implemented; gated until PAL controls pending, completed and aborted IDE operations.",
       "required_worlds": [],
       "optional_worlds": ["ns", "realm"],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
       "require_output_validation": true,
       "cases": [
-        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_poll", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "poll_any", "mutation": "ide_poll_any", "expected": "architected_status", "step": 2, "priority": 1},
+        {"name": "invalid_ecam", "mutation": "ide_invalid_ecam", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2},
+        {"name": "no_pending", "mutation": "ide_no_pending", "expected": "DENIED", "step": 4, "priority": 3}
       ]
     }
   ]

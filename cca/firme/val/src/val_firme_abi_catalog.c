@@ -713,6 +713,24 @@ static const val_firme_abi_case_t g_ide_keyset_prog_inputs_cases[] = {
         .priority = 0U,
         .verify_no_effect = 0U,
     },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 0U,
+    },
 };
 
 static const val_firme_abi_case_t g_ide_keyset_prog_outputs_cases[] = {
@@ -723,6 +741,24 @@ static const val_firme_abi_case_t g_ide_keyset_prog_outputs_cases[] = {
         .expected_status = 0,
         .diagnostic_step = 1U,
         .priority = 0U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
         .verify_no_effect = 0U,
     },
 };
@@ -737,6 +773,24 @@ static const val_firme_abi_case_t g_ide_keyset_go_inputs_cases[] = {
         .priority = 0U,
         .verify_no_effect = 0U,
     },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 0U,
+    },
 };
 
 static const val_firme_abi_case_t g_ide_keyset_go_outputs_cases[] = {
@@ -747,6 +801,24 @@ static const val_firme_abi_case_t g_ide_keyset_go_outputs_cases[] = {
         .expected_status = 0,
         .diagnostic_step = 1U,
         .priority = 0U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
         .verify_no_effect = 0U,
     },
 };
@@ -761,6 +833,24 @@ static const val_firme_abi_case_t g_ide_keyset_stop_inputs_cases[] = {
         .priority = 0U,
         .verify_no_effect = 0U,
     },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 0U,
+    },
 };
 
 static const val_firme_abi_case_t g_ide_keyset_stop_outputs_cases[] = {
@@ -771,6 +861,24 @@ static const val_firme_abi_case_t g_ide_keyset_stop_outputs_cases[] = {
         .expected_status = 0,
         .diagnostic_step = 1U,
         .priority = 0U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ide_type",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_TYPE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
         .verify_no_effect = 0U,
     },
 };
@@ -785,6 +893,33 @@ static const val_firme_abi_case_t g_ide_keyset_poll_inputs_cases[] = {
         .priority = 0U,
         .verify_no_effect = 0U,
     },
+    {
+        .name = "poll_any",
+        .mutation = VAL_FIRME_MUTATION_IDE_POLL_ANY,
+        .expectation = VAL_FIRME_EXPECT_ARCHITECTED_STATUS,
+        .expected_status = 0,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "no_pending",
+        .mutation = VAL_FIRME_MUTATION_IDE_NO_PENDING,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -5,
+        .diagnostic_step = 4U,
+        .priority = 3U,
+        .verify_no_effect = 0U,
+    },
 };
 
 static const val_firme_abi_case_t g_ide_keyset_poll_outputs_cases[] = {
@@ -795,6 +930,33 @@ static const val_firme_abi_case_t g_ide_keyset_poll_outputs_cases[] = {
         .expected_status = 0,
         .diagnostic_step = 1U,
         .priority = 0U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "poll_any",
+        .mutation = VAL_FIRME_MUTATION_IDE_POLL_ANY,
+        .expectation = VAL_FIRME_EXPECT_ARCHITECTED_STATUS,
+        .expected_status = 0,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "invalid_ecam",
+        .mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 0U,
+    },
+    {
+        .name = "no_pending",
+        .mutation = VAL_FIRME_MUTATION_IDE_NO_PENDING,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -5,
+        .diagnostic_step = 4U,
+        .priority = 3U,
         .verify_no_effect = 0U,
     },
 };
@@ -1115,14 +1277,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_PROG ECAM, stream, key and handle inputs.",
         .disabled_reason =
-            "Needs discovered IDE endpoint and Root Port programming state.",
+            "Adapter implemented; gated until PAL supplies a real IDE path and deterministic status/effect evidence.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_PROG,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
         .enabled = 0U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_ide_keyset_prog_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_ide_keyset_prog_inputs_cases) /
                                  sizeof(g_ide_keyset_prog_inputs_cases[0])),
@@ -1134,7 +1296,7 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_PROG terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Needs endpoint programming, progress-path control and rollback.",
+            "Adapter implemented; gated until PAL supplies Root Port evidence, progress control and rollback.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_PROG,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
@@ -1153,14 +1315,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs.",
         .disabled_reason =
-            "Needs a successfully programmed IDE keyset as pre-state.",
+            "Adapter implemented; gated until PAL supplies a real programmed Root Port/endpoint path and cleanup.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_GO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
         .enabled = 0U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_ide_keyset_go_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_ide_keyset_go_inputs_cases) /
                                  sizeof(g_ide_keyset_go_inputs_cases[0])),
@@ -1172,7 +1334,7 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_GO terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Needs controlled programmed/running states and cleanup.",
+            "Adapter implemented; gated until PAL supplies controlled Root Port state and rollback.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_GO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
@@ -1191,14 +1353,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_STOP ECAM, stream, keyset and handle inputs.",
         .disabled_reason =
-            "Needs a running IDE keyset as deterministic pre-state.",
+            "Adapter implemented; gated until PAL supplies a running IDE stream and safe cleanup.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_STOP,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
         .enabled = 0U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_ide_keyset_stop_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_ide_keyset_stop_inputs_cases) /
                                  sizeof(g_ide_keyset_stop_inputs_cases[0])),
@@ -1210,7 +1372,7 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_STOP terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Needs controlled running/stopped states and cleanup.",
+            "Adapter implemented; gated until PAL supplies controlled running/stopped Root Port states.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_STOP,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
@@ -1229,14 +1391,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs.",
         .disabled_reason =
-            "Needs a pending asynchronous IDE operation and endpoint context.",
+            "Adapter implemented; gated until PAL supplies a pending IDE operation and real endpoint context.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_POLL,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
         .enabled = 0U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_ide_keyset_poll_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_ide_keyset_poll_inputs_cases) /
                                  sizeof(g_ide_keyset_poll_inputs_cases[0])),
@@ -1248,7 +1410,7 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_POLL status, handle and keyset outputs.",
         .disabled_reason =
-            "Needs controllable pending, completed, absent and aborted operations.",
+            "Adapter implemented; gated until PAL controls pending, completed and aborted IDE operations.",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_POLL,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),

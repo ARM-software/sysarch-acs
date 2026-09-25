@@ -1172,8 +1172,8 @@ def generate_coverage(model: dict[str, Any]) -> str:
     lines.extend([
         "",
         "Every plan has a generated one-rule test entry point. Gated plans are",
-        "not added to the runtime registry until their state/effect adapters",
-        "are complete.",
+        "not added to the runtime registry until their adapters and platform",
+        "prerequisites support the stated rule coverage.",
         "",
     ])
     return "\n".join(lines)

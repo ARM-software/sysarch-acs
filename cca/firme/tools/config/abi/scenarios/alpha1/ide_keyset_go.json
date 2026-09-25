@@ -9,14 +9,16 @@
       "kind": "input",
       "description": "Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs.",
       "enabled": false,
-      "disabled_reason": "Needs a successfully programmed IDE keyset as pre-state.",
+      "disabled_reason": "Adapter implemented; gated until PAL supplies a real programmed Root Port/endpoint path and cleanup.",
       "required_worlds": [],
       "optional_worlds": ["ns", "realm"],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
-      "require_output_validation": false,
+      "require_output_validation": true,
       "cases": [
-        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "invalid_ecam", "mutation": "ide_invalid_ecam", "expected": "INVALID_PARAMETERS", "step": 2, "priority": 1},
+        {"name": "invalid_ide_type", "mutation": "ide_invalid_type", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2}
       ]
     },
     {
@@ -26,14 +28,16 @@
       "kind": "output",
       "description": "Validate IDE_KEYSET_GO terminal and asynchronous status outputs.",
       "enabled": false,
-      "disabled_reason": "Needs controlled programmed/running states and cleanup.",
+      "disabled_reason": "Adapter implemented; gated until PAL supplies controlled Root Port state and rollback.",
       "required_worlds": [],
       "optional_worlds": ["ns", "realm"],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
       "require_output_validation": true,
       "cases": [
-        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_go", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "invalid_ecam", "mutation": "ide_invalid_ecam", "expected": "INVALID_PARAMETERS", "step": 2, "priority": 1},
+        {"name": "invalid_ide_type", "mutation": "ide_invalid_type", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2}
       ]
     }
   ]

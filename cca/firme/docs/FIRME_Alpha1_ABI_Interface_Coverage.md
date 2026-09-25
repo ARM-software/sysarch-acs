@@ -22,17 +22,17 @@ outside this generator scope for this release.
 | R0355 | `FIRME_GM_L1_GPT_DESTROY` | output | Gated | realm | Needs create/destroy lifecycle setup, output correlation and cleanup. |
 | R0356 | `FIRME_GM_GPT_INFO` | input | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
 | R0357 | `FIRME_GM_GPT_INFO` | output | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
-| R0358 | `FIRME_IDE_KEYSET_PROG` | input | Gated | ns, realm | Needs discovered IDE endpoint and Root Port programming state. |
-| R0359 | `FIRME_IDE_KEYSET_PROG` | output | Gated | ns, realm | Needs endpoint programming, progress-path control and rollback. |
-| R0360 | `FIRME_IDE_KEYSET_GO` | input | Gated | ns, realm | Needs a successfully programmed IDE keyset as pre-state. |
-| R0361 | `FIRME_IDE_KEYSET_GO` | output | Gated | ns, realm | Needs controlled programmed/running states and cleanup. |
-| R0362 | `FIRME_IDE_KEYSET_STOP` | input | Gated | ns, realm | Needs a running IDE keyset as deterministic pre-state. |
-| R0363 | `FIRME_IDE_KEYSET_STOP` | output | Gated | ns, realm | Needs controlled running/stopped states and cleanup. |
-| R0364 | `FIRME_IDE_KEYSET_POLL` | input | Gated | ns, realm | Needs a pending asynchronous IDE operation and endpoint context. |
-| R0365 | `FIRME_IDE_KEYSET_POLL` | output | Gated | ns, realm | Needs controllable pending, completed, absent and aborted operations. |
+| R0358 | `FIRME_IDE_KEYSET_PROG` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a real IDE path and deterministic status/effect evidence. |
+| R0359 | `FIRME_IDE_KEYSET_PROG` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies Root Port evidence, progress control and rollback. |
+| R0360 | `FIRME_IDE_KEYSET_GO` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a real programmed Root Port/endpoint path and cleanup. |
+| R0361 | `FIRME_IDE_KEYSET_GO` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies controlled Root Port state and rollback. |
+| R0362 | `FIRME_IDE_KEYSET_STOP` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a running IDE stream and safe cleanup. |
+| R0363 | `FIRME_IDE_KEYSET_STOP` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies controlled running/stopped Root Port states. |
+| R0364 | `FIRME_IDE_KEYSET_POLL` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a pending IDE operation and real endpoint context. |
+| R0365 | `FIRME_IDE_KEYSET_POLL` | output | Gated | ns, realm | Adapter implemented; gated until PAL controls pending, completed and aborted IDE operations. |
 | R0366 | `FIRME_MEC_REFRESH` | input | Active | realm | Validate MEC_REFRESH reason and MECID input encoding. |
 | R0367 | `FIRME_MEC_REFRESH` | output | Active | realm | Validate MEC_REFRESH terminal status output after BUSY retries. |
 
 Every plan has a generated one-rule test entry point. Gated plans are
-not added to the runtime registry until their state/effect adapters
-are complete.
+not added to the runtime registry until their adapters and platform
+prerequisites support the stated rule coverage.

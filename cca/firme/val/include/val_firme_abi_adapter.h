@@ -16,3 +16,11 @@
  */
 const val_firme_abi_test_ops_t *val_firme_abi_adapter_get(
     val_firme_abi_id_t abi_id);
+
+/**
+ * @brief Return the stateful adapter for an IDE Key Management ABI.
+ * @param abi_id Generated Alpha1 ABI identifier.
+ * @return IDE adapter operations, or NULL for another service.
+ */
+const val_firme_abi_test_ops_t *val_firme_ide_abi_adapter_get(
+    val_firme_abi_id_t abi_id);

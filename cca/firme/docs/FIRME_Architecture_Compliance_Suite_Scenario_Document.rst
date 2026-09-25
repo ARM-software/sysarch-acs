@@ -14,12 +14,12 @@ FIRME Architecture Compliance Suite - Scenario Document (FIRME-ACS)
 Overview
 ========
 
-FIRME-ACS validates the TF-A BL31 (EL3) implementation of the FIRME service by exercising FIRME ABIs from the
-caller security states BL31 expects in real deployments:
+FIRME-ACS validates an EL3 firmware implementation of FIRME by exercising
+its ABIs from the caller security states used in real deployments:
 
-- Normal world: NS-EL2 dispatcher payload (BL33)
-- Secure world: S-EL2 shim payload (BL32) with optional S-EL1 caller bodies
-- Realm world: R-EL2 shim payload (Realm payload image), reached via RMMD forwarding
+- Normal world: NS-EL2 dispatcher payload
+- Secure world: S-EL2 shim payload with optional S-EL1 caller bodies
+- Realm world: R-EL2 shim payload, reached through the platform Realm dispatcher
 
 Testcase checklist
 ==================
@@ -41,6 +41,12 @@ runtime registry. They need a service-specific adapter that invokes an
 Attestation or Integrated Device ABI and supplies real status, written-size,
 remaining-size, and service evidence for last, intermediate, or no-data
 chunks.
+
+R0358-R0365 have generated one-rule bodies and a stateful IDE ABI adapter.
+They remain registry-gated until a platform PAL supplies a real Root Port and
+endpoint path, safe rollback, and deterministic asynchronous/error scenarios.
+The reference FVP IDE simulator is not evidence that keys or IDE traffic were
+programmed at an endpoint.
 
 Expected runtime SKIP coverage
 ------------------------------
@@ -1934,6 +1940,119 @@ treated as a DUT issue.
       2. Require ``SUCCESS`` in w0.
       3. Validate x1 as a non-empty aligned prefix top.
       4. Validate x2 as an allocated PAR-state encoding.
+
+  * -
+
+      `generated_abi_ide_keyset_prog_inputs <../test/ide/generated_abi_ide_keyset_prog_inputs.c>`_
+
+    -
+
+      R0358: PROG inputs carry ECAM, IDE type, keyset, four key words and handle.
+
+    -
+
+      1. Reserve a real IDE path and construct x0-x8 with the ALP4 fields.
+      2. Check unused input bits/registers are zero; invoke a valid request.
+      3. Require exact ``INVALID_PARAMETERS`` for invalid ECAM or IDE type.
+
+  * -
+
+      `generated_abi_ide_keyset_prog_outputs <../test/ide/generated_abi_ide_keyset_prog_outputs.c>`_
+
+    -
+
+      R0359: PROG returns one of the Table 8.16 status codes in w0.
+
+    -
+
+      1. Require a valid request to complete with ``SUCCESS`` or ``INCOMPLETE``.
+      2. Poll an incomplete request to terminal ``SUCCESS`` with its handle.
+      3. Check exact invalid-input statuses and restore the reserved path.
+
+  * -
+
+      `generated_abi_ide_keyset_go_inputs <../test/ide/generated_abi_ide_keyset_go_inputs.c>`_
+
+    -
+
+      R0360: GO inputs carry ECAM, IDE type, keyset and handle.
+
+    -
+
+      1. Program a valid keyset first, completing any asynchronous PROG.
+      2. Build x0-x4 and leave every other input register zero.
+      3. Invoke valid, invalid-ECAM and invalid-type cases and clean up.
+
+  * -
+
+      `generated_abi_ide_keyset_go_outputs <../test/ide/generated_abi_ide_keyset_go_outputs.c>`_
+
+    -
+
+      R0361: GO returns one of the Table 8.18 status codes in w0.
+
+    -
+
+      1. Require ``SUCCESS`` or ``INCOMPLETE`` for a programmed keyset.
+      2. Complete an asynchronous GO using POLL and verify its handle.
+      3. Require ``INVALID_PARAMETERS`` for invalid ECAM or IDE type, then STOP.
+
+  * -
+
+      `generated_abi_ide_keyset_stop_inputs <../test/ide/generated_abi_ide_keyset_stop_inputs.c>`_
+
+    -
+
+      R0362: STOP inputs carry ECAM, IDE type, keyset and handle.
+
+    -
+
+      1. Program and start a valid keyset before the STOP request.
+      2. Build x0-x4 with all other input registers zero.
+      3. Invoke valid, invalid-ECAM and invalid-type cases and clean up.
+
+  * -
+
+      `generated_abi_ide_keyset_stop_outputs <../test/ide/generated_abi_ide_keyset_stop_outputs.c>`_
+
+    -
+
+      R0363: STOP returns one of the Table 8.20 status codes in w0.
+
+    -
+
+      1. Require ``SUCCESS`` or ``INCOMPLETE`` for a running keyset.
+      2. Complete an asynchronous STOP using POLL and verify its handle.
+      3. Require ``INVALID_PARAMETERS`` for invalid ECAM or IDE type.
+
+  * -
+
+      `generated_abi_ide_keyset_poll_inputs <../test/ide/generated_abi_ide_keyset_poll_inputs.c>`_
+
+    -
+
+      R0364: POLL inputs carry ECAM, pending selector and keyset ID.
+
+    -
+
+      1. Start a pending PROG with a unique caller handle.
+      2. Test exact-keyset and any-pending selector inputs in x0-x3.
+      3. Test invalid ECAM and no-pending conditions with exact statuses.
+
+  * -
+
+      `generated_abi_ide_keyset_poll_outputs <../test/ide/generated_abi_ide_keyset_poll_outputs.c>`_
+
+    -
+
+      R0365: POLL returns status and conditional handle/keyset outputs.
+
+    -
+
+      1. Require terminal ``SUCCESS`` after bounded ``INCOMPLETE`` retries.
+      2. Compare x1 with the initiating handle, and x2 with the keyset ID
+         only for a successful any-pending response, ignoring unused Keyset ID bits.
+      3. Require ``DENIED`` when no operation is pending; restore all state.
 
 Notes
 =====

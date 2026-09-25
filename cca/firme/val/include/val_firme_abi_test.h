@@ -15,6 +15,7 @@
 #include "val_firme_rules.h"
 
 #define VAL_FIRME_ABI_SCRATCH_QWORDS 16U
+#define VAL_FIRME_ABI_SCENARIO_UNAVAILABLE 2
 
 typedef struct val_firme_abi_test_context val_firme_abi_test_context_t;
 
@@ -62,8 +63,7 @@ typedef struct {
  * @brief Execute a generated ABI test plan through service-specific adapters.
  * @param request Test-plan identifier, caller world, state and adapter hooks.
  * @param out Rule result populated with PASS, FAIL or SKIP.
- * @return VAL_SUCCESS when an architectural result is produced, otherwise
- *         VAL_ERROR for an ACS framework error.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
                                firme_rule_res_t *out);

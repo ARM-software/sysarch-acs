@@ -338,7 +338,7 @@ static uint32_t val_firme_abi_validate_expectation(
  * @param context Mutable execution context for the case.
  * @param ops Service-specific adapter hooks.
  * @param out Rule result populated on failure.
- * @return VAL_SUCCESS for an architectural PASS/FAIL, otherwise VAL_ERROR.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 static int val_firme_abi_execute_case(
     val_firme_abi_test_context_t *context,
@@ -349,14 +349,30 @@ static int val_firme_abi_execute_case(
     uint32_t call_issued = VAL_FALSE;
     int adapter_status = VAL_SUCCESS;
     int cleanup_status = VAL_SUCCESS;
+    int prepare_status = VAL_SUCCESS;
 
     val_firme_abi_frame_clear(&context->input);
     val_firme_abi_frame_clear(&context->output);
     val_firme_abi_scratch_clear(context);
     context->input.registers[0] = context->abi->fid;
 
-    if (ops->prepare_state &&
-        (ops->prepare_state(context) != VAL_SUCCESS))
+    if (ops->prepare_state)
+        prepare_status = ops->prepare_state(context);
+
+    if (prepare_status == VAL_FIRME_ABI_SCENARIO_UNAVAILABLE) {
+        if (ops->cleanup)
+            cleanup_status = ops->cleanup(context);
+        if (cleanup_status != VAL_SUCCESS) {
+            val_firme_abi_result_fail(
+                out, context->test_case->diagnostic_step, context);
+            return VAL_ERROR;
+        }
+        out->status = (uint64_t)ACS_STATUS_SKIP;
+        out->fail_step = context->test_case->diagnostic_step;
+        return VAL_SUCCESS;
+    }
+
+    if (prepare_status != VAL_SUCCESS)
         adapter_status = VAL_ERROR;
 
     if ((adapter_status == VAL_SUCCESS) &&
@@ -416,6 +432,7 @@ static int val_firme_abi_execute_case(
                   context->test_case->name);
         val_firme_abi_result_fail(
             out, context->test_case->diagnostic_step, context);
+        return VAL_ERROR;
     }
 
     return VAL_SUCCESS;
@@ -425,8 +442,7 @@ static int val_firme_abi_execute_case(
  * @brief Execute a generated ABI test plan through service-specific adapters.
  * @param request Test-plan identifier, caller world, state and adapter hooks.
  * @param out Rule result populated with PASS, FAIL or SKIP.
- * @return VAL_SUCCESS when an architectural result is produced, otherwise
- *         VAL_ERROR for an ACS framework error.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
                                firme_rule_res_t *out)
@@ -492,7 +508,8 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
         return VAL_ERROR;
 
     if (advertisement_status == VAL_FALSE)
-        return VAL_SUCCESS;
+        return (out->status == (uint64_t)ACS_STATUS_SKIP) ?
+               VAL_SUCCESS : VAL_ERROR;
 
     out->status = (uint64_t)ACS_STATUS_PASS;
 
@@ -503,7 +520,7 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
         if (case_status != VAL_SUCCESS)
             return VAL_ERROR;
 
-        if (out->status == (uint64_t)ACS_STATUS_FAIL)
+        if (out->status == (uint64_t)ACS_STATUS_SKIP)
             return VAL_SUCCESS;
     }
 
