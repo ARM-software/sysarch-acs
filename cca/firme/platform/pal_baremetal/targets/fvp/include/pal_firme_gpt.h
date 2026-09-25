@@ -21,6 +21,18 @@ typedef enum {
     PAL_FIRME_GPT_SCENARIO_MISMATCH = 3,
 } pal_firme_gpt_scenario_status_t;
 
+/** @brief Compute the complete granule envelope of a nonempty byte range.
+ * @param base Byte-range base.
+ * @param size Byte-range size.
+ * @param granule_size Power-of-two granule size.
+ * @param covered_base Returned aligned base.
+ * @param covered_size Returned aligned size.
+ * @return Scenario readiness, or error on invalid/overflowing geometry.
+ */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_granule_envelope(
+    uint64_t base, uint64_t size, uint64_t granule_size,
+    uint64_t *covered_base, uint64_t *covered_size);
+
 typedef struct {
     uint64_t base_pa;
     uint64_t granule_count;

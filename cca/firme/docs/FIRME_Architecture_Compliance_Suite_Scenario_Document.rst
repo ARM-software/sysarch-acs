@@ -70,6 +70,13 @@ their required behavior:
 - R0117: the status and Granule count outputs report operation progress
   according to the ``FIRME_GM_GPI_SET`` result table.
 - R0123: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
+- R0102 and R0103: GPT_INFO enforces the protected-range alignment and size
+  derived from Granule Management feature register 1.
+- R0134 and R0138-R0141: GPT_INFO reports stable ownership, architected PAR
+  state, exact status conditions, valid SUCCESS outputs, and conditional
+  output validity.
+- R0356 and R0357: the generated ABI plans validate GPT_INFO input and output
+  registers through the common ABI framework.
 - R0236: a successful MEC refresh replaces the previous encryption context.
 - R0238: identical plaintext has different protected representations before
   and after a successful MEC refresh.
@@ -78,6 +85,10 @@ their required behavior:
 status values on the current TF-A. R0113 and R0117 are also gated because
 TF-A rejects the required two-granule operation with
 ``FIRME_INVALID_PARAMETERS``.
+
+**Unavailable TF-A GPT_INFO support:** R0102, R0103, R0134, R0138-R0141,
+R0356, and R0357 are registry-gated because current TF-A does not advertise
+or implement the mandatory ``FIRME_GM_GPT_INFO`` ABI.
 
 **Unavailable TF-A/FVP feature support:** R0236 and R0238 are gated separately.
 The current FVP TF-A refresh hook returns ``SUCCESS`` without replacing the
@@ -1209,6 +1220,47 @@ treated as a DUT issue.
 
   * -
 
+      `gpt_op_continue_start_granule <../test/gpt/gpt_op_continue_start_granule.c>`_
+
+    -
+
+      R0114: ``FIRME_GM_GPI_OP_CONTINUE`` starts after all granules reported
+      by the original and preceding incomplete invocations.
+
+    -
+
+      1. Require advertised ``FIRME_GM_GPI_SET`` and
+         ``FIRME_GM_GPI_OP_CONTINUE``.
+      2. Use the PAL adapter to prepare a retained operation whose initial
+         ``FIRME_GM_GPI_SET`` returns ``INCOMPLETE``.
+      3. Continue using each returned cookie and accumulate only counts that
+         are architecturally valid for the returned status.
+      4. Require each continuation to begin at the accumulated count from the
+         original operation base.
+      5. After every phase, verify the reported progress describes exactly one
+         contiguous changed prefix, then restore the complete range.
+
+  * -
+
+      `gpt_op_continue_granule_count <../test/gpt/gpt_op_continue_granule_count.c>`_
+
+    -
+
+      R0115: A valid ``FIRME_GM_GPI_OP_CONTINUE`` Granule count describes the
+      successful prefix beginning at that invocation's start granule.
+
+    -
+
+      1. Prepare a retained changing operation and trace every continuation.
+      2. For each status where the count is valid, require the count to fit
+         within the suffix that existed at that invocation.
+      3. Reject unsupported or unallocated status values for the valid setup.
+      4. From Secure and Realm, verify each accumulated count against the
+         observable contiguous GPI prefix.
+      5. Clean up all retained state and restore the range.
+
+  * -
+
       `gpt_gpi_set_progress <../test/gpt/gpt_gpi_set_progress.c>`_
 
     -
@@ -1233,6 +1285,27 @@ treated as a DUT issue.
 
   * -
 
+      `gpt_op_continue_progress <../test/gpt/gpt_op_continue_progress.c>`_
+
+    -
+
+      R0118: ``FIRME_GM_GPI_OP_CONTINUE`` outputs follow the status, Granule
+      count, and operation-cookie relationships in Table 3.5.
+
+    -
+
+      1. Require advertised ``FIRME_GM_GPI_OP_CONTINUE``.
+      2. Use deterministic PAL scenarios for ``SUCCESS``, ``DENIED``,
+         ``OP_CONFLICT``, ``NOT_FOUND``, ``INCOMPLETE``, and ``BUSY``.
+      3. Require the exact expected status and consume the Granule count only
+         for rows where Table 3.5 makes it valid.
+      4. Require every valid count to fit the retained operation suffix.
+      5. For ``INCOMPLETE`` and ``BUSY``, retry the cookie returned by that
+         invocation and require another architected operation status.
+      6. Clean up each deterministic scenario.
+
+  * -
+
       `gpt_success_count_nonzero <../test/gpt/gpt_success_count_nonzero.c>`_
 
     -
@@ -1249,6 +1322,24 @@ treated as a DUT issue.
       5. Restore the granule to Non-secure state.
       6. Extend this rule test to ``FIRME_GM_GPI_OP_CONTINUE`` when that ABI is
          advertised by the DUT.
+
+  * -
+
+      `gpt_not_supported_status <../test/gpt/gpt_not_supported_status.c>`_
+
+    -
+
+      R0122: An unavailable GPI-management ABI returns ``NOT_SUPPORTED``.
+
+    -
+
+      1. Discover the advertised GPI-management ABIs without invoking an
+         unallocated function ID.
+      2. Ask PAL for a valid advertised-ABI invocation from a caller for which
+         that ABI is unavailable.
+      3. Invoke the prepared path and require exactly ``NOT_SUPPORTED``.
+      4. Clean up the scenario; skip only when no real caller-disallowed path
+         is available.
 
   * -
 
@@ -1269,6 +1360,43 @@ treated as a DUT issue.
 
   * -
 
+      `gpt_busy_retry <../test/gpt/gpt_busy_retry.c>`_
+
+    -
+
+      R0124: ``BUSY`` reports temporary inability and permits the operation to
+      be retried.
+
+    -
+
+      1. Require both mandatory GPI-management ABIs.
+      2. Induce ``BUSY`` independently for ``GPI_SET`` and ``OP_CONTINUE``.
+      3. Require exactly ``BUSY`` and verify that no additional GPI progress
+         occurred.
+      4. Retry ``GPI_SET`` with its original inputs and ``OP_CONTINUE`` with
+         the cookie returned by ``BUSY``.
+      5. Require an architected operation status and clean up each scenario.
+
+  * -
+
+      `gpt_l1_allocation_not_found <../test/gpt/gpt_l1_allocation_not_found.c>`_
+
+    -
+
+      R0126: An L1 GPT allocation failure returns ``NOT_FOUND``.
+
+    -
+
+      1. Use PAL to prepare a range containing an L0 Block that requires an L1
+         object and to induce allocation failure.
+      2. Invoke ``FIRME_GM_GPI_SET`` and require exactly ``NOT_FOUND``.
+      3. Require the valid count not to exceed the requested range.
+      4. Where locally observable, verify that the count describes the exact
+         successful prefix before the allocation failure.
+      5. Restore the range and release all scenario resources.
+
+  * -
+
       `gpt_denied_status <../test/gpt/gpt_denied_status.c>`_
 
     -
@@ -1280,6 +1408,452 @@ treated as a DUT issue.
       1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
       2. From NS, request NS -> Root.
       3. Expect ``DENIED``.
+
+  * -
+
+      `gpt_operation_conflict <../test/gpt/gpt_operation_conflict.c>`_
+
+    -
+
+      R0129: An operation overlapping a retained GPI operation returns
+      ``OP_CONFLICT``.
+
+    -
+
+      1. Require both mandatory GPI-management ABIs.
+      2. Retain one operation and arrange a second overlapping request.
+      3. Require the overlapping request to return exactly ``OP_CONFLICT`` and
+         a valid count no greater than its requested range.
+      4. Continue the original cookie and require an architected operation
+         status, proving the conflict did not discard retained state.
+      5. Clean up both operations and restore the range.
+
+  * -
+
+      `gpt_stateful_incomplete <../test/gpt/gpt_stateful_incomplete.c>`_
+
+    -
+
+      R0130: ``INCOMPLETE`` identifies a retained, stateful GPI operation.
+
+    -
+
+      1. Prepare a valid ``GPI_SET`` operation that must return
+         ``INCOMPLETE``.
+      2. Require a valid partial count and retain the returned cookie.
+      3. Continue that cookie and reject ``INVALID_PARAMETERS``,
+         ``NOT_SUPPORTED``, or any unallocated status.
+      4. Continue through ``INCOMPLETE`` or ``BUSY`` responses until a valid
+         terminal result is reached.
+      5. Fail on retry exhaustion and clean up all retained state.
+
+  * -
+
+      `gpt_protected_range_base_alignment <../test/gpt/gpt_protected_range_base_alignment.c>`_
+
+    -
+
+      R0102: A protected-range base is aligned to the L0GPTSZ coverage size.
+
+    -
+
+      1. Require advertised ``FIRME_GM_GPT_INFO`` and read GM feature register 1.
+      2. Cross-check PGS, L0GPTSZ and PPS against independent PAL geometry.
+      3. Derive the range containing the test PA and require ``SUCCESS`` for it.
+      4. Move the base by one PGS while retaining an aligned top.
+      5. Require ``INVALID_PARAMETERS`` for the misaligned base.
+
+  * -
+
+      `gpt_protected_range_size <../test/gpt/gpt_protected_range_size.c>`_
+
+    -
+
+      R0103: A protected-range size equals the L0GPTSZ coverage size.
+
+    -
+
+      1. Cross-check feature register 1 against independent PAL geometry.
+      2. Derive and query one complete protected range; require ``SUCCESS``.
+      3. Move the exclusive top inside the range by one PGS.
+      4. Require ``INVALID_PARAMETERS`` for the partial protected range.
+
+  * -
+
+      `gpt_management_owner_stability <../test/gpt/gpt_management_owner_stability.c>`_
+
+    -
+
+      R0134: A protected range does not change between EL3-managed and Host-managed.
+
+    -
+
+      1. Query the protected range and record the owner bit in its PAR state.
+      2. Transition one NS granule to the Secure or Realm GPI.
+      3. Query the same range and require the owner bit to remain unchanged.
+      4. Restore the granule to NS, query again, and require the original owner.
+
+  * -
+
+      `gpt_par_state_encoding <../test/gpt/gpt_par_state_encoding.c>`_
+
+    -
+
+      R0138: GPT_INFO uses the architected PAR-state encodings.
+
+    -
+
+      1. Query one independently described protected range.
+      2. Require an allocated PAR state in the range 0-3.
+      3. Compare the state with platform metadata that is independent of the
+         GPT_INFO result.
+
+  * -
+
+      `gpt_info_status <../test/gpt/gpt_info_status.c>`_
+
+    -
+
+      R0139: GPT_INFO returns the status selected by its input conditions.
+
+    -
+
+      1. Require ``SUCCESS`` for an aligned range fully inside PPS.
+      2. Require ``INVALID_PARAMETERS`` for a misaligned base.
+      3. Require ``INVALID_PARAMETERS`` for a misaligned top.
+      4. Require ``INVALID_PARAMETERS`` when top is equal to base.
+      5. Require ``INVALID_PARAMETERS`` when top is less than base.
+      6. Require ``INVALID_PARAMETERS`` for an aligned range outside PPS.
+
+  * -
+
+      `gpt_info_success_outputs <../test/gpt/gpt_info_success_outputs.c>`_
+
+    -
+
+      R0140: GPT_INFO SUCCESS returns a valid non-empty prefix and observed state.
+
+    -
+
+      1. Query exactly one protected range and require ``SUCCESS``.
+      2. Require returned top to be greater than base, no greater than input top,
+         and aligned to the protected-range size.
+      3. Require the PAR state to use an allocated encoding.
+      4. Compare the state with independent platform GPT metadata.
+
+  * -
+
+      `gpt_info_output_validity <../test/gpt/gpt_info_output_validity.c>`_
+
+    -
+
+      R0141: GPT_INFO range-top and PAR-state outputs are valid only on SUCCESS.
+
+    -
+
+      1. Consume and validate x1 and x2 after a successful query.
+      2. Enable controlled caller-side poisoning for x1 and x2.
+      3. Invoke GPT_INFO with a misaligned base and require
+         ``INVALID_PARAMETERS`` using x0 only.
+      4. Confirm the failing path does not consume the poisoned outputs.
+
+  * -
+
+      `gpt_info_concurrent_state <../test/gpt/gpt_info_concurrent_state.c>`_
+
+    -
+
+      R0144: A concurrent GPT change does not require ``GPT_INFO`` to return a
+      single atomic snapshot, but its state must have been observed during the
+      invocation.
+
+    -
+
+      1. Require advertised ``FIRME_GM_GPT_INFO`` and an MP-capable PAL path.
+      2. Record the protected-range state, overlap exactly one transition from
+         another PE with ``GPT_INFO``, and record the final state.
+      3. Verify the queried range geometry against independent PAL metadata.
+      4. Require the returned PAR state to be an allocated encoding equal to
+         either the state observed before or after the concurrent transition.
+      5. Reject an unrelated state; do not require an atomic before/after
+         snapshot that the rule does not mandate.
+
+  * -
+
+      `l1_bridge_object_properties <../test/gpt/l1_bridge_object_properties.c>`_
+
+    -
+
+      R0156: A bridge L1 GPT object has valid geometry, Root ownership, and
+      does not overlap the managed range or self-describing object.
+
+    -
+
+      1. Require the optional L1 CREATE/DESTROY pair and prepare a
+         self-describing Host-managed range.
+      2. Observe the temporary bridge independently while CREATE executes.
+      3. Require EL3 ownership, Root GPI, advertised L1 size/alignment, and no
+         overlap with the managed range or final object.
+      4. Require the bridge to be reclaimed and restore all platform state.
+
+  * -
+
+      `l1_create_transition_policy <../test/gpt/l1_create_transition_policy.c>`_
+
+    -
+
+      R0161: L1 CREATE permits only the Realm Non-secure-to-Root transition.
+
+    -
+
+      1. Require ``NOT_SUPPORTED`` from Normal and Secure FIRME instances.
+      2. Prepare a Realm non-self-describing object whose complete object
+         range is independently observed as Non-secure.
+      3. Complete CREATE and require every object granule to be Root.
+      4. Restore the original range and object state.
+
+  * -
+
+      `l1_create_status <../test/gpt/l1_create_status.c>`_
+
+    -
+
+      R0167: L1 CREATE returns the exact status assigned to every condition.
+
+    -
+
+      1. Require ``NOT_SUPPORTED`` for callers outside the Realm instance.
+      2. Exercise valid self-describing and non-self-describing requests.
+      3. Isolate every invalid range/object, absent auxiliary L1, existing
+         object, conflict, BUSY, allocation, GPI, and interrupted condition.
+      4. Compare each invocation with its exact architected status and reject
+         unknown or cross-ABI statuses.
+      5. Clean up after every condition, including failure paths.
+
+  * -
+
+      `l1_create_range_gpi_stability <../test/gpt/l1_create_range_gpi_stability.c>`_
+
+    -
+
+      R0168: CREATE preserves non-object GPIs on ``SUCCESS`` and
+      ``INCOMPLETE``.
+
+    -
+
+      1. Prepare self-describing and non-self-describing success and
+         interruption scenarios.
+      2. Independently check every protected-range granule not occupied by
+         the self-describing object, or the complete non-self range.
+      3. Invoke CREATE and require exact ``SUCCESS`` or ``INCOMPLETE``.
+      4. Recheck every covered granule against its pre-operation GPI.
+
+  * -
+
+      `l1_create_success_object_gpi <../test/gpt/l1_create_success_object_gpi.c>`_
+
+    -
+
+      R0170: Successful CREATE assigns Root GPI to every object granule.
+
+    -
+
+      1. Prepare both L1 object layouts and verify every object granule starts
+         Non-secure.
+      2. Retry ``BUSY`` and continue ``INCOMPLETE`` requests until
+         ``SUCCESS``.
+      3. Independently require Root GPI for the complete object range.
+
+  * -
+
+      `l1_create_incomplete_object_gpi <../test/gpt/l1_create_incomplete_object_gpi.c>`_
+
+    -
+
+      R0171: Interrupted CREATE leaves every object granule Root or unchanged.
+
+    -
+
+      1. Prepare deterministic interrupted requests for both object layouts.
+      2. Verify every object granule starts Non-secure.
+      3. Require ``INCOMPLETE`` from the initial CREATE invocation.
+      4. Require every object granule to be either Root or Non-secure, then
+         complete or roll back the retained operation during cleanup.
+
+  * -
+
+      `l1_create_denied_no_effect <../test/gpt/l1_create_denied_no_effect.c>`_
+
+    -
+
+      R0173: A denied CREATE restores every object granule to its initial GPI.
+
+    -
+
+      1. Prepare an object with one known non-Non-secure granule and all other
+         granules Non-secure.
+      2. Record every object's GPI through independent PAL observation.
+      3. Require exact ``DENIED``.
+      4. Recheck the prefix, offending granule, and suffix against their exact
+         pre-operation GPIs.
+
+  * -
+
+      `l1_destroy_transition_policy <../test/gpt/l1_destroy_transition_policy.c>`_
+
+    -
+
+      R0179: L1 DESTROY permits only the Realm Root-to-Non-secure transition.
+
+    -
+
+      1. Require ``NOT_SUPPORTED`` from Normal and Secure FIRME instances.
+      2. Prepare a Realm object and verify every object granule is Root.
+      3. Complete DESTROY and require every object granule to be Non-secure.
+
+  * -
+
+      `l1_destroy_scrub <../test/gpt/l1_destroy_scrub.c>`_
+
+    -
+
+      R0180: DESTROY scrubs the complete object before any Root-to-NS release.
+
+    -
+
+      1. Prepare existing self-describing and non-self-describing objects.
+      2. Enable independent write and GPI-transition observation.
+      3. Complete DESTROY.
+      4. Require overwrite coverage for every object byte, a scrub value
+         independent of the original contents, and scrub completion before
+         any object granule becomes Non-secure.
+
+  * -
+
+      `l1_destroy_status <../test/gpt/l1_destroy_status.c>`_
+
+    -
+
+      R0184: L1 DESTROY returns the exact status assigned to every condition.
+
+    -
+
+      1. Require ``NOT_SUPPORTED`` for callers outside the Realm instance.
+      2. Exercise valid objects and isolate invalid range, missing object,
+         conflict, three DENIED layouts, bridge-allocation, BUSY, and
+         interrupted conditions.
+      3. Compare each invocation with its exact architected status.
+      4. Clean up every case without retaining GPT state.
+
+  * -
+
+      `l1_destroy_success_output <../test/gpt/l1_destroy_success_output.c>`_
+
+    -
+
+      R0185: Successful DESTROY returns the exact physical L1 object base.
+
+    -
+
+      1. Prepare self-describing and non-self-describing objects with
+         independently known bases.
+      2. Complete DESTROY through all ``BUSY`` and ``INCOMPLETE`` phases.
+      3. Consume x2 only after ``SUCCESS`` and compare it with the prepared
+         object base.
+
+  * -
+
+      `l1_destroy_range_gpi_stability <../test/gpt/l1_destroy_range_gpi_stability.c>`_
+
+    -
+
+      R0186: DESTROY preserves non-object GPIs on ``SUCCESS`` and
+      ``INCOMPLETE``.
+
+    -
+
+      1. Prepare both layouts for terminal and interrupted destruction.
+      2. Check every non-object range granule before the invocation.
+      3. Require exact ``SUCCESS`` or ``INCOMPLETE``.
+      4. Recheck the complete covered range against its initial GPI.
+
+  * -
+
+      `l1_destroy_success_object_gpi <../test/gpt/l1_destroy_success_object_gpi.c>`_
+
+    -
+
+      R0188: Successful DESTROY assigns Non-secure GPI to every object granule.
+
+    -
+
+      1. Prepare both object layouts and verify every object granule is Root.
+      2. Complete DESTROY.
+      3. Independently require Non-secure GPI for the complete object range.
+
+  * -
+
+      `l1_destroy_incomplete_object_gpi <../test/gpt/l1_destroy_incomplete_object_gpi.c>`_
+
+    -
+
+      R0189: Interrupted DESTROY leaves every object granule Root or
+      Non-secure.
+
+    -
+
+      1. Prepare deterministic interrupted destruction for both layouts.
+      2. Verify every object granule starts Root.
+      3. Require ``INCOMPLETE``.
+      4. Require every object granule to be either Root or Non-secure before
+         cleanup resumes or rolls back the operation.
+
+  * -
+
+      `l1_single_in_progress_operation <../test/gpt/l1_single_in_progress_operation.c>`_
+
+    -
+
+      R0191: At most one L1 CREATE or DESTROY operation owns a range.
+
+    -
+
+      1. Retain an interrupted CREATE and require a new CREATE and DESTROY for
+         the same range to return ``OP_CONFLICT``.
+      2. Resume the original CREATE with a zero L1 base to ``SUCCESS``.
+      3. Retain an interrupted DESTROY and require CREATE for the same range
+         to return ``OP_CONFLICT``.
+      4. Resume the original DESTROY and restore the initial platform state.
+
+  * -
+
+      `generated_abi_gm_gpt_info_inputs <../test/gpt/generated_abi_gm_gpt_info_inputs.c>`_
+
+    -
+
+      R0356: GPT_INFO inputs occupy x1 and x2 with all other input registers SBZ.
+
+    -
+
+      1. Build an aligned inclusive base and exclusive top from feature register 1.
+      2. Invoke GPT_INFO through the common x0-x17 ABI frame.
+      3. Verify the generated input masks and production wrapper keep all
+         unallocated input bits and registers zero.
+
+  * -
+
+      `generated_abi_gm_gpt_info_outputs <../test/gpt/generated_abi_gm_gpt_info_outputs.c>`_
+
+    -
+
+      R0357: GPT_INFO returns status in w0, range top in x1 and PAR state in x2.
+
+    -
+
+      1. Invoke a valid query through the common ABI framework.
+      2. Require ``SUCCESS`` in w0.
+      3. Validate x1 as a non-empty aligned prefix top.
+      4. Validate x2 as an allocated PAR-state encoding.
 
 Notes
 =====

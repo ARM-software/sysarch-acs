@@ -7,6 +7,28 @@
 
 #include "pal_firme_gpt.h"
 
+/** @brief Compute a checked full-granule ownership envelope. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_granule_envelope(
+    uint64_t base, uint64_t size, uint64_t granule_size,
+    uint64_t *covered_base, uint64_t *covered_size)
+{
+    uint64_t top;
+    uint64_t aligned_base;
+
+    if (!covered_base || !covered_size || !size || !granule_size ||
+        ((granule_size & (granule_size - 1ULL)) != 0ULL) ||
+        (base > UINT64_MAX - size))
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    top = base + size;
+    if (top > UINT64_MAX - (granule_size - 1ULL))
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    aligned_base = base & ~(granule_size - 1ULL);
+    top = (top + granule_size - 1ULL) & ~(granule_size - 1ULL);
+    *covered_base = aligned_base;
+    *covered_size = top - aligned_base;
+    return PAL_FIRME_GPT_SCENARIO_READY;
+}
+
 /**
  * @brief Report deterministic GPT scenario support for the reference FVP.
  * @param world Caller world encoded as firme_acs_world_t.

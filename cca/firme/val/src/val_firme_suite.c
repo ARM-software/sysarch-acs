@@ -781,6 +781,30 @@ const firme_test_case_t g_firme_test_cases[] = {
      * feature register 0 as 0x1, missing FIRME_GM_GPI_OP_CONTINUE (bit 1),
      * so this rule currently fails by design.
      */
+    /*
+     * R0102, R0103, R0134, R0138-R0141, R0356, and R0357 have strict
+     * GPT_INFO bodies or generated interface plans. They remain outside the
+     * runtime registry because current TF-A neither advertises nor implements
+     * mandatory FIRME_GM_GPT_INFO. Re-enable the handwritten rule entries and
+     * the two generated plans together when the DUT advertises feature
+     * register 0 bit 4.
+     */
+    /*
+     * R0114, R0115, R0118, R0122, R0124, R0126, R0129, and R0130 have
+     * strict bodies for continuation and architected status behavior. They
+     * remain registry-gated because current TF-A does not advertise
+     * FIRME_GM_GPI_OP_CONTINUE and the default FVP PAL cannot create the
+     * deterministic BUSY, allocation-failure, or conflict scenarios.
+     * R0144 is also gated until GPT_INFO and MP synchronization are present.
+     */
+    /*
+     * R0156, R0161, R0167, R0168, R0170, R0171, R0173, R0179, R0180,
+     * R0184, R0185, R0186, R0188, R0189, and R0191 have strict one-rule
+     * L1 GPT lifecycle bodies. They remain registry-gated because current
+     * TF-A does not advertise the optional CREATE/DESTROY ABI pair and the
+     * default FVP PAL cannot provide deterministic lifecycle, bridge, scrub,
+     * complete-range GPI observation, or retained-operation scenarios.
+     */
     {
         .chapter = FIRME_CHAPTER_GPT,
         .rule_id = FIRME_RULE_R0086,
