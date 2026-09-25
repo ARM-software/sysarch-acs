@@ -125,6 +125,29 @@
 #define FIRME_GM_FEATURE_REG1_PPS_SHIFT     6U
 #define FIRME_GM_FEATURE_REG1_PPS_MASK      0x7U
 
+/* GPCCR_EL3.L0GPTSZ encodings surfaced via GM feature register 1. */
+#define FIRME_GM_L0GPTSZ_30BITS 0U
+#define FIRME_GM_L0GPTSZ_34BITS 4U
+#define FIRME_GM_L0GPTSZ_36BITS 6U
+#define FIRME_GM_L0GPTSZ_39BITS 9U
+
+/* GPCCR_EL3.PPS encodings surfaced via GM feature register 1. */
+#define FIRME_GM_PPS_4GB   0U
+#define FIRME_GM_PPS_64GB  1U
+#define FIRME_GM_PPS_1TB   2U
+#define FIRME_GM_PPS_4TB   3U
+#define FIRME_GM_PPS_16TB  4U
+#define FIRME_GM_PPS_256TB 5U
+#define FIRME_GM_PPS_4PB   6U
+
+/* FIRME_GM_GPT_INFO PAR state encodings. */
+#define FIRME_GPT_PAR_STATE_EL3_BLOCK  UINT64_C(0)
+#define FIRME_GPT_PAR_STATE_EL3_TABLE  UINT64_C(1)
+#define FIRME_GPT_PAR_STATE_HOST_BLOCK UINT64_C(2)
+#define FIRME_GPT_PAR_STATE_HOST_TABLE UINT64_C(3)
+#define FIRME_GPT_PAR_STATE_MAX        FIRME_GPT_PAR_STATE_HOST_TABLE
+#define FIRME_GPT_PAR_STATE_OWNER_MASK UINT64_C(2)
+
 /* GPCCR_EL3.PGS encodings surfaced via GM feature register 1. */
 #define FIRME_GM_PGS_4KB  0U
 #define FIRME_GM_PGS_64KB 1U
@@ -215,6 +238,11 @@ void val_firme_service_features(uint64_t service_id, uint64_t feature_reg_index,
 void val_firme_gm_gpi_set(uint64_t base_address, uint64_t granule_count, uint64_t attributes,
                           firme_res_t *out);
 void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *out);
+void val_firme_gm_l1_gpt_create(uint64_t range_base, uint64_t l1_gpt_base,
+                                firme_res_t *out);
+void val_firme_gm_l1_gpt_destroy(uint64_t range_base, firme_res_t *out);
+void val_firme_gm_gpt_info(uint64_t range_base, uint64_t range_top,
+                           firme_res_t *out);
 void val_firme_mec_refresh(uint64_t mec_params, firme_res_t *out);
 int64_t val_firme_status_to_i64(uint64_t value);
 int val_firme_status_is_architected(int64_t status);

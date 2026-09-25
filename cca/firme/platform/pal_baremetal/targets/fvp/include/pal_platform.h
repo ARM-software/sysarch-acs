@@ -123,6 +123,35 @@
 #define PLAT_FIRME_GPT_GRANULE_SIZE 0x1000ULL
 #endif
 
+/* Independent FVP GPT geometry used to cross-check feature register 1. */
+#ifndef PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE
+#define PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE 0x40000000ULL
+#endif
+
+#ifndef PLAT_FIRME_GPT_PROTECTED_PA_SIZE
+#define PLAT_FIRME_GPT_PROTECTED_PA_SIZE 0x10000000000ULL
+#endif
+
+/* The FVP NS DRAM test window is EL3-managed and L1-table described. */
+#ifndef PLAT_FIRME_GPT_INFO_PAR_STATE
+#define PLAT_FIRME_GPT_INFO_PAR_STATE 1ULL
+#endif
+
+#if (PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE == 0ULL) || \
+    ((PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE & \
+      (PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE - 1ULL)) != 0ULL)
+#error "PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE must be a non-zero power of two"
+#endif
+
+#if (PLAT_FIRME_GPT_PROTECTED_PA_SIZE < \
+     PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE)
+#error "PLAT_FIRME_GPT_PROTECTED_PA_SIZE is smaller than one protected range"
+#endif
+
+#if PLAT_FIRME_GPT_INFO_PAR_STATE > 3ULL
+#error "PLAT_FIRME_GPT_INFO_PAR_STATE must use an architected encoding"
+#endif
+
 
 /*
  * PCIe ECAM window used by FIRME IDE key management tests.

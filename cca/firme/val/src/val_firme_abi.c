@@ -259,6 +259,55 @@ void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *out)
 }
 
 /**
+ * @brief Start or continue creation of an L1 GPT object.
+ * @param range_base Protected-address-range base.
+ * @param l1_gpt_base L1 GPT object base, or zero to continue an operation.
+ * @param out Returned registers (x0-x3).
+ * @return None; the FIRME status is returned in out->x0.
+ */
+void val_firme_gm_l1_gpt_create(uint64_t range_base, uint64_t l1_gpt_base,
+                                firme_res_t *out)
+{
+    smccc_res_t res;
+
+    val_smccc_smc_call(FIRME_FID_GM_L1_GPT_CREATE, range_base, l1_gpt_base,
+                       0, 0, 0, 0, 0, &res);
+    val_firme_store_result(FIRME_FID_GM_L1_GPT_CREATE, &res, out);
+}
+
+/**
+ * @brief Start or continue destruction of an L1 GPT object.
+ * @param range_base Protected-address-range base.
+ * @param out Returned registers (x0-x3).
+ * @return None; the FIRME status is returned in out->x0.
+ */
+void val_firme_gm_l1_gpt_destroy(uint64_t range_base, firme_res_t *out)
+{
+    smccc_res_t res;
+
+    val_smccc_smc_call(FIRME_FID_GM_L1_GPT_DESTROY, range_base,
+                       0, 0, 0, 0, 0, 0, &res);
+    val_firme_store_result(FIRME_FID_GM_L1_GPT_DESTROY, &res, out);
+}
+
+/**
+ *   @brief    - Discover the state of one or more protected address ranges.
+ *   @param    - range_base : Inclusive protected-address-range base.
+ *   @param    - range_top  : Exclusive protected-address-range top.
+ *   @param    - out        : Returned registers (x0-x3).
+ *   @return   - void (SMC status is returned in out->x0).
+ **/
+void val_firme_gm_gpt_info(uint64_t range_base, uint64_t range_top,
+                           firme_res_t *out)
+{
+    smccc_res_t res;
+
+    val_smccc_smc_call(FIRME_FID_GM_GPT_INFO, range_base, range_top,
+                       0, 0, 0, 0, 0, &res);
+    val_firme_store_result(FIRME_FID_GM_GPT_INFO, &res, out);
+}
+
+/**
  *   @brief    - Invoke FIRME_MEC_REFRESH from the current world.
  *   @param    - mec_params : Encoded MEC params input value.
  *   @param    - out        : Returned registers (x0-x3).

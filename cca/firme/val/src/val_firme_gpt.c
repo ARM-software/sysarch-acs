@@ -8,6 +8,7 @@
 #include "val_firme_gpt.h"
 
 #include "aarch64/sysreg.h"
+#include "pal_platform.h"
 #include "val_common/val_status.h"
 #include "val_firme_service.h"
 #include "val_log.h"
@@ -15,6 +16,32 @@
 #define VAL_FIRME_GPT_PGS_SIZE_4KB  UINT64_C(0x1000)
 #define VAL_FIRME_GPT_PGS_SIZE_16KB UINT64_C(0x4000)
 #define VAL_FIRME_GPT_PGS_SIZE_64KB UINT64_C(0x10000)
+
+#define VAL_FIRME_GPT_L0GPTSZ_30_SHIFT 30U
+#define VAL_FIRME_GPT_L0GPTSZ_34_SHIFT 34U
+#define VAL_FIRME_GPT_L0GPTSZ_36_SHIFT 36U
+#define VAL_FIRME_GPT_L0GPTSZ_39_SHIFT 39U
+
+/**
+ *   @brief    - Record a GPT helper failure in the rule result.
+ *   @param    - out       : Optional rule result.
+ *   @param    - fail_step : Failing algorithm step.
+ *   @param    - last_x0   : Primary diagnostic value.
+ *   @param    - last_x1   : Secondary diagnostic value.
+ *   @return   - void.
+ **/
+static void val_firme_gpt_record_failure(firme_rule_res_t *out,
+                                         uint64_t fail_step,
+                                         uint64_t last_x0,
+                                         uint64_t last_x1)
+{
+    if (out) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
+        out->fail_step = fail_step;
+        out->last_x0 = last_x0;
+        out->last_x1 = last_x1;
+    }
+}
 
 /**
  *   @brief    - Probe a 64-bit load from a given world and return fault details.
@@ -214,12 +241,9 @@ uint32_t val_firme_gpt_feature_reg1(uint64_t *feature_reg1, firme_rule_res_t *ou
                                FIRME_GM_FEATURE_REG1_INDEX, &res);
 
     if (val_firme_status_not_supported(res.x0)) {
-        if (out) {
-            out->status = (uint64_t)ACS_STATUS_SKIP;
-            out->fail_step = 0;
-            out->last_x0 = res.x0;
-            out->last_x1 = res.x1;
-        }
+        LOG_ERROR(NULL,
+                  "gpt: mandatory GM feature register 1 is not supported");
+        val_firme_gpt_record_failure(out, fail_step, res.x0, res.x1);
         return VAL_FALSE;
     }
 
@@ -261,6 +285,546 @@ uint64_t val_firme_gpt_pgs_size_from_feature_reg1(uint64_t feature_reg1)
         return VAL_FIRME_GPT_PGS_SIZE_64KB;
 
     return 0ULL;
+}
+
+/**
+ *   @brief    - Decode protected-address-range size from GM feature register 1.
+ *   @param    - feature_reg1 : Raw feature register 1 value.
+ *   @return   - Protected-address-range size in bytes, or 0 for a reserved encoding.
+ **/
+uint64_t val_firme_gpt_range_size_from_feature_reg1(uint64_t feature_reg1)
+{
+    uint64_t l0gptsz;
+    uint32_t address_shift;
+
+    l0gptsz = (feature_reg1 >> FIRME_GM_FEATURE_REG1_L0GPTSZ_SHIFT) &
+              FIRME_GM_FEATURE_REG1_L0GPTSZ_MASK;
+
+    switch (l0gptsz) {
+    case FIRME_GM_L0GPTSZ_30BITS:
+        address_shift = VAL_FIRME_GPT_L0GPTSZ_30_SHIFT;
+        break;
+    case FIRME_GM_L0GPTSZ_34BITS:
+        address_shift = VAL_FIRME_GPT_L0GPTSZ_34_SHIFT;
+        break;
+    case FIRME_GM_L0GPTSZ_36BITS:
+        address_shift = VAL_FIRME_GPT_L0GPTSZ_36_SHIFT;
+        break;
+    case FIRME_GM_L0GPTSZ_39BITS:
+        address_shift = VAL_FIRME_GPT_L0GPTSZ_39_SHIFT;
+        break;
+    default:
+        return 0ULL;
+    }
+
+    return UINT64_C(1) << address_shift;
+}
+
+/**
+ *   @brief    - Decode protected physical address size from GM feature register 1.
+ *   @param    - feature_reg1 : Raw feature register 1 value.
+ *   @return   - Protected physical address size in bytes, or 0 for a reserved encoding.
+ **/
+uint64_t val_firme_gpt_pps_size_from_feature_reg1(uint64_t feature_reg1)
+{
+    uint64_t pps;
+    uint32_t address_shift;
+
+    pps = (feature_reg1 >> FIRME_GM_FEATURE_REG1_PPS_SHIFT) &
+          FIRME_GM_FEATURE_REG1_PPS_MASK;
+
+    switch (pps) {
+    case FIRME_GM_PPS_4GB:
+        address_shift = 32U;
+        break;
+    case FIRME_GM_PPS_64GB:
+        address_shift = 36U;
+        break;
+    case FIRME_GM_PPS_1TB:
+        address_shift = 40U;
+        break;
+    case FIRME_GM_PPS_4TB:
+        address_shift = 42U;
+        break;
+    case FIRME_GM_PPS_16TB:
+        address_shift = 44U;
+        break;
+    case FIRME_GM_PPS_256TB:
+        address_shift = 48U;
+        break;
+    case FIRME_GM_PPS_4PB:
+        address_shift = 52U;
+        break;
+    default:
+        return 0ULL;
+    }
+
+    return UINT64_C(1) << address_shift;
+}
+
+/**
+ *   @brief    - Check whether mandatory FIRME_GM_GPT_INFO is advertised.
+ *   @param    - out       : Optional rule result updated on failure.
+ *   @param    - fail_step : Step ID to report on discovery failure.
+ *   @return   - VAL_TRUE if advertised, otherwise VAL_FALSE.
+ **/
+uint32_t val_firme_gpt_info_advertised(firme_rule_res_t *out,
+                                       uint64_t fail_step)
+{
+    firme_res_t features_res = {0};
+    uint64_t feature_reg0 = 0ULL;
+    uint32_t advertised = VAL_FALSE;
+
+    if (val_firme_service_abi_is_advertised(
+            FIRME_SERVICE_ID_GRANULE_MGMT,
+            FIRME_GM_FEATURE_REG0_GPT_INFO_BIT, &advertised,
+            &feature_reg0, &features_res) != VAL_SUCCESS) {
+        LOG_ERROR(NULL,
+                  "gpt_info: feature discovery failed x0=%llx x1=%llx",
+                  (unsigned long long)features_res.x0,
+                  (unsigned long long)features_res.x1);
+        val_firme_gpt_record_failure(out, fail_step, features_res.x0,
+                                     features_res.x1);
+        return VAL_FALSE;
+    }
+
+    if (advertised == VAL_FALSE) {
+        LOG_ERROR(NULL,
+                  "gpt_info: mandatory ABI is not advertised reg0=%llx",
+                  (unsigned long long)feature_reg0);
+        val_firme_gpt_record_failure(out, fail_step, features_res.x0,
+                                     feature_reg0);
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ * @brief Check whether mandatory FIRME_GM_GPI_OP_CONTINUE is advertised.
+ * @param out Optional rule result updated on failure.
+ * @param fail_step Step ID to report on discovery failure.
+ * @return VAL_TRUE if advertised, otherwise VAL_FALSE.
+ */
+uint32_t val_firme_gpt_op_continue_advertised(firme_rule_res_t *out,
+                                              uint64_t fail_step)
+{
+    firme_res_t features_res = {0};
+    uint64_t feature_reg0 = 0ULL;
+    uint32_t advertised = VAL_FALSE;
+
+    if (val_firme_service_abi_is_advertised(
+            FIRME_SERVICE_ID_GRANULE_MGMT,
+            FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT, &advertised,
+            &feature_reg0, &features_res) != VAL_SUCCESS) {
+        LOG_ERROR(NULL,
+                  "gpi_op_continue: feature discovery failed x0=%llx x1=%llx",
+                  (unsigned long long)features_res.x0,
+                  (unsigned long long)features_res.x1);
+        val_firme_gpt_record_failure(out, fail_step, features_res.x0,
+                                     features_res.x1);
+        return VAL_FALSE;
+    }
+
+    if (advertised == VAL_FALSE) {
+        LOG_ERROR(NULL,
+                  "gpi_op_continue: mandatory ABI is not advertised reg0=%llx",
+                  (unsigned long long)feature_reg0);
+        val_firme_gpt_record_failure(out, fail_step, features_res.x0,
+                                     feature_reg0);
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ * @brief Return whether a status belongs to a valid GPI operation row.
+ * @param status Signed FIRME status.
+ * @return VAL_TRUE for an architected operation result, otherwise VAL_FALSE.
+ */
+uint32_t val_firme_gpt_operation_status_valid(int64_t status)
+{
+    if ((status == (int64_t)FIRME_SUCCESS) ||
+        (status == (int64_t)FIRME_DENIED) ||
+        (status == (int64_t)FIRME_OP_CONFLICT) ||
+        (status == (int64_t)FIRME_NOT_FOUND) ||
+        (status == (int64_t)FIRME_INCOMPLETE) ||
+        (status == (int64_t)FIRME_BUSY))
+        return VAL_TRUE;
+
+    return VAL_FALSE;
+}
+
+/**
+ * @brief Trace one GPI transition across stateless and stateful phases.
+ * @param base_pa Base physical address of the first granule.
+ * @param granule_count Number of granules requested by the caller.
+ * @param target_gpi Target GPI encoding.
+ * @param observe_prefix Whether to probe the transitioned prefix after each phase.
+ * @param out Optional rule result updated on an observation mismatch.
+ * @param fail_step Diagnostic step for a prefix mismatch.
+ * @param trace Returned raw phase trace.
+ * @return VAL_SUCCESS when a trace is produced, otherwise VAL_ERROR.
+ */
+int val_firme_gpt_trace_transition(uint64_t base_pa,
+                                   uint64_t granule_count,
+                                   uint64_t target_gpi,
+                                   uint32_t observe_prefix,
+                                   firme_rule_res_t *out,
+                                   uint64_t fail_step,
+                                   val_firme_gpt_trace_t *trace)
+{
+    firme_res_t result = {0};
+    val_firme_gpt_phase_t *phase;
+    uint64_t current_base = base_pa;
+    uint64_t remaining = granule_count;
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t granule_size = 0ULL;
+    uint64_t cookie = 0ULL;
+    uint64_t offset;
+    int64_t status;
+    uint32_t use_continue = VAL_FALSE;
+
+    if (!trace || (base_pa == 0ULL) || (granule_count == 0ULL) ||
+        ((observe_prefix != VAL_FALSE) && !out))
+        return VAL_ERROR;
+
+    *trace = (val_firme_gpt_trace_t){0};
+    trace->requested_count = granule_count;
+
+    if (val_firme_gpt_feature_reg1(
+            &feature_reg1, NULL, 0ULL) == VAL_FALSE)
+        return VAL_ERROR;
+
+    granule_size =
+        val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    if (granule_size == 0ULL)
+        return VAL_ERROR;
+
+    while ((remaining != 0ULL) &&
+           (trace->phase_count < VAL_FIRME_GPT_TRACE_MAX_PHASES)) {
+        phase = &trace->phases[trace->phase_count];
+        phase->abi = (use_continue == VAL_TRUE) ?
+                     VAL_FIRME_GPT_PHASE_OP_CONTINUE :
+                     VAL_FIRME_GPT_PHASE_GPI_SET;
+        phase->start_granule = trace->completed_count;
+        phase->remaining_before = remaining;
+        phase->input_cookie = cookie;
+
+        if (use_continue == VAL_TRUE)
+            val_firme_gm_gpi_op_continue(cookie, &result);
+        else
+            val_firme_gm_gpi_set_do(current_base, remaining,
+                                    target_gpi, &result);
+
+        status = val_firme_status_to_i64(result.x0);
+        phase->status = status;
+        phase->granule_count = result.x1;
+        phase->output_cookie = result.x2;
+        trace->phase_count++;
+
+        if (status == (int64_t)FIRME_BUSY) {
+            if ((observe_prefix != VAL_FALSE) &&
+                (val_firme_gpt_local_prefix_matches(
+                     base_pa, granule_count, trace->completed_count,
+                     out, fail_step + trace->phase_count) == VAL_FALSE)) {
+                trace->observation_failed = VAL_TRUE;
+                return VAL_SUCCESS;
+            }
+            if (use_continue == VAL_TRUE)
+                cookie = result.x2;
+            continue;
+        }
+
+        if (val_firme_gpt_operation_status_valid(status) == VAL_FALSE) {
+            trace->unexpected_status = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+
+        if (result.x1 > remaining) {
+            trace->malformed = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+
+        if (((status == (int64_t)FIRME_SUCCESS) &&
+             (result.x1 == 0ULL)) ||
+            ((status == (int64_t)FIRME_INCOMPLETE) &&
+             (result.x1 >= remaining))) {
+            trace->malformed = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+
+        trace->completed_count += result.x1;
+        remaining -= result.x1;
+        if (result.x1 > (UINT64_MAX / granule_size)) {
+            trace->malformed = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+        offset = result.x1 * granule_size;
+        if (current_base > (UINT64_MAX - offset)) {
+            trace->malformed = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+        current_base += offset;
+
+        if ((observe_prefix != VAL_FALSE) &&
+            (val_firme_gpt_local_prefix_matches(
+                 base_pa, granule_count, trace->completed_count,
+                 out, fail_step + trace->phase_count) == VAL_FALSE)) {
+            trace->observation_failed = VAL_TRUE;
+            return VAL_SUCCESS;
+        }
+
+        if (status == (int64_t)FIRME_INCOMPLETE) {
+            cookie = result.x2;
+            use_continue = VAL_TRUE;
+            continue;
+        }
+
+        if (status == (int64_t)FIRME_SUCCESS) {
+            use_continue = VAL_FALSE;
+            continue;
+        }
+
+        return VAL_SUCCESS;
+    }
+
+    if (remaining != 0ULL)
+        trace->exhausted = VAL_TRUE;
+
+    return VAL_SUCCESS;
+}
+
+/**
+ * @brief Initialize a GPT rule result to FAIL with empty diagnostics.
+ * @param out Optional rule result.
+ * @return None.
+ */
+void val_firme_gpt_rule_result_init(firme_rule_res_t *out)
+{
+    if (out) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
+        out->fail_step = 0ULL;
+        out->last_x0 = 0ULL;
+        out->last_x1 = 0ULL;
+    }
+}
+
+/**
+ * @brief Record a GPT rule assertion failure.
+ * @param out Optional rule result.
+ * @param fail_step Failing algorithm step.
+ * @param last_x0 Primary diagnostic value.
+ * @param last_x1 Secondary diagnostic value.
+ * @return None.
+ */
+void val_firme_gpt_rule_result_fail(firme_rule_res_t *out,
+                                    uint64_t fail_step,
+                                    uint64_t last_x0,
+                                    uint64_t last_x1)
+{
+    val_firme_gpt_record_failure(out, fail_step, last_x0, last_x1);
+}
+
+/**
+ * @brief Find a status returned by a particular ABI in a phase trace.
+ * @param trace GPI operation trace.
+ * @param abi ABI phase to match.
+ * @param status Signed FIRME status to match.
+ * @return VAL_TRUE when a matching phase exists, otherwise VAL_FALSE.
+ */
+uint32_t val_firme_gpt_trace_has_status(
+    const val_firme_gpt_trace_t *trace, val_firme_gpt_phase_abi_t abi,
+    int64_t status)
+{
+    uint32_t phase_index;
+
+    if (!trace)
+        return VAL_FALSE;
+
+    for (phase_index = 0U; phase_index < trace->phase_count;
+         phase_index++) {
+        if ((trace->phases[phase_index].abi == abi) &&
+            (trace->phases[phase_index].status == status))
+            return VAL_TRUE;
+    }
+
+    return VAL_FALSE;
+}
+
+/**
+ * @brief Validate the locally observable transitioned prefix.
+ * @param base_pa First granule in the requested range.
+ * @param requested_count Number of granules in the requested range.
+ * @param completed_count Number reported as transitioned.
+ * @param out Optional rule result updated on mismatch.
+ * @param fail_step Diagnostic step.
+ * @return VAL_TRUE when access matches one contiguous prefix.
+ */
+uint32_t val_firme_gpt_local_prefix_matches(
+    uint64_t base_pa, uint64_t requested_count, uint64_t completed_count,
+    firme_rule_res_t *out, uint64_t fail_step)
+{
+    val_fault_info_t fault_info = {0};
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t granule_size;
+    uint64_t address;
+    uint64_t value = 0ULL;
+    uint64_t index;
+    uint32_t expect_access;
+
+    if ((base_pa == 0ULL) || (requested_count == 0ULL) ||
+        (completed_count > requested_count) ||
+        (val_firme_gpt_feature_reg1(&feature_reg1, out, fail_step) ==
+         VAL_FALSE))
+        return VAL_FALSE;
+
+    granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    if ((granule_size == 0ULL) ||
+        (requested_count > ((UINT64_MAX - base_pa) / granule_size))) {
+        val_firme_gpt_record_failure(out, fail_step, base_pa,
+                                     requested_count);
+        return VAL_FALSE;
+    }
+
+    for (index = 0ULL; index < requested_count; index++) {
+        address = base_pa + (index * granule_size);
+        fault_info = (val_fault_info_t){0};
+        value = 0ULL;
+        val_probe_read64(address, &value, &fault_info);
+        expect_access = (uint32_t)(index < completed_count);
+
+        if (((expect_access == VAL_TRUE) &&
+             (fault_info.faulted != 0ULL)) ||
+            ((expect_access == VAL_FALSE) &&
+             ((fault_info.faulted == 0ULL) ||
+              !val_fault_is_gpf(fault_info.esr)))) {
+            LOG_ERROR(NULL,
+                      "gpt prefix mismatch index=%llu completed=%llu "
+                      "faulted=%llu esr=%llx",
+                      (unsigned long long)index,
+                      (unsigned long long)completed_count,
+                      (unsigned long long)fault_info.faulted,
+                      (unsigned long long)fault_info.esr);
+            val_firme_gpt_record_failure(out, fail_step + index,
+                                         fault_info.esr, address);
+            return VAL_FALSE;
+        }
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ *   @brief    - Derive the protected range containing a platform test address.
+ *   @param    - test_pa   : Platform test address.
+ *   @param    - window    : Returned protected-address-range window.
+ *   @param    - out       : Optional rule result updated on failure.
+ *   @param    - fail_step : Step ID to report on invalid discovery data.
+ *   @return   - VAL_TRUE for a valid window, otherwise VAL_FALSE.
+ **/
+uint32_t val_firme_gpt_info_prepare_window(
+    uint64_t test_pa, val_firme_gpt_info_window_t *window,
+    firme_rule_res_t *out, uint64_t fail_step)
+{
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t advertised_granule_size;
+    uint64_t advertised_range_size;
+    uint64_t advertised_pa_size;
+    uint64_t range_mask;
+
+    if (!window) {
+        val_firme_gpt_record_failure(out, fail_step, test_pa, 0ULL);
+        return VAL_FALSE;
+    }
+
+    *window = (val_firme_gpt_info_window_t){0};
+    if (val_firme_gpt_feature_reg1(&feature_reg1, out, fail_step) ==
+        VAL_FALSE)
+        return VAL_FALSE;
+
+    advertised_granule_size =
+        val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    advertised_range_size =
+        val_firme_gpt_range_size_from_feature_reg1(feature_reg1);
+    advertised_pa_size =
+        val_firme_gpt_pps_size_from_feature_reg1(feature_reg1);
+
+    window->granule_size = PLAT_FIRME_GPT_GRANULE_SIZE;
+    window->range_size = PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE;
+    window->protected_pa_size = PLAT_FIRME_GPT_PROTECTED_PA_SIZE;
+
+    if ((test_pa == 0ULL) || (window->granule_size == 0ULL) ||
+        (advertised_granule_size != window->granule_size) ||
+        (advertised_range_size != window->range_size) ||
+        (advertised_pa_size != window->protected_pa_size)) {
+        LOG_ERROR(NULL,
+                  "gpt_info: geometry mismatch reg1=%llx pgs=%llx/%llx "
+                  "range=%llx/%llx pps=%llx/%llx",
+                  (unsigned long long)feature_reg1,
+                  (unsigned long long)advertised_granule_size,
+                  (unsigned long long)window->granule_size,
+                  (unsigned long long)advertised_range_size,
+                  (unsigned long long)window->range_size,
+                  (unsigned long long)advertised_pa_size,
+                  (unsigned long long)window->protected_pa_size);
+        val_firme_gpt_record_failure(out, fail_step, feature_reg1, test_pa);
+        return VAL_FALSE;
+    }
+
+    range_mask = window->range_size - UINT64_C(1);
+    window->range_base = test_pa & ~range_mask;
+    if ((window->range_base >= window->protected_pa_size) ||
+        (window->range_size >
+         (window->protected_pa_size - window->range_base))) {
+        LOG_ERROR(NULL,
+                  "gpt_info: test range is outside PPS base=%llx size=%llx",
+                  (unsigned long long)window->range_base,
+                  (unsigned long long)window->range_size);
+        val_firme_gpt_record_failure(out, fail_step, window->range_base,
+                                     window->protected_pa_size);
+        return VAL_FALSE;
+    }
+
+    window->range_top = window->range_base + window->range_size;
+    return VAL_TRUE;
+}
+
+/**
+ *   @brief    - Validate the common SUCCESS outputs of FIRME_GM_GPT_INFO.
+ *   @param    - window    : Input query window.
+ *   @param    - result    : ABI result.
+ *   @param    - out       : Optional rule result updated on failure.
+ *   @param    - fail_step : Step ID to report on malformed output.
+ *   @return   - VAL_TRUE for valid SUCCESS outputs, otherwise VAL_FALSE.
+ **/
+uint32_t val_firme_gpt_info_success_valid(
+    const val_firme_gpt_info_window_t *window, const firme_res_t *result,
+    firme_rule_res_t *out, uint64_t fail_step)
+{
+    if (!window || !result) {
+        val_firme_gpt_record_failure(out, fail_step, 0ULL, 0ULL);
+        return VAL_FALSE;
+    }
+
+    if ((val_firme_status_to_i64(result->x0) !=
+         (int64_t)FIRME_SUCCESS) ||
+        (result->x1 <= window->range_base) ||
+        (result->x1 > window->range_top) ||
+        ((result->x1 % window->range_size) != 0ULL) ||
+        (result->x2 > FIRME_GPT_PAR_STATE_MAX)) {
+        LOG_ERROR(NULL,
+                  "gpt_info: invalid success result x0=%llx x1=%llx x2=%llx",
+                  (unsigned long long)result->x0,
+                  (unsigned long long)result->x1,
+                  (unsigned long long)result->x2);
+        val_firme_gpt_record_failure(out, fail_step, result->x0,
+                                     result->x1);
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
 }
 
 /**
