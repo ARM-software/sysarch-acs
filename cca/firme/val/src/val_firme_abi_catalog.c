@@ -1077,11 +1077,11 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPT_INFO inclusive base and exclusive top inputs.",
         .disabled_reason =
-            "Needs a portable protected-range discovery adapter and valid query window.",
+            "Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO.",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPT_INFO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
         .enabled = 0U,
         .require_advertised = 1U,
         .require_output_validation = 0U,
@@ -1096,11 +1096,11 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPT_INFO status, returned top and protected-range state.",
         .disabled_reason =
-            "Needs returned range/state correlation against platform GPT data.",
+            "Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO.",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPT_INFO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
         .enabled = 0U,
         .require_advertised = 1U,
         .require_output_validation = 1U,

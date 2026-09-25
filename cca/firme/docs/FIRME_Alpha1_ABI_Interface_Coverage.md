@@ -20,8 +20,8 @@ outside this generator scope for this release.
 | R0353 | `FIRME_GM_L1_GPT_CREATE` | output | Gated | realm | Needs create, continuation, negative-path and cleanup orchestration. |
 | R0354 | `FIRME_GM_L1_GPT_DESTROY` | input | Gated | realm | Needs a successfully created L1 GPT object as deterministic pre-state. |
 | R0355 | `FIRME_GM_L1_GPT_DESTROY` | output | Gated | realm | Needs create/destroy lifecycle setup, output correlation and cleanup. |
-| R0356 | `FIRME_GM_GPT_INFO` | input | Gated | ns, secure, realm | Needs a portable protected-range discovery adapter and valid query window. |
-| R0357 | `FIRME_GM_GPT_INFO` | output | Gated | ns, secure, realm | Needs returned range/state correlation against platform GPT data. |
+| R0356 | `FIRME_GM_GPT_INFO` | input | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
+| R0357 | `FIRME_GM_GPT_INFO` | output | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
 | R0358 | `FIRME_IDE_KEYSET_PROG` | input | Gated | ns, realm | Needs discovered IDE endpoint and Root Port programming state. |
 | R0359 | `FIRME_IDE_KEYSET_PROG` | output | Gated | ns, realm | Needs endpoint programming, progress-path control and rollback. |
 | R0360 | `FIRME_IDE_KEYSET_GO` | input | Gated | ns, realm | Needs a successfully programmed IDE keyset as pre-state. |
