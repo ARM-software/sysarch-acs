@@ -810,6 +810,44 @@ treated as a DUT issue.
 
   * -
 
+      `ide_ecam_keyset_namespace <../test/ide/ecam_keyset_namespace.c>`_
+
+    -
+
+      R0211: A Root Port ECAM address space defines the keyset-ID namespace.
+
+    -
+
+      1. Prepare two independently observable Root Port/endpoint paths with
+         different ECAM bases but the same encoded keyset ID.
+      2. Program distinct keys, start both streams, and require protected
+         traffic through each endpoint path.
+      3. Stop the first stream and require the second to remain active; then
+         stop the second and require both paths to be idle.
+      4. Keep this rule registry-gated until PAL can provide both paths and
+         independent traffic evidence; ABI success alone is insufficient.
+
+  * -
+
+      `ide_keyset_id_uniqueness <../test/ide/keyset_id_uniqueness.c>`_
+
+    -
+
+      R0212: Each keyset ID uniquely selects a context within one ECAM space.
+
+    -
+
+      1. Prepare two independently observable streams in the same Root Port
+         ECAM space with different keyset IDs and different keys.
+      2. Program and start both streams; observe protected traffic through
+         each selected endpoint path.
+      3. Stop the first keyset and require the other stream to remain active;
+         then stop it and require both to be idle.
+      4. Keep this rule registry-gated until PAL can prove independent
+         contexts rather than returning only successful ABI statuses.
+
+  * -
+
       `ide_keyset_prog_status <../test/ide/keyset_prog_status.c>`_
 
     -

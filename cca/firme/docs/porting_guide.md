@@ -94,6 +94,19 @@ ownership, bridge reclamation, complete object overwrite, and ordering before
 the object is returned to the Non-secure PAS. PAL must restore every range,
 object, retained operation, and injected failure during cleanup.
 
+The IDE namespace rules R0211 and R0212 use
+`platform/pal_baremetal/targets/<your_platform>/include/pal_firme_ide_namespace.h`.
+Provide two real Root Port/endpoint paths with distinct keys and caller
+handles. For R0211, use the same keyset ID under two ECAM bases; for R0212,
+use different keyset IDs in one ECAM space. The PAL `prepare` hook must
+configure the endpoints and reserve streams without programming the Root
+Ports. The test invokes the FIRME PROG, GO, POLL and STOP ABIs. The `observe`
+hook must independently verify protected traffic and stopped-state behavior
+for both paths; do not infer success from ABI status alone. `cleanup` must
+restore endpoint and platform state even after a failing check. The reference
+FVP PAL reports these scenarios unavailable, so both rules remain outside
+the runtime registry until an observable two-path setup is ported.
+
 ## 2. Build + FVP regression
 
 FIRME-ACS is cross-compiled. Set `CROSS_COMPILE` to your AArch64 toolchain prefix (it may include a full path),

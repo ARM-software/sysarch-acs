@@ -566,6 +566,13 @@ const firme_test_case_t g_firme_test_cases[] = {
      */
 #endif
 #if FIRME_ENABLE_IDE
+    /*
+     * Strict R0211/R0212 bodies are implemented in
+     * test/ide/ecam_keyset_namespace.c and keyset_id_uniqueness.c.
+     * Keep them registry-gated until PAL provides two independently
+     * observable Root Port/endpoint paths and protected-traffic evidence.
+     * ABI SUCCESS alone cannot prove that keyset namespaces do not alias.
+     */
     {
         .chapter = FIRME_CHAPTER_IDE,
         .rule_id = FIRME_RULE_R0205,
