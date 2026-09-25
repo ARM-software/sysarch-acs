@@ -2508,6 +2508,13 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_PE_TEST_NUM_BASE  + 30,
         },
+        [GFRQR] = {
+            .test_entry_id    = NULL_ENTRY,
+            .module_id        = PE,
+            .rule_desc        = "Check PE security features",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = ALIAS_RULE,
+        },
         [MHCBW] = {
             .test_entry_id    = PE032_ENTRY,
             .module_id        = PE,
@@ -3966,6 +3973,11 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PE032_ENTRY] = pe032_entry,
     [PE036_ENTRY] = pe036_entry,
     [PE040_ENTRY] = pe040_entry,
+    [PE043_ENTRY] = pe043_entry,
+    [PE044_ENTRY] = pe044_entry,
+    [PE045_ENTRY] = pe045_entry,
+    [PE046_ENTRY] = pe046_entry,
+    [PE047_ENTRY] = pe047_entry,
     [PE048_ENTRY] = pe048_entry,
     [PE049_ENTRY] = pe049_entry,
     [PE061_ENTRY] = pe061_entry,
@@ -4805,6 +4817,9 @@ const RULE_ID_e p_l2wd_01_rule_list[]   = {B_WD_01, B_WD_02, B_WD_03, B_WD_04, B
 /* P_L1MM_01 */
 const RULE_ID_e p_l1mm_01_rule_list[]   = {S_L3MM_01, S_L3MM_02, RULE_ID_SENTINEL};
 
+/* GFRQR */
+const RULE_ID_e gfrqr_rule_list[]   = {B_SEC_01, B_SEC_02, B_SEC_03, B_SEC_04, B_SEC_05,
+                                     RULE_ID_SENTINEL};
 
 /* VBSA alias lists */
 /* V_L1PE_01 */
@@ -4901,6 +4916,8 @@ const alias_rule_map_t alias_rule_map[] = {
     {P_L2WD_01, p_l2wd_01_rule_list},
     {P_L1MM_01, p_l1mm_01_rule_list},
     {P_L1SM_04, p_l1sm_04_s_l4sm_03_rule_list},
+    {GFRQR, gfrqr_rule_list},
+
     /* VBSA alias rules */
     {V_L1PE_01, v_l1pe_01_rule_list},
     {V_L1MM_01, v_l1mm_01_rule_list},

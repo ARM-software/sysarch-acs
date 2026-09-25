@@ -106,9 +106,59 @@ The checklist provides information about:
       <td>No</td>
     </tr>
     <tr>
+      <td>43</td>
+      <td>Check Speculation Restriction</td>
+      <td>1</td>
+      <td>GFRQR</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>44</td>
+      <td>Check Speculative Str Bypass Safe</td>
+      <td>1</td>
+      <td>GFRQR</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>45</td>
+      <td>Check PEs Impl CSDB,SSBB,PSSBB</td>
+      <td>1</td>
+      <td>GFRQR</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>46</td>
+      <td>Check PEs Implement SB Barrier</td>
+      <td>1</td>
+      <td>GFRQR</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td>47</td>
+      <td>Check PE Impl CFP,DVP,CPP RCTX</td>
+      <td>1</td>
+      <td>GFRQR</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
+    </tr>
+    <tr>
       <td>32</td>
       <td>Check for addr authentication support</td>
-      <td>2</td>
+      <td>1</td>
       <td>MHCBW</td>
       <td>Yes</td>
       <td>Yes</td>

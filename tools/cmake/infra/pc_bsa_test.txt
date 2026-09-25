@@ -27,6 +27,11 @@ pe030.c
 pe032.c
 pe036.c
 pe040.c
+pe043.c
+pe044.c
+pe045.c
+pe046.c
+pe047.c
 pe048.c
 pe049.c
 pe070.c
