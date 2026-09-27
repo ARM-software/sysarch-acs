@@ -74,12 +74,14 @@ Optional deterministic GPT scenarios are exposed through
 Implement `pal_firme_gpt_scenario_prepare()` and
 `pal_firme_gpt_scenario_cleanup()` only when the platform can reliably create
 the requested long-running or error condition. Implement the
-`pal_firme_gpt_concurrent_info_*()` hooks when MP execution can overlap one
-GPT transition with `FIRME_GM_GPT_INFO`. PAL prepares, synchronizes, and
-cleans up the second PE; the rule test invokes the production GPT_INFO wrapper
-and validates its raw result. The default FVP PAL reports these scenarios as
-unavailable; tests remain registry-gated until a real DUT setup can provide
-and clean up the required state.
+`pal_firme_gpt_concurrent_info_*()` hooks when MP execution can overlap a
+real protected-range state change with `FIRME_GM_GPT_INFO`. PAL prepares,
+synchronizes, and cleans up the second PE; the rule test invokes the
+production GPT_INFO wrapper and validates its raw result. MP workers are
+already available, but a GPI change alone need not change the reported
+protected-range state. The default FVP PAL reports this scenario as
+unavailable; R0144 remains gated until a real state-changing operation and
+safe cleanup are available.
 
 The optional L1 GPT lifecycle tests use the same PAL header. Implement
 `pal_firme_gpt_l1_scenario_prepare()` and

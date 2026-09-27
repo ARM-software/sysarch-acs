@@ -15,7 +15,7 @@
  *   @param    - world   : FIRME caller world.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int shared_buffer_mapping_attributes_run(
     firme_acs_world_t world, uint64_t base_pa, firme_rule_res_t *out)
@@ -49,7 +49,7 @@ static int shared_buffer_mapping_attributes_run(
     if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
                            (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if ((evidence.caller_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
@@ -57,7 +57,7 @@ static int shared_buffer_mapping_attributes_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_CALLER_ATTRIBUTES,
                            evidence.caller_attributes,
                            VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if ((evidence.el3_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
@@ -65,7 +65,7 @@ static int shared_buffer_mapping_attributes_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EL3_ATTRIBUTES,
                            evidence.el3_attributes,
                            VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -76,7 +76,7 @@ static int shared_buffer_mapping_attributes_run(
  *   @brief    - Execute R0070 from the NS FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_mapping_attributes_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -89,7 +89,7 @@ int firme_base_shared_buffer_mapping_attributes_run_ns(
  *   @brief    - Execute R0070 from the Secure FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_mapping_attributes_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -102,7 +102,7 @@ int firme_base_shared_buffer_mapping_attributes_run_secure(
  *   @brief    - Execute R0070 from the Realm FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_mapping_attributes_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

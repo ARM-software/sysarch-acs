@@ -78,7 +78,7 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_scenario_cleanup(
  * @param world Caller world encoded as firme_acs_world_t.
  * @param default_base Default suite test address.
  * @param evidence Returned concurrent-state evidence.
- * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE until MP execution is available.
+ * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE without a real state-change setup.
  */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_prepare(
     uint32_t world, uint64_t default_base,
@@ -97,7 +97,7 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_prepare(
  * @brief Report concurrent GPT_INFO start support for the reference FVP.
  * @param world Caller world encoded as firme_acs_world_t.
  * @param evidence Prepared concurrent-state evidence.
- * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE until MP execution is available.
+ * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE without a prepared transition.
  */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_begin(
     uint32_t world, pal_firme_gpt_concurrent_info_t *evidence)
@@ -112,7 +112,7 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_begin(
  * @brief Report concurrent GPT_INFO finish support for the reference FVP.
  * @param world Caller world encoded as firme_acs_world_t.
  * @param evidence Concurrent-state evidence to update.
- * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE until MP execution is available.
+ * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE without a prepared transition.
  */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_finish(
     uint32_t world, pal_firme_gpt_concurrent_info_t *evidence)

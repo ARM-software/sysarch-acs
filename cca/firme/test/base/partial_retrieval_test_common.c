@@ -79,7 +79,7 @@ static void partial_retrieval_skip(firme_acs_world_t world,
  *   @brief    - Prepare a partial-retrieval rule at one FIRME instance.
  *   @param    - world : FIRME caller world.
  *   @param    - out   : Result record.
- *   @return   - VAL_SUCCESS when setup produced a rule outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for usable setup or SKIP, otherwise VAL_ERROR.
  **/
 int firme_partial_retrieval_test_prepare(firme_acs_world_t world,
                                          firme_rule_res_t *out)
@@ -166,7 +166,7 @@ int firme_partial_retrieval_test_collect(
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_STATUS,
             (uint64_t)evidence->abi_status, (uint64_t)test_case);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     return VAL_SUCCESS;

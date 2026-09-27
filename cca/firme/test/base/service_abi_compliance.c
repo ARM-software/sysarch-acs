@@ -167,7 +167,7 @@ static int service_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t 
                       (long long)status);
             service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_VERSION_STATUS,
                                         res.x0, (uint64_t)service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (implemented == VAL_FALSE)
@@ -178,7 +178,7 @@ static int service_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t 
                       SERVICE_ABI_COMPLIANCE_TEST_NAME, (unsigned int)service_id);
             service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_SERVICE_FORBIDDEN,
                                         res.x0, (uint64_t)service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (service_abi_compliance_check_service(world, service_id, out) == VAL_FALSE)

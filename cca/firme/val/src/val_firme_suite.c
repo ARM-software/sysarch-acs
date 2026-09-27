@@ -842,7 +842,8 @@ const firme_test_case_t g_firme_test_cases[] = {
      * remain registry-gated because current TF-A does not advertise
      * FIRME_GM_GPI_OP_CONTINUE and the default FVP PAL cannot create the
      * deterministic BUSY, allocation-failure, or conflict scenarios.
-     * R0144 is also gated until GPT_INFO and MP synchronization are present.
+     * R0144 also needs GPT_INFO and a real, synchronized protected-range
+     * state change; MP worker support alone is not sufficient.
      */
     /*
      * R0156, R0161, R0167, R0168, R0170, R0171, R0173, R0179, R0180,

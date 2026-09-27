@@ -137,7 +137,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
                   (unsigned long long)version_result.x0);
         reserved_output_bits_fail(out, RESERVED_OUTPUT_BITS_STEP_VERSION,
                                   version_result.x0, version_result.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     reg0_status = val_firme_service_abi_is_advertised(
@@ -150,7 +150,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
                   (unsigned long long)reg0_result.x1);
         reserved_output_bits_fail(out, RESERVED_OUTPUT_BITS_STEP_REG0_BITS,
                                   reg0_result.x0, reg0_result.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     val_firme_service_features(FIRME_SERVICE_ID_BASE,
@@ -168,7 +168,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
                   (unsigned long long)reg1_result.x1);
         reserved_output_bits_fail(out, RESERVED_OUTPUT_BITS_STEP_REG1_BITS,
                                   reg1_result.x0, reg1_result.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Poison unused VERSION bits before production decoding. */
@@ -199,7 +199,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
             reserved_output_bits_fail(out,
                                       RESERVED_OUTPUT_BITS_STEP_VERSION_POISON,
                                       poisoned_result.x0, version_result.x0);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -231,7 +231,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
             reserved_output_bits_fail(out,
                                       RESERVED_OUTPUT_BITS_STEP_REG0_POISON,
                                       poisoned_result.x0, poisoned_result.x1);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -263,7 +263,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
             reserved_output_bits_fail(out,
                                       RESERVED_OUTPUT_BITS_STEP_REG1_POISON,
                                       poisoned_result.x0, poisoned_result.x1);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

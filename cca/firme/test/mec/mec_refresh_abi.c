@@ -151,7 +151,7 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
     }
     if (val_firme_status_to_i64(res.x0) < 0) {
         mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_UNSUPPORTED, res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Read the DUT advertised common width for ABI parameter checks. */
@@ -159,12 +159,12 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
         VAL_SUCCESS) {
         mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_WIDTH_DISCOVERY,
                              width_res.x0, width_res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
     if ((width < VAL_FIRME_MECID_WIDTH_MIN) || (width > VAL_FIRME_MECID_WIDTH_MAX) ||
         (width > VAL_FIRME_MECID_U64_SHIFT_MAX)) {
         mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_WIDTH_RANGE, (uint64_t)width, 0);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Valid Realm-creation refresh request must complete successfully. */
@@ -172,7 +172,7 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
     val_firme_mec_refresh_do_retry(params, &res);
     if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
         mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_CREATE, res.x0, params);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 4: Valid Realm-destruction refresh request must complete successfully. */
@@ -180,7 +180,7 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
     val_firme_mec_refresh_do_retry(params, &res);
     if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
         mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_DESTROY, res.x0, params);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 5: MECID outside the common width must be rejected when encodable. */
@@ -191,7 +191,7 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
         if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_INVALID_PARAMETERS) {
             mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_INVALID_MECID, res.x0,
                                  invalid_mecid);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

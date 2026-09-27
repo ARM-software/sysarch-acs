@@ -56,7 +56,7 @@ void firme_mec_semantic_test_fail(firme_rule_res_t *out,
 /**
  *   @brief    - Prepare a MEC semantic rule.
  *   @param    - out : Result record.
- *   @return   - VAL_SUCCESS when setup produced a rule outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for usable setup or SKIP, otherwise VAL_ERROR.
  **/
 int firme_mec_semantic_test_prepare(firme_rule_res_t *out)
 {
@@ -118,7 +118,7 @@ int firme_mec_semantic_test_collect(
         firme_mec_semantic_test_fail(out, MEC_SEMANTIC_STEP_STATUS,
                                      (uint64_t)evidence->abi_status,
                                      evidence->mecid);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     return VAL_SUCCESS;

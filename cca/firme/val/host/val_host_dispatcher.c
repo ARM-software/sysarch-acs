@@ -304,10 +304,10 @@ static void run_test_case(const firme_test_case_t *tc,
 
     /* NS world body. */
     if (tc->run_ns) {
-        firme_rule_res_t out = {0};
+        firme_rule_res_t out = {.status = ACS_STATUS_ERR};
         const uint64_t base_pa = val_firme_gpt_base_for_world(FIRME_ACS_WORLD_NSEL2);
 
-        tc->run_ns(base_pa, &out);
+        val_firme_rule_run_ns(tc->rule_id, base_pa, &out);
 
         res_ns.x0 = out.status;
         res_ns.x1 = out.fail_step;

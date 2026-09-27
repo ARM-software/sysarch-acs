@@ -13,7 +13,7 @@
 /**
  *   @brief    - Validate R0236 through stale-data and new-context observations.
  *   @param    - out : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int mec_context_refresh_run(firme_rule_res_t *out)
 {
@@ -46,7 +46,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
         firme_mec_semantic_test_fail(out, MEC_SEMANTIC_STEP_SETUP,
                                      evidence.setup_fault_esr,
                                      evidence.setup_completed);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if ((evidence.valid_fields & required_fields) != required_fields) {
@@ -62,7 +62,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
         firme_mec_semantic_test_fail(out, MEC_SEMANTIC_STEP_SAMPLE_COUNT,
                                      evidence.sample_count,
                                      VAL_FIRME_MEC_OBSERVATION_MAX_SAMPLES);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
     expected_mask = (UINT32_C(1) << evidence.sample_count) - 1U;
 
@@ -71,14 +71,14 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
         firme_mec_semantic_test_fail(
             out, MEC_SEMANTIC_STEP_ROUND_TRIP,
             evidence.round_trip_completed_mask, expected_mask);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
     for (index = 0U; index < evidence.sample_count; index++) {
         if (evidence.round_trip[index] != evidence.plaintext) {
             firme_mec_semantic_test_fail(
                 out, MEC_SEMANTIC_STEP_ROUND_TRIP,
                 evidence.round_trip[index], evidence.plaintext);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -94,7 +94,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
                 firme_mec_semantic_test_fail(
                     out, MEC_SEMANTIC_STEP_STALE_READ,
                     evidence.stale_read[index], evidence.plaintext);
-                return VAL_SUCCESS;
+                return VAL_ERROR;
             }
             continue;
         }
@@ -104,7 +104,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
                 out, MEC_SEMANTIC_STEP_STALE_READ,
                 evidence.stale_read_completed_mask,
                 evidence.stale_read_fault_mask);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         fault_esr = evidence.stale_read_fault_esr[index];
@@ -113,7 +113,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
             firme_mec_semantic_test_fail(
                 out, MEC_SEMANTIC_STEP_INTEGRITY_ABORT,
                 fault_esr, index);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -122,7 +122,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
         firme_mec_semantic_test_fail(
             out, MEC_SEMANTIC_STEP_CLEANUP,
             (uint64_t)evidence.cleanup_status, evidence.mecid);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -133,7 +133,7 @@ static int mec_context_refresh_run(firme_rule_res_t *out)
  *   @brief    - Execute R0236 from the Realm FIRME instance.
  *   @param    - base_pa : Unused; the Realm payload owns a reserved test page.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_mec_context_refresh_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

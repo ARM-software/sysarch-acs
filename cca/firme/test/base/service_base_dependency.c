@@ -71,7 +71,7 @@ static int service_base_dependency_run(firme_rule_res_t *out)
                   SERVICE_BASE_DEPENDENCY_TEST_NAME, (unsigned long long)base_res.x0);
         service_base_dependency_fail(out, SERVICE_BASE_DEPENDENCY_STEP_BASE_VERSION,
                                      FIRME_SERVICE_ID_BASE, &base_res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     base_major = FIRME_SERVICE_VERSION_MAJOR(base_res.x0);
@@ -83,7 +83,7 @@ static int service_base_dependency_run(firme_rule_res_t *out)
                   (unsigned int)SERVICE_BASE_DEPENDENCY_MAJOR);
         service_base_dependency_fail(out, SERVICE_BASE_DEPENDENCY_STEP_BASE_MAJOR,
                                      FIRME_SERVICE_ID_BASE, &base_res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Any 1.x minor revision satisfies the Base 1.0 dependency. */
@@ -100,7 +100,7 @@ static int service_base_dependency_run(firme_rule_res_t *out)
                       (long long)status);
             service_base_dependency_fail(out, SERVICE_BASE_DEPENDENCY_STEP_SERVICE_STATUS,
                                          (uint64_t)service_id, &service_res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

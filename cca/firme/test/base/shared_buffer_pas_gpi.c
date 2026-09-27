@@ -15,7 +15,7 @@
  *   @param    - world   : FIRME caller world.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int shared_buffer_pas_gpi_run(
     firme_acs_world_t world, uint64_t base_pa, firme_rule_res_t *out)
@@ -50,20 +50,20 @@ static int shared_buffer_pas_gpi_run(
     if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
                            (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (evidence.pas_world != world) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_PAS,
                            (uint64_t)evidence.pas_world, (uint64_t)world);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     expected_gpi = val_firme_shared_buffer_expected_gpi(world);
     if ((expected_gpi == 0U) || (evidence.gpi != expected_gpi)) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_GPI,
                            (uint64_t)evidence.gpi, (uint64_t)expected_gpi);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -74,7 +74,7 @@ static int shared_buffer_pas_gpi_run(
  *   @brief    - Execute R0071 from the NS FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_pas_gpi_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -86,7 +86,7 @@ int firme_base_shared_buffer_pas_gpi_run_ns(
  *   @brief    - Execute R0071 from the Secure FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_pas_gpi_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -98,7 +98,7 @@ int firme_base_shared_buffer_pas_gpi_run_secure(
  *   @brief    - Execute R0071 from the Realm FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_pas_gpi_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

@@ -10,6 +10,7 @@
 #include <stddef.h>
 
 #include "aarch64/sysreg.h"
+#include "val_common/val_mp.h"
 #include "pal_firme_ide_abi.h"
 #include "val_common/val_status.h"
 #include "val_firme_abi.h"
@@ -384,7 +385,7 @@ static int val_firme_ide_abi_retry_main(
         if (status != (int64_t)FIRME_BUSY)
             return VAL_SUCCESS;
 
-        val_wfe();
+        val_mp_relax();
         val_smccc_smc_call_frame(&context->input, &context->output);
     }
 

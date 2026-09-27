@@ -96,7 +96,7 @@ static int service_instance_presence_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_INSTANCE_PRESENCE_TEST_NAME, (unsigned long long)res.x0);
         service_instance_presence_fail(out, SERVICE_INSTANCE_PRESENCE_STEP_BASE_VERSION,
                                        FIRME_SERVICE_ID_BASE, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: The Base service feature register 0 must be present. */
@@ -106,7 +106,7 @@ static int service_instance_presence_run(firme_acs_world_t world, firme_rule_res
                   SERVICE_INSTANCE_PRESENCE_TEST_NAME, (unsigned long long)res.x0);
         service_instance_presence_fail(out, SERVICE_INSTANCE_PRESENCE_STEP_BASE_FEATURES,
                                        FIRME_SERVICE_ID_BASE, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3/4: Services marked "No" in Table 2.3 must not be implemented. */
@@ -123,7 +123,7 @@ static int service_instance_presence_run(firme_acs_world_t world, firme_rule_res
             service_instance_presence_fail(out,
                                            SERVICE_INSTANCE_PRESENCE_STEP_FORBIDDEN_VERSION,
                                            (uint64_t)service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         val_firme_service_features((uint64_t)service_id, 0, &res);
@@ -134,7 +134,7 @@ static int service_instance_presence_run(firme_acs_world_t world, firme_rule_res
             service_instance_presence_fail(out,
                                            SERVICE_INSTANCE_PRESENCE_STEP_FORBIDDEN_FEATURE,
                                            (uint64_t)service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

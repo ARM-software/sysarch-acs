@@ -84,7 +84,7 @@ static int smccc_sme_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SMCCC_VERSION failed x0=%llx\n",
                   SMCCC_SME_TEST_NAME, (unsigned long long)res.x0);
         smccc_sme_fail(out, SMCCC_SME_STEP_VERSION, res.x0, pfr1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     major = res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
@@ -94,7 +94,7 @@ static int smccc_sme_run(firme_rule_res_t *out)
                   SMCCC_SME_TEST_NAME, (unsigned long long)major,
                   (unsigned long long)minor);
         smccc_sme_fail(out, SMCCC_SME_STEP_MINOR, res.x0, pfr1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Exercise live ZA with both non-streaming and streaming vectors. */

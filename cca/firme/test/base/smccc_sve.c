@@ -85,7 +85,7 @@ static int smccc_sve_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SMCCC_VERSION failed x0=%llx\n",
                   SMCCC_SVE_TEST_NAME, (unsigned long long)res.x0);
         smccc_sve_fail(out, SMCCC_SVE_STEP_VERSION, res.x0, pfr0);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     major = res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
@@ -95,7 +95,7 @@ static int smccc_sve_run(firme_rule_res_t *out)
                   SMCCC_SVE_TEST_NAME, (unsigned long long)major,
                   (unsigned long long)minor);
         smccc_sve_fail(out, SMCCC_SVE_STEP_MINOR, res.x0, pfr0);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Preserve live SVE state, then check legal hint-discardable state. */

@@ -117,7 +117,7 @@ static uint32_t specification_policy_release_valid(
 /**
  *   @brief    - Validate ALP4 R0031 specification version policy.
  *   @param    - out : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int specification_version_policy_run(firme_rule_res_t *out)
 {
@@ -161,7 +161,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
         specification_policy_fail(out, SPEC_POLICY_STEP_REGRESSION,
                                   evidence.previous.major_version,
                                   evidence.current.major_version);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     for (index = 0U; index < evidence.previous.service_count; index++) {
@@ -177,7 +177,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
             specification_policy_fail(out, SPEC_POLICY_STEP_REGRESSION,
                                       previous_service->service_id,
                                       current_service->major_version);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (current_service->major_version > previous_service->major_version) {
@@ -189,7 +189,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
             specification_policy_fail(out, SPEC_POLICY_STEP_REGRESSION,
                                       previous_service->service_id,
                                       current_service->minor_version);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         if (current_service->minor_version > previous_service->minor_version)
@@ -209,7 +209,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
         specification_policy_fail(out, SPEC_POLICY_STEP_MAJOR,
                                   evidence.previous.major_version,
                                   evidence.current.major_version);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (((change_mask & SPEC_POLICY_CHANGE_MINOR) != 0U) &&
@@ -218,7 +218,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
         specification_policy_fail(out, SPEC_POLICY_STEP_MINOR,
                                   evidence.previous.minor_version,
                                   evidence.current.minor_version);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -230,7 +230,7 @@ static int specification_version_policy_run(firme_rule_res_t *out)
  *   @brief    - Execute R0031 using release metadata supplied to the NS payload.
  *   @param    - base_pa : Unused for specification-policy validation.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_specification_version_policy_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)

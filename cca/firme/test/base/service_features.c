@@ -74,7 +74,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: base feature reg0 expected SUCCESS x0=%llx",
                   SERVICE_FEATURES_TEST_NAME, (unsigned long long)res.x0);
         service_features_fail(out, SERVICE_FEATURES_STEP_VALID_BASE_REG0, res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Base feature register 1 must be returned for a valid request. */
@@ -83,7 +83,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: base feature reg1 expected SUCCESS x0=%llx",
                   SERVICE_FEATURES_TEST_NAME, (unsigned long long)res.x0);
         service_features_fail(out, SERVICE_FEATURES_STEP_VALID_BASE_REG1, res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     service_list = res.x1 & ((uint64_t)FIRME_BASE_SERVICE_LIST_MASK <<
@@ -106,7 +106,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
                           (unsigned long long)res.x0);
                 service_features_fail(out, SERVICE_FEATURES_STEP_ABSENT_SERVICE,
                                       res.x0, (uint64_t)service_id);
-                return VAL_SUCCESS;
+                return VAL_ERROR;
             }
             continue;
         }
@@ -117,7 +117,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
                       (unsigned long long)res.x0);
             service_features_fail(out, SERVICE_FEATURES_STEP_PRESENT_SERVICE,
                                   res.x0, (uint64_t)service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -130,7 +130,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
                       SERVICE_FEATURES_TEST_NAME, (unsigned int)feature_reg_index,
                       (unsigned long long)res.x0);
             service_features_fail(out, SERVICE_FEATURES_STEP_INVALID_REG, res.x0, res.x1);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -143,7 +143,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
                       SERVICE_FEATURES_TEST_NAME, (unsigned int)service_id,
                       (unsigned long long)res.x0);
             service_features_fail(out, SERVICE_FEATURES_STEP_INVALID_SERVICE, res.x0, res.x1);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

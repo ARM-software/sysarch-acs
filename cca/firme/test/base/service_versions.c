@@ -75,7 +75,7 @@ static int service_versions_run(firme_rule_res_t *out)
                       (long long)status);
             service_versions_fail(out, SERVICE_VERSIONS_STEP_SERVICE_VERSION,
                                   (uint64_t)service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         major = FIRME_SERVICE_VERSION_MAJOR(res.x0);
@@ -85,7 +85,7 @@ static int service_versions_run(firme_rule_res_t *out)
                       (unsigned int)major, (unsigned int)SERVICE_VERSIONS_EXPECTED_MAJOR);
             service_versions_fail(out, SERVICE_VERSIONS_STEP_MAJOR,
                                   (uint64_t)service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

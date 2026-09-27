@@ -15,7 +15,7 @@
  *   @param    - world   : FIRME caller world.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int shared_buffer_size_bounds_run(
     firme_acs_world_t world, uint64_t base_pa, firme_rule_res_t *out)
@@ -44,14 +44,14 @@ static int shared_buffer_size_bounds_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_MINIMUM_SIZE,
                            evidence.page_count,
                            (uint64_t)evidence.abi_status);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     size_bytes = (evidence.page_count + 1ULL) * limits.minimum_size_bytes;
     if (size_bytes != limits.minimum_size_bytes) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_MINIMUM_SIZE,
                            size_bytes, limits.minimum_size_bytes);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     result = firme_shared_buffer_test_collect(world, VAL_FIRME_SHARED_BUFFER_CASE_MAXIMUM,
@@ -66,14 +66,14 @@ static int shared_buffer_size_bounds_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_MAXIMUM_SIZE,
                            evidence.page_count,
                            (uint64_t)evidence.abi_status);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     size_bytes = (evidence.page_count + 1ULL) * limits.minimum_size_bytes;
     if (size_bytes != limits.maximum_size_bytes) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_MAXIMUM_SIZE,
                            size_bytes, limits.maximum_size_bytes);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     result = firme_shared_buffer_test_collect(
@@ -89,7 +89,7 @@ static int shared_buffer_size_bounds_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_ABOVE_MAXIMUM,
                            evidence.page_count,
                            (uint64_t)evidence.abi_status);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -100,7 +100,7 @@ static int shared_buffer_size_bounds_run(
  *   @brief    - Execute R0076 from the NS FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_size_bounds_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -112,7 +112,7 @@ int firme_base_shared_buffer_size_bounds_run_ns(
  *   @brief    - Execute R0076 from the Secure FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_size_bounds_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -124,7 +124,7 @@ int firme_base_shared_buffer_size_bounds_run_secure(
  *   @brief    - Execute R0076 from the Realm FIRME instance.
  *   @param    - base_pa : Unused for shared-buffer concept tests.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_shared_buffer_size_bounds_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

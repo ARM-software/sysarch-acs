@@ -67,7 +67,7 @@ static int feature_register_index_run(firme_rule_res_t *out)
                   FEATURE_REGISTER_INDEX_TEST_NAME, (unsigned long long)res.x0);
         feature_register_index_fail(out, FEATURE_REGISTER_INDEX_STEP_REG0_STATUS,
                                     res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Base feature register index 1 is allocated and must be readable. */
@@ -77,7 +77,7 @@ static int feature_register_index_run(firme_rule_res_t *out)
                   FEATURE_REGISTER_INDEX_TEST_NAME, (unsigned long long)res.x0);
         feature_register_index_fail(out, FEATURE_REGISTER_INDEX_STEP_REG1_STATUS,
                                     res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: The maximum 8-bit index is validly encoded but unallocated in Base. */
@@ -87,7 +87,7 @@ static int feature_register_index_run(firme_rule_res_t *out)
                   FEATURE_REGISTER_INDEX_TEST_NAME, (unsigned long long)res.x0);
         feature_register_index_fail(out, FEATURE_REGISTER_INDEX_STEP_MAX_STATUS,
                                     res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (out)

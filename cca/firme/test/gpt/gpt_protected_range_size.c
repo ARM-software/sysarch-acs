@@ -49,7 +49,7 @@ static void gpt_protected_range_size_fail(
  * @brief Validate protected-address-range size for R0103.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 static int gpt_protected_range_size_run(uint64_t base_pa,
                                         firme_rule_res_t *out)
@@ -93,7 +93,7 @@ static int gpt_protected_range_size_run(uint64_t base_pa,
                   (unsigned long long)result.x0);
         gpt_protected_range_size_fail(
             out, GPT_PROTECTED_RANGE_SIZE_STEP_MISALIGNED, &result);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -104,7 +104,7 @@ static int gpt_protected_range_size_run(uint64_t base_pa,
  * @brief Validate R0103 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_protected_range_size_run_ns(uint64_t base_pa,
                                           firme_rule_res_t *out)
@@ -116,7 +116,7 @@ int firme_gpt_protected_range_size_run_ns(uint64_t base_pa,
  * @brief Validate R0103 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_protected_range_size_run_secure(uint64_t base_pa,
                                               firme_rule_res_t *out)
@@ -128,7 +128,7 @@ int firme_gpt_protected_range_size_run_secure(uint64_t base_pa,
  * @brief Validate R0103 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_protected_range_size_run_realm(uint64_t base_pa,
                                              firme_rule_res_t *out)

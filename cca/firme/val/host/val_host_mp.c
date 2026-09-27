@@ -123,8 +123,10 @@ void val_host_mp_init(void)
     }
 
     /* Publish text, boot stacks and tables before any cache-off CPU_ON entry. */
-    val_cache_clean_poc((uintptr_t)__text_start__, __text_end__ - __text_start__);
-    val_cache_clean_poc((uintptr_t)__stack_start__, __stack_end__ - __stack_start__);
+    val_cache_clean_poc((uintptr_t)__text_start__,
+                         (uintptr_t)__text_end__ - (uintptr_t)__text_start__);
+    val_cache_clean_poc((uintptr_t)__stack_start__,
+                         (uintptr_t)__stack_end__ - (uintptr_t)__stack_start__);
     val_mmu_publish_tables();
     g_mp_timeout_ticks = frequency * VAL_MP_TIMEOUT_SECONDS;
 }

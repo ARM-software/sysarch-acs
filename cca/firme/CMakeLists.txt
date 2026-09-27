@@ -137,7 +137,6 @@ set(FIRME_COMMON_CFLAGS
     -ffreestanding -fno-builtin -fno-stack-protector -fno-omit-frame-pointer
     $<$<COMPILE_LANGUAGE:C>:-mstrict-align>
     -O2 -g
-    -mstrict-align
 )
 
 set_source_files_properties(

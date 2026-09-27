@@ -121,7 +121,7 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
                   (unsigned long long)version_result.x0);
         reserved_output_regs_fail(out, RESERVED_OUTPUT_REGS_STEP_VERSION,
                                   version_result.x0, version_result.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     feature_status = val_firme_service_abi_is_advertised(
@@ -133,7 +133,7 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
                   (unsigned long long)feature_result.x0);
         reserved_output_regs_fail(out, RESERVED_OUTPUT_REGS_STEP_FEATURES,
                                   feature_result.x0, feature_result.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Poison unused VERSION registers before production decoding. */
@@ -160,7 +160,7 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
             reserved_output_regs_fail(out,
                                       RESERVED_OUTPUT_REGS_STEP_VERSION_POISON,
                                       poisoned_result.x1, poisoned_result.x2);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -191,7 +191,7 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
             reserved_output_regs_fail(out,
                                       RESERVED_OUTPUT_REGS_STEP_FEATURES_POISON,
                                       poisoned_result.x2, poisoned_result.x3);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

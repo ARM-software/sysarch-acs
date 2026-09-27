@@ -139,7 +139,7 @@ static int service_version_compat_run(firme_acs_world_t world, firme_rule_res_t 
                       SERVICE_VERSION_COMPAT_TEST_NAME, service_id, (long long)status);
             service_version_compat_fail(out, SERVICE_VERSION_COMPAT_STEP_SERVICE_MAJOR,
                                         res.x0, service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         major = FIRME_SERVICE_VERSION_MAJOR(res.x0);

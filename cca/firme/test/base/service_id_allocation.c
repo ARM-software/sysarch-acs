@@ -74,7 +74,7 @@ static int service_id_allocation_run(firme_rule_res_t *out)
                   SERVICE_ID_ALLOCATION_TEST_NAME, (unsigned long long)res.x0);
         service_id_allocation_fail(out, SERVICE_ID_ALLOCATION_STEP_BASE_ALLOCATED,
                                    FIRME_SERVICE_ID_BASE, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Check discovery at every allocated service ID, not just Base. */
@@ -88,7 +88,7 @@ static int service_id_allocation_run(firme_rule_res_t *out)
                       (long long)version_status);
             service_id_allocation_fail(out, SERVICE_ID_ALLOCATION_STEP_ALLOCATED_DISCOVERY,
                                        service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         val_firme_service_features(service_id, FIRME_BASE_FEATURE_REG0_INDEX, &res);
@@ -101,7 +101,7 @@ static int service_id_allocation_run(firme_rule_res_t *out)
                       (long long)version_status, (long long)feature_status);
             service_id_allocation_fail(out, SERVICE_ID_ALLOCATION_STEP_ALLOCATED_DISCOVERY,
                                        service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -115,7 +115,7 @@ static int service_id_allocation_run(firme_rule_res_t *out)
                       (unsigned long long)res.x0);
             service_id_allocation_fail(out, SERVICE_ID_ALLOCATION_STEP_UNALLOCATED_VERSION,
                                        service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
 
         /* Step 4: Unallocated service IDs must not report feature registers. */
@@ -126,7 +126,7 @@ static int service_id_allocation_run(firme_rule_res_t *out)
                       (unsigned long long)res.x0);
             service_id_allocation_fail(out, SERVICE_ID_ALLOCATION_STEP_UNALLOCATED_FEATURES,
                                        service_id, &res);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

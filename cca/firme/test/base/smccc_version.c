@@ -71,7 +71,7 @@ static int smccc_version_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SMCCC_VERSION failed x0=%llx\n",
                   SMCCC_VERSION_TEST_NAME, (unsigned long long)res.x0);
         smccc_version_fail(out, SMCCC_VERSION_STEP_CALL, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     major = res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
@@ -83,7 +83,7 @@ static int smccc_version_run(firme_rule_res_t *out)
                   SMCCC_VERSION_TEST_NAME, (unsigned long long)major,
                   (unsigned long long)SMCCC_VERSION_MIN_MAJOR);
         smccc_version_fail(out, SMCCC_VERSION_STEP_MAJOR, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: For major version 1, minor version must be at least 2. */
@@ -92,7 +92,7 @@ static int smccc_version_run(firme_rule_res_t *out)
                   SMCCC_VERSION_TEST_NAME, (unsigned long long)major,
                   (unsigned long long)minor);
         smccc_version_fail(out, SMCCC_VERSION_STEP_MINOR, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 4: Snapshot preserved general and SIMD/FP registers across Base SMCs. */

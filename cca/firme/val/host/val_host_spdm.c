@@ -113,6 +113,7 @@ static libspdm_return_t val_host_spdm_send(void *spdm_context, size_t message_si
 {
     val_host_spdm_context_t *owner;
     const uint8_t *bytes = message;
+
     owner = val_host_spdm_owner(spdm_context);
     (void)timeout;
     if (!owner || !owner->endpoint || !message ||

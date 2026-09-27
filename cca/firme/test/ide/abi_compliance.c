@@ -58,7 +58,7 @@ static void ide_abi_compliance_fail(firme_rule_res_t *out, uint64_t fail_step,
  *   @brief    - Validate mandatory IDE ABI bits for an IDE-capable instance.
  *   @param    - world : Current caller world.
  *   @param    - out   : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int ide_abi_compliance_run_supported(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -107,7 +107,7 @@ static int ide_abi_compliance_run_supported(firme_acs_world_t world, firme_rule_
  *   @brief    - Validate Secure instance IDE service is not supported.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_ide_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -134,7 +134,7 @@ int firme_ide_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - IDE ABI compliance rule body for NS caller execution.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_ide_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -146,7 +146,7 @@ int firme_ide_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - IDE ABI compliance rule body for Realm caller execution.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_ide_abi_compliance_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

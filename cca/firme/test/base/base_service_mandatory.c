@@ -65,7 +65,7 @@ static int base_service_mandatory_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SERVICE_VERSION not supported x0=%llx",
                   BASE_SERVICE_MANDATORY_TEST_NAME, (unsigned long long)res.x0);
         base_service_mandatory_fail(out, BASE_SERVICE_MANDATORY_STEP_VERSION, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (status <= 0) {
@@ -73,7 +73,7 @@ static int base_service_mandatory_run(firme_rule_res_t *out)
                   BASE_SERVICE_MANDATORY_TEST_NAME, (long long)status,
                   (unsigned long long)res.x0);
         base_service_mandatory_fail(out, BASE_SERVICE_MANDATORY_STEP_VERSION, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: FIRME_SERVICE_FEATURES must be implemented at this instance. */
@@ -82,7 +82,7 @@ static int base_service_mandatory_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SERVICE_FEATURES not implemented x0=%llx",
                   BASE_SERVICE_MANDATORY_TEST_NAME, (unsigned long long)res.x0);
         base_service_mandatory_fail(out, BASE_SERVICE_MANDATORY_STEP_FEATURES, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (out)

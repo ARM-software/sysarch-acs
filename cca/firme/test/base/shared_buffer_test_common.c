@@ -77,7 +77,7 @@ static void shared_buffer_skip(firme_rule_res_t *out, firme_acs_world_t world)
  *   @param    - world  : FIRME caller world.
  *   @param    - out    : Result record.
  *   @param    - limits : Returned Base-advertised limits.
- *   @return   - VAL_SUCCESS when setup produced a rule outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for usable setup or SKIP, otherwise VAL_ERROR.
  **/
 int firme_shared_buffer_test_setup(firme_acs_world_t world, firme_rule_res_t *out,
                                    shared_buffer_limits_t *limits)
@@ -95,7 +95,7 @@ int firme_shared_buffer_test_setup(firme_acs_world_t world, firme_rule_res_t *ou
             &limits->minimum_size_bytes, &limits->maximum_page_count,
             &limits->maximum_size_bytes) != VAL_SUCCESS) {
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_LIMITS, 0ULL, 0ULL);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     return VAL_SUCCESS;

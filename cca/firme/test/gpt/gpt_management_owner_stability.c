@@ -58,7 +58,7 @@ static uint32_t gpt_management_owner_query(
  * @param base_pa Platform GPT test address.
  * @param target_gpi Caller-owned GPI used for the temporary transition.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 static int gpt_management_owner_run(uint64_t base_pa,
                                     uint64_t target_gpi,
@@ -177,7 +177,7 @@ cleanup:
                   (unsigned long long)after.x2);
         gpt_management_owner_fail(
             out, GPT_MANAGEMENT_OWNER_STEP_AFTER, &after);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -188,7 +188,7 @@ cleanup:
  * @brief Validate R0134 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_management_owner_stability_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -200,7 +200,7 @@ int firme_gpt_management_owner_stability_run_secure(
  * @brief Validate R0134 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_management_owner_stability_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

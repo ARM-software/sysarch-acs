@@ -84,7 +84,7 @@ static int status_codes_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: base feature reg0 returned status=%lld",
                   STATUS_CODES_TEST_NAME, (long long)status);
         status_codes_fail(out, STATUS_CODES_STEP_FEATURE_SUCCESS, res.x0, res.x1);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: SERVICE_VERSION negative returns must be architected. */
@@ -97,7 +97,7 @@ static int status_codes_run(firme_rule_res_t *out)
                       STATUS_CODES_TEST_NAME, (unsigned int)service_id,
                       (long long)status);
             status_codes_fail(out, STATUS_CODES_STEP_VERSION_STATUS, res.x0, service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
         if ((service_id >= FIRME_SERVICE_ID_MAX) &&
             (status != (int64_t)FIRME_NOT_SUPPORTED)) {
@@ -105,7 +105,7 @@ static int status_codes_run(firme_rule_res_t *out)
                       STATUS_CODES_TEST_NAME, (unsigned int)service_id,
                       (unsigned long long)res.x0);
             status_codes_fail(out, STATUS_CODES_STEP_UNALLOCATED_VERSION, res.x0, service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 
@@ -120,7 +120,7 @@ static int status_codes_run(firme_rule_res_t *out)
                       STATUS_CODES_TEST_NAME, (unsigned int)service_id,
                       (long long)status);
             status_codes_fail(out, STATUS_CODES_STEP_FEATURES_STATUS, res.x0, service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
         if ((service_id >= FIRME_SERVICE_ID_MAX) &&
             (status != (int64_t)FIRME_NOT_SUPPORTED)) {
@@ -128,7 +128,7 @@ static int status_codes_run(firme_rule_res_t *out)
                       STATUS_CODES_TEST_NAME, (unsigned int)service_id,
                       (unsigned long long)res.x0);
             status_codes_fail(out, STATUS_CODES_STEP_UNALLOCATED_FEATURE, res.x0, service_id);
-            return VAL_SUCCESS;
+            return VAL_ERROR;
         }
     }
 

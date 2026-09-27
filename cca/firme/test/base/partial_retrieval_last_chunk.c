@@ -14,7 +14,7 @@
  *   @param    - world   : FIRME caller world.
  *   @param    - base_pa : Unused by the service adapter.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int partial_retrieval_last_chunk_run(
     firme_acs_world_t world, uint64_t base_pa, firme_rule_res_t *out)
@@ -38,21 +38,21 @@ static int partial_retrieval_last_chunk_run(
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_STATUS,
             (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (evidence.written_size == 0ULL) {
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_WRITTEN_SIZE,
             evidence.written_size, evidence.remaining_size);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (evidence.remaining_size != 0ULL) {
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_REMAINING_SIZE,
             evidence.written_size, evidence.remaining_size);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
@@ -63,7 +63,7 @@ static int partial_retrieval_last_chunk_run(
  *   @brief    - Execute R0080 from the NS FIRME instance.
  *   @param    - base_pa : Unused by the service adapter.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_partial_retrieval_last_chunk_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -76,7 +76,7 @@ int firme_base_partial_retrieval_last_chunk_run_ns(
  *   @brief    - Execute R0080 from the Realm FIRME instance.
  *   @param    - base_pa : Unused by the service adapter.
  *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when the rule produced an outcome, else VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_partial_retrieval_last_chunk_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

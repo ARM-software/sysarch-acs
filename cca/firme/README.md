@@ -20,25 +20,14 @@ same hosting model.
 ## ACS release details
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
-- **Current coverage:** Base service / Concepts (R0007, R0008, R0009,
-  R0010, R0012, R0013, R0025, R0026, R0033, R0034, R0035, R0038, R0044,
-  R0047, R0051, R0053, R0055), MECID management (R0239, R0241), GPT
-  Management (R0086, R0090, R0094, R0095, R0098, R0111, R0113, R0117,
-  R0120, R0127, R0194), and IDE
-  Key Management (R0205, R0207, R0209, R0210, R0214, R0216, R0218, R0225,
-  R0227, R0231, R0232)
-- **Deferred or not runtime-scheduled:** R0011 until every architected status is
-  reachable; R0014 and R0015 until all service/status output shapes and the
-  callee non-disclosure clause are auditable; R0023 is enforced as an
-  eight-bit catalog/interface check because legal calls cannot observe decoder
-  width; R0024 until service-specific checks identify every allocated non-Base
-  service ID; R0031 because it is a specification release-policy requirement
-  rather than a runtime DUT check; R0041 is enforced as a static catalog check
-  because register size is not exposed by the ABI; R0048 and R0054 until TF-A
-  advertises all mandatory ALP4 ABI bits; R0064 and R0065 until TF-A exposes
-  ALP4 feature register 1 for every implemented non-Base service and a non-zero
-  collective limit can be stressed; and R0092, R0123, and R0195 until TF-A
-  implements the corresponding ALP4 semantics.
+- **Alpha1 scope:** 123 ALP4 rules across Concepts/Base, GPT, MECID, IDE Key
+  Management, and their ABI interfaces. The current registry schedules 47
+  rules; 74 have implemented but gated bodies or plans, and R0023/R0041 are
+  static interface checks. Active tests can still report SKIP when a platform
+  prerequisite is absent. This is development status, not release coverage.
+- **Rule status and algorithms:** See the
+  [scenario document](docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst)
+  and [ABI interface coverage](docs/FIRME_Alpha1_ABI_Interface_Coverage.md).
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
 ## FIRME spec version mapping
@@ -251,6 +240,14 @@ package SPs, ensure your Python environment provides `fdt` so TF-A can generate 
 ## Documentation
 - Porting: `cca/firme/docs/porting_guide.md`
 - Scenarios / rule coverage: `cca/firme/docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst`
+
+## Release readiness audit
+
+Run `python3 cca/firme/tools/scripts/audit_alpha1_coverage.py --inventory-only`
+to check the 123-rule inventory, test links, generated ABI catalog, and active
+registry. After a complete `SUITE=all` FVP run, pass the UART0 log with
+`--uart-log <path>`. The release check fails while any rule is gated, skipped,
+or failing; a passing inventory check alone is not a release qualification.
 
 ## Feedback, contributions, and support
 - Email: [support-firme-acs@arm.com](mailto:support-firme-acs@arm.com)

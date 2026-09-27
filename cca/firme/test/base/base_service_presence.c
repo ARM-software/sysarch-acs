@@ -64,7 +64,7 @@ static int base_service_presence_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SERVICE_VERSION(Base) failed x0=%llx",
                   BASE_SERVICE_PRESENCE_TEST_NAME, (unsigned long long)res.x0);
         base_service_presence_fail(out, BASE_SERVICE_PRESENCE_STEP_VERSION, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Base feature register 0 must be reported. */
@@ -73,7 +73,7 @@ static int base_service_presence_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SERVICE_FEATURES(Base, reg0) failed x0=%llx",
                   BASE_SERVICE_PRESENCE_TEST_NAME, (unsigned long long)res.x0);
         base_service_presence_fail(out, BASE_SERVICE_PRESENCE_STEP_REG0, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 3: Base feature register 1 must be reported. */
@@ -82,7 +82,7 @@ static int base_service_presence_run(firme_rule_res_t *out)
         LOG_ERROR(NULL, "%s: SERVICE_FEATURES(Base, reg1) failed x0=%llx",
                   BASE_SERVICE_PRESENCE_TEST_NAME, (unsigned long long)res.x0);
         base_service_presence_fail(out, BASE_SERVICE_PRESENCE_STEP_REG1, &res);
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (out)

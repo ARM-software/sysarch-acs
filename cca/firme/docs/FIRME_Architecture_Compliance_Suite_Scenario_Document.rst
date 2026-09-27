@@ -626,7 +626,7 @@ treated as a DUT issue.
 
   * -
 
-      Registry-gated shared-buffer mapping algorithm
+      `shared_buffer_mapping_attributes <../test/base/shared_buffer_mapping_attributes.c>`_
 
     -
 
@@ -647,7 +647,7 @@ treated as a DUT issue.
 
   * -
 
-      Registry-gated shared-buffer PAS/GPI algorithm
+      `shared_buffer_pas_gpi <../test/base/shared_buffer_pas_gpi.c>`_
 
     -
 
@@ -666,7 +666,7 @@ treated as a DUT issue.
 
   * -
 
-      Registry-gated shared-buffer size algorithm
+      `shared_buffer_size_bounds <../test/base/shared_buffer_size_bounds.c>`_
 
     -
 
@@ -687,7 +687,7 @@ treated as a DUT issue.
 
   * -
 
-      Registry-gated shared-buffer alignment algorithm
+      `shared_buffer_alignment <../test/base/shared_buffer_alignment.c>`_
 
     -
 
@@ -1656,13 +1656,18 @@ treated as a DUT issue.
     -
 
       1. Require advertised ``FIRME_GM_GPT_INFO`` and an MP-capable PAL path.
-      2. Record the protected-range state, overlap exactly one transition from
-         another PE with ``GPT_INFO``, and record the final state.
+      2. Arrange a real protected-range state change on another PE, such as an
+         L1 GPT lifecycle operation, and overlap it with ``GPT_INFO``. Record
+         the state before and after the call; a GPI change alone is not proof
+         that the protected-range state changed.
       3. Verify the queried range geometry against independent PAL metadata.
       4. Require the returned PAR state to be an allocated encoding equal to
          either the state observed before or after the concurrent transition.
       5. Reject an unrelated state; do not require an atomic before/after
          snapshot that the rule does not mandate.
+      6. Keep the test gated until ``GPT_INFO`` and a synchronized,
+         state-changing PAL scenario are available; MP worker startup alone
+         does not provide this evidence.
 
   * -
 
