@@ -32,6 +32,12 @@ typedef enum {
 
 typedef int (*firme_rule_fn_t)(uint64_t base_pa, firme_rule_res_t *out);
 
+typedef int (*firme_rule_post_fn_t)(
+    const firme_acs_call_res_t *res_ns,
+    const firme_acs_call_res_t *res_secure,
+    const firme_acs_call_res_t *res_realm,
+    firme_acs_call_res_t *overall);
+
 typedef struct {
     firme_chapter_id_t chapter;
     firme_rule_id_t rule_id;          /* Numeric rule ID (DEN0149) */
@@ -52,6 +58,9 @@ typedef struct {
     firme_rule_fn_t run_ns;
     firme_rule_fn_t run_secure;
     firme_rule_fn_t run_realm;
+
+    /* Optional host-side validation that combines evidence from all worlds. */
+    firme_rule_post_fn_t post_run;
 } firme_test_case_t;
 
 /*

@@ -37,6 +37,11 @@ The GPT test window must be a PA range that is mapped and accessible in the call
 and must not overlap your payload images or TF-A reserved regions. The ECAM base must identify the target
 Root port namespace used by the platform FIRME IDE key management implementation. `PLAT_FIRME_PCIE_ROOT_PORT_ID` and `PLAT_FIRME_PCIE_ENDPOINT_ID` use PCI requester-ID encoding: `bus[15:8]`, `device[7:3]`, and `function[2:0]`.
 
+Reserve the PAL-configured Selective IDE stream exclusively for ACS before
+running the suite. PROG, GO, STOP and POLL tests reuse that stream sequentially;
+they do not assume additional stream IDs exist. Tests drain their pending
+responses and stop the stream before reuse. A cleanup error remains a failure.
+
 ## 2. Build + FVP regression
 
 FIRME-ACS is cross-compiled. Set `CROSS_COMPILE` to your AArch64 toolchain prefix (it may include a full path),

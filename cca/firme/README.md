@@ -22,8 +22,10 @@ same hosting model.
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
 - **Current coverage:** Base service / Concepts (R0007, R0008, R0009,
   R0010, R0012, R0013, R0025, R0026, R0033, R0034, R0035, R0038, R0044,
-  R0047, R0051, R0053, R0055), MECID management (R0206, R0208), and GPT
-  Management (R0079, R0087, R0088, R0091, R0104, R0120)
+  R0047, R0051, R0053, R0055), MECID management (R0206, R0208), GPT
+  Management (R0079, R0087, R0088, R0091, R0104, R0120), and IDE Key
+  Management (R0173, R0175, R0177, R0178, R0182, R0184, R0186, R0192,
+  R0194, R0198, R0199)
 - **Deferred or not runtime-scheduled:** R0011 until every architected status is
   reachable; R0014 and R0015 until all service/status output shapes and the
   callee non-disclosure clause are auditable; R0023 because legal calls cannot

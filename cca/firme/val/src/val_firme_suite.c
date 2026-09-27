@@ -122,6 +122,37 @@ extern int firme_base_service_mandatory_run_realm(uint64_t base_pa, firme_rule_r
 extern int firme_base_service_mandatory_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 #endif
 
+#if FIRME_ENABLE_IDE
+extern int firme_ide_keyset_id_bitmap_encoding_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_ide_cxl_key_set_unused_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_cxl_stream_id_zero_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_cxl_substream_id_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_keyset_go_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_keyset_stop_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_keyset_prog_post(const firme_acs_call_res_t *res_ns,
+                                     const firme_acs_call_res_t *res_secure,
+                                     const firme_acs_call_res_t *res_realm,
+                                     firme_acs_call_res_t *overall);
+extern int firme_ide_keyset_go_post(const firme_acs_call_res_t *res_ns,
+                                   const firme_acs_call_res_t *res_secure,
+                                   const firme_acs_call_res_t *res_realm,
+                                   firme_acs_call_res_t *overall);
+extern int firme_ide_keyset_stop_post(const firme_acs_call_res_t *res_ns,
+                                     const firme_acs_call_res_t *res_secure,
+                                     const firme_acs_call_res_t *res_realm,
+                                     firme_acs_call_res_t *overall);
+extern int firme_ide_keyset_poll_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_secure_caller_not_supported_run_secure(uint64_t base_pa,
+                                                            firme_rule_res_t *out);
+extern int firme_ide_feature_register_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_feature_register_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_abi_compliance_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_ide_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+#endif
+
 #if FIRME_ENABLE_MEC
 extern int firme_mec_common_mecid_width_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out);
@@ -495,6 +526,168 @@ const firme_test_case_t g_firme_test_cases[] = {
      * executable bodies or registry entries until an attestation retrieval ABI
      * driver can exercise final, intermediate and no-data paths against the DUT.
      */
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0173,
+        .rule_str = "R0173",
+        .suite = "firme",
+        .test_name = "ide_keyset_id_bitmap_encoding",
+        .desc = "IDE keyset ID fields use the DEN0149 bitmap encoding",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate IDE Keyset ID field layout from Realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_keyset_id_bitmap_encoding_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0175,
+        .rule_str = "R0175",
+        .suite = "firme",
+        .test_name = "ide_cxl_key_set_unused",
+        .desc = "CXL.cachemem IDE ignores the Key Set field",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with unused Key Set zero",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_key_set_unused_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0177,
+        .rule_str = "R0177",
+        .suite = "firme",
+        .test_name = "ide_cxl_stream_id_zero",
+        .desc = "CXL.cachemem IDE Stream ID is zero",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with non-zero Stream ID",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_stream_id_zero_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0178,
+        .rule_str = "R0178",
+        .suite = "firme",
+        .test_name = "ide_cxl_substream_id",
+        .desc = "CXL.cachemem IDE Substream ID is 0b1000",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with invalid Substream ID",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_substream_id_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0182,
+        .rule_str = "R0182",
+        .suite = "firme",
+        .test_name = "ide_keyset_prog_status",
+        .desc = "FIRME_IDE_KEYSET_PROG status and observable key programming",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate KEYSET_PROG success and negative statuses",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_keyset_prog_status_run_realm,
+        .post_run = firme_ide_keyset_prog_post,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0184,
+        .rule_str = "R0184",
+        .suite = "firme",
+        .test_name = "ide_keyset_go_status",
+        .desc = "FIRME_IDE_KEYSET_GO status and observable traffic enablement",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate KEYSET_GO success and negative statuses",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_keyset_go_status_run_realm,
+        .post_run = firme_ide_keyset_go_post,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0186,
+        .rule_str = "R0186",
+        .suite = "firme",
+        .test_name = "ide_keyset_stop_status",
+        .desc = "FIRME_IDE_KEYSET_STOP status and observable traffic cessation",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate KEYSET_STOP success and negative statuses",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_keyset_stop_status_run_realm,
+        .post_run = firme_ide_keyset_stop_post,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0192,
+        .rule_str = "R0192",
+        .suite = "firme",
+        .test_name = "ide_keyset_poll_status",
+        .desc = "FIRME_IDE_KEYSET_POLL status handling",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Validate KEYSET_POLL completion and negative statuses",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_keyset_poll_status_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0194,
+        .rule_str = "R0194",
+        .suite = "firme",
+        .test_name = "ide_secure_caller_not_supported",
+        .desc = "Secure FIRME instance does not support IDE key management",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Invoke IDE key management ABIs from Secure world",
+        .run_ns = 0,
+        .run_secure = firme_ide_secure_caller_not_supported_run_secure,
+        .run_realm = 0,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0198,
+        .rule_str = "R0198",
+        .suite = "firme",
+        .test_name = "ide_feature_register",
+        .desc = "IDE feature register 0 reports ABI presence bits only",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
+        .check_realm = "Read IDE feature register 0 from Realm world",
+        .check_ns = "Read IDE feature register 0 from NS world",
+        .run_ns = firme_ide_feature_register_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_ide_feature_register_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0199,
+        .rule_str = "R0199",
+        .suite = "firme",
+        .test_name = "ide_abi_compliance",
+        .desc = "IDE key management ABIs follow Table 4.2 compliance",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
+        .check_secure = "Check IDE service absence from Secure world",
+        .check_realm = "Check mandatory IDE ABIs from Realm world",
+        .check_ns = "Check mandatory IDE ABIs from NS world",
+        .run_ns = firme_ide_abi_compliance_run_ns,
+        .run_secure = firme_ide_abi_compliance_run_secure,
+        .run_realm = firme_ide_abi_compliance_run_realm,
+    },
 #endif
 #if FIRME_ENABLE_MEC
     {

@@ -175,6 +175,7 @@ static void run_test_case(const firme_test_case_t *tc,
     firme_acs_call_res_t overall = {0};
     uint32_t check_idx = 1;
     uint32_t have_result = 0U;
+    int post_status;
     uint32_t secure_required = 0U;
     uint32_t realm_required = 0U;
     uint32_t ns_required = 0U;
@@ -328,6 +329,13 @@ static void run_test_case(const firme_test_case_t *tc,
             (tc->run_ns || ns_required) &&
             (res_ns.x0 == (uint64_t)ACS_STATUS_SKIP))
             overall = res_ns;
+    }
+
+    if ((tc->post_run != 0) &&
+        (overall.x0 == (uint64_t)ACS_STATUS_PASS)) {
+        post_status = tc->post_run(&res_ns, &res_sec, &res_realm, &overall);
+        if ((post_status != VAL_SUCCESS) && is_pass_or_skip(overall.x0))
+            overall.x0 = (uint64_t)ACS_STATUS_ERR;
     }
 
     log_rule_status(tc->rule_str, &overall);
