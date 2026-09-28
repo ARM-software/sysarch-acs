@@ -316,8 +316,6 @@ const bsa_rule_entry_t bsa_rule_list[] = {
     { B_PER_06, BSA_LEVEL_1,   SW_OS },
     { B_PER_07, BSA_LEVEL_1,   SW_OS },
     { B_PER_08, BSA_LEVEL_1,   SW_OS },
-    { B_PER_09, BSA_LEVEL_1,   SW_OS },
-    { B_PER_10, BSA_LEVEL_1,   SW_OS },
     { B_PER_12, BSA_LEVEL_1,   SW_OS },
 
     { B_PER_11, BSA_LEVEL_1,   SW_PS },

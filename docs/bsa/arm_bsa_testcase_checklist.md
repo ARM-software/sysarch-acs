@@ -1961,30 +1961,6 @@ The checklist provides information about:
     </tr>
     <tr>
       <td>L1</td>
-      <td>B_PER_09</td>
-      <td>B_PER_09</td>
-      <td>604</td>
-      <td>Check Memory Attributes of DMA</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>L1</td>
-      <td>B_PER_10</td>
-      <td>B_PER_10</td>
-      <td>607</td>
-      <td>Check DMA for I/O coherency</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>L1</td>
       <td>B_PER_12</td>
       <td>B_PER_12</td>
       <td>821</td>
@@ -3896,7 +3872,7 @@ The checklist provides information about:
 - **RI_ Removed:** RI_RST_1
 - **PCI_ Removed:** PCI_LI_02
 - **IE_ Removed:** IE_ACS_1, IE_ACS_2
-- **B_ Removed:** B_SEC_02, B_WD_05
+- **B_ Removed:** B_SEC_02, B_WD_05, B_PER_09, B_PER_10
 
 ### v26.03_BSA_1.2.1
 - **RI_ Added:** RI_PWR_1

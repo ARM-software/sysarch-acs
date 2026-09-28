@@ -586,16 +586,16 @@ The checklist provides information about:
       <td>B_PER_09</td>
       <td>604</td>
       <td>Check Memory Attributes of DMA</td>
-      <td>❌</td>
       <td>✅</td>
+      <td>❌</td>
       <td></td>
     </tr>
     <tr>
       <td>B_PER_10</td>
       <td>607</td>
       <td>Memory Attribute of I/O coherent DMA</td>
-      <td>❌</td>
       <td>✅</td>
+      <td>❌</td>
       <td></td>
     </tr>
     <tr>

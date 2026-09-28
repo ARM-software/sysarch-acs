@@ -3465,8 +3465,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [PCI_MM_07_ENTRY] = pci_mm_07_entry,
     [PCI_MM_05_ENTRY] = pci_mm_05_entry,
     [PCI_MSI_2_ENTRY] = pci_msi_2_entry,
-    [D004_ENTRY] = d004_entry,
-    [D007_ENTRY] = d007_entry,
     [M004_ENTRY] = m004_entry,
     [P097_ENTRY] = p097_entry, // used in wrapper.
     [M006_ENTRY] = m006_entry,
@@ -3983,9 +3981,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [D002_ENTRY] = d002_entry,
     [D003_ENTRY] = d003_entry,
     [D005_ENTRY] = d005_entry,
-    [D004_ENTRY] = d004_entry,
     [D006_ENTRY] = d006_entry,
-    [D007_ENTRY] = d007_entry,
     [D008_ENTRY] = d008_entry,
     [P001_ENTRY] = p001_entry,
     [P002_ENTRY] = p002_entry,
@@ -4384,8 +4380,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [D005_ENTRY] = d005_entry,
     [D006_ENTRY] = d006_entry,
     [D002_ENTRY] = d002_entry,
-    [D004_ENTRY] = d004_entry,
-    [D007_ENTRY] = d007_entry,
     [D001_ENTRY] = d001_entry,
     [D008_ENTRY] = d008_entry,
     [W001_ENTRY] = w001_entry,
@@ -4483,7 +4477,7 @@ const RULE_ID_e bsa_l1_rule_list[] = {
     B_WD_00,
     /* Peripherals L1 */
     B_PER_01, B_PER_02, B_PER_03, B_PER_04, B_PER_05, B_PER_06,
-    B_PER_07, B_PER_09, B_PER_10, B_PER_11, B_PER_12,
+    B_PER_07, B_PER_11, B_PER_12,
     /* PCIe */
     B_PER_08,
     RULE_ID_SENTINEL
