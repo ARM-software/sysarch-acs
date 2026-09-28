@@ -9,6 +9,7 @@
 
 #include "val_firme_abi.h"
 #include "val_firme_shared_buffer.h"
+#include "val_log.h"
 
 /**
  *   @brief    - Validate R0076 shared-buffer size bounds.
@@ -74,6 +75,14 @@ static int shared_buffer_size_bounds_run(
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_MAXIMUM_SIZE,
                            size_bytes, limits.maximum_size_bytes);
         return VAL_ERROR;
+    }
+
+    if (limits.maximum_page_count == FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK) {
+        LOG_WARN(NULL, "shared_buffer_size_bounds: above-maximum Page count is not "
+                 "representable without setting SBZ bits");
+        out->status = (uint64_t)ACS_STATUS_SKIP;
+        out->fail_step = SHARED_BUFFER_STEP_ABOVE_MAXIMUM;
+        return VAL_SUCCESS;
     }
 
     result = firme_shared_buffer_test_collect(

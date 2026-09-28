@@ -6,6 +6,7 @@
  */
 
 #include "val_firme_abi.h"
+#include "val_firme_gpt.h"
 #include "val_firme_rules.h"
 #include "val_firme_service.h"
 #include "val_log.h"
@@ -83,7 +84,7 @@ static int gm_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t *out)
     if (status == (int64_t)FIRME_NOT_SUPPORTED) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
     if (status < 0) {
         gm_abi_compliance_fail(out, GM_ABI_COMPLIANCE_STEP_VERSION, res.x0, res.x1);
@@ -107,7 +108,6 @@ static int gm_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t *out)
                                                           FIRME_SERVICE_ID_GRANULE_MGMT);
 
     /* Unused output bits have no required value and are ignored by the caller. */
-
     /* Step 4: Not-supported ABIs for this instance must not be advertised. */
     if ((feature_reg0 & (allocated_bits & ~supported_bits)) != 0ULL) {
         gm_abi_compliance_fail(out, GM_ABI_COMPLIANCE_STEP_PROHIBITED_BITS,
@@ -136,7 +136,7 @@ static int gm_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t *out)
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**

@@ -77,6 +77,8 @@ uint32_t val_firme_status_success(uint64_t x0, uint64_t x1, uint64_t exp_cnt);
 uint32_t val_firme_status_deniedish(uint64_t x0);
 uint32_t val_firme_status_not_supported(uint64_t x0);
 uint32_t val_firme_status_invalid_parameters(uint64_t x0);
+uint32_t val_firme_gpt_restore_ns(uint64_t base_pa, firme_rule_res_t *out,
+                                   uint64_t fail_step);
 
 /* Granule-management feature helpers. */
 uint32_t val_firme_gpt_gpi_set_advertised(firme_rule_res_t *out, uint64_t fail_step);
@@ -97,7 +99,11 @@ int val_firme_gpt_trace_transition(uint64_t base_pa,
                                    uint64_t fail_step,
                                    val_firme_gpt_trace_t *trace);
 uint32_t val_firme_gpt_operation_status_valid(int64_t status);
+uint32_t val_firme_gpt_operation_count_valid(int64_t status,
+                                              uint64_t count,
+                                              uint64_t remaining);
 void val_firme_gpt_rule_result_init(firme_rule_res_t *out);
+int val_firme_gpt_rule_result_status(const firme_rule_res_t *out);
 void val_firme_gpt_rule_result_fail(firme_rule_res_t *out,
                                     uint64_t fail_step,
                                     uint64_t last_x0,

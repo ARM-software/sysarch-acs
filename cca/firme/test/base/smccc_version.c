@@ -55,7 +55,7 @@ static void smccc_version_fail(firme_rule_res_t *out, uint64_t fail_step, smccc_
 /**
  *   @brief    - Validate SMCCC >= 1.2 for FIRME ABI hosting.
  *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int smccc_version_run(firme_rule_res_t *out)
 {
@@ -74,7 +74,7 @@ static int smccc_version_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    major = res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
+    major = (uint32_t)res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
     minor = res.x0 & SMCCC_VERSION_MINOR_MASK;
 
     /* Step 2: Major version must be at least 1 for SMCCC 1.2 compliance. */
@@ -97,7 +97,7 @@ static int smccc_version_run(firme_rule_res_t *out)
 
     /* Step 4: Snapshot preserved general and SIMD/FP registers across Base SMCs. */
     if (val_firme_smccc_check_state(0, out) != VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -109,7 +109,7 @@ static int smccc_version_run(firme_rule_res_t *out)
  *   @brief    - SMCCC version rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_version_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -121,7 +121,7 @@ int firme_base_smccc_version_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - SMCCC version rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_version_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -133,7 +133,7 @@ int firme_base_smccc_version_run_secure(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - SMCCC version rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_version_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

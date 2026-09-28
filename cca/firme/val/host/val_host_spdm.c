@@ -166,7 +166,7 @@ static libspdm_return_t val_host_spdm_receive(void *spdm_context,
 /**
  * @brief Acquire the libspdm requester transmit buffer.
  * @param spdm_context Active libspdm context.
- * @param message_buffer Returned transport payload address.
+ * @param message_buffer Returned base of the full transport buffer.
  * @return libspdm buffer-acquisition status.
  */
 static libspdm_return_t val_host_spdm_acquire_sender(void *spdm_context,
@@ -178,8 +178,7 @@ static libspdm_return_t val_host_spdm_acquire_sender(void *spdm_context,
     if (!owner || !message_buffer || (owner->sender_in_use != VAL_FALSE))
         return LIBSPDM_STATUS_ACQUIRE_FAIL;
     owner->sender_in_use = VAL_TRUE;
-    *message_buffer = owner->sender_buffer +
-                      LIBSPDM_PCI_DOE_TRANSPORT_HEADER_SIZE;
+    *message_buffer = owner->sender_buffer;
     return LIBSPDM_STATUS_SUCCESS;
 }
 
@@ -194,8 +193,7 @@ static void val_host_spdm_release_sender(void *spdm_context,
     val_host_spdm_context_t *owner;
 
     owner = val_host_spdm_owner(spdm_context);
-    if (owner && (message_buffer == owner->sender_buffer +
-                                  LIBSPDM_PCI_DOE_TRANSPORT_HEADER_SIZE))
+    if (owner && (message_buffer == owner->sender_buffer))
         owner->sender_in_use = VAL_FALSE;
 }
 

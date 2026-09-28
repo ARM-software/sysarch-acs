@@ -119,7 +119,7 @@ static int gpt_start_granule_transition(uint64_t base_pa, uint64_t target_gpi,
  *   @param    - base_pa    : Base PA for the GPT test window.
  *   @param    - target_gpi : Target GPI for the caller world.
  *   @param    - out        : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_rule_res_t *out)
 {
@@ -128,16 +128,19 @@ static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_ru
     uint32_t first_transitioned = VAL_FALSE;
     int cleanup_status = VAL_SUCCESS;
 
+    if (!out)
+        return VAL_ERROR;
+
     gpt_start_granule_init(out);
 
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, GPT_START_GRANULE_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: seed two adjacent granules as NS before the one-granule request. */
     if (gpt_start_granule_transition(first_pa, FIRME_GPI_NONSECURE, VAL_FALSE, out,
@@ -173,16 +176,16 @@ cleanup:
         cleanup_status = VAL_ERROR;
 
     if (cleanup_status != VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  *   @brief    - Validate that Secure GM_GPI_SET starts at the Base granule.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_start_granule_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -193,7 +196,7 @@ int firme_gpt_start_granule_run_secure(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - Validate that Realm GM_GPI_SET starts at the Base granule.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_start_granule_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -204,10 +207,13 @@ int firme_gpt_start_granule_run_realm(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - Report NS coverage as skipped when no NS changing transition is available.
  *   @param    - base_pa : Unused GPT test window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
+    if (!out)
+        return VAL_ERROR;
+
     (void)base_pa;
 
     if (out) {
@@ -217,5 +223,5 @@ int firme_gpt_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out)
         out->last_x1 = 0;
     }
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }

@@ -118,15 +118,24 @@ static void val_firme_gpt_l1_fail(firme_rule_id_t rule_id,
  * @brief Convert an internal flow result into an ACS execution result.
  * @param flow Internal rule flow result.
  * @param out Rule result.
- * @return VAL_ERROR only for infrastructure failures.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int val_firme_gpt_l1_complete(val_firme_gpt_l1_flow_t flow,
                                      firme_rule_res_t *out)
 {
-    if ((flow == VAL_FIRME_GPT_L1_FLOW_PASS) && out)
+    if (!out)
+        return VAL_ERROR;
+
+    if (flow == VAL_FIRME_GPT_L1_FLOW_PASS)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return (flow == VAL_FIRME_GPT_L1_FLOW_ERROR) ? VAL_ERROR : VAL_SUCCESS;
+    if ((flow == VAL_FIRME_GPT_L1_FLOW_ERROR) ||
+        (flow == VAL_FIRME_GPT_L1_FLOW_FAIL)) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
+        return VAL_ERROR;
+    }
+
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
@@ -257,6 +266,10 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_validate_scenario(
         (scenario->granule_size != expected_granule_size) ||
         (scenario->object_size != expected_object_size) ||
         (expected_object_size == 0ULL) ||
+        ((scenario->layout != PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING) &&
+         (scenario->layout != PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING)) ||
+        (scenario->range_base > (UINT64_MAX - scenario->range_size)) ||
+        (scenario->object_base > (UINT64_MAX - scenario->object_size)) ||
         (scenario->range_initial_gpi > UINT64_C(0xf)) ||
         (scenario->object_initial_gpi > UINT64_C(0xf))) {
         val_firme_gpt_l1_fail(rule_id, out,
@@ -307,7 +320,9 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_validate_scenario(
         object_granule_base, object_granule_size);
     if (((scenario->layout ==
           PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING) &&
-         (overlap == VAL_FALSE)) ||
+         ((scenario->object_base < scenario->range_base) ||
+          ((scenario->object_base + scenario->object_size) >
+           (scenario->range_base + scenario->range_size)))) ||
         ((scenario->layout ==
           PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING) &&
          (overlap == VAL_TRUE))) {
@@ -1487,7 +1502,7 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_single_operation_rule(
  * @param world FIRME caller world.
  * @param base_pa Default platform test address.
  * @param out Rule result and diagnostics.
- * @return VAL_SUCCESS when a result is produced, otherwise VAL_ERROR.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int val_firme_gpt_l1_rule_run(firme_rule_id_t rule_id,
                               firme_acs_world_t world,

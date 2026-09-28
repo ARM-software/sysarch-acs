@@ -19,7 +19,7 @@
  * @param world FIRME caller world.
  * @param base_pa Default platform test address.
  * @param out Rule result and diagnostics.
- * @return VAL_SUCCESS when a result is produced, otherwise VAL_ERROR.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int val_firme_gpt_l1_rule_run(firme_rule_id_t rule_id,
                               firme_acs_world_t world,

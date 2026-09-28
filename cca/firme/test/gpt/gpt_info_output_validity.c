@@ -25,7 +25,7 @@
  * @brief Validate conditional GPT_INFO output validity for R0141.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_info_output_validity_run(uint64_t base_pa,
                                         firme_rule_res_t *out)
@@ -48,20 +48,20 @@ static int gpt_info_output_validity_run(uint64_t base_pa,
     /* Step 1: require the mandatory GPT_INFO discovery ABI. */
     if (val_firme_gpt_info_advertised(
             out, GPT_INFO_OUTPUT_VALIDITY_STEP_ADVERTISEMENT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: derive one valid protected-address-range query. */
     if (val_firme_gpt_info_prepare_window(
             base_pa, &window, out,
             GPT_INFO_OUTPUT_VALIDITY_STEP_WINDOW) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 3: consume and validate x1/x2 only after SUCCESS. */
     val_firme_gm_gpt_info(window.range_base, window.range_top, &result);
     if (val_firme_gpt_info_success_valid(
             &window, &result, out,
             GPT_INFO_OUTPUT_VALIDITY_STEP_SUCCESS) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /*
      * Step 4: poison x1/x2 for a failing invocation. The caller must decide
@@ -94,18 +94,18 @@ static int gpt_info_output_validity_run(uint64_t base_pa,
         out->fail_step = GPT_INFO_OUTPUT_VALIDITY_STEP_FAILURE;
         out->last_x0 = result.x0;
         out->last_x1 = (uint64_t)(int64_t)FIRME_INVALID_PARAMETERS;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0141 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_output_validity_run_ns(uint64_t base_pa,
                                           firme_rule_res_t *out)
@@ -117,7 +117,7 @@ int firme_gpt_info_output_validity_run_ns(uint64_t base_pa,
  * @brief Validate R0141 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_output_validity_run_secure(uint64_t base_pa,
                                               firme_rule_res_t *out)
@@ -129,7 +129,7 @@ int firme_gpt_info_output_validity_run_secure(uint64_t base_pa,
  * @brief Validate R0141 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_output_validity_run_realm(uint64_t base_pa,
                                              firme_rule_res_t *out)

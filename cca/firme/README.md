@@ -21,10 +21,13 @@ same hosting model.
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
 - **Alpha1 scope:** 123 ALP4 rules across Concepts/Base, GPT, MECID, IDE Key
-  Management, and their ABI interfaces. The current registry schedules 47
-  rules; 74 have implemented but gated bodies or plans, and R0023/R0041 are
+  Management, and their ABI interfaces. The current registry schedules 40
+  rules; 81 have implemented but gated bodies or plans, and R0023/R0041 are
   static interface checks. Active tests can still report SKIP when a platform
   prerequisite is absent. This is development status, not release coverage.
+- **Temporary CI gate:** R0207, R0209, and R0210 retain their strict CXL.cachemem
+  test bodies but are not registered while CI lacks the paired firmware/model
+  support. Restore them with final qualification and the CI golden-log update.
 - **Rule status and algorithms:** See the
   [scenario document](docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst)
   and [ABI interface coverage](docs/FIRME_Alpha1_ABI_Interface_Coverage.md).
@@ -121,6 +124,12 @@ FIRME implementation (the DUT).
 2. Run the regression script:
    - `cca/firme/tools/scripts/run_fvp_regression.sh`
 
+The runner's exit status reports execution completion, not test PASS/FAIL.
+A completed run returns zero even when individual tests fail; CI evaluates
+the unchanged UART results against its golden log. Build/configuration errors,
+abnormal model exits and incomplete runs return nonzero. A configured timeout
+may stop the model after completion without making execution fail.
+
 Useful knobs:
 - `TFA_DIR=/path/to/trusted-firmware-a`
 - `BUILD_MODE=auto|always|never` (controls rebuilds of TF-A + FIRME-ACS)
@@ -132,6 +141,10 @@ Useful knobs:
   `SUITE=all` and `SUITE=mec`. `FVP_ENABLE_SMMU_MEC=0` is a diagnostic override;
   without usable SMMU evidence R0239 cannot claim complete requester coverage.
 - `FVP_ENABLE_IDE=1` (enable TF-A/FVP IDE key management support when running `SUITE=all|ide`)
+- The standalone `tools/scripts/build_tfa_fvp.sh` uses the same IDE defaults
+  as the runner: `SUITE=all|ide` enables IDE support, the pending-operation
+  tracker and the FVP simulator unless explicitly overridden. Separate CI
+  build/run stages therefore use the same feature configuration.
 - `FVP_IDE_KM_PENDING_OPS_MAX=1` (enable non-blocking IDE operation tracking for POLL coverage)
 - `FVP_SIMULATE_IDE_KM_UNIT=1` (enable the FVP IDE KM simulation path in TF-A)
 - `FVP_PCIE_HIERARCHY=/path/to/topology.json` (load a PCIe topology through the
@@ -248,6 +261,25 @@ to check the 123-rule inventory, test links, generated ABI catalog, and active
 registry. After a complete `SUITE=all` FVP run, pass the UART0 log with
 `--uart-log <path>`. The release check fails while any rule is gated, skipped,
 or failing; a passing inventory check alone is not a release qualification.
+
+## Native ACS regression checks
+
+These checks validate ACS logic with controlled fixtures, not DUT compliance.
+Run them from the repository root with Python 3 and a native C compiler:
+
+```sh
+python3 cca/firme/tools/scripts/test_check_abi_callers.py
+python3 cca/firme/tools/scripts/check_mec_regressions.py
+bash cca/firme/tools/scripts/check_gpt_native.sh
+bash cca/firme/tools/scripts/check_ide_native.sh
+python3 cca/firme/tools/scripts/check_build_config.py
+python3 cca/firme/tools/scripts/check_alpha1_coverage.py
+```
+
+Use `HOST_CC=clang` for Python-driven C checks and `CC=clang` for shell-driven
+checks. IDE checks require the pinned submodule headers; `SANITIZE=1` enables
+their ASan/UBSan coverage. The optional MEC `--mmio` check also requires the
+Python Unicorn package and GNU AArch64 tools selected with `CROSS_COMPILE`.
 
 ## Feedback, contributions, and support
 - Email: [support-firme-acs@arm.com](mailto:support-firme-acs@arm.com)

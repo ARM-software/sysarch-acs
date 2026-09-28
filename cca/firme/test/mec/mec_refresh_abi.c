@@ -51,6 +51,7 @@ static void mec_refresh_abi_fail(firme_rule_res_t *out, uint64_t fail_step,
               (unsigned long long)last_x0, (unsigned long long)last_x1);
 
     if (out) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
         out->fail_step = fail_step;
         out->last_x0 = last_x0;
         out->last_x1 = last_x1;
@@ -81,18 +82,21 @@ static uint32_t mec_refresh_abi_check_disallowed_caller(uint64_t fail_step,
 /**
  *   @brief    - Validate MEC_REFRESH rejection from NS caller.
  *   @param    - base_pa : Unused for MEC tests.
- *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS on PASS, otherwise VAL_ERROR.
  **/
 int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
     (void)base_pa;
+    if (out == NULL)
+        return VAL_ERROR;
+
     mec_refresh_abi_init_result(out);
 
     /* Step 1: NS FIRME instance must not support MEC_REFRESH. */
     if (mec_refresh_abi_check_disallowed_caller(MEC_REFRESH_ABI_STEP_NS_DENIED, out) ==
         VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -103,18 +107,21 @@ int firme_mec_refresh_abi_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - Validate MEC_REFRESH rejection from Secure caller.
  *   @param    - base_pa : Unused for MEC tests.
- *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS on PASS, otherwise VAL_ERROR.
  **/
 int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
     (void)base_pa;
+    if (out == NULL)
+        return VAL_ERROR;
+
     mec_refresh_abi_init_result(out);
 
     /* Step 1: Secure FIRME instance must not support MEC_REFRESH. */
     if (mec_refresh_abi_check_disallowed_caller(MEC_REFRESH_ABI_STEP_SECURE_DENIED, out) ==
         VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -125,8 +132,8 @@ int firme_mec_refresh_abi_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - Validate MEC_REFRESH behavior from Realm caller.
  *   @param    - base_pa : Unused for MEC tests.
- *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS on PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -138,6 +145,9 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
     uint64_t params = 0ULL;
 
     (void)base_pa;
+    if (out == NULL)
+        return VAL_ERROR;
+
     mec_refresh_abi_init_result(out);
 
     /* Step 1: If MECID management is absent, this platform cannot run the rule. */

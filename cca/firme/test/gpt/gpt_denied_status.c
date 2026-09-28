@@ -16,12 +16,15 @@
  *   @brief    - Validate GM_GPI_SET returns DENIED for a non-permitted transition.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t res = {0};
     const uint64_t granule_count = UINT64_C(1);
+
+    if (!out)
+        return VAL_ERROR;
 
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
@@ -33,11 +36,11 @@ int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, GPT_DENIED_STATUS_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: NS caller is not permitted to transition an NS granule to Root. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
@@ -51,10 +54,10 @@ int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
             out->last_x0 = res.x0;
             out->last_x1 = res.x1;
         }
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }

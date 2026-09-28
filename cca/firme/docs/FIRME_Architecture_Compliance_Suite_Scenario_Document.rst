@@ -27,46 +27,70 @@ Testcase checklist
 Registry-gated coverage
 -----------------------
 
+R0207, R0209, and R0210 are temporarily registry-gated for the current CI
+pipeline. Its TF-A rejects CXL.cachemem IDE type 3 with ``INVALID_PARAMETERS``
+even for the valid baseline request, before the negative field checks run.
+The paired CXL firmware/model path is not available in that setup. Keep the
+strict bodies unchanged and restore their entries with final qualification
+and the CI golden-log update. Gated rules are not runtime coverage.
+
 R0031 has a strict executable release-policy body but remains outside the
 runtime registry. It needs reviewed consecutive specification and service
 version metadata; its result is a publication-policy check, not DUT behavior.
 
-R0070, R0071, R0076, and R0077 have strict executable bodies but remain
+R0070, R0071, R0076, and R0077 have executable bodies but remain
 outside the runtime registry. They need an Attestation or Integrated Device
 adapter that invokes a real shared-buffer ABI and supplies mapping, PAS/GPI,
 size, alignment, and DUT-status evidence.
 
-R0080, R0081, and R0082 have strict executable bodies but remain outside the
+R0080, R0081, and R0082 have executable bodies but remain outside the
 runtime registry. They need a service-specific adapter that invokes an
 Attestation or Integrated Device ABI and supplies real status, written-size,
 remaining-size, and service evidence for last, intermediate, or no-data
-chunks.
+chunks. The shared-buffer and partial-retrieval algorithms below describe
+required validation; existing bodies still need service-specific alignment
+and qualification before their gates can be enabled.
 
 R0358-R0365 have generated one-rule bodies and a stateful IDE ABI adapter.
-They remain registry-gated until a platform PAL supplies a real Root Port and
-endpoint path, safe rollback, and deterministic asynchronous/error scenarios.
-The reference FVP IDE simulator is not evidence that keys or IDE traffic were
-programmed at an endpoint.
+They remain registry-gated until their adapters integrate the host-coordinated
+Root Port/endpoint observer with per-invocation effects, safe rollback, and
+deterministic asynchronous/error scenarios. The local paired CXL.mem backend
+completes synchronously and does not qualify those missing paths. The default
+TF-A IDE simulation alone is not evidence of endpoint programming or protected
+traffic.
 
 Expected runtime SKIP coverage
 ------------------------------
 
-The active IDE tests report an intentional ``SKIP`` when the required
-CXL.cachemem path is not exposed by the DUT:
+In the default TF-A/FVP configuration without the optional paired CXL.mem
+observation backend, three active IDE rules report ``SKIP``:
 
-- R0207, R0209, and R0210 require CXL.cachemem IDE handling. A valid baseline
-  request returning ``NOT_SUPPORTED`` reports ``SKIP``. Any other unexpected
-  status, including ``INVALID_PARAMETERS`` or unfinished completion, fails.
+- R0214, R0216, and R0218 require fresh paired endpoint/Root Port traffic
+  observations after their ABI status checks. Without an observation backend,
+  they report ``SKIP``, not a status-only ``PASS``.
+
+With the opt-in paired backend and matching local firmware/model support,
+R0214, R0216, and R0218 can exercise those observations. R0207, R0209, and
+R0210 still require explicit registry restoration. R0214 checks
+matching-key traffic, directional key-mismatch rejection and recovery;
+R0216/R0218 check directional Root Port STOP rejection and GO recovery while
+the endpoint remains active. This is functional CXL.mem transaction evidence,
+not CXL.cache, wire-protocol, flit/IV or replay-protection certification. It
+does not establish every IDE type or conditional status path, and does not
+remove the namespace or generated ABI registry gates.
 
 Implemented but not scheduled by default
 ----------------------------------------
 
 The following strict ALP4 rule bodies are implemented in source but not
-registered in the default regression until the reference DUT implements
-their required behavior:
+registered in the default regression until the required DUT behavior,
+fixtures, evidence and architecture clarifications are available:
 
 - R0064: every implemented non-Base service exposes feature register 1 with
-  the service-specific 16-bit ``MAX_CONCURRENT_OP_CNT`` field.
+  the service-specific 16-bit ``MAX_CONCURRENT_OP_CNT`` field. Retain this
+  strict expectation and the existing gate while architecture clarification
+  of R0064/S0068 for IDE register 1 is pending. Do not yet classify its absence
+  as a confirmed TF-A defect.
 - R0065: the advertised count is equal across implemented FIRME instances.
   A non-zero value additionally requires controllable retained operations
   across service ABIs and instances before collective-limit coverage can pass.
@@ -92,6 +116,14 @@ status values on the current TF-A. R0113 and R0117 are also gated because
 TF-A rejects the required two-granule operation with
 ``FIRME_INVALID_PARAMETERS``.
 
+R0094, R0095, R0098 and R0120 are temporarily gated after strict setup,
+negative-case and cleanup checks exposed related failures. R0094/R0120
+cannot establish or restore NS with a successful same-GPI nop. R0095/R0098
+observe ``DENIED`` instead of ``INVALID_PARAMETERS`` for NSO/NSP encodings
+when GPC2/GDI are absent. The bodies and strict expectations remain intact.
+Re-enable after the required caller paths, present/absent feature scenarios
+and cleanup pass; temporary omission does not count as coverage.
+
 **Unavailable TF-A GPT_INFO support:** R0102, R0103, R0134, R0138-R0141,
 R0356, and R0357 are registry-gated because current TF-A does not advertise
 or implement the mandatory ``FIRME_GM_GPT_INFO`` ABI.
@@ -101,9 +133,10 @@ The current FVP TF-A refresh hook returns ``SUCCESS`` without replacing the
 MPE context, so the old protected representation remains readable as the
 original plaintext.
 
-The rule algorithms must remain spec-driven. If a DUT claims the matching
-ALP4 behavior, these rules should be scheduled and any failure should be
-treated as a DUT issue.
+The rule algorithms must remain spec-driven. Schedule gated rules only after
+their DUT, fixture and evidence prerequisites are qualified and applicable
+architecture questions are resolved. Do not weaken expectations to hide
+failures in a DUT claiming the matching ALP4 behavior.
 
 .. list-table::
   :header-rows: 1
@@ -128,7 +161,8 @@ treated as a DUT issue.
       3. Expect a non-error response and verify the version is at least 1.2.
       4. Discover every service and ABI advertised at the current FIRME instance.
       5. Invoke each advertised ABI with side-effect-safe, ABI-specific inputs.
-      6. Verify unused ``x4-x17``, preserved ``x18-x30``, SIMD/FP state, ``FPCR`` and ``FPSR``.
+      6. Verify preserved ``x18-x30``, SIMD/FP state, ``FPCR`` and ``FPSR``.
+         Do not demand preservation of unused ``x1-x17`` output registers.
 
   * -
 
@@ -595,6 +629,10 @@ treated as a DUT issue.
       4. Interpret zero as no advertised maximum and a non-zero value as the
          advertised maximum.
       5. Fail if an implemented service does not expose feature register 1.
+      6. For IDE, retain the strict body and existing registry gate while
+         architecture clarification of R0064 versus S0068 and the service
+         feature table is pending. Register absence is not yet a confirmed
+         TF-A defect.
 
   * -
 
@@ -635,15 +673,16 @@ treated as a DUT issue.
     -
 
       1. Select an implemented Attestation or Integrated Device ABI that
-         consumes a shared buffer and prepare otherwise-valid service inputs.
-      2. Invoke the ABI and collect the caller and EL3 translation-regime
-         mapping attributes for the buffer used by that invocation.
-      3. Verify both mappings are Normal, Write-Back Cacheable and
-         Inner-shareable.
+         consumes a valid, owned shared buffer with otherwise-valid inputs.
+      2. Check the caller page-table attributes and invoke the ABI using that
+         buffer. Require Normal, Write-Back Cacheable, Inner-shareable memory.
+      3. Obtain independent EL3 mapping evidence through a reviewed
+         implementation audit or approved observer and require the same
+         attributes. A successful invocation alone does not prove them.
       4. Clean up the service operation and buffer mappings.
-      5. Keep the body registry-gated until a service-specific probe can
-         provide both mapping observations; do not infer them from Base
-         feature-register metadata.
+      5. Keep the body registry-gated until the service adapter and both sets
+         of mapping evidence are available. Missing EL3 evidence remains an
+         explicit coverage gap, not an inference from Base feature metadata.
 
   * -
 
@@ -656,13 +695,16 @@ treated as a DUT issue.
     -
 
       1. Select an implemented Attestation or Integrated Device ABI that
-         consumes a shared buffer and invoke it with otherwise-valid inputs.
-      2. Observe the PAS and GPT GPI of the actual buffer used by the ABI.
-      3. Verify both correspond to the invoking NS, Secure or Realm FIRME
-         instance.
+         consumes a shared buffer. Prepare an owned buffer and independently
+         verify its PAS and GPT GPI match the invoking FIRME instance.
+      2. Invoke with otherwise-valid inputs and check caller-visible
+         ownership/access behavior using correctly attributed faults.
+      3. Obtain independent evidence of the EL3 PAS mapping and verify it
+         matches the caller-specific PAS/GPI. Neither success nor a generic
+         fault proves the EL3 mapping or a confidentiality property.
       4. Clean up the service operation and buffer state.
-      5. Keep the body registry-gated until a service-specific probe can
-         provide PAS and GPI evidence from a real invocation.
+      5. Keep the body registry-gated until the real service adapter and
+         required ownership/mapping evidence are available.
 
   * -
 
@@ -675,13 +717,19 @@ treated as a DUT issue.
     -
 
       1. Read ``MIN_SH_BUF_SZ`` and ``MAX_SH_BUF_PG_CNT`` from Base feature
-         register 1 and derive the minimum and maximum buffer sizes.
-      2. Invoke a real buffer-consuming ABI with Page count equal to zero and
-         verify that the minimum-size buffer is accepted.
-      3. Invoke it with Page count equal to ``MAX_SH_BUF_PG_CNT`` and verify
-         that the maximum-size buffer is accepted.
-      4. Invoke it with a Page count above the advertised maximum and expect
-         ``INVALID_PARAMETERS``.
+         register 1. Decode the minimum size and calculate maximum bytes as
+         ``(MAX_SH_BUF_PG_CNT + 1) * minimum_size``.
+      2. Prepare owned minimum/maximum buffers within reserved memory limits;
+         record unavailable boundary fixtures as coverage gaps. Under RWXTJX,
+         actual pages equal the encoded Page count plus one.
+      3. Invoke a real buffer-consuming ABI with Page count zero and then
+         ``MAX_SH_BUF_PG_CNT``. Require each valid boundary request to follow
+         the selected ABI's normal path with otherwise-valid inputs.
+      4. Exercise invalid-size cases only when representable and specified by
+         that ABI, checking its defined error. A zero-based page count cannot
+         encode a below-minimum buffer; do not fabricate unused-bit violations
+         or require an unencodable above-maximum request. Record unencodable
+         cases as not applicable.
       5. Clean up each operation and keep the body registry-gated until the
          required service-specific probe is available.
 
@@ -698,9 +746,11 @@ treated as a DUT issue.
       1. Read the minimum shared-buffer size and alignment from Base feature
          register 1.
       2. Invoke a real buffer-consuming ABI with a base address aligned to the
-         minimum size and verify that the buffer is accepted.
-      3. Repeat with a deliberately misaligned base and expect
-         ``INVALID_PARAMETERS``.
+         minimum size and establish a successful baseline using owned memory.
+      3. Where the selected interface permits encoding a misaligned address,
+         vary only that address and check the ABI's defined rejection. Audit
+         the actual caller encoding; do not invent a rejection requirement for
+         unused bits. Record unencodable misalignment cases as not applicable.
       4. Clean up each operation and keep the body registry-gated until the
          required service-specific probe is available.
 
@@ -715,10 +765,14 @@ treated as a DUT issue.
     -
 
       1. Use the service adapter to drive a real Attestation or Integrated
-         Device retrieval through its final non-empty chunk.
-      2. Require ``SUCCESS``, non-zero Written size, and zero Remaining size.
-      3. Clean up the retrieval operation and shared buffer.
-      4. Keep the body registry-gated until the service adapter is available.
+         Device retrieval through valid continuation calls to its final
+         non-empty chunk.
+      2. Require non-zero Written size and zero Remaining size; validate
+         buffer bounds and the assembled data.
+      3. Check return status against the selected ABI, not a universal
+         ``SUCCESS`` requirement inferred from this Concepts rule.
+      4. Clean up the retrieval operation and shared buffer.
+      5. Keep the body registry-gated until the service adapter is available.
 
   * -
 
@@ -730,12 +784,14 @@ treated as a DUT issue.
 
     -
 
-      1. Use a controlled buffer size to force a real retrieval to return a
-         first or intermediate non-empty chunk.
-      2. Require ``INCOMPLETE``, non-zero Written size, and non-zero Remaining
-         size.
-      3. Continue and clean up the retrieval operation.
-      4. Keep the body registry-gated until the service adapter is available.
+      1. Use a supported, controlled buffer size to force a real retrieval to
+         return a first or intermediate non-empty chunk.
+      2. Require non-zero Written size and non-zero Remaining size, with
+         bounded writes and a valid continuation.
+      3. Check return status against the selected ABI; this Concepts rule
+         does not impose a universal ``INCOMPLETE`` requirement.
+      4. Finish the retrieval and clean up the operation and buffer.
+      5. Keep the body registry-gated until the service adapter is available.
 
   * -
 
@@ -747,11 +803,15 @@ treated as a DUT issue.
 
     -
 
-      1. Drive a real partial-retrieval ABI through the architected path where
-         no output chunk is available and no remaining size is reported.
-      2. Require ``INCOMPLETE``, zero Written size, and zero Remaining size.
-      3. Continue or abort the operation as required and clean up the buffer.
-      4. Keep the body registry-gated until the service adapter is available.
+      1. Drive a real partial-retrieval ABI through a defined no-data path on
+         which Written size and Remaining size are valid outputs.
+      2. Require both sizes to be zero and verify that the caller consumes
+         neither data nor undefined error-path outputs.
+      3. Check return status against the selected ABI; do not impose a
+         universal ``SUCCESS`` or ``INCOMPLETE`` requirement.
+      4. Finish or recover the operation through the selected ABI's defined
+         paths and clean up the buffer; do not assume a generic abort exists.
+      5. Keep the body registry-gated until the service adapter is available.
 
   * -
 
@@ -996,19 +1056,23 @@ treated as a DUT issue.
 
       1. Reserve a Realm page and a platform-owned MECID, then establish its
          initial encryption context.
-      2. Map the page with that alternate MECID and write controlled plaintext
-         samples at fixed physical addresses.
+      2. Map the page with that alternate MECID, write controlled plaintext
+         samples at fixed physical addresses and verify the old-context reads.
       3. Clean and invalidate every sample to the Point of Encryption so the
          old protected representation is no longer hidden in a PE cache.
       4. Refresh the same MECID, completing any architected ``BUSY`` retries.
       5. Read the old protected representation through the replacement context.
-         Require either data different from the original plaintext or a
-         recovered integrity/data abort.
+         Require completed reads to differ from the original plaintext.
+         Unrelated address, translation, permission or instruction faults fail;
+         an unclassified data error or SError is inconclusive, not proof that
+         the encryption context changed.
       6. Rewrite the plaintext through the replacement context, clean and
          invalidate it, then require a successful plaintext round trip. This
          excludes a broken memory path from producing a false pass.
       7. Retire the controlled context and restore the temporary mapping and
-         MEC configuration.
+         MEC configuration. Report inconclusive fault evidence only after
+         checking every sample, the new-context round trip and cleanup, so it
+         cannot hide a known failure.
 
   * -
 
@@ -1022,7 +1086,7 @@ treated as a DUT issue.
 
       1. Reserve a Realm page and platform-owned MECID, then write identical
          plaintext samples through its initial context at fixed physical
-         addresses.
+         addresses and verify them before refresh.
       2. Clean and invalidate every sample to the Point of Encryption and
          refresh the same MECID.
       3. Read the old protected representations through the replacement
@@ -1033,9 +1097,11 @@ treated as a DUT issue.
       5. Infer decorrelation from the same-address stale-read mismatch: an old
          protected representation that were identical to the new one would
          decrypt to the original plaintext under the replacement context.
-      6. Treat an integrity abort as inconclusive for this rule because it
-         proves that the old protected representation no longer authenticates,
-         but not that the ciphertext bits themselves differ.
+      6. Treat a stale-read fault as inconclusive, not as proof of ciphertext
+         difference. Even a separately verified integrity abort would not
+         prove that ciphertext bits, rather than integrity metadata, differ.
+         Do not let an inconclusive sample hide another sample's mismatch,
+         round-trip or cleanup failure.
       7. Retire the controlled context and restore all temporary state. The
          observed plaintext values are evidence and are not reported as raw
          ciphertext samples.
@@ -1136,7 +1202,8 @@ treated as a DUT issue.
       2. If the service is not implemented at the current FIRME instance, report SKIP.
       3. Read feature register 0, ignoring unused output bits.
       4. Read feature register 1, ignoring unused output bits.
-      5. Decode the ``PGS`` field and verify it uses an allocated ``GPCCR_EL3.PGS`` encoding.
+      5. Decode ``PGS``, ``L0GPTSZ``, and ``PPS`` and verify each uses an
+         allocated architectural encoding.
       6. Invoke ``FIRME_SERVICE_FEATURES`` for the first unallocated GM register index and expect
          ``NOT_SUPPORTED``.
 
@@ -1509,7 +1576,7 @@ treated as a DUT issue.
       1. Require both mandatory GPI-management ABIs.
       2. Retain one operation and arrange a second overlapping request.
       3. Require the overlapping request to return exactly ``OP_CONFLICT`` and
-         a valid count no greater than its requested range.
+         a valid count strictly smaller than its requested range.
       4. Continue the original cookie and require an architected operation
          status, proving the conflict did not discard retained state.
       5. Clean up both operations and restore the range.

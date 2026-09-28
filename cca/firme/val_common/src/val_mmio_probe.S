@@ -29,12 +29,12 @@ func val_mmio_read32_checked
     cbnz w0, 2f
     ldr w21, [x19]
     .inst 0xd5033f9f
-1:
     bl val_fault_end
-    cbnz x0, 2f
     str w21, [x20]
     mov w0, #VAL_SUCCESS
     b 4f
+1:
+    bl val_fault_end
 2:
     mov w0, #VAL_ERROR
 4:

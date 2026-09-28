@@ -65,19 +65,6 @@ static void reserved_input_bits_fail(firme_rule_res_t *out, uint64_t fail_step,
 }
 
 /**
- *   @brief    - Translate an internal helper stop into the rule-body contract.
- *   @param    - out : Result record populated by the helper.
- *   @return   - VAL_SUCCESS for a recorded DUT failure, otherwise VAL_ERROR.
- **/
-static int reserved_input_bits_result(const firme_rule_res_t *out)
-{
-    if ((out != 0) && (out->status == (uint64_t)ACS_STATUS_FAIL))
-        return VAL_SUCCESS;
-
-    return VAL_ERROR;
-}
-
-/**
  *   @brief    - Enable capture-only mode for one production FIRME wrapper call.
  *   @param    - fail_step : Test step to report if capture cannot be enabled.
  *   @param    - out       : Optional result record.
@@ -150,14 +137,17 @@ static int reserved_input_bits_check_capture(
 /**
  *   @brief    - Validate production FIRME wrappers clear every reserved input bit.
  *   @param    - base_pa : Test physical address used for the captured GM request.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS on completion, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
 {
     smccc_input_registers_t expected = {0};
     firme_res_t result = {0};
     val_firme_ide_prog_args_t prog_args = {0};
+
+    if (!out)
+        return VAL_ERROR;
 
     reserved_input_bits_init_result(out);
 
@@ -168,12 +158,12 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         FIRME_SERVICE_ID_INPUT_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_SERVICE_VERSION, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_service_version(RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_SERVICE_VERSION,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 2: SERVICE_FEATURES must retain only its two eight-bit fields. */
     expected = (smccc_input_registers_t){0};
@@ -185,13 +175,13 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         FIRME_FEATURE_REG_INDEX_INPUT_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_SERVICE_FEATURES, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_service_features(RESERVED_INPUT_BITS_DIRTY_VALUE,
                                RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_SERVICE_FEATURES,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 3: GM_GPI_SET must retain only the target-GPI attribute field. */
     expected = (smccc_input_registers_t){0};
@@ -203,13 +193,13 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         FIRME_GM_GPI_SET_ATTRIBUTES_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_GM_GPI_SET, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_gm_gpi_set(base_pa, RESERVED_INPUT_BITS_DIRTY_VALUE,
                          RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_GM_GPI_SET,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 4: MEC_REFRESH must retain only MECID and refresh-reason fields. */
     expected = (smccc_input_registers_t){0};
@@ -218,12 +208,12 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         FIRME_MEC_REFRESH_PARAMS_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_MEC_REFRESH, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_mec_refresh(RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_MEC_REFRESH,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 5: IDE_KEYSET_PROG must retain only allocated flag and ID bits. */
     expected = (smccc_input_registers_t){0};
@@ -255,12 +245,12 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     prog_args.handle = RESERVED_INPUT_BITS_DIRTY_VALUE;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_IDE_PROG, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_ide_keyset_prog(&prog_args, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_IDE_PROG,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 6: IDE_KEYSET_GO must retain only allocated flag and ID bits. */
     expected = (smccc_input_registers_t){0};
@@ -276,7 +266,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_IDE_GO, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_ide_keyset_go(
         RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
         RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
@@ -284,14 +274,14 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_IDE_GO,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 7: IDE_KEYSET_STOP must retain only allocated flag and ID bits. */
     expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
         FIRME_FID_IDE_KEYSET_STOP;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_IDE_STOP, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_ide_keyset_stop(
         RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
         RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
@@ -299,7 +289,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_IDE_STOP,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     /* Step 8: IDE_KEYSET_POLL must retain only its one-bit flag and ID. */
     expected = (smccc_input_registers_t){0};
@@ -313,14 +303,14 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
         VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_IDE_POLL, out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
     val_firme_ide_keyset_poll(
         RESERVED_INPUT_BITS_DIRTY_VALUE, RESERVED_INPUT_BITS_DIRTY_VALUE,
         RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_IDE_POLL,
             out) != VAL_SUCCESS)
-        return reserved_input_bits_result(out);
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -331,8 +321,8 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - Reserved input bit rule body for NS caller execution.
  *   @param    - base_pa : Test physical address.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS on completion, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_input_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -342,8 +332,8 @@ int firme_base_reserved_input_bits_run_ns(uint64_t base_pa, firme_rule_res_t *ou
 /**
  *   @brief    - Reserved input bit rule body for Secure caller execution.
  *   @param    - base_pa : Test physical address.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS on completion, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_input_bits_run_secure(uint64_t base_pa,
                                               firme_rule_res_t *out)
@@ -354,8 +344,8 @@ int firme_base_reserved_input_bits_run_secure(uint64_t base_pa,
 /**
  *   @brief    - Reserved input bit rule body for Realm caller execution.
  *   @param    - base_pa : Test physical address.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS on completion, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_input_bits_run_realm(uint64_t base_pa,
                                              firme_rule_res_t *out)

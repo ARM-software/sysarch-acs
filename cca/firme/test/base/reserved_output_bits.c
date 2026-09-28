@@ -8,6 +8,7 @@
 #include "val_firme_abi.h"
 #include "val_firme_rules.h"
 #include "val_firme_service.h"
+#include "val_firme_shared_buffer.h"
 #include "val_log.h"
 
 #define RESERVED_OUTPUT_BITS_TEST_NAME "reserved_output_bits"
@@ -21,11 +22,11 @@
 #define RESERVED_OUTPUT_BITS_POISON_COUNT 3U
 #define RESERVED_OUTPUT_BITS_X0_ALLOCATED_MASK UINT64_C(0xffffffff)
 #define RESERVED_OUTPUT_BITS_REG0_ALLOCATED_MASK \
-    (FIRME_BASE_FEATURE_REG0_MANDATORY_BITS | \
-     (FIRME_BASE_SERVICE_LIST_MASK << FIRME_BASE_SERVICE_LIST_SHIFT))
+    FIRME_BASE_FEATURE_REG0_MANDATORY_BITS
 #define RESERVED_OUTPUT_BITS_REG1_ALLOCATED_MASK \
     ((FIRME_BASE_MIN_SH_BUF_SZ_MASK << FIRME_BASE_MIN_SH_BUF_SZ_SHIFT) | \
-     (FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK << FIRME_BASE_MAX_SH_BUF_PG_CNT_SHIFT))
+     (FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK << FIRME_BASE_MAX_SH_BUF_PG_CNT_SHIFT) | \
+     (FIRME_BASE_SERVICE_LIST_ALLOCATED_MASK << FIRME_BASE_SERVICE_LIST_SHIFT))
 
 static const firme_res_t g_reserved_output_version_mask = {
     .x0 = ~RESERVED_OUTPUT_BITS_X0_ALLOCATED_MASK,
@@ -116,6 +117,12 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
     uint64_t baseline_reg1 = 0ULL;
     uint64_t poisoned_reg1 = 0ULL;
     uint64_t baseline_min_size = 0ULL;
+    uint64_t baseline_minimum_bytes = 0ULL;
+    uint64_t baseline_maximum_pages = 0ULL;
+    uint64_t baseline_maximum_bytes = 0ULL;
+    uint64_t poisoned_minimum_bytes = 0ULL;
+    uint64_t poisoned_maximum_pages = 0ULL;
+    uint64_t poisoned_maximum_bytes = 0ULL;
     uint32_t baseline_implemented = VAL_FALSE;
     uint32_t poisoned_implemented = VAL_FALSE;
     uint32_t baseline_advertised = VAL_FALSE;
@@ -125,6 +132,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
     int reg0_status = VAL_ERROR;
     int reg1_status = VAL_ERROR;
     int poisoned_status = VAL_ERROR;
+    int limits_status = VAL_ERROR;
 
     reserved_output_bits_init_result(out);
 
@@ -161,7 +169,10 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
     baseline_min_size = (baseline_reg1 >> FIRME_BASE_MIN_SH_BUF_SZ_SHIFT) &
                         FIRME_BASE_MIN_SH_BUF_SZ_MASK;
     if ((reg1_status != VAL_SUCCESS) ||
-        (baseline_min_size > FIRME_BASE_MIN_SH_BUF_SZ_MAX_ALLOCATED)) {
+        (baseline_min_size > FIRME_BASE_MIN_SH_BUF_SZ_MAX_ALLOCATED) ||
+        (val_firme_shared_buffer_get_limits(
+            &baseline_minimum_bytes, &baseline_maximum_pages,
+            &baseline_maximum_bytes) != VAL_SUCCESS)) {
         LOG_ERROR(NULL, "%s: reg1 allocated bits invalid x0=%llx x1=%llx",
                   RESERVED_OUTPUT_BITS_TEST_NAME,
                   (unsigned long long)reg1_result.x0,
@@ -251,13 +262,20 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
         val_firme_service_features(FIRME_SERVICE_ID_BASE,
                                    FIRME_BASE_FEATURE_REG1_INDEX,
                                    &poisoned_result);
+        limits_status = val_firme_shared_buffer_get_limits(
+            &poisoned_minimum_bytes, &poisoned_maximum_pages,
+            &poisoned_maximum_bytes);
         val_firme_test_output_poison_disable();
         poisoned_status = (val_firme_status_to_i64(poisoned_result.x0) ==
                            (int64_t)FIRME_SUCCESS) ? VAL_SUCCESS : VAL_ERROR;
         poisoned_reg1 = poisoned_result.x1 &
                         RESERVED_OUTPUT_BITS_REG1_ALLOCATED_MASK;
         if ((poisoned_status != reg1_status) ||
-            (poisoned_reg1 != baseline_reg1)) {
+            (poisoned_reg1 != baseline_reg1) ||
+            (limits_status != VAL_SUCCESS) ||
+            (poisoned_minimum_bytes != baseline_minimum_bytes) ||
+            (poisoned_maximum_pages != baseline_maximum_pages) ||
+            (poisoned_maximum_bytes != baseline_maximum_bytes)) {
             LOG_ERROR(NULL, "%s: reg1 poison index=%u changed decoding",
                       RESERVED_OUTPUT_BITS_TEST_NAME, poison_index);
             reserved_output_bits_fail(out,
@@ -277,7 +295,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
  *   @brief    - Reserved output bit rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -289,7 +307,7 @@ int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *o
  *   @brief    - Reserved output bit rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -301,7 +319,7 @@ int firme_base_reserved_output_bits_run_secure(uint64_t base_pa, firme_rule_res_
  *   @brief    - Reserved output bit rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

@@ -46,9 +46,9 @@ static int val_firme_ide_link_complete(val_firme_ide_link_state_t *state,
                                        val_firme_ide_poll_flags(VAL_FALSE),
                                        state->args.keyset_id, res);
     if (val_firme_status_to_i64(res->x0) == FIRME_SUCCESS) {
-        state->pending = VAL_FALSE;
         if (res->x1 != state->args.handle)
             return VAL_ERROR;
+        state->pending = VAL_FALSE;
     }
     return VAL_SUCCESS;
 }
@@ -134,7 +134,8 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                 return;
             val_firme_ide_keyset_prog_do_retry(&state->args, &res);
             completion = val_firme_ide_link_complete(state, &res);
-            if (val_firme_status_to_i64(res.x0) == FIRME_SUCCESS) {
+            if (completion == VAL_SUCCESS &&
+                val_firme_status_to_i64(res.x0) == FIRME_SUCCESS) {
                 state->programmed = VAL_TRUE;
                 state->stopped = VAL_FALSE;
                 state->words = 0U;
@@ -155,7 +156,8 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                 val_firme_ide_keyset_stop_do_retry(state->args.ecam_address,
                     state->args.flags, keyset_id, state->args.handle, &res);
             completion = val_firme_ide_link_complete(state, &res);
-            if (val_firme_status_to_i64(res.x0) == FIRME_SUCCESS)
+            if (completion == VAL_SUCCESS &&
+                val_firme_status_to_i64(res.x0) == FIRME_SUCCESS)
                 state->stopped = (operation == VAL_IDE_LINK_STOP);
             break;
         case VAL_IDE_LINK_RELEASE:

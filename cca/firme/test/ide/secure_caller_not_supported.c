@@ -78,7 +78,7 @@ static uint32_t ide_secure_caller_expect_not_supported(const firme_res_t *res,
  *   @brief    - Validate IDE key management ABIs are inaccessible from Secure.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_ide_secure_caller_not_supported_run_secure(uint64_t base_pa,
                                                      firme_rule_res_t *out)
@@ -98,28 +98,28 @@ int firme_ide_secure_caller_not_supported_run_secure(uint64_t base_pa,
     val_firme_ide_keyset_prog(&prog_args, &res);
     if (ide_secure_caller_expect_not_supported(&res, IDE_SECURE_CALLER_STEP_PROG,
                                                out) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     /* Step 2: Secure caller must not be able to start IDE key use. */
     val_firme_ide_keyset_go(ecam_address, flags, keyset_id, IDE_SECURE_CALLER_HANDLE,
                             &res);
     if (ide_secure_caller_expect_not_supported(&res, IDE_SECURE_CALLER_STEP_GO,
                                                out) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     /* Step 3: Secure caller must not be able to stop IDE key use. */
     val_firme_ide_keyset_stop(ecam_address, flags, keyset_id, IDE_SECURE_CALLER_HANDLE,
                               &res);
     if (ide_secure_caller_expect_not_supported(&res, IDE_SECURE_CALLER_STEP_STOP,
                                                out) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     /* Step 4: Secure caller must not be able to poll IDE operation status. */
     val_firme_ide_keyset_poll(ecam_address, val_firme_ide_poll_flags(VAL_FALSE),
                               keyset_id, &res);
     if (ide_secure_caller_expect_not_supported(&res, IDE_SECURE_CALLER_STEP_POLL,
                                                out) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;

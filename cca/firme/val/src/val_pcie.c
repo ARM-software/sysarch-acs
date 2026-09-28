@@ -155,12 +155,16 @@ static int val_pcie_find_device_type(uint32_t wanted_type, uint32_t endpoint_fal
  *   @param    - bus      : PCI bus number.
  *   @param    - device   : PCI device number.
  *   @param    - function : PCI function number.
- *   @return   - Packed BDF value.
+ *   @return   - Packed BDF value, or VAL_PCIE_BDF_INVALID on invalid input.
  **/
 uint32_t val_pcie_bdf_create(uint32_t segment, uint32_t bus, uint32_t device,
                              uint32_t function)
 {
     uint32_t bdf = 0U;
+
+    if ((segment > VAL_PCIE_BDF_FIELD_MASK) || (bus > VAL_PCIE_BDF_FIELD_MASK) ||
+        (device >= VAL_PCIE_SCAN_MAX_DEVICE) || (function >= VAL_PCIE_SCAN_MAX_FUNCTION))
+        return VAL_PCIE_BDF_INVALID;
 
     bdf |= (segment & VAL_PCIE_BDF_FIELD_MASK) << VAL_PCIE_BDF_SEG_SHIFT;
     bdf |= (bus & VAL_PCIE_BDF_FIELD_MASK) << VAL_PCIE_BDF_BUS_SHIFT;
@@ -224,7 +228,7 @@ uint32_t val_pcie_bdf_from_requester_id(uint32_t segment, uint32_t requester_id)
                       VAL_PCIE_REQ_ID_DEV_MASK;
     uint32_t function = requester_id & VAL_PCIE_REQ_ID_FUNC_MASK;
 
-    if (requester_id == VAL_PCIE_REQ_ID_INVALID)
+    if (requester_id > UINT16_MAX)
         return VAL_PCIE_BDF_INVALID;
 
     return val_pcie_bdf_create(segment, bus, device, function);
@@ -233,11 +237,15 @@ uint32_t val_pcie_bdf_from_requester_id(uint32_t segment, uint32_t requester_id)
 /**
  *   @brief    - Convert a VAL packed BDF to a PCI requester ID.
  *   @param    - bdf : VAL packed BDF value.
- *   @return   - PCI requester ID, encoded as bus/device/function.
+ *   @return   - PCI requester ID, or VAL_PCIE_REQ_ID_INVALID for an invalid BDF.
  **/
 uint32_t val_pcie_requester_id_from_bdf(uint32_t bdf)
 {
     uint32_t requester_id = 0U;
+
+    if ((val_pcie_bdf_device(bdf) >= VAL_PCIE_SCAN_MAX_DEVICE) ||
+        (val_pcie_bdf_function(bdf) >= VAL_PCIE_SCAN_MAX_FUNCTION))
+        return VAL_PCIE_REQ_ID_INVALID;
 
     requester_id |= val_pcie_bdf_bus(bdf) << VAL_PCIE_REQ_ID_BUS_SHIFT;
     requester_id |= (val_pcie_bdf_device(bdf) & VAL_PCIE_REQ_ID_DEV_MASK)
@@ -337,6 +345,11 @@ uint32_t val_pcie_default_key_set(void)
  **/
 int val_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value)
 {
+    if (!value || (offset > VAL_PCIE_CONFIG_SIZE - sizeof(uint32_t)) ||
+        ((offset & (sizeof(uint32_t) - 1U)) != 0U) ||
+        (val_pcie_requester_id_from_bdf(bdf) == VAL_PCIE_REQ_ID_INVALID))
+        return VAL_ERROR;
+
     return pal_pcie_cfg_read32(bdf, offset, value);
 }
 
@@ -349,6 +362,11 @@ int val_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value)
  **/
 int val_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value)
 {
+    if ((offset > VAL_PCIE_CONFIG_SIZE - sizeof(uint32_t)) ||
+        ((offset & (sizeof(uint32_t) - 1U)) != 0U) ||
+        (val_pcie_requester_id_from_bdf(bdf) == VAL_PCIE_REQ_ID_INVALID))
+        return VAL_ERROR;
+
     return pal_pcie_cfg_write32(bdf, offset, value);
 }
 

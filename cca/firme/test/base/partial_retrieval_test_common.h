@@ -20,6 +20,22 @@
 #define PARTIAL_RETRIEVAL_STEP_REMAINING_SIZE    UINT64_C(6)
 
 /**
+ * @brief Obtain the selected service adapter's specification-derived status.
+ * @param world Caller world.
+ * @param test_case Requested chunk scenario.
+ * @param evidence Invocation evidence identifying the selected service.
+ * @param expected_status Expected status from the selected ABI and scenario,
+ *        independent of the observed status. The adapter must also establish
+ *        that Written/Remaining sizes are meaningful for this completion.
+ * @return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE when an expectation is
+ *         supplied, UNAVAILABLE without a status contract, or ERROR on failure.
+ */
+int firme_partial_retrieval_test_expected_status(
+    firme_acs_world_t world, val_firme_partial_retrieval_case_t test_case,
+    const val_firme_partial_retrieval_evidence_t *evidence,
+    int64_t *expected_status);
+
+/**
  *   @brief    - Record a partial-retrieval rule failure.
  *   @param    - out       : Result record.
  *   @param    - fail_step : Failing test step.

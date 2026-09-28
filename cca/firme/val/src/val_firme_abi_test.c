@@ -192,7 +192,8 @@ static int val_firme_abi_check_advertisement(
         return VAL_TRUE;
 
     policy = context->abi->world_policy[world_index];
-    if (policy != VAL_FIRME_ABI_WORLD_MANDATORY) {
+    if ((policy != VAL_FIRME_ABI_WORLD_MANDATORY) &&
+        ((context->plan->required_worlds_mask & world_mask) == 0U)) {
         out->status = (uint64_t)ACS_STATUS_SKIP;
         out->fail_step = 0ULL;
         out->last_x0 = features_res.x0;
@@ -200,7 +201,7 @@ static int val_firme_abi_check_advertisement(
         return VAL_FALSE;
     }
 
-    LOG_ERROR(NULL, "%s: mandatory ABI %s is not advertised reg0=%llx",
+    LOG_ERROR(NULL, "%s: required ABI %s is not advertised reg0=%llx",
               context->plan->name, context->abi->name,
               (unsigned long long)feature_reg0);
     out->fail_step = VAL_FIRME_ABI_ADVERTISEMENT_STEP;
@@ -426,7 +427,7 @@ static int val_firme_abi_execute_case(
         return VAL_ERROR;
     }
 
-    if (case_pass == VAL_FALSE) {
+    if (case_pass != VAL_TRUE) {
         LOG_ERROR(NULL, "%s: validation failed for %s case=%s",
                   context->plan->name, context->abi->name,
                   context->test_case->name);
@@ -471,7 +472,8 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
         return VAL_ERROR;
 
     plan = val_firme_abi_test_plan_get(request->plan_id);
-    if (!plan || (plan->enabled == 0U))
+    if (!plan || (plan->enabled == 0U) || !plan->cases ||
+        (plan->case_count == 0U))
         return VAL_ERROR;
 
     world_mask = UINT32_C(1) << world_index;

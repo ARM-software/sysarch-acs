@@ -83,18 +83,18 @@ static int gpt_management_owner_run(uint64_t base_pa,
     /* Step 1: require the mandatory GPT_INFO discovery ABI. */
     if (val_firme_gpt_info_advertised(
             out, GPT_MANAGEMENT_OWNER_STEP_INFO_ADVERTISEMENT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: require GPI_SET for the non-owner-changing state operation. */
     if (val_firme_gpt_gpi_set_advertised(
             out, GPT_MANAGEMENT_OWNER_STEP_GPI_ADVERTISEMENT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 3: derive the protected range containing the transition granule. */
     if (val_firme_gpt_info_prepare_window(
             base_pa, &window, out,
             GPT_MANAGEMENT_OWNER_STEP_WINDOW) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     if ((base_pa % window.granule_size) != 0ULL) {
         LOG_ERROR(NULL, "%s: test PA is not PGS aligned pa=%llx pgs=%llx",
                   GPT_MANAGEMENT_OWNER_TEST_NAME,
@@ -103,14 +103,14 @@ static int gpt_management_owner_run(uint64_t base_pa,
         out->fail_step = GPT_MANAGEMENT_OWNER_STEP_WINDOW;
         out->last_x0 = base_pa;
         out->last_x1 = window.granule_size;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     /* Step 4: record ownership before changing one granule's GPI. */
     if (gpt_management_owner_query(
             &window, &before, out,
             GPT_MANAGEMENT_OWNER_STEP_BEFORE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     owner_before = before.x2 & FIRME_GPT_PAR_STATE_OWNER_MASK;
 
     /* Step 5: perform a GPI transition that must not alter range ownership. */
@@ -147,29 +147,18 @@ static int gpt_management_owner_run(uint64_t base_pa,
 
 cleanup:
     /* Step 7: always restore the transitioned granule to Non-secure. */
-    if ((val_firme_gm_gpi_set_complete(
-             base_pa, UINT64_C(1), FIRME_GPI_NONSECURE,
-             &transition) != VAL_SUCCESS) ||
-        (val_firme_status_success(
-             transition.x0, transition.x1, UINT64_C(1)) == VAL_FALSE)) {
-        LOG_ERROR(NULL, "%s: cleanup failed x0=%llx x1=%llx",
-                  GPT_MANAGEMENT_OWNER_TEST_NAME,
-                  (unsigned long long)transition.x0,
-                  (unsigned long long)transition.x1);
-        if (main_passed == VAL_TRUE)
-            gpt_management_owner_fail(
-                out, GPT_MANAGEMENT_OWNER_STEP_CLEANUP, &transition);
+    if (val_firme_gpt_restore_ns(base_pa, out,
+                                GPT_MANAGEMENT_OWNER_STEP_CLEANUP) == VAL_FALSE)
         return VAL_ERROR;
-    }
 
     if (main_passed == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 8: ownership must also remain unchanged after cleanup. */
     if (gpt_management_owner_query(
             &window, &after, out,
             GPT_MANAGEMENT_OWNER_STEP_AFTER) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     if ((after.x2 & FIRME_GPT_PAR_STATE_OWNER_MASK) != owner_before) {
         LOG_ERROR(NULL, "%s: owner changed before=%llu after=%llu",
                   GPT_MANAGEMENT_OWNER_TEST_NAME,
@@ -181,7 +170,7 @@ cleanup:
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**

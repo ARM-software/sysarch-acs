@@ -15,7 +15,6 @@
 #define SERVICE_ABI_COMPLIANCE_STEP_VERSION_STATUS    UINT64_C(1)
 #define SERVICE_ABI_COMPLIANCE_STEP_FEATURES_STATUS   UINT64_C(2)
 #define SERVICE_ABI_COMPLIANCE_STEP_PROHIBITED_BITS   UINT64_C(3)
-#define SERVICE_ABI_COMPLIANCE_STEP_UNALLOCATED_BITS  UINT64_C(4)
 #define SERVICE_ABI_COMPLIANCE_STEP_SERVICE_FORBIDDEN UINT64_C(5)
 #define SERVICE_ABI_COMPLIANCE_STEP_MANDATORY_BITS    UINT64_C(6)
 #define SERVICE_ABI_COMPLIANCE_STEP_OPTIONAL_GROUP    UINT64_C(7)
@@ -83,9 +82,11 @@ static uint32_t service_abi_compliance_check_service(firme_acs_world_t world,
     }
 
     if (advertised == VAL_FALSE) {
-        LOG_DEBUG(NULL, "%s: service_id=%u reg0 not advertised; skipping ABI checks",
+        LOG_ERROR(NULL, "%s: implemented service_id=%u has no feature reg0",
                   SERVICE_ABI_COMPLIANCE_TEST_NAME, (unsigned int)service_id);
-        return VAL_TRUE;
+        service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_FEATURES_STATUS,
+                                    res.x0, (uint64_t)service_id);
+        return VAL_FALSE;
     }
 
     allocated_mask = val_firme_service_allocated_abi_mask(service_id);
@@ -130,15 +131,6 @@ static uint32_t service_abi_compliance_check_service(firme_acs_world_t world,
         return VAL_FALSE;
     }
 
-    if ((feature_reg0 & ~allocated_mask) != 0ULL) {
-        LOG_ERROR(NULL, "%s: service_id=%u unallocated bits set value=%llx mask=%llx",
-                  SERVICE_ABI_COMPLIANCE_TEST_NAME, (unsigned int)service_id,
-                  (unsigned long long)feature_reg0, (unsigned long long)allocated_mask);
-        service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_UNALLOCATED_BITS,
-                                    feature_reg0, (uint64_t)service_id);
-        return VAL_FALSE;
-    }
-
     return VAL_TRUE;
 }
 
@@ -146,7 +138,7 @@ static uint32_t service_abi_compliance_check_service(firme_acs_world_t world,
  *   @brief    - Validate service ABI compliance classifications for one FIRME instance.
  *   @param    - world : Caller world represented by the current payload.
  *   @param    - out   : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int service_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -182,7 +174,7 @@ static int service_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t 
         }
 
         if (service_abi_compliance_check_service(world, service_id, out) == VAL_FALSE)
-            return VAL_SUCCESS;
+            return VAL_ERROR;
     }
 
     if (out)
@@ -195,7 +187,7 @@ static int service_abi_compliance_run(firme_acs_world_t world, firme_rule_res_t 
  *   @brief    - Service ABI compliance rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -207,7 +199,7 @@ int firme_base_service_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t 
  *   @brief    - Service ABI compliance rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -219,7 +211,7 @@ int firme_base_service_abi_compliance_run_secure(uint64_t base_pa, firme_rule_re
  *   @brief    - Service ABI compliance rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_abi_compliance_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

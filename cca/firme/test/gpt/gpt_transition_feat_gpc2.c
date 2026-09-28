@@ -13,6 +13,7 @@
 #define GPT_TRANS_FEAT_GPC2_MATRIX_BASELINE_STEP_BASE UINT64_C(10)
 #define GPT_TRANS_FEAT_GPC2_MATRIX_NSO_STEP_BASE      UINT64_C(20)
 #define GPT_TRANS_FEAT_GPC2_MATRIX_RESTORE_STEP_BASE  UINT64_C(30)
+#define GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE         UINT64_C(40)
 
 #define GPT_TRANS_FEAT_GPC2_TEST_NAME "gpt_transition_feat_gpc2"
 
@@ -20,7 +21,7 @@
  *   @brief    - GPT transition policy (FEAT_RME_GPC2): NS<->NSO transitions.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -33,6 +34,9 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
     const uint32_t check_value = 1U;
     const uint64_t clear_value = 0ULL;
 
+    if (!out)
+        return VAL_ERROR;
+
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
         out->fail_step = 0;
@@ -43,11 +47,11 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
 
     gpc2 = val_firme_feat_rme_gpc2_present();
 
@@ -132,8 +136,8 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
             goto cleanup;
         }
     } else {
-        if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-            LOG_ERROR(NULL, "%s: NS->NSO expected DENIED/NSUP x0=%llx x1=%llx",
+        if (!val_firme_status_invalid_parameters(res.x0)) {
+            LOG_ERROR(NULL, "%s: NS->NSO expected INVALID_PARAMETERS x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GPC2_TEST_NAME,
                       (unsigned long long)res.x0, (unsigned long long)res.x1);
             if (out) {
@@ -149,8 +153,14 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
-    /* Best-effort cleanup: restore to NS and clear test data. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
-    val_probe_write64(base_pa, clear_value, &fault_info);
-    return 0;
+    if (val_firme_gpt_restore_ns(base_pa, out,
+                                GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE)
+        return VAL_ERROR;
+    if (val_probe_write64(base_pa, clear_value, &fault_info) != VAL_SUCCESS) {
+        val_firme_gpt_rule_result_fail(out,
+            GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE + UINT64_C(1),
+            fault_info.esr, fault_info.far);
+        return VAL_ERROR;
+    }
+    return val_firme_gpt_rule_result_status(out);
 }

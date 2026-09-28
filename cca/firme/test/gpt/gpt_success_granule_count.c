@@ -129,8 +129,7 @@ static uint32_t gpt_success_count_prepare_ns(uint64_t address,
         return VAL_FALSE;
     }
 
-    if ((status != (int64_t)FIRME_SUCCESS) &&
-        (status != (int64_t)FIRME_DENIED)) {
+    if (status != (int64_t)FIRME_SUCCESS) {
         LOG_ERROR(NULL, "%s: NS setup returned unexpected status x0=%llx x1=%llx",
                   GPT_SUCCESS_COUNT_TEST_NAME,
                   (unsigned long long)result.x0,
@@ -147,7 +146,7 @@ static uint32_t gpt_success_count_prepare_ns(uint64_t address,
  *   @param    - base_pa    : Platform GPT test-window base.
  *   @param    - target_gpi : Caller-world target GPI.
  *   @param    - out        : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 static int gpt_success_count_run(uint64_t base_pa,
                                  uint64_t target_gpi,
@@ -164,22 +163,25 @@ static int gpt_success_count_run(uint64_t base_pa,
     uint32_t main_passed = VAL_FALSE;
     uint32_t cleanup_passed = VAL_TRUE;
 
+    if (!out)
+        return VAL_ERROR;
+
     gpt_success_count_init(out);
 
     if (!val_firme_feat_rme_present() || (base_pa == 0ULL)) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(
             out, GPT_SUCCESS_COUNT_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: derive PGS and validate the two-granule platform window. */
     if (val_firme_gpt_feature_reg1(&feature_reg1, out,
                                    GPT_SUCCESS_COUNT_STEP_FEATURE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
     if ((granule_size == 0ULL) ||
@@ -194,7 +196,7 @@ static int gpt_success_count_run(uint64_t base_pa,
             out->last_x0 = base_pa;
             out->last_x1 = granule_size;
         }
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     /* Step 2: establish both adjacent granules as Non-secure. */
@@ -273,14 +275,14 @@ cleanup:
     if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  *   @brief    - Validate R0113 from the Secure FIRME instance.
  *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 int firme_gpt_success_granule_count_run_secure(uint64_t base_pa,
                                                firme_rule_res_t *out)
@@ -292,7 +294,7 @@ int firme_gpt_success_granule_count_run_secure(uint64_t base_pa,
  *   @brief    - Validate R0113 from the Realm FIRME instance.
  *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 int firme_gpt_success_granule_count_run_realm(uint64_t base_pa,
                                               firme_rule_res_t *out)

@@ -17,7 +17,7 @@
  *   @brief    - Validate that the transition granule size matches advertised PGS.
  *   @param    - base_pa : Unused GPT test window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -26,6 +26,9 @@ int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out)
     const uint64_t platform_granule_size = (uint64_t)PLAT_FIRME_GPT_GRANULE_SIZE;
 
     (void)base_pa;
+
+    if (!out)
+        return VAL_ERROR;
 
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
@@ -37,16 +40,16 @@ int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out)
     if (!val_firme_feat_rme_present()) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, GPT_GRANULE_SIZE_STEP_FEATURE_REG1) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: read GM feature register 1 and decode the PGS field. */
     if (val_firme_gpt_feature_reg1(&feature_reg1, out,
                                    GPT_GRANULE_SIZE_STEP_FEATURE_REG1) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     advertised_granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
     if (advertised_granule_size != platform_granule_size) {
@@ -60,10 +63,10 @@ int firme_gpt_granule_size_run_ns(uint64_t base_pa, firme_rule_res_t *out)
             out->last_x0 = advertised_granule_size;
             out->last_x1 = platform_granule_size;
         }
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }

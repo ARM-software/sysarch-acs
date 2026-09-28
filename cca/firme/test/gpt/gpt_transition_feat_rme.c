@@ -12,6 +12,7 @@
 #define GPT_TRANS_FEAT_RME_FAILSTEP_PROBE_WRITE UINT64_C(20)
 #define GPT_TRANS_FEAT_RME_FAILSTEP_PROBE_READ  UINT64_C(21)
 #define GPT_TRANS_FEAT_RME_FAILSTEP_PROBE_VALUE UINT64_C(22)
+#define GPT_TRANS_FEAT_RME_FAILSTEP_CLEANUP     UINT64_C(30)
 
 #define GPT_TRANS_FEAT_RME_TEST_NAME "gpt_transition_feat_rme"
 
@@ -19,13 +20,16 @@
  *   @brief    - GPT transition policy (FEAT_RME): Secure-world caller coverage.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t res = (firme_res_t){0};
     const uint64_t granule_count = 1ULL;
     const uint64_t expected_done = granule_count;
+
+    if (!out)
+        return VAL_ERROR;
 
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
@@ -37,17 +41,22 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
 
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": secure start base=%llx",
               (unsigned long long)base_pa);
 
     /* Step 1: force known state (Non-secure). */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    if ((val_firme_gm_gpi_set_complete(base_pa, granule_count,
+                                      FIRME_GPI_NONSECURE, &res) != VAL_SUCCESS) ||
+        !val_firme_status_success(res.x0, res.x1, expected_done)) {
+        val_firme_gpt_rule_result_fail(out, UINT64_C(1), res.x0, res.x1);
+        goto cleanup;
+    }
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step1 set->NS x0=%llx x1=%llx",
               (unsigned long long)res.x0, (unsigned long long)res.x1);
     if (out) {
@@ -68,7 +77,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
             out->last_x0 = res.x0;
             out->last_x1 = res.x1;
         }
-        return 0;
+        goto cleanup;
     }
 
     /* Validate the transition took effect by accessing the granule from Secure. */
@@ -88,7 +97,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
                 out->last_x0 = fault_info_write.esr;
                 out->last_x1 = fault_info_write.far;
             }
-            return 0;
+            goto cleanup;
         }
         if (val_probe_read64(base_pa, &value, &fault_info_read) != 0) {
             LOG_ERROR(NULL, "%s: secure probe read fault esr=%llx far=%llx",
@@ -100,7 +109,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
                 out->last_x0 = fault_info_read.esr;
                 out->last_x1 = fault_info_read.far;
             }
-            return 0;
+            goto cleanup;
         }
         if (value != test_data) {
             LOG_ERROR(NULL, "%s: secure probe read mismatch v=%llx exp=%llx",
@@ -112,7 +121,7 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
                 out->last_x0 = value;
                 out->last_x1 = test_data;
             }
-            return 0;
+            goto cleanup;
         }
     }
 
@@ -128,47 +137,55 @@ int firme_gpt_transition_feat_rme_run_secure(uint64_t base_pa, firme_rule_res_t 
             out->last_x0 = res.x0;
             out->last_x1 = res.x1;
         }
-        return 0;
+        goto cleanup;
     }
 
     /* Step 4: Disallowed: Secure -> Realm. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
-    if (val_firme_status_success(res.x0, res.x1, expected_done)) {
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
-        LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step4 S->R x0=%llx x1=%llx",
+    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
+        val_firme_gpt_rule_result_fail(out, UINT64_C(4), res.x0, res.x1);
+        goto cleanup;
+    }
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
+    LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": step4 S->R x0=%llx x1=%llx",
                   (unsigned long long)res.x0, (unsigned long long)res.x1);
-        if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-            LOG_ERROR(NULL, "%s: secure step4 S->R expected DENIED/NSUP x0=%llx x1=%llx",
+    if (!val_firme_status_deniedish(res.x0) || (res.x1 != 0ULL)) {
+        LOG_ERROR(NULL, "%s: secure step4 S->R expected DENIED/zero count x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
                       (unsigned long long)res.x0,
                       (unsigned long long)res.x1);
-            if (out) {
-                out->fail_step = 4;
-                out->last_x0 = res.x0;
-                out->last_x1 = res.x1;
-            }
-            return 0;
+        if (out) {
+            out->fail_step = 4;
+            out->last_x0 = res.x0;
+            out->last_x1 = res.x1;
         }
+        goto cleanup;
     }
 
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     LOG_DEBUG(NULL, GPT_TRANS_FEAT_RME_TEST_NAME ": secure done");
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
-    return 0;
+cleanup:
+    if (val_firme_gpt_restore_ns(base_pa, out,
+                                GPT_TRANS_FEAT_RME_FAILSTEP_CLEANUP) == VAL_FALSE)
+        return VAL_ERROR;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  *   @brief    - GPT transition policy (FEAT_RME): Realm-world caller coverage.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t res = (firme_res_t){0};
     const uint64_t granule_count = 1ULL;
     const uint64_t expected_done = granule_count;
+
+    if (!out)
+        return VAL_ERROR;
 
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
@@ -180,14 +197,19 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: force known state (Non-secure). */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+    if ((val_firme_gm_gpi_set_complete(base_pa, granule_count,
+                                      FIRME_GPI_NONSECURE, &res) != VAL_SUCCESS) ||
+        !val_firme_status_success(res.x0, res.x1, expected_done)) {
+        val_firme_gpt_rule_result_fail(out, UINT64_C(1), res.x0, res.x1);
+        goto cleanup;
+    }
 
     /* Step 2: Realm caller: Non-secure -> Realm (permitted). */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
@@ -199,7 +221,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
             out->last_x0 = res.x0;
             out->last_x1 = res.x1;
         }
-        return 0;
+        goto cleanup;
     }
 
     /* Validate the transition took effect by accessing the granule from Realm. */
@@ -219,7 +241,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
                 out->last_x0 = fault_info_write.esr;
                 out->last_x1 = fault_info_write.far;
             }
-            return 0;
+            goto cleanup;
         }
         if (val_probe_read64(base_pa, &value, &fault_info_read) != 0) {
             LOG_ERROR(NULL, "%s: realm probe read fault esr=%llx far=%llx",
@@ -231,7 +253,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
                 out->last_x0 = fault_info_read.esr;
                 out->last_x1 = fault_info_read.far;
             }
-            return 0;
+            goto cleanup;
         }
         if (value != test_data) {
             LOG_ERROR(NULL, "%s: realm probe read mismatch v=%llx exp=%llx",
@@ -243,7 +265,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
                 out->last_x0 = value;
                 out->last_x1 = test_data;
             }
-            return 0;
+            goto cleanup;
         }
     }
 
@@ -257,31 +279,36 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
             out->last_x0 = res.x0;
             out->last_x1 = res.x1;
         }
-        return 0;
+        goto cleanup;
     }
 
     /* Step 4: Disallowed: Realm -> Secure. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
-    if (val_firme_status_success(res.x0, res.x1, expected_done)) {
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
-        if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-            LOG_ERROR(NULL, "%s: realm step4 R->S expected DENIED/NSUP x0=%llx x1=%llx",
+    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
+        val_firme_gpt_rule_result_fail(out, UINT64_C(4), res.x0, res.x1);
+        goto cleanup;
+    }
+    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
+    if (!val_firme_status_deniedish(res.x0) || (res.x1 != 0ULL)) {
+        LOG_ERROR(NULL, "%s: realm step4 R->S expected DENIED/zero count x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
                       (unsigned long long)res.x0,
                       (unsigned long long)res.x1);
-            if (out) {
-                out->fail_step = 4;
-                out->last_x0 = res.x0;
-                out->last_x1 = res.x1;
-            }
-            return 0;
+        if (out) {
+            out->fail_step = 4;
+            out->last_x0 = res.x0;
+            out->last_x1 = res.x1;
         }
+        goto cleanup;
     }
 
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
-    return 0;
+cleanup:
+    if (val_firme_gpt_restore_ns(base_pa, out,
+                                GPT_TRANS_FEAT_RME_FAILSTEP_CLEANUP) == VAL_FALSE)
+        return VAL_ERROR;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
@@ -289,7 +316,7 @@ int firme_gpt_transition_feat_rme_run_realm(uint64_t base_pa, firme_rule_res_t *
  *               and verify access faults.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -303,6 +330,9 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     const uint64_t matrix_step_base = UINT64_C(0);
     const uint64_t clear_value = 0ULL;
 
+    if (!out)
+        return VAL_ERROR;
+
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
         out->fail_step = 0;
@@ -313,11 +343,11 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
-        return 0;
+        return val_firme_gpt_rule_result_status(out);
 
     gpc2 = val_firme_feat_rme_gpc2_present();
     gdi = val_firme_feat_rme_gdi_present();
@@ -351,8 +381,8 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     /* Step 3: NS caller: NS->Secure is disallowed. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SECURE, &res);
-    if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-        LOG_ERROR(NULL, "%s: ns NS->S expected DENIED/NSUP x0=%llx x1=%llx",
+    if (!val_firme_status_deniedish(res.x0) || (res.x1 != 0ULL)) {
+        LOG_ERROR(NULL, "%s: ns NS->S expected DENIED/zero count x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
                   (unsigned long long)res.x0,
                   (unsigned long long)res.x1);
@@ -366,8 +396,8 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     /* Step 4: NS caller: NS->Realm is disallowed. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_REALM, &res);
-    if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-        LOG_ERROR(NULL, "%s: ns NS->R expected DENIED/NSUP x0=%llx x1=%llx",
+    if (!val_firme_status_deniedish(res.x0) || (res.x1 != 0ULL)) {
+        LOG_ERROR(NULL, "%s: ns NS->R expected DENIED/zero count x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
                   (unsigned long long)res.x0,
                   (unsigned long long)res.x1);
@@ -381,8 +411,8 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
 
     /* Step 5: NS caller: NS->Root is disallowed. */
     val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_ROOT, &res);
-    if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-        LOG_ERROR(NULL, "%s: ns NS->ROOT expected DENIED/NSUP x0=%llx x1=%llx",
+    if (!val_firme_status_deniedish(res.x0) || (res.x1 != 0ULL)) {
+        LOG_ERROR(NULL, "%s: ns NS->ROOT expected DENIED/zero count x0=%llx x1=%llx",
                   GPT_TRANS_FEAT_RME_TEST_NAME,
                   (unsigned long long)res.x0,
                   (unsigned long long)res.x1);
@@ -395,10 +425,10 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     if (!gpc2) {
-        /* Step 6: NS caller: NS->NSO is disallowed when GPC2 is absent. */
+        /* Step 6: NS caller: NSO is an unallocated encoding without GPC2. */
         val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
-        if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-            LOG_ERROR(NULL, "%s: ns NS->NSO expected DENIED/NSUP x0=%llx x1=%llx",
+        if (!val_firme_status_invalid_parameters(res.x0)) {
+            LOG_ERROR(NULL, "%s: ns NS->NSO expected INVALID_PARAMETERS x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
                       (unsigned long long)res.x0,
                       (unsigned long long)res.x1);
@@ -412,10 +442,10 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     }
 
     if (!gdi) {
-        /* Step 7: NS caller: NS->NSP is disallowed when GDI is absent. */
+        /* Step 7: NS caller: NSP is an unallocated encoding without GDI. */
         val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
-        if (!val_firme_status_deniedish(res.x0) && !val_firme_status_not_supported(res.x0)) {
-            LOG_ERROR(NULL, "%s: ns NS->NSP expected DENIED/NSUP x0=%llx x1=%llx",
+        if (!val_firme_status_invalid_parameters(res.x0)) {
+            LOG_ERROR(NULL, "%s: ns NS->NSP expected INVALID_PARAMETERS x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_RME_TEST_NAME,
                       (unsigned long long)res.x0,
                       (unsigned long long)res.x1);
@@ -431,13 +461,14 @@ int firme_gpt_transition_feat_rme_run_ns(uint64_t base_pa, firme_rule_res_t *out
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 cleanup:
-    /*
-     * Best-effort cleanup:
-     * - Restore the granule to Non-secure from whichever world currently owns it.
-     * - Clear test data using a fault-tolerant write so the suite does not halt
-     *   even if cleanup isn't possible on a broken implementation.
-     */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
-    val_probe_write64(base_pa, clear_value, &fault_info);
-    return 0;
+    if (val_firme_gpt_restore_ns(base_pa, out,
+                                GPT_TRANS_FEAT_RME_FAILSTEP_CLEANUP) == VAL_FALSE)
+        return VAL_ERROR;
+    if (val_probe_write64(base_pa, clear_value, &fault_info) != VAL_SUCCESS) {
+        val_firme_gpt_rule_result_fail(out,
+            GPT_TRANS_FEAT_RME_FAILSTEP_CLEANUP + UINT64_C(1),
+            fault_info.esr, fault_info.far);
+        return VAL_ERROR;
+    }
+    return val_firme_gpt_rule_result_status(out);
 }

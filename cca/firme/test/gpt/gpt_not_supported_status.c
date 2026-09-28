@@ -52,7 +52,7 @@ static void gpt_not_supported_invoke(
  * @param world Caller world.
  * @param base_pa Default platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_not_supported_run(firme_acs_world_t world,
                                  uint64_t base_pa,
@@ -154,7 +154,7 @@ static int gpt_not_supported_run(firme_acs_world_t world,
     out->status = (observed_case == VAL_TRUE) ?
                   (uint64_t)ACS_STATUS_PASS :
                   (uint64_t)ACS_STATUS_SKIP;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 
 cleanup_fail:
     scenario_status = pal_firme_gpt_scenario_cleanup(
@@ -167,14 +167,14 @@ cleanup_fail:
         return VAL_ERROR;
     }
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0122 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_not_supported_status_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -186,7 +186,7 @@ int firme_gpt_not_supported_status_run_ns(
  * @brief Validate R0122 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_not_supported_status_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -198,7 +198,7 @@ int firme_gpt_not_supported_status_run_secure(
  * @brief Validate R0122 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_not_supported_status_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

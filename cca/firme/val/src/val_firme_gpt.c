@@ -169,6 +169,37 @@ uint32_t val_firme_status_invalid_parameters(uint64_t x0)
 }
 
 /**
+ * @brief Restore one test granule to NS while preserving primary diagnostics.
+ * @param base_pa Test granule physical address.
+ * @param out Optional rule result updated on failure.
+ * @param fail_step Cleanup diagnostic step.
+ * @return VAL_TRUE only for complete, successful restoration.
+ */
+uint32_t val_firme_gpt_restore_ns(uint64_t base_pa, firme_rule_res_t *out,
+                                   uint64_t fail_step)
+{
+    firme_res_t result = {0};
+
+    if ((val_firme_gm_gpi_set_complete(base_pa, UINT64_C(1),
+                                      FIRME_GPI_NONSECURE,
+                                      &result) != VAL_SUCCESS) ||
+        (val_firme_status_success(result.x0, result.x1,
+                                  UINT64_C(1)) == VAL_FALSE)) {
+        LOG_ERROR(NULL, "gpt: NS restoration failed step=%llu x0=%llx x1=%llx",
+                  (unsigned long long)fail_step,
+                  (unsigned long long)result.x0,
+                  (unsigned long long)result.x1);
+        if (!out || (out->status != (uint64_t)ACS_STATUS_FAIL) ||
+            ((out->fail_step == 0ULL) && (out->last_x0 == 0ULL) &&
+             (out->last_x1 == 0ULL)))
+            val_firme_gpt_record_failure(out, fail_step, result.x0, result.x1);
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
  *   @brief    - Check whether FIRME_GM_GPI_SET is advertised by the DUT.
  *   @param    - out       : Optional rule result updated on skip/failure.
  *   @param    - fail_step : Step ID to report on service-query failure.
@@ -457,6 +488,30 @@ uint32_t val_firme_gpt_operation_status_valid(int64_t status)
 }
 
 /**
+ * @brief Validate per-call progress without consuming UNKNOWN count outputs.
+ * @param status Signed FIRME operation status.
+ * @param count Raw count output, ignored for BUSY.
+ * @param remaining Granules remaining before this invocation.
+ * @return VAL_TRUE for valid progress, otherwise VAL_FALSE.
+ */
+uint32_t val_firme_gpt_operation_count_valid(int64_t status,
+                                              uint64_t count,
+                                              uint64_t remaining)
+{
+    if ((remaining == 0ULL) ||
+        (val_firme_gpt_operation_status_valid(status) == VAL_FALSE))
+        return VAL_FALSE;
+
+    if (status == (int64_t)FIRME_BUSY)
+        return VAL_TRUE;
+
+    if (status == (int64_t)FIRME_SUCCESS)
+        return (uint32_t)((count != 0ULL) && (count <= remaining));
+
+    return (uint32_t)(count < remaining);
+}
+
+/**
  * @brief Trace one GPI transition across stateless and stateful phases.
  * @param base_pa Base physical address of the first granule.
  * @param granule_count Number of granules requested by the caller.
@@ -499,8 +554,12 @@ int val_firme_gpt_trace_transition(uint64_t base_pa,
 
     granule_size =
         val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
-    if (granule_size == 0ULL)
+    if ((granule_size == 0ULL) ||
+        ((base_pa % granule_size) != 0ULL) ||
+        (granule_count > ((UINT64_MAX - base_pa) / granule_size))) {
+        val_firme_gpt_record_failure(out, fail_step, base_pa, granule_count);
         return VAL_ERROR;
+    }
 
     while ((remaining != 0ULL) &&
            (trace->phase_count < VAL_FIRME_GPT_TRACE_MAX_PHASES)) {
@@ -542,15 +601,8 @@ int val_firme_gpt_trace_transition(uint64_t base_pa,
             return VAL_SUCCESS;
         }
 
-        if (result.x1 > remaining) {
-            trace->malformed = VAL_TRUE;
-            return VAL_SUCCESS;
-        }
-
-        if (((status == (int64_t)FIRME_SUCCESS) &&
-             (result.x1 == 0ULL)) ||
-            ((status == (int64_t)FIRME_INCOMPLETE) &&
-             (result.x1 >= remaining))) {
+        if (val_firme_gpt_operation_count_valid(
+                status, result.x1, remaining) == VAL_FALSE) {
             trace->malformed = VAL_TRUE;
             return VAL_SUCCESS;
         }
@@ -612,6 +664,20 @@ void val_firme_gpt_rule_result_init(firme_rule_res_t *out)
 }
 
 /**
+ * @brief Return the execution status of a completed GPT rule result.
+ * @param out Required result record.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
+ */
+int val_firme_gpt_rule_result_status(const firme_rule_res_t *out)
+{
+    if (out && ((out->status == (uint64_t)ACS_STATUS_PASS) ||
+                (out->status == (uint64_t)ACS_STATUS_SKIP)))
+        return VAL_SUCCESS;
+
+    return VAL_ERROR;
+}
+
+/**
  * @brief Record a GPT rule assertion failure.
  * @param out Optional rule result.
  * @param fail_step Failing algorithm step.
@@ -640,7 +706,7 @@ uint32_t val_firme_gpt_trace_has_status(
 {
     uint32_t phase_index;
 
-    if (!trace)
+    if (!trace || (trace->phase_count > VAL_FIRME_GPT_TRACE_MAX_PHASES))
         return VAL_FALSE;
 
     for (phase_index = 0U; phase_index < trace->phase_count;
@@ -803,7 +869,11 @@ uint32_t val_firme_gpt_info_success_valid(
     const val_firme_gpt_info_window_t *window, const firme_res_t *result,
     firme_rule_res_t *out, uint64_t fail_step)
 {
-    if (!window || !result) {
+    if (!window || !result || (window->range_size == 0ULL) ||
+        (window->range_base >= window->range_top) ||
+        ((window->range_base % window->range_size) != 0ULL) ||
+        ((window->range_top % window->range_size) != 0ULL) ||
+        (window->range_top > window->protected_pa_size)) {
         val_firme_gpt_record_failure(out, fail_step, 0ULL, 0ULL);
         return VAL_FALSE;
     }

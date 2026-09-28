@@ -42,7 +42,7 @@ static uint32_t gpt_op_continue_count_valid(int64_t status)
  * @param world Caller world.
  * @param base_pa Default platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_op_continue_count_run(firme_acs_world_t world,
                                      uint64_t base_pa,
@@ -69,7 +69,7 @@ static int gpt_op_continue_count_run(firme_acs_world_t world,
              out, GPT_CONTINUE_COUNT_STEP_ADVERTISE) == VAL_FALSE) ||
         (val_firme_gpt_op_continue_advertised(
              out, GPT_CONTINUE_COUNT_STEP_ADVERTISE) == VAL_FALSE))
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: request a stateful operation with observable progress. */
     scenario_status = pal_firme_gpt_scenario_prepare(
@@ -77,7 +77,7 @@ static int gpt_op_continue_count_run(firme_acs_world_t world,
         (int64_t)FIRME_INCOMPLETE, base_pa, &scenario);
     if (scenario_status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE) {
         out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
     if (scenario_status != PAL_FIRME_GPT_SCENARIO_READY) {
         val_firme_gpt_rule_result_fail(
@@ -186,14 +186,14 @@ cleanup:
     if (assertion_passed == VAL_TRUE)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0115 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_granule_count_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -205,7 +205,7 @@ int firme_gpt_op_continue_granule_count_run_ns(
  * @brief Validate R0115 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_granule_count_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -217,7 +217,7 @@ int firme_gpt_op_continue_granule_count_run_secure(
  * @brief Validate R0115 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_granule_count_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

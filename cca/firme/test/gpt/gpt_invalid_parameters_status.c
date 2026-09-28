@@ -37,7 +37,7 @@ static uint32_t gpt_invalid_params_expect(firme_res_t *res, firme_rule_res_t *ou
  *   @brief    - Validate GM_GPI_SET INVALID_PARAMETERS status conditions.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
 int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -45,6 +45,9 @@ int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_
     const uint64_t granule_count_zero = UINT64_C(0);
     const uint64_t granule_count = UINT64_C(1);
     uint64_t unaligned_base_pa = 0ULL;
+
+    if (!out)
+        return VAL_ERROR;
 
     if (out) {
         out->status = (uint64_t)ACS_STATUS_FAIL;
@@ -56,23 +59,23 @@ int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_
     if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(out, GPT_INVALID_PARAMS_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: zero granule count must be rejected. */
     val_firme_gm_gpi_set_do(base_pa, granule_count_zero, FIRME_GPI_NONSECURE, &res);
     if (gpt_invalid_params_expect(&res, out, GPT_INVALID_PARAMS_STEP_ZERO_COUNT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: an unallocated Target GPI is an incorrectly encoded Attributes field. */
     val_firme_gm_gpi_set_do(base_pa, granule_count,
                             FIRME_GPI_UNALLOCATED_TEST, &res);
     if (gpt_invalid_params_expect(&res, out,
                                   GPT_INVALID_PARAMS_STEP_BAD_ATTRIBUTES) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 3: a base address not aligned to PGS must be rejected. */
     unaligned_base_pa = base_pa + GPT_INVALID_PARAMS_UNALIGNED_OFFSET;
@@ -80,9 +83,9 @@ int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_
                             FIRME_GPI_NONSECURE, &res);
     if (gpt_invalid_params_expect(&res, out,
                                   GPT_INVALID_PARAMS_STEP_UNALIGNED_BASE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }

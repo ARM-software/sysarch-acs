@@ -58,7 +58,7 @@ static void smccc_sme_fail(firme_rule_res_t *out, uint64_t fail_step,
 /**
  *   @brief    - Validate SMCCC >= 1.4 when FEAT_SME is implemented.
  *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int smccc_sme_run(firme_rule_res_t *out)
 {
@@ -87,7 +87,7 @@ static int smccc_sme_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    major = res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
+    major = (uint32_t)res.x0 >> SMCCC_VERSION_MAJOR_SHIFT;
     minor = res.x0 & SMCCC_VERSION_MINOR_MASK;
     if ((major < 1ULL) || ((major == 1ULL) && (minor < SMCCC_SME_MIN_MINOR))) {
         LOG_ERROR(NULL, "%s: FEAT_SME present but SMCCC version=%llu.%llu\n",
@@ -99,20 +99,20 @@ static int smccc_sme_run(firme_rule_res_t *out)
 
     /* Step 3: Exercise live ZA with both non-streaming and streaming vectors. */
     if (val_firme_smccc_check_state(VAL_SMCCC_STATE_ZA, out) != VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (val_firme_smccc_check_state(VAL_SMCCC_STATE_ZA | VAL_SMCCC_PROBE_STREAMING,
                                     out) != VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     /* Step 4: The SVE absence hint never permits discarding live ZA or SIMD/FP. */
     if (val_firme_smccc_check_state(VAL_SMCCC_STATE_ZA | VAL_SMCCC_PROBE_HINT, out) !=
         VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (val_firme_smccc_check_state(VAL_SMCCC_STATE_ZA | VAL_SMCCC_PROBE_STREAMING |
                                     VAL_SMCCC_PROBE_HINT, out) != VAL_SUCCESS)
-        return VAL_SUCCESS;
+        return VAL_ERROR;
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
@@ -124,7 +124,7 @@ static int smccc_sme_run(firme_rule_res_t *out)
  *   @brief    - SMCCC SME rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_sme_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -136,7 +136,7 @@ int firme_base_smccc_sme_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - SMCCC SME rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_sme_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -148,7 +148,7 @@ int firme_base_smccc_sme_run_secure(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - SMCCC SME rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS after recording the architectural outcome.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_smccc_sme_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

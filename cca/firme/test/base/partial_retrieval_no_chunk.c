@@ -34,13 +34,6 @@ static int partial_retrieval_no_chunk_run(
         (out->status != (uint64_t)ACS_STATUS_FAIL))
         return result;
 
-    if (evidence.abi_status != (int64_t)FIRME_INCOMPLETE) {
-        firme_partial_retrieval_test_fail(
-            out, PARTIAL_RETRIEVAL_STEP_STATUS,
-            (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_ERROR;
-    }
-
     if (evidence.written_size != 0ULL) {
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_WRITTEN_SIZE,

@@ -23,28 +23,11 @@
 #define GPT_CONTINUE_PROGRESS_STATUS_COUNT 6U
 
 /**
- * @brief Return whether Table 3.5 makes Granule count valid.
- * @param status Signed FIRME status.
- * @return VAL_TRUE when x1 is valid, otherwise VAL_FALSE.
- */
-static uint32_t gpt_op_continue_progress_count_valid(int64_t status)
-{
-    if ((status == (int64_t)FIRME_SUCCESS) ||
-        (status == (int64_t)FIRME_DENIED) ||
-        (status == (int64_t)FIRME_OP_CONFLICT) ||
-        (status == (int64_t)FIRME_NOT_FOUND) ||
-        (status == (int64_t)FIRME_INCOMPLETE))
-        return VAL_TRUE;
-
-    return VAL_FALSE;
-}
-
-/**
  * @brief Validate R0118 from one FIRME caller world.
  * @param world Caller world.
  * @param base_pa Default platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_op_continue_progress_run(firme_acs_world_t world,
                                         uint64_t base_pa,
@@ -66,6 +49,7 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
     int64_t actual_status;
     int64_t retry_status;
     int64_t expected_status;
+    uint64_t remaining;
     uint32_t status_index;
 
     if (!out)
@@ -76,7 +60,7 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
     /* Step 1: require mandatory FIRME_GM_GPI_OP_CONTINUE discovery. */
     if (val_firme_gpt_op_continue_advertised(
             out, GPT_CONTINUE_PROGRESS_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /*
      * Step 2: exercise every architected Table 3.5 row with a PAL-provided
@@ -91,7 +75,7 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
             expected_status, base_pa, &scenario);
         if (scenario_status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE) {
             out->status = (uint64_t)ACS_STATUS_SKIP;
-            return VAL_SUCCESS;
+            return val_firme_gpt_rule_result_status(out);
         }
         if (scenario_status != PAL_FIRME_GPT_SCENARIO_READY) {
             val_firme_gpt_rule_result_fail(
@@ -99,6 +83,14 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
                 (uint64_t)scenario_status, (uint64_t)expected_status);
             return VAL_ERROR;
         }
+
+        if (scenario.completed_count >= scenario.granule_count) {
+            val_firme_gpt_rule_result_fail(
+                out, GPT_CONTINUE_PROGRESS_STEP_SCENARIO + status_index,
+                scenario.completed_count, scenario.granule_count);
+            goto cleanup_fail;
+        }
+        remaining = scenario.granule_count - scenario.completed_count;
 
         val_firme_gm_gpi_op_continue(scenario.cookie, &result);
         actual_status = val_firme_status_to_i64(result.x0);
@@ -119,12 +111,11 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
          * Step 3: consume x1 only for rows where Table 3.5 makes it valid.
          * Its value must fit the suffix represented by the retained operation.
          */
-        if ((gpt_op_continue_progress_count_valid(actual_status) ==
-             VAL_TRUE) &&
-            (result.x1 > scenario.granule_count)) {
+        if (val_firme_gpt_operation_count_valid(
+                actual_status, result.x1, remaining) == VAL_FALSE) {
             val_firme_gpt_rule_result_fail(
                 out, GPT_CONTINUE_PROGRESS_STEP_OUTPUT + status_index,
-                result.x1, scenario.granule_count);
+                result.x1, remaining);
             goto cleanup_fail;
         }
 
@@ -134,10 +125,12 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
          */
         if ((actual_status == (int64_t)FIRME_INCOMPLETE) ||
             (actual_status == (int64_t)FIRME_BUSY)) {
+            if (actual_status == (int64_t)FIRME_INCOMPLETE)
+                remaining -= result.x1;
             val_firme_gm_gpi_op_continue(result.x2, &retry_result);
             retry_status = val_firme_status_to_i64(retry_result.x0);
-            if (val_firme_gpt_operation_status_valid(retry_status) ==
-                VAL_FALSE) {
+            if (val_firme_gpt_operation_count_valid(
+                    retry_status, retry_result.x1, remaining) == VAL_FALSE) {
                 val_firme_gpt_rule_result_fail(
                     out, GPT_CONTINUE_PROGRESS_STEP_COOKIE + status_index,
                     retry_result.x0, result.x2);
@@ -157,7 +150,7 @@ static int gpt_op_continue_progress_run(firme_acs_world_t world,
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 
 cleanup_fail:
     scenario_status = pal_firme_gpt_scenario_cleanup(
@@ -170,14 +163,14 @@ cleanup_fail:
         return VAL_ERROR;
     }
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0118 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_progress_run_ns(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -190,7 +183,7 @@ int firme_gpt_op_continue_progress_run_ns(
  * @brief Validate R0118 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_progress_run_secure(
     uint64_t base_pa, firme_rule_res_t *out)
@@ -203,7 +196,7 @@ int firme_gpt_op_continue_progress_run_secure(
  * @brief Validate R0118 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_op_continue_progress_run_realm(
     uint64_t base_pa, firme_rule_res_t *out)

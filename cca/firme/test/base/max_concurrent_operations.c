@@ -207,8 +207,8 @@ static int max_concurrent_collect(firme_rule_res_t *out,
 /**
  *   @brief    - Validate R0064 at the current FIRME instance.
  *   @param    - base_pa : Unused for Base concept tests.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int max_concurrent_r0064_run(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -219,12 +219,8 @@ static int max_concurrent_r0064_run(uint64_t base_pa, firme_rule_res_t *out)
     (void)base_pa;
     max_concurrent_init_result(out);
     result = max_concurrent_collect(out, &evidence_lo, &evidence_hi);
-    if (result != VAL_SUCCESS) {
-        if ((out != 0) &&
-            (out->status == (uint64_t)ACS_STATUS_FAIL))
-            return VAL_SUCCESS;
+    if (result != VAL_SUCCESS)
         return VAL_ERROR;
-    }
     if ((out == 0) ||
         (out->status != (uint64_t)ACS_STATUS_FAIL) ||
         (out->fail_step != 0ULL))
@@ -237,8 +233,8 @@ static int max_concurrent_r0064_run(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - Collect R0065 evidence at the current FIRME instance.
  *   @param    - base_pa : Unused for Base concept tests.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int max_concurrent_r0065_run(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -249,12 +245,8 @@ static int max_concurrent_r0065_run(uint64_t base_pa, firme_rule_res_t *out)
     (void)base_pa;
     max_concurrent_init_result(out);
     result = max_concurrent_collect(out, &evidence_lo, &evidence_hi);
-    if (result != VAL_SUCCESS) {
-        if ((out != 0) &&
-            (out->status == (uint64_t)ACS_STATUS_FAIL))
-            return VAL_SUCCESS;
+    if (result != VAL_SUCCESS)
         return VAL_ERROR;
-    }
     if ((out == 0) ||
         (out->status != (uint64_t)ACS_STATUS_FAIL) ||
         (out->fail_step != 0ULL))
@@ -270,8 +262,8 @@ static int max_concurrent_r0065_run(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - R0064 body for the NS FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0064_run_ns(uint64_t base_pa,
                                            firme_rule_res_t *out)
@@ -282,8 +274,8 @@ int firme_base_max_concurrent_r0064_run_ns(uint64_t base_pa,
 /**
  *   @brief    - R0064 body for the Secure FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0064_run_secure(uint64_t base_pa,
                                                firme_rule_res_t *out)
@@ -294,8 +286,8 @@ int firme_base_max_concurrent_r0064_run_secure(uint64_t base_pa,
 /**
  *   @brief    - R0064 body for the Realm FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0064_run_realm(uint64_t base_pa,
                                               firme_rule_res_t *out)
@@ -306,8 +298,8 @@ int firme_base_max_concurrent_r0064_run_realm(uint64_t base_pa,
 /**
  *   @brief    - R0065 evidence body for the NS FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0065_run_ns(uint64_t base_pa,
                                            firme_rule_res_t *out)
@@ -318,8 +310,8 @@ int firme_base_max_concurrent_r0065_run_ns(uint64_t base_pa,
 /**
  *   @brief    - R0065 evidence body for the Secure FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0065_run_secure(uint64_t base_pa,
                                                firme_rule_res_t *out)
@@ -330,8 +322,8 @@ int firme_base_max_concurrent_r0065_run_secure(uint64_t base_pa,
 /**
  *   @brief    - R0065 evidence body for the Realm FIRME instance.
  *   @param    - base_pa : Unused.
- *   @param    - out     : Result record.
- *   @return   - VAL_SUCCESS when checks complete, otherwise VAL_ERROR.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0065_run_realm(uint64_t base_pa,
                                               firme_rule_res_t *out)
@@ -345,7 +337,7 @@ int firme_base_max_concurrent_r0065_run_realm(uint64_t base_pa,
  *   @param    - res_secure : Secure instance result and evidence.
  *   @param    - res_realm  : Realm instance result and evidence.
  *   @param    - overall    : Combined rule result to update.
- *   @return   - VAL_SUCCESS when evidence is consistent, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_max_concurrent_r0065_post(
     const firme_acs_call_res_t *res_ns,
@@ -365,9 +357,13 @@ int firme_base_max_concurrent_r0065_post(
     uint32_t service_id = FIRME_SERVICE_ID_GRANULE_MGMT;
     uint32_t world_index = 0U;
 
-    if ((res_ns == 0) || (res_secure == 0) ||
-        (res_realm == 0) || (overall == 0))
+    if (overall == 0)
         return VAL_ERROR;
+
+    if ((res_ns == 0) || (res_secure == 0) || (res_realm == 0)) {
+        *overall = (firme_acs_call_res_t){.x0 = ACS_STATUS_ERR};
+        return VAL_ERROR;
+    }
 
     for (; service_id < FIRME_SERVICE_ID_MAX; service_id++) {
         have_reference = VAL_FALSE;
@@ -401,7 +397,7 @@ int firme_base_max_concurrent_r0065_post(
                 overall->x2 = reference_count;
                 overall->x3 = count;
                 overall->x4 = (uint64_t)world_index;
-                return VAL_SUCCESS;
+                return VAL_ERROR;
             }
 
             if (count != 0ULL) {

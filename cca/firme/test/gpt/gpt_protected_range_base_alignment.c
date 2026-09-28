@@ -66,20 +66,20 @@ static int gpt_protected_range_base_run(uint64_t base_pa,
     /* Step 1: GPT_INFO is mandatory at every Granule Management instance. */
     if (val_firme_gpt_info_advertised(
             out, GPT_PROTECTED_RANGE_BASE_STEP_ADVERTISEMENT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: derive range alignment from DUT-advertised L0GPTSZ and PPS. */
     if (val_firme_gpt_info_prepare_window(
             base_pa, &window, out,
             GPT_PROTECTED_RANGE_BASE_STEP_WINDOW) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 3: an L0GPTSZ-aligned protected-range base must be accepted. */
     val_firme_gm_gpt_info(window.range_base, window.range_top, &result);
     if (val_firme_gpt_info_success_valid(
             &window, &result, out,
             GPT_PROTECTED_RANGE_BASE_STEP_ALIGNED) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 4: a PGS-aligned but protected-range-misaligned base is invalid. */
     misaligned_base = window.range_base + window.granule_size;
@@ -97,7 +97,7 @@ static int gpt_protected_range_base_run(uint64_t base_pa,
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**

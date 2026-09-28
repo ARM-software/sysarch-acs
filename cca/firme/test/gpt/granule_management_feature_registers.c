@@ -17,6 +17,8 @@
 #define GM_FEATURE_REGISTERS_STEP_REG1_STATUS   UINT64_C(4)
 #define GM_FEATURE_REGISTERS_STEP_REG1_PGS      UINT64_C(6)
 #define GM_FEATURE_REGISTERS_STEP_NEXT_REG      UINT64_C(7)
+#define GM_FEATURE_REGISTERS_STEP_REG1_RANGE    UINT64_C(8)
+#define GM_FEATURE_REGISTERS_STEP_REG1_PPS      UINT64_C(9)
 
 #define GM_FEATURE_REGISTERS_REG_COUNT          UINT64_C(2)
 
@@ -79,7 +81,7 @@ static int gm_feature_registers_run(firme_rule_res_t *out)
     if (status == (int64_t)FIRME_NOT_SUPPORTED) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
     if (status < 0) {
         gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_VERSION,
@@ -114,6 +116,17 @@ static int gm_feature_registers_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
+    if (val_firme_gpt_range_size_from_feature_reg1(feature_reg1) == 0ULL) {
+        gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_REG1_RANGE,
+                                  res.x0, feature_reg1);
+        return VAL_ERROR;
+    }
+    if (val_firme_gpt_pps_size_from_feature_reg1(feature_reg1) == 0ULL) {
+        gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_REG1_PPS,
+                                  res.x0, feature_reg1);
+        return VAL_ERROR;
+    }
+
     /* Step 7: The first unallocated GM feature-register index must be absent. */
     val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
                                GM_FEATURE_REGISTERS_REG_COUNT, &res);
@@ -126,7 +139,7 @@ static int gm_feature_registers_run(firme_rule_res_t *out)
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**

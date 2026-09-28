@@ -210,10 +210,10 @@ def audit_runtime(log_path: Path, active: set[str], gated: set[str]) -> bool:
 
     summary = LOG_SUMMARY_PATTERN.search(content)
     skipped_summary = LOG_SKIPPED_PATTERN.search(content)
-    if summary is None or skipped_summary is None:
+    if summary is None or "FIRME tests complete." not in content:
         raise AuditError("UART log has no complete suite summary")
     total, passed, failed = (int(value) for value in summary.groups())
-    skipped = int(skipped_summary.group(1))
+    skipped = int(skipped_summary.group(1)) if skipped_summary else 0
     counts = Counter(results.values())
     if (total != len(results) or passed != counts["PASS"] or
             failed != counts["FAIL"] or skipped != counts["SKIPPED"] or

@@ -52,7 +52,7 @@ static void service_version_compat_fail(firme_rule_res_t *out, uint64_t fail_ste
 /**
  *   @brief    - Exercise Base 1.0 ABI algorithms against a newer minor revision.
  *   @param    - world : Current caller world; out : Optional result record.
- *   @return   - VAL_SUCCESS, or VAL_ERROR when a baseline cannot execute.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int service_version_compat_base(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -112,8 +112,8 @@ static int service_version_compat_base(firme_acs_world_t world, firme_rule_res_t
 
 /**
  *   @brief    - Validate available baseline behavior, not just version equality.
- *   @param    - world : Current caller world; out : Optional result record.
- *   @return   - VAL_SUCCESS after a DUT outcome, or VAL_ERROR on an ACS error.
+ *   @param    - world : Current caller world; out : Required result record.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 static int service_version_compat_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -125,6 +125,9 @@ static int service_version_compat_run(firme_acs_world_t world, firme_rule_res_t 
     uint32_t newer_minor_seen = VAL_FALSE;
     uint32_t incomplete = VAL_FALSE;
     int64_t status;
+
+    if (!out)
+        return VAL_ERROR;
 
     service_version_compat_init_result(out);
 
@@ -162,8 +165,7 @@ static int service_version_compat_run(firme_acs_world_t world, firme_rule_res_t 
             if (service_version_compat_base(world, &baseline_result) != VAL_SUCCESS) {
                 if (out)
                     *out = baseline_result;
-                return baseline_result.status == ACS_STATUS_ERR ?
-                       VAL_ERROR : VAL_SUCCESS;
+                return VAL_ERROR;
             }
 
             if (baseline_result.status == ACS_STATUS_SKIP)
@@ -192,8 +194,8 @@ static int service_version_compat_run(firme_acs_world_t world, firme_rule_res_t 
 /**
  *   @brief    - Service version compatibility rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_service_version_compatibility_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -204,8 +206,8 @@ int firme_base_service_version_compatibility_run_ns(uint64_t base_pa, firme_rule
 /**
  *   @brief    - Service version compatibility rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_service_version_compatibility_run_secure(uint64_t base_pa,
                                                         firme_rule_res_t *out)
@@ -217,8 +219,8 @@ int firme_base_service_version_compatibility_run_secure(uint64_t base_pa,
 /**
  *   @brief    - Service version compatibility rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
 int firme_base_service_version_compatibility_run_realm(uint64_t base_pa,
                                                        firme_rule_res_t *out)

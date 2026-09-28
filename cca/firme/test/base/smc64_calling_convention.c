@@ -28,25 +28,28 @@ static void smc64_calling_init_result(firme_rule_res_t *out)
 
 /**
  *   @brief    - Validate all ALP4 FIRME ABIs use and accept SMC64 calls.
- *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS with the architectural outcome stored in out.
+ *   @param    - out : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int smc64_calling_run(firme_rule_res_t *out)
 {
+    if (!out)
+        return VAL_ERROR;
+
     smc64_calling_init_result(out);
 
     /* Step 1: Every ALP4 FIRME ABI FID must carry the SMC64 convention bit. */
     if (val_firme_smccc_check_fid_encodings(out) != VAL_SUCCESS) {
         if (out && (out->fail_step == 0U))
             out->fail_step = SMC64_CALLING_STEP_FID_ENCODING;
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     /* Step 2: Exercise every ABI advertised at this FIRME instance as SMC64. */
     if (val_firme_smccc_check_state(0U, out) != VAL_SUCCESS) {
         if (out && (out->fail_step == 0U))
             out->fail_step = SMC64_CALLING_STEP_RUNTIME;
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (out)
@@ -58,8 +61,8 @@ static int smc64_calling_run(firme_rule_res_t *out)
 /**
  *   @brief    - SMC64 calling-convention rule body for NS caller execution.
  *   @param    - base_pa : Unused for Base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_smc64_calling_convention_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -70,8 +73,8 @@ int firme_base_smc64_calling_convention_run_ns(uint64_t base_pa, firme_rule_res_
 /**
  *   @brief    - SMC64 calling-convention rule body for Secure caller execution.
  *   @param    - base_pa : Unused for Base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_smc64_calling_convention_run_secure(uint64_t base_pa,
                                                    firme_rule_res_t *out)
@@ -83,8 +86,8 @@ int firme_base_smc64_calling_convention_run_secure(uint64_t base_pa,
 /**
  *   @brief    - SMC64 calling-convention rule body for Realm caller execution.
  *   @param    - base_pa : Unused for Base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_smc64_calling_convention_run_realm(uint64_t base_pa,
                                                   firme_rule_res_t *out)

@@ -14,7 +14,6 @@
 #define MEC_FEATURE_REGISTERS_STEP_REG0 UINT64_C(2)
 #define MEC_FEATURE_REGISTERS_STEP_REG0_BITS UINT64_C(3)
 #define MEC_FEATURE_REGISTERS_STEP_REG1 UINT64_C(4)
-#define MEC_FEATURE_REGISTERS_STEP_REG1_BITS UINT64_C(5)
 #define MEC_FEATURE_REGISTERS_STEP_UNALLOCATED UINT64_C(6)
 #define MEC_FEATURE_REGISTERS_FIRST_UNALLOCATED_INDEX 2U
 
@@ -69,18 +68,15 @@ int firme_mec_feature_registers_run_realm(uint64_t base_pa, firme_rule_res_t *ou
     if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_SUCCESS)
         return mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_REG0,
                                           &result);
-    if (result.x1 != FIRME_MECID_FEATURE_REG0_MEC_REFRESH_BIT)
+    if ((result.x1 & FIRME_MECID_FEATURE_REG0_MEC_REFRESH_BIT) == 0ULL)
         return mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_REG0_BITS,
                                           &result);
 
-    /* Step 3: Register 1 has only the width and concurrency fields. */
+    /* Step 3: Register 1 is implemented; unused output bits are ignored (R0015). */
     val_firme_service_features(FIRME_SERVICE_ID_MECID_MGMT,
                                FIRME_MECID_FEATURE_REG1_INDEX, &result);
     if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_SUCCESS)
         return mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_REG1,
-                                          &result);
-    if ((result.x1 & ~FIRME_MECID_FEATURE_REG1_ALLOCATED_MASK) != 0ULL)
-        return mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_REG1_BITS,
                                           &result);
 
     /* Step 4: The first unallocated register index is not implemented. */

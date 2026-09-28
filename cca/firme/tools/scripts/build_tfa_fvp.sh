@@ -19,10 +19,35 @@ FIRME_SUPPORT="${FIRME_SUPPORT:-1}"
 SPMD_SPM_AT_SEL2="${SPMD_SPM_AT_SEL2:-1}" # 1: SPMC at S-EL2, 0: SPMC at S-EL1
 CTX_INCLUDE_EL2_REGS="${CTX_INCLUDE_EL2_REGS:-}" # TF-A internal knob; set only when needed
 TFA_E="${TFA_E:-}" # TF-A warnings-as-errors (E=1 enables -Werror)
-FVP_ENABLE_IDE="${FVP_ENABLE_IDE:-0}"
-FVP_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX:-0}"
-FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT:-0}"
 FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
+SUITE="${SUITE:-all}"
+SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
+
+case "${SUITE}" in
+    all|base|gpt|mec|ide|attest)
+        ;;
+    *)
+        echo "ERROR: unknown SUITE='${SUITE}' (expected all|base|gpt|mec|ide|attest)" >&2
+        exit 1
+        ;;
+esac
+
+if [[ -z "${FVP_ENABLE_IDE+x}" ]]; then
+    case "${SUITE}" in
+        all|ide)
+            FVP_ENABLE_IDE=1
+            ;;
+        *)
+            FVP_ENABLE_IDE=0
+            ;;
+    esac
+fi
+if [[ -z "${FVP_IDE_KM_PENDING_OPS_MAX+x}" ]]; then
+    FVP_IDE_KM_PENDING_OPS_MAX="${FVP_ENABLE_IDE}"
+fi
+if [[ -z "${FVP_SIMULATE_IDE_KM_UNIT+x}" ]]; then
+    FVP_SIMULATE_IDE_KM_UNIT="${FVP_ENABLE_IDE}"
+fi
 
 case "${FVP_FIRME_CXL_IDE}" in
     0|1) ;;
@@ -50,18 +75,6 @@ FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
 ACS_PRINT_LEVEL="${ACS_PRINT_LEVEL:-3}"
 FIRME_MP_SELF_TEST="${FIRME_MP_SELF_TEST:-ON}"
 FIRME_TOOLCHAIN="${FIRME_TOOLCHAIN:-gcc}" # gcc|clang
-SUITE="${SUITE:-all}"
-SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
-
-case "${SUITE}" in
-    all|base|gpt|mec|ide|attest)
-        ;;
-    *)
-        echo "ERROR: unknown SUITE='${SUITE}' (expected all|base|gpt|mec|ide|attest)" >&2
-        exit 1
-        ;;
-esac
-
 if [[ -z "${FIRME_ENABLE_SVE+x}" ]]; then
     case "${SUITE}" in
         all|base)

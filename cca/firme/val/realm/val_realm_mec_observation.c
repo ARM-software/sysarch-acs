@@ -231,6 +231,12 @@ int val_firme_mec_observation_probe(
             goto cleanup;
         }
         val_dcache_clean_invalidate_poe_realm(sample_pa);
+        access_result = val_probe_read64(sample_va, &value, &fault);
+        if ((access_result != VAL_SUCCESS) || (value != MEC_TEST_PLAINTEXT)) {
+            evidence->setup_fault_esr = fault.esr;
+            goto cleanup;
+        }
+        val_dcache_clean_invalidate_poe_realm(sample_pa);
     }
     evidence->setup_completed = VAL_TRUE;
     evidence->cache_maintenance_completed = VAL_TRUE;
@@ -279,9 +285,8 @@ int val_firme_mec_observation_probe(
     evidence->valid_fields |= VAL_FIRME_MEC_EVIDENCE_ROUND_TRIP;
 
 cleanup:
-    /* Step 10: Evict new-context data before retiring the test MECID. */
-    if ((mapping_active == VAL_TRUE) &&
-        (evidence->setup_completed == VAL_TRUE)) {
+    /* Step 10: Evict even partially written setup data before retiring the MECID. */
+    if (mapping_active == VAL_TRUE) {
         for (index = 0U; index < evidence->sample_count; index++) {
             sample_pa = test_pa + ((uint64_t)index * line_size);
             val_dcache_clean_invalidate_poe_realm(sample_pa);

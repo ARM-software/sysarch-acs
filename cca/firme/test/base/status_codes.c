@@ -66,14 +66,17 @@ static uint32_t status_codes_is_valid_observed_status(int64_t status)
 
 /**
  *   @brief    - Validate FIRME status-code definitions and observed ABI status values.
- *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int status_codes_run(firme_rule_res_t *out)
 {
     firme_res_t res = {0};
     int64_t status = 0;
     uint32_t service_id = 0U;
+
+    if (!out)
+        return VAL_ERROR;
 
     status_codes_init_result(out);
 
@@ -136,7 +139,7 @@ static int status_codes_run(firme_rule_res_t *out)
     if (val_firme_smccc_check_state(0U, out) != VAL_SUCCESS) {
         if (out && (out->fail_step == 0U))
             out->fail_step = STATUS_CODES_STEP_ADVERTISED_ABI;
-        return VAL_SUCCESS;
+        return VAL_ERROR;
     }
 
     if (out)
@@ -148,8 +151,8 @@ static int status_codes_run(firme_rule_res_t *out)
 /**
  *   @brief    - FIRME status-code rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -160,8 +163,8 @@ int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - FIRME status-code rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -172,8 +175,8 @@ int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 /**
  *   @brief    - FIRME status-code rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @param    - out     : Required result record.
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

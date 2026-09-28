@@ -125,6 +125,7 @@ int firme_shared_buffer_test_collect(
     if ((limits == 0) || (out == 0) || (evidence == 0))
         return VAL_ERROR;
 
+    *evidence = (val_firme_shared_buffer_evidence_t){0};
     probe_result = val_firme_shared_buffer_probe(
         world, test_case, limits->minimum_size_bytes,
         limits->maximum_page_count, evidence);
@@ -145,6 +146,15 @@ int firme_shared_buffer_test_collect(
         out->status = (uint64_t)ACS_STATUS_ERR;
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EVIDENCE,
                                       evidence->valid_fields, required_fields);
+        return VAL_ERROR;
+    }
+
+    if (((evidence->valid_fields & VAL_FIRME_SHARED_BUFFER_EVIDENCE_PAGE_COUNT) != 0U) &&
+        (evidence->page_count > FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK)) {
+        out->status = (uint64_t)ACS_STATUS_ERR;
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EVIDENCE,
+                                      evidence->page_count,
+                                      FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK);
         return VAL_ERROR;
     }
 

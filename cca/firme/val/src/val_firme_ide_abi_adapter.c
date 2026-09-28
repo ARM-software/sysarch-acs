@@ -389,6 +389,10 @@ static int val_firme_ide_abi_retry_main(
         val_smccc_smc_call_frame(&context->input, &context->output);
     }
 
+    status = val_firme_status_to_i64(context->output.registers[0]);
+    if (status != (int64_t)FIRME_BUSY)
+        return VAL_SUCCESS;
+
     LOG_ERROR(NULL, "%s: IDE request stayed BUSY", context->plan->name);
     return VAL_ERROR;
 }

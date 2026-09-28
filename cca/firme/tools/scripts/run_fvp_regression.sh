@@ -461,6 +461,16 @@ fi
 
 echo "[run] Launching FVP (Ctrl-C to stop)."
 
+FVP_COMMAND=("${MODEL_BASE}")
+if [[ "${FVP_TIMEOUT_SECS}" != "0" ]]; then
+    if ! command -v timeout >/dev/null 2>&1; then
+        echo "ERROR: timeout is required when FVP_TIMEOUT_SECS is set." >&2
+        exit 1
+    fi
+    FVP_COMMAND=(timeout -k 5 "${FVP_TIMEOUT_SECS}" "${FVP_COMMAND[@]}")
+fi
+fvp_status=0
+
 if [[ "${FVP_ENABLE_TELNET}" == "1" ]]; then
     : > "${MODEL_LOG}"
     : > "${UART_LOG}"
@@ -491,7 +501,7 @@ if [[ "${FVP_ENABLE_TELNET}" == "1" ]]; then
         fi
     done
 
-    "${MODEL_BASE}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 &
+    "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 &
     fvp_pid="$!"
 
     cleanup() {
@@ -500,18 +510,6 @@ if [[ "${FVP_ENABLE_TELNET}" == "1" ]]; then
         fi
     }
     trap cleanup EXIT INT TERM
-
-    if [[ "${FVP_TIMEOUT_SECS}" != "0" ]]; then
-        (
-            sleep "${FVP_TIMEOUT_SECS}"
-            if kill -0 "${fvp_pid}" >/dev/null 2>&1; then
-                echo "[run] Timeout reached; terminating FVP..." >&2
-                kill "${fvp_pid}" >/dev/null 2>&1 || true
-                sleep 2
-                kill -9 "${fvp_pid}" >/dev/null 2>&1 || true
-            fi
-        ) &
-    fi
 
     echo "[run] Capturing telnet UART ports -> ${FVP_TELNET_LOG_DIR} (and merged ${FVP_TELNET_MERGED_LOG})"
     python3 - "${FVP_TELNET_PORTS}" "${FVP_TELNET_LOG_DIR}" "${FVP_TELNET_MERGED_LOG}" "${fvp_pid}" <<'PY'
@@ -580,7 +578,7 @@ for t in threads:
     t.join()
 PY
 
-    wait "${fvp_pid}" || true
+    wait "${fvp_pid}" || fvp_status=$?
 else
     # Non-telnet mode: rely on UART out_file capture (stdout is model diagnostics).
     : > "${MODEL_LOG}"
@@ -588,19 +586,25 @@ else
     : > "${UART1_LOG}"
     : > "${UART2_LOG}"
     : > "${UART3_LOG}"
-    if [[ "${FVP_TIMEOUT_SECS}" != "0" ]] && command -v timeout >/dev/null 2>&1; then
-        timeout -k 5 "${FVP_TIMEOUT_SECS}" "${MODEL_BASE}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || true
-    else
-        "${MODEL_BASE}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || true
-    fi
+    "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || fvp_status=$?
 fi
 
-pass_summary='Total Tests run *=[[:space:]]*[1-9][0-9]*[[:space:]]*;'
-pass_summary+=' Tests Passed *=[[:space:]]*[0-9]+[[:space:]]*;'
-pass_summary+=' Tests Failed *=[[:space:]]*0[[:space:]]*$'
-if ! grep -Fq 'FIRME tests complete.' "${UART_LOG}" ||
-    ! grep -Eq "${pass_summary}" "${UART_LOG}"; then
-    echo "ERROR: FVP did not complete a passing FIRME regression." >&2
+if [[ "${fvp_status}" != "0" ]] && \
+    [[ "${fvp_status}" != "124" || "${FVP_TIMEOUT_SECS}" == "0" ]]; then
+    echo "ERROR: FVP exited abnormally (status ${fvp_status})." >&2
     echo "Check ${MODEL_LOG} and ${UART_LOG}." >&2
     exit 1
 fi
+
+execution_summary='Total Tests run *=[[:space:]]*[1-9][0-9]*[[:space:]]*;'
+execution_summary+=' Tests Passed *=[[:space:]]*[0-9]+[[:space:]]*;'
+execution_summary+=' Tests Failed *=[[:space:]]*[0-9]+[[:space:]]*$'
+if ! grep -Fq 'FIRME tests complete.' "${UART_LOG}" ||
+    ! grep -Eq "${execution_summary}" "${UART_LOG}"; then
+    echo "ERROR: FVP did not complete FIRME test execution." >&2
+    echo "Check ${MODEL_LOG} and ${UART_LOG}." >&2
+    exit 1
+fi
+
+echo "[run] FIRME execution completed; test results are in ${UART_LOG}."
+echo "[run] CI golden-log comparison determines regression status."

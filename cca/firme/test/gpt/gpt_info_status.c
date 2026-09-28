@@ -60,7 +60,7 @@ static uint32_t gpt_info_status_expect(uint64_t range_base,
  * @brief Validate FIRME_GM_GPT_INFO status conditions for R0139.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_info_status_run(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -82,20 +82,20 @@ static int gpt_info_status_run(uint64_t base_pa, firme_rule_res_t *out)
     /* Step 1: require the mandatory GPT_INFO discovery ABI. */
     if (val_firme_gpt_info_advertised(
             out, GPT_INFO_STATUS_STEP_ADVERTISEMENT) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 2: derive valid boundaries from advertised L0GPTSZ and PPS. */
     if (val_firme_gpt_info_prepare_window(
             base_pa, &window, out,
             GPT_INFO_STATUS_STEP_WINDOW) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 3: a valid range must complete with SUCCESS. */
     val_firme_gm_gpt_info(window.range_base, window.range_top, &result);
     if (val_firme_gpt_info_success_valid(
             &window, &result, out,
             GPT_INFO_STATUS_STEP_SUCCESS) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 4: a misaligned protected-range base is invalid. */
     misaligned_base = window.range_base + window.granule_size;
@@ -103,7 +103,7 @@ static int gpt_info_status_run(uint64_t base_pa, firme_rule_res_t *out)
             misaligned_base, window.range_top,
             (int64_t)FIRME_INVALID_PARAMETERS, out,
             GPT_INFO_STATUS_STEP_BASE_ALIGN) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 5: a misaligned protected-range top is invalid. */
     misaligned_top = window.range_top - window.granule_size;
@@ -111,21 +111,21 @@ static int gpt_info_status_run(uint64_t base_pa, firme_rule_res_t *out)
             window.range_base, misaligned_top,
             (int64_t)FIRME_INVALID_PARAMETERS, out,
             GPT_INFO_STATUS_STEP_TOP_ALIGN) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 6: an empty range whose top equals its base is invalid. */
     if (gpt_info_status_expect(
             window.range_base, window.range_base,
             (int64_t)FIRME_INVALID_PARAMETERS, out,
             GPT_INFO_STATUS_STEP_ORDER_EQUAL) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 7: an aligned top less than its base is also invalid. */
     if (gpt_info_status_expect(
             window.range_top, window.range_base,
             (int64_t)FIRME_INVALID_PARAMETERS, out,
             GPT_INFO_STATUS_STEP_ORDER_LESS) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     /* Step 8: an aligned range starting at PPS lies outside protected space. */
     outside_base = window.protected_pa_size;
@@ -136,17 +136,17 @@ static int gpt_info_status_run(uint64_t base_pa, firme_rule_res_t *out)
             outside_base, outside_top,
             (int64_t)FIRME_INVALID_PARAMETERS, out,
             GPT_INFO_STATUS_STEP_PPS) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0139 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -157,7 +157,7 @@ int firme_gpt_info_status_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  * @brief Validate R0139 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_status_run_secure(uint64_t base_pa,
                                      firme_rule_res_t *out)
@@ -169,7 +169,7 @@ int firme_gpt_info_status_run_secure(uint64_t base_pa,
  * @brief Validate R0139 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when an architectural result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_info_status_run_realm(uint64_t base_pa,
                                     firme_rule_res_t *out)

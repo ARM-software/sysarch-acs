@@ -131,13 +131,7 @@ static uint32_t gpt_gpi_set_progress_prepare_ns(uint64_t address,
         return VAL_FALSE;
     }
 
-    /*
-     * Current TF-A returns DENIED for an already-NS setup request. That known
-     * same-GPI issue is tolerated only for setup after confirming the GPI by
-     * an access probe; the R0117 requests below remain strict.
-     */
-    if ((status != (int64_t)FIRME_SUCCESS) &&
-        (status != (int64_t)FIRME_DENIED)) {
+    if (status != (int64_t)FIRME_SUCCESS) {
         LOG_ERROR(NULL, "%s: NS setup returned x0=%llx x1=%llx",
                   GPT_GPI_SET_PROGRESS_TEST_NAME,
                   (unsigned long long)result.x0,
@@ -155,7 +149,7 @@ static uint32_t gpt_gpi_set_progress_prepare_ns(uint64_t address,
  *   @param    - base_pa    : Platform GPT test-window base.
  *   @param    - target_gpi : Caller-world target GPI.
  *   @param    - out        : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 static int gpt_gpi_set_progress_run(uint64_t base_pa,
                                     uint64_t target_gpi,
@@ -172,22 +166,25 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
     uint32_t main_passed = VAL_FALSE;
     uint32_t cleanup_passed = VAL_TRUE;
 
+    if (!out)
+        return VAL_ERROR;
+
     gpt_gpi_set_progress_init(out);
 
     if (!val_firme_feat_rme_present() || (base_pa == 0ULL)) {
         if (out)
             out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     if (val_firme_gpt_gpi_set_advertised(
             out, GPT_GPI_SET_PROGRESS_STEP_ADVERTISE) == VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     if (val_firme_gpt_feature_reg1(&feature_reg1, out,
                                    GPT_GPI_SET_PROGRESS_STEP_FEATURE) ==
         VAL_FALSE)
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
     if ((granule_size == 0ULL) ||
@@ -202,7 +199,7 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
             out->last_x0 = base_pa;
             out->last_x1 = granule_size;
         }
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
     }
 
     /* Step 1: establish two adjacent Non-secure granules. */
@@ -262,7 +259,7 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
     val_firme_gm_gpi_set_do(base_pa, GPT_GPI_SET_PROGRESS_GRANULES,
                             FIRME_GPI_ROOT, &result);
     if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_DENIED) ||
-        (result.x1 >= GPT_GPI_SET_PROGRESS_GRANULES)) {
+        (result.x1 != 0ULL)) {
         LOG_ERROR(NULL, "%s: invalid DENIED progress x0=%llx x1=%llx",
                   GPT_GPI_SET_PROGRESS_TEST_NAME,
                   (unsigned long long)result.x0,
@@ -294,14 +291,14 @@ cleanup:
     if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  *   @brief    - Validate R0117 from the Secure FIRME instance.
  *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 int firme_gpt_gpi_set_progress_run_secure(uint64_t base_pa,
                                           firme_rule_res_t *out)
@@ -313,7 +310,7 @@ int firme_gpt_gpi_set_progress_run_secure(uint64_t base_pa,
  *   @brief    - Validate R0117 from the Realm FIRME instance.
  *   @param    - base_pa : Platform GPT test-window base.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS when a rule result is produced.
+ *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  **/
 int firme_gpt_gpi_set_progress_run_realm(uint64_t base_pa,
                                          firme_rule_res_t *out)

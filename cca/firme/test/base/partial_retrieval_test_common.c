@@ -14,6 +14,27 @@
 #define PARTIAL_RETRIEVAL_TEST_NAME "partial_retrieval"
 
 /**
+ * @brief Leave status validation unavailable until the service adapter supplies it.
+ * @param world Caller world.
+ * @param test_case Requested chunk scenario.
+ * @param evidence Selected service and completion evidence.
+ * @param expected_status Specification-derived status supplied by an override.
+ * @return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE.
+ */
+__attribute__((weak)) int firme_partial_retrieval_test_expected_status(
+    firme_acs_world_t world, val_firme_partial_retrieval_case_t test_case,
+    const val_firme_partial_retrieval_evidence_t *evidence,
+    int64_t *expected_status)
+{
+    (void)world;
+    (void)test_case;
+    (void)evidence;
+    (void)expected_status;
+
+    return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE;
+}
+
+/**
  *   @brief    - Initialize a partial-retrieval rule result.
  *   @param    - out : Result record.
  *   @return   - void.
@@ -116,10 +137,12 @@ int firme_partial_retrieval_test_collect(
         VAL_FIRME_PARTIAL_RETRIEVAL_EVIDENCE_REMAINING |
         VAL_FIRME_PARTIAL_RETRIEVAL_EVIDENCE_SERVICE;
     int probe_result = VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_ERROR;
+    int64_t expected_status = INT64_MAX;
 
     if ((out == 0) || (evidence == 0))
         return VAL_ERROR;
 
+    *evidence = (val_firme_partial_retrieval_evidence_t){0};
     probe_result = val_firme_partial_retrieval_probe(world, test_case,
                                                       evidence);
     if (probe_result == VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE) {
@@ -161,11 +184,29 @@ int firme_partial_retrieval_test_collect(
         return VAL_ERROR;
     }
 
-    if ((evidence->abi_status != (int64_t)FIRME_SUCCESS) &&
-        (evidence->abi_status != (int64_t)FIRME_INCOMPLETE)) {
+    probe_result = firme_partial_retrieval_test_expected_status(
+        world, test_case, evidence, &expected_status);
+    if (probe_result == VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE) {
+        LOG_WARN(NULL, "%s: selected ABI has no status/size-validity contract",
+                 PARTIAL_RETRIEVAL_TEST_NAME);
+        out->status = (uint64_t)ACS_STATUS_SKIP;
+        out->fail_step = PARTIAL_RETRIEVAL_STEP_STATUS;
+        return VAL_SUCCESS;
+    }
+
+    if ((probe_result != VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE) ||
+        (val_firme_status_is_architected(expected_status) != VAL_TRUE)) {
+        out->status = (uint64_t)ACS_STATUS_ERR;
+        firme_partial_retrieval_test_fail(
+            out, PARTIAL_RETRIEVAL_STEP_EVIDENCE,
+            (uint64_t)expected_status, (uint64_t)(int64_t)probe_result);
+        return VAL_ERROR;
+    }
+
+    if (evidence->abi_status != expected_status) {
         firme_partial_retrieval_test_fail(
             out, PARTIAL_RETRIEVAL_STEP_STATUS,
-            (uint64_t)evidence->abi_status, (uint64_t)test_case);
+            (uint64_t)evidence->abi_status, (uint64_t)expected_status);
         return VAL_ERROR;
     }
 

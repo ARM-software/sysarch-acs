@@ -50,7 +50,7 @@ static void gpt_busy_retry_invoke(
  * @param world Caller world.
  * @param base_pa Default platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 static int gpt_busy_retry_run(firme_acs_world_t world,
                               uint64_t base_pa,
@@ -65,6 +65,7 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
     firme_res_t retry_result = {0};
     pal_firme_gpt_scenario_status_t scenario_status;
     uint64_t retry_cookie;
+    uint64_t remaining;
     uint64_t expected_target = FIRME_GPI_NONSECURE;
     int64_t actual_status;
     int64_t retry_status;
@@ -80,7 +81,7 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
              out, GPT_BUSY_RETRY_STEP_ADVERTISE) == VAL_FALSE) ||
         (val_firme_gpt_op_continue_advertised(
              out, GPT_BUSY_RETRY_STEP_ADVERTISE) == VAL_FALSE))
-        return VAL_SUCCESS;
+        return val_firme_gpt_rule_result_status(out);
 
     if (world == FIRME_ACS_WORLD_SECURE)
         expected_target = FIRME_GPI_SECURE;
@@ -95,7 +96,7 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
             (int64_t)FIRME_BUSY, base_pa, &scenario);
         if (scenario_status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE) {
             out->status = (uint64_t)ACS_STATUS_SKIP;
-            return VAL_SUCCESS;
+            return val_firme_gpt_rule_result_status(out);
         }
         if (scenario_status != PAL_FIRME_GPT_SCENARIO_READY) {
             val_firme_gpt_rule_result_fail(
@@ -103,6 +104,17 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
                 (uint64_t)scenario_status, (uint64_t)FIRME_BUSY);
             return VAL_ERROR;
         }
+
+        if ((scenario.granule_count == 0ULL) ||
+            (scenario.completed_count >= scenario.granule_count) ||
+            ((abis[abi_index] == PAL_FIRME_GPT_ABI_GPI_SET) &&
+             (scenario.completed_count != 0ULL))) {
+            val_firme_gpt_rule_result_fail(
+                out, GPT_BUSY_RETRY_STEP_SCENARIO + abi_index,
+                scenario.completed_count, scenario.granule_count);
+            goto cleanup_fail;
+        }
+        remaining = scenario.granule_count - scenario.completed_count;
 
         gpt_busy_retry_invoke(
             abis[abi_index], &scenario, scenario.cookie, &result);
@@ -149,8 +161,8 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
         gpt_busy_retry_invoke(
             abis[abi_index], &scenario, retry_cookie, &retry_result);
         retry_status = val_firme_status_to_i64(retry_result.x0);
-        if (val_firme_gpt_operation_status_valid(retry_status) ==
-            VAL_FALSE) {
+        if (val_firme_gpt_operation_count_valid(
+                retry_status, retry_result.x1, remaining) == VAL_FALSE) {
             val_firme_gpt_rule_result_fail(
                 out, GPT_BUSY_RETRY_STEP_RETRY + abi_index,
                 retry_result.x0, retry_cookie);
@@ -169,7 +181,7 @@ static int gpt_busy_retry_run(firme_acs_world_t world,
     }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 
 cleanup_fail:
     scenario_status = pal_firme_gpt_scenario_cleanup(
@@ -182,14 +194,14 @@ cleanup_fail:
         return VAL_ERROR;
     }
 
-    return VAL_SUCCESS;
+    return val_firme_gpt_rule_result_status(out);
 }
 
 /**
  * @brief Validate R0124 from the Normal-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_busy_retry_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -200,7 +212,7 @@ int firme_gpt_busy_retry_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  * @brief Validate R0124 from the Secure-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_busy_retry_run_secure(uint64_t base_pa,
                                     firme_rule_res_t *out)
@@ -212,7 +224,7 @@ int firme_gpt_busy_retry_run_secure(uint64_t base_pa,
  * @brief Validate R0124 from the Realm-world FIRME instance.
  * @param base_pa Platform GPT test address.
  * @param out Rule result.
- * @return VAL_SUCCESS when a rule result is produced.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
  */
 int firme_gpt_busy_retry_run_realm(uint64_t base_pa,
                                    firme_rule_res_t *out)
