@@ -20,11 +20,13 @@ same hosting model.
 ## ACS release details
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
-- **Alpha1 scope:** 123 ALP4 rules across Concepts/Base, GPT, MECID, IDE Key
-  Management, and their ABI interfaces. The current registry schedules 38
-  rules; 83 have implemented but gated bodies or plans, and R0023/R0041 are
-  static interface checks. Active tests can still report SKIP when a platform
-  prerequisite is absent. This is development status, not release coverage.
+- **ALP4 inventory:** 123 rules across Concepts/Base, GPT, MECID, IDE Key
+  Management, and their ABI interfaces. The proposed Alpha1 DUT-validation
+  target is 121 rules: 38 active and 83 with gated bodies or plans. R0023 and
+  R0041 are proposed out-of-scope for DUT validation, pending Architect
+  approval; catalog checks for them are not DUT compliance results. Active
+  tests can still report SKIP when a platform prerequisite is absent. This is
+  development status, not release coverage.
 - **Temporary CI gate:** R0207, R0209, and R0210 retain their strict CXL.cachemem
   test bodies but are not registered while CI lacks the paired firmware/model
   support. Restore them with final qualification and the CI golden-log update.
@@ -79,6 +81,9 @@ than the FVP defaults.
   MMU setup or in the MMU-disabled Secure shim, where unaligned memory accesses
   can fault. Keep this option in partner builds; it prevents compiler-generated
   unaligned accesses without disabling optimization or changing test behavior.
+- **Atomic operations:** C sources use `-mno-outline-atomics` so synchronization
+  stays self-contained in the bare-metal images instead of requiring compiler
+  runtime atomic-dispatch helpers.
 
 ## Multiprocessor infrastructure
 
@@ -139,6 +144,12 @@ Useful knobs:
 - `BUILD_MODE=auto|source|always|never` (controls firmware artifact reuse)
 - `BUILD_TFA=auto|always|never` (controls TF-A rebuilds only)
 - `FVP_TIMEOUT_SECS=240` (auto-terminate the model)
+- `FVP_GPT_PROFILE=baseline|gpc2|gdi` (defaults to `gdi` for `SUITE=all|gpt`,
+  otherwise `baseline`). Both model clusters and TF-A are configured together;
+  the runner verifies actual CPU feature discovery before accepting results.
+- `FVP_DRAM_SIZE_GB=8` and `FVP_CACHE_STATE_MODELLED=1` are the defaults for
+  `SUITE=all|gpt`. Extra DRAM backs future high-DRAM GPT fixtures; it does not
+  provide missing firmware ABIs or authorize use of unreserved memory.
 - `FVP_ENABLE_MEC=1` (enable FVP MEC/MPE parameters for MECID management tests)
 - `FVP_MECID_WIDTH=16` (default MECID width when MEC is enabled)
 - SMMU MEC discovery is enabled automatically when MEC is enabled, including
@@ -258,6 +269,7 @@ When the file is empty, `cca/firme/tools/scripts/build_tfa_fvp.sh` can build TF-
 package SPs, ensure your Python environment provides `fdt` so TF-A can generate `sp_gen.mk`.
 
 ## Documentation
+- IDE model/firmware prerequisites and qualification limits: [IDE validation setup](docs/IDE_Validation_Setup.md)
 - Porting: `cca/firme/docs/porting_guide.md`
 - Scenarios / rule coverage: `cca/firme/docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst`
 
@@ -269,6 +281,18 @@ registry. After a complete `SUITE=all` FVP run, pass the UART0 log with
 `--uart-log <path>`. The release check fails while any rule is gated, skipped,
 or failing; a passing inventory check alone is not a release qualification.
 
+## Experimental MEC refresh backend
+
+`FVP_FIRME_MEC_REFRESH=1` selects a local TF-A/FVP MEC refresh interface.
+It requires matching firmware and model support, RME/MEC enabled, and
+`FVP_CACHE_STATE_MODELLED=1`. It is off by default and is not an upstream FVP
+capability. The runner checks the firmware build stamp to prevent mismatched
+backend settings; rebuild firmware after changing the option.
+
+This functional model path is for validating context-replacement sequencing
+and stale-data/new-context observations, not cryptographic-strength evidence.
+It does not automatically enable registry-gated rules.
+
 ## Native ACS regression checks
 
 These checks validate ACS logic with controlled fixtures, not DUT compliance.
@@ -277,9 +301,11 @@ Run them from the repository root with Python 3 and a native C compiler:
 ```sh
 python3 cca/firme/tools/scripts/test_check_abi_callers.py
 python3 cca/firme/tools/scripts/check_mec_regressions.py
+bash cca/firme/tools/scripts/check_dispatch_native.sh
 bash cca/firme/tools/scripts/check_gpt_native.sh
 bash cca/firme/tools/scripts/check_ide_native.sh
 python3 cca/firme/tools/scripts/check_build_config.py
+python3 cca/firme/tools/scripts/check_gpt_config.py
 python3 cca/firme/tools/scripts/check_alpha1_coverage.py
 ```
 

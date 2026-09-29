@@ -325,7 +325,7 @@ const firme_test_case_t g_firme_test_cases[] = {
      * service/status output shape and a callee non-disclosure security audit.
      */
     /*
-     * R0023 is a static interface-definition check with no executable test:
+     * R0023 is a proposed DUT-validation exclusion pending Architect review:
      * legal calls keep bits [63:8] SBZ and cannot distinguish a wider decoder.
      * R0024 validates the allocated/unallocated discovery ranges, but remains
      * unscheduled until service-specific behavior identifies every implemented
@@ -440,9 +440,9 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_base_service_version_run_realm,
     },
     /*
-     * R0041 is a static interface-table requirement with no executable test:
+     * R0041 is a proposed DUT-validation exclusion pending Architect review:
      * SERVICE_FEATURES exposes register contents and indices, not observable
-     * register-size metadata.
+     * register-size metadata. Catalog checks do not prove DUT compliance.
      */
     {
         .chapter = FIRME_CHAPTER_BASE,

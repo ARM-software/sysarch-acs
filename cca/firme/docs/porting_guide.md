@@ -51,10 +51,29 @@ The GPT test window must be a PA range that is mapped and accessible in the call
 and must not overlap your payload images or TF-A reserved regions. The ECAM base must identify the target
 Root port namespace used by the platform FIRME IDE key management implementation. `PLAT_FIRME_PCIE_ROOT_PORT_ID` and `PLAT_FIRME_PCIE_ENDPOINT_ID` use PCI requester-ID encoding: `bus[15:8]`, `device[7:3]`, and `function[2:0]`.
 
-Reserve the PAL-configured Selective IDE stream exclusively for ACS before
-running the suite. PROG, GO, STOP and POLL tests reuse that stream sequentially;
-they do not assume additional stream IDs exist. Tests drain their pending
-responses and stop the stream before reuse. A cleanup error remains a failure.
+Run the destructive IDE tests only on a PCIe path dedicated to ACS, with no
+other driver or firmware task programming it concurrently. VAL discovers the
+Root Port and endpoint IDE capabilities, selects unused stream blocks and
+assigns a Stream ID; the Selective PROG/GO/STOP/POLL tests do not require a
+PAL-configured Stream ID. Disabled but configured or locked blocks are not
+reused. For an unenumerated Root Port, VAL temporarily assigns an unused bus
+without overlapping an existing bridge window, then restores it during cleanup.
+Existing stream control defaults are preserved. In Realm execution, VAL sets
+and verifies only its own RMEDA stream lock, when present; it does not modify
+EL3 or toggle global TDISP enablement.
+Tests drain pending responses and stop keys before VAL removes its stream
+configuration and releases its lock. A cleanup error remains a failure and
+blocks subsequent allocation rather than reusing uncertain hardware state.
+
+This setup configures an inactive Selective stream pair for ABI checks; it
+does not enable unkeyed traffic or establish a PCIe IDE-KM endpoint session.
+The authenticated CXL.cachemem endpoint flow and functional-effect checks
+remain separate. Missing Selective resources are explicitly reported as
+unavailable, never counted as successful end-to-end validation.
+
+Native unit checks exercise ACS discovery, resource ownership and failure
+cleanup with mocked configuration space. They are development checks, not
+FIRME architectural rule coverage; the rule tests remain under `test/ide/`.
 
 `PLAT_FIRME_GPT_PROTECTED_RANGE_SIZE` and
 `PLAT_FIRME_GPT_PROTECTED_PA_SIZE` independently describe the platform
@@ -96,6 +115,16 @@ ownership, bridge reclamation, complete object overwrite, and ordering before
 the object is returned to the Non-secure PAS. PAL must restore every range,
 object, retained operation, and injected failure during cleanup.
 
+The generated GPT adapters use `pal_firme_gpt_memory_register()` to install
+permanent reservation, observation and release callbacks before dispatch.
+Reservations must cover backed, disposable memory and be exclusive across
+all PEs and caller worlds. Observe the actual GPI independently of the ABI
+response. L1 object storage includes the complete containing granules, even
+when the object is smaller than one granule. The adapters retain real
+continuation cookies, restore completed transitions and quarantine a lease
+when safe restoration cannot be established. The default FVP does not install
+these callbacks: an address constant alone is not a qualified fixture.
+
 The IDE namespace rules R0211 and R0212 use
 `platform/pal_baremetal/targets/<your_platform>/include/pal_firme_ide_namespace.h`.
 Provide two real Root Port/endpoint paths with distinct keys and caller
@@ -116,11 +145,24 @@ path, a valid keyset and key, a caller handle, an invalid ECAM address, and a
 cleanup token. The path must support safe PROG/GO/STOP sequencing and
 asynchronous POLL where available. `pal_firme_ide_abi_cleanup()` must restore
 Root Port and endpoint state even after a failed case; it must not return
-`READY` when cleanup is incomplete. Return `UNAVAILABLE` rather than a fake
-path on platforms without those facilities. The FVP PAL does so, and these
-eight generated plans remain registry-gated until the platform can exercise
-the required state and status paths without claiming simulated ABI responses
-as endpoint evidence.
+`READY` when cleanup is incomplete. A pending operation retains its handle,
+keyset, owning PE, endpoint session and buffers until POLL completes; an
+uncertain result quarantines those resources rather than releasing them.
+Return `UNAVAILABLE` rather than a fake path on platforms without those
+facilities. The paired NS SPDM backend provides valid GO/STOP observations;
+Realm-coordinated generated calls, PROG/POLL and negative-case fixtures remain
+unavailable. These eight generated plans remain registry-gated until their
+complete required cases are qualified. ABI responses alone are not endpoint
+evidence.
+
+The NS shared-buffer adapter can invoke `FIRME_ATTEST_PAT_GET` when the DUT
+advertises it. Its FVP PAL reserves a private buffer, checks the live caller
+mapping and serializes PAT ownership. Partial retrieval is bounded; incomplete
+cleanup quarantines the buffer and instance. Other targets can implement
+`val_firme_shared_buffer_acquire_ns_pat()` and its observation/release hooks.
+EL3 mapping attributes and PAS/GPI evidence must be obtained independently:
+a successful PAT invocation does not prove them. A service without a defined
+remaining-size output on SUCCESS cannot qualify that output rule.
 
 ## 2. Build + FVP regression
 
@@ -152,6 +194,9 @@ export SUITE=gpt                 # all (default) | base | gpt | mec | ide | atte
 export BUILD_MODE=auto           # auto (default) | source | always | never
 export BUILD_TFA=auto            # auto (default) | always | never
 export TFA_LOG_LEVEL=40          # 10..50 (ERROR..VERBOSE)
+export FVP_GPT_PROFILE=gdi       # baseline | gpc2 | gdi; gdi for all/GPT by default
+export FVP_DRAM_SIZE_GB=8        # default for all/GPT; other suites default to 4
+export FVP_CACHE_STATE_MODELLED=1 # default for all/GPT; required for cache validation
 export FVP_ENABLE_MEC=1          # enable FVP MEC/MPE model parameters for MEC tests
 export FVP_MECID_WIDTH=16        # default MECID width for FVP MEC runs
 export FVP_ENABLE_SMMU_MEC=1     # automatic with MEC; includes SMMUs in common-width validation
@@ -159,6 +204,42 @@ export FVP_ENABLE_IDE=1          # enable TF-A/FVP IDE key management support fo
 export FVP_IDE_KM_PENDING_OPS_MAX=1  # enable non-blocking IDE operation tracking
 export FVP_SIMULATE_IDE_KM_UNIT=1    # enable the FVP IDE KM simulation path in TF-A
 ```
+
+### GPT feature profiles
+
+`rme_support_level=2` alone does not enable GPC2 or GDI. The build and run
+scripts share these profiles, including when CI builds and runs separately:
+
+| Profile | GPC2 | GDI | TF-A `ENABLE_FEAT_RME_GDI` |
+|---|---|---|---|
+| `baseline` | Off | Off | 0 |
+| `gpc2` | On | Off | 0 |
+| `gdi` | On | On | 1 |
+
+The runner uses `cluster{0,1}.has_rme_gpc2=1` for GPC2 and
+`cluster{0,1}.has_rme_gdi=2` for GDI. The latter is a tri-state model parameter:
+`1` is conditional on Armv9.6, not unconditional enablement. Do not confuse
+it with the TF-A build flag. `TFA_ENABLE_RME_GDI=2` optionally selects TF-A
+runtime feature detection; contradictory fixed firmware/model settings fail.
+
+For positive and feature-absent coverage, run each profile with matching
+firmware; `BUILD_MODE=auto` rebuilds when the profile changes:
+
+```sh
+SUITE=gpt FVP_GPT_PROFILE=gdi cca/firme/tools/scripts/run_fvp_regression.sh
+SUITE=gpt FVP_GPT_PROFILE=gpc2 cca/firme/tools/scripts/run_fvp_regression.sh
+SUITE=gpt FVP_GPT_PROFILE=baseline cca/firme/tools/scripts/run_fvp_regression.sh
+```
+
+The boot log reports discovered RME/GPC2/GDI support. Missing or mismatched
+discovery is a setup failure, not a passing regression. Absent GPC2/GDI still
+requires `INVALID_PARAMETERS` for its unallocated target GPI encodings.
+Enabling a feature does not excuse incorrect negative-case responses.
+Feature profiles do not change registry gates. Missing GPT_INFO, L1 lifecycle,
+or retained-operation support cannot be enabled by these model parameters.
+When `TFA_DIR` is supplied, automatic runs also compare its checkout path,
+Git revision and tracked/untracked source changes against the firmware stamp.
+`BUILD_MODE=never` rejects a source mismatch instead of testing stale firmware.
 
 ## 3. Adding new tests
 

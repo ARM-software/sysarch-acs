@@ -35,7 +35,8 @@ python3 cca/firme/tools/scripts/test_generate_firme_abi_catalog.py
 ```
 
 The catalog also records the eight-bit FIRME service-ID width and every ALP4
-feature-register size. Generator validation enforces R0023 and R0041 as
-interface checks without claiming runtime DUT coverage. Non-Base feature
+feature-register size. Generator validation checks these ACS declarations; it
+does not establish DUT compliance with R0023 or R0041. Both rules are proposed
+Alpha1 DUT-validation exclusions pending Architect approval. Non-Base feature
 register 1 descriptors include the 16-bit `MAX_CONCURRENT_OP_CNT` field used
 by the strict R0064 and R0065 runtime bodies.

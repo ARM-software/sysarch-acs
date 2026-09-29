@@ -21,6 +21,27 @@ its ABIs from the caller security states used in real deployments:
 - Secure world: S-EL2 shim payload with optional S-EL1 caller bodies
 - Realm world: R-EL2 shim payload, reached through the platform Realm dispatcher
 
+Proposed out-of-scope rules
+===========================
+
+The ALP4 inventory contains 123 rules. The proposed Alpha1 DUT-validation
+target contains 121. The following two exclusions await Architect approval;
+they are not waived, executed, or counted as DUT PASS results:
+
+- ``R0023``: The Service ID occupies bits [7:0] of its input register. Upper
+  bits are unused and must be zero on a legal call. Therefore, runtime
+  discovery cannot establish whether the DUT internally uses an 8-bit type.
+  R0024 separately validates allocated and unallocated service IDs.
+- ``R0041``: ``FIRME_SERVICE_FEATURES`` returns a feature-register value but
+  no register-size metadata. A zero value is still a valid 64-bit register
+  value, so it cannot reveal the register's declared size. R0044 separately
+  validates the architected mapping of defined value chunks to result
+  registers.
+
+The ABI catalog checks the ACS's own definitions of these fields, not DUT
+compliance. If the Architect identifies a meaningful DUT-observable method,
+these exclusions must be revisited before the Alpha1 release.
+
 Testcase checklist
 ==================
 
@@ -39,32 +60,44 @@ runtime registry. It needs reviewed consecutive specification and service
 version metadata; its result is a publication-policy check, not DUT behavior.
 
 R0070, R0071, R0076, and R0077 have executable bodies but remain
-outside the runtime registry. They need an Attestation or Integrated Device
-adapter that invokes a real shared-buffer ABI and supplies mapping, PAS/GPI,
-size, alignment, and DUT-status evidence.
+outside the runtime registry. The NS ``FIRME_ATTEST_PAT_GET`` adapter invokes
+a real shared-buffer ABI when advertised, using exclusively owned memory.
+Its size/alignment checks still need DUT qualification. R0070/R0071 also
+require independent EL3 mapping and PAS/GPI observations; successful retrieval
+alone does not supply that evidence.
 
 R0080, R0081, and R0082 have executable bodies but remain outside the
-runtime registry. They need a service-specific adapter that invokes an
-Attestation or Integrated Device ABI and supplies real status, written-size,
-remaining-size, and service evidence for last, intermediate, or no-data
-chunks. The shared-buffer and partial-retrieval algorithms below describe
-required validation; existing bodies still need service-specific alignment
-and qualification before their gates can be enabled.
+runtime registry. The NS PAT adapter captures defined status/size outputs,
+bounds continuation calls, and quarantines unfinished retrievals. PAT marks
+Remaining size unused on ``SUCCESS``, so it cannot supply R0080's final-size
+evidence; that path still requires an applicable service. R0081/R0082 require
+actual intermediate/no-data responses, not fabricated ones. These paths need
+qualification before their gates can be enabled.
 
 R0358-R0365 have generated one-rule bodies and a stateful IDE ABI adapter.
-They remain registry-gated until their adapters integrate the host-coordinated
-Root Port/endpoint observer with per-invocation effects, safe rollback, and
-deterministic asynchronous/error scenarios. The local paired CXL.mem backend
-completes synchronously and does not qualify those missing paths. The default
-TF-A IDE simulation alone is not evidence of endpoint programming or protected
-traffic.
+They remain registry-gated while Realm-coordinated generated calls and
+deterministic asynchronous/error fixtures are incomplete. The paired NS
+adapter observes valid GO/STOP calls; pending operations retain their owner,
+session, keys and buffers until safe completion or quarantine. Native lifetime
+checks do not establish DUT compliance. The local paired CXL.mem backend
+completes synchronously and does not qualify asynchronous paths. The default
+TF-A IDE simulation alone is not endpoint or protected-traffic evidence.
+
+Generated GPT adapters retain actual continuation cookies and validate L1
+object granule envelopes, including objects smaller than a granule. They
+require platform-reserved storage and independent GPI observations; none
+is inferred from the tested ABI's own return status. The default FVP does
+not provide these reservations/observations, so its gates remain unchanged.
 
 Expected runtime SKIP coverage
 ------------------------------
 
-In the default TF-A/FVP configuration without the optional paired CXL.mem
-observation backend, three active IDE rules report ``SKIP``:
+In the default TF-A/FVP configuration without an owned IDE link and the
+optional paired CXL.mem observation backend, five active IDE rules report
+``SKIP``:
 
+- R0205 and R0225 require a discovered, ACS-owned IDE link. The default
+  topology does not provide the necessary fixture.
 - R0214, R0216, and R0218 require fresh paired endpoint/Root Port traffic
   observations after their ABI status checks. Without an observation backend,
   they report ``SKIP``, not a status-only ``PASS``.
@@ -87,18 +120,14 @@ registered in the default regression until the required DUT behavior,
 fixtures, evidence and architecture clarifications are available:
 
 - R0064: every implemented non-Base service exposes feature register 1 with
-  the service-specific 16-bit ``MAX_CONCURRENT_OP_CNT`` field. Retain this
-  strict expectation and the existing gate while architecture clarification
-  of R0064/S0068 for IDE register 1 is pending. Do not yet classify its absence
-  as a confirmed TF-A defect.
+  the service-specific 16-bit ``MAX_CONCURRENT_OP_CNT`` field. IDE register 1
+  is required; S0068 does not waive this requirement. Its absence in the
+  current TF-A is a DUT mismatch. Retain the strict test and temporary gate
+  until the corrected implementation is qualified.
 - R0065: the advertised count is equal across implemented FIRME instances.
   A non-zero value additionally requires controllable retained operations
   across service ABIs and instances before collective-limit coverage can pass.
 - R0092: same-GPI transitions are nops that complete with ``SUCCESS``.
-- R0113: a successful multi-granule transition reports the transitioned
-  prefix in the Granule count output.
-- R0117: the status and Granule count outputs report operation progress
-  according to the ``FIRME_GM_GPI_SET`` result table.
 - R0123: malformed Attributes fields complete with ``INVALID_PARAMETERS``.
 - R0102 and R0103: GPT_INFO enforces the protected-range alignment and size
   derived from Granule Management feature register 1.
@@ -112,18 +141,33 @@ fixtures, evidence and architecture clarifications are available:
   and after a successful MEC refresh.
 
 **Known TF-A behavior mismatches:** R0092 and R0123 return non-conformant
-status values on the current TF-A. R0111, R0113 and R0117 are temporarily
+status values on reference TF-A revisions without their respective fixes.
+
+R0111, R0113 and R0117 are temporarily
 registry-gated because the CI firmware returns ``DENIED`` during strict NS
 setup/restoration with the GDI profile. These failures occur before the
 intended progress checks and do not establish their multi-granule behavior.
 Keep the strict bodies and restore their entries with qualified firmware
 and the final CI golden-log update.
 
+The R0113 and R0117 bodies retain Secure and Realm checks for two-granule
+requests, validate the returned successful prefix with access probes,
+retry the remaining suffix, and verify cleanup. R0117 also checks denied
+progress. A ``SUCCESS`` response need not complete the entire requested
+range in one call. Older TF-A revisions that reject every count greater
+than one fail these tests; no platform option substitutes for the fix.
+These results do not establish coverage of retained-operation scenarios
+or other unavailable ``FIRME_GM_GPI_SET`` result-table conditions.
+
 R0094, R0095, R0098 and R0120 are temporarily gated after strict setup,
 negative-case and cleanup checks exposed related failures. R0094/R0120
 cannot establish or restore NS with a successful same-GPI nop. R0095/R0098
 observe ``DENIED`` instead of ``INVALID_PARAMETERS`` for NSO/NSP encodings
 when GPC2/GDI are absent. The bodies and strict expectations remain intact.
+Feature-present qualification uses matched model and firmware settings:
+``FVP_GPT_PROFILE=gdi`` enables GPC2/GDI and TF-A GDI support; ``gpc2`` and
+``baseline`` exercise the corresponding absent-feature negative cases.
+Full RME enablement alone is not evidence of GPC2/GDI availability.
 Re-enable after the required caller paths, present/absent feature scenarios
 and cleanup pass; temporary omission does not count as coverage.
 
@@ -323,25 +367,6 @@ failures in a DUT claiming the matching ALP4 behavior.
 
   * -
 
-      Static service ID width review
-
-    -
-
-      R0023: FIRME service IDs are 8-bit unsigned integers.
-
-    -
-
-      1. Review the service-ID field definition against the specification.
-      2. Run the ABI catalog generator check, which requires an eight-bit
-         service-ID definition and stores descriptor IDs in an eight-bit type.
-      3. Confirm every reviewed ABI and feature-register descriptor uses an
-         allocated service ID within that field.
-      4. Do not add a runtime body or registry entry: upper input bits are SBZ,
-         so legal calls cannot distinguish an eight-bit decoder from a wider one.
-      5. Unallocated-ID behavior is handled separately by R0024.
-
-  * -
-
       `service_id_allocation <../test/base/service_id_allocation.c>`_
 
     -
@@ -481,25 +506,6 @@ failures in a DUT claiming the matching ALP4 behavior.
 
   * -
 
-      Static feature register size review
-
-    -
-
-      R0041: The size of a feature register is a non-zero multiple of 64 bits.
-
-    -
-
-      1. Record every ALP4 feature register in the reviewed ABI catalog.
-      2. Run generator validation and require each declared size to be non-zero
-         and divisible by 64.
-      3. Generate the runtime descriptor table only after that validation.
-      4. Do not add a runtime body or registry entry: ``FIRME_SERVICE_FEATURES``
-         returns register values but does not expose register-size metadata.
-         This check protects the ACS interface model and does not claim DUT
-         runtime coverage.
-
-  * -
-
       `feature_register_result_encoding <../test/base/feature_register_result_encoding.c>`_
 
     -
@@ -632,10 +638,9 @@ failures in a DUT claiming the matching ALP4 behavior.
       4. Interpret zero as no advertised maximum and a non-zero value as the
          advertised maximum.
       5. Fail if an implemented service does not expose feature register 1.
-      6. For IDE, retain the strict body and existing registry gate while
-         architecture clarification of R0064 versus S0068 and the service
-         feature table is pending. Register absence is not yet a confirmed
-         TF-A defect.
+      6. IDE register 1 is required by ALP4 Table 4.1; S0068 does not waive
+         this requirement. Its absence in TF-A is a confirmed DUT mismatch.
+         Retain the strict body and temporary gate until the fix is qualified.
 
   * -
 
@@ -829,8 +834,12 @@ failures in a DUT claiming the matching ALP4 behavior.
       1. Encode a Keyset ID using representative Segment, Root Port, Stream, Substream,
          Direction, and Key Set fields.
       2. Decode each field and verify the field occupies the DEN0149 bit position.
-      3. Invoke ``FIRME_IDE_KEYSET_PROG`` with a PAL-provided platform keyset.
-      4. Expect the DUT not to reject the valid platform keyset as ``INVALID_PARAMETERS``.
+      3. Discover an unused Root Port/endpoint Selective IDE pair and encode
+         its selected Stream ID and Root Port identity into the request.
+      4. Invoke ``FIRME_IDE_KEYSET_PROG`` and require successful completion,
+         polling the same keyset and checking its handle when asynchronous.
+      5. Stop the programmed keyset and restore the pair's configuration;
+         retain a failure if cleanup cannot complete.
 
   * -
 
@@ -844,8 +853,11 @@ failures in a DUT claiming the matching ALP4 behavior.
 
       1. Keep the unused Key Set field zero in the production request.
       2. Invoke a valid CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` with Key Set 0.
-      3. Report ``SKIP`` only for ``NOT_SUPPORTED``; otherwise require completion.
+      3. Report ``SKIP`` only when the initial request returns ``NOT_SUPPORTED``
+         without accepting an operation; otherwise require completion.
       4. GO and STOP the same keyset and require successful completion of each.
+      5. On every exit, drain accepted work and STOP the known keyset. Cleanup
+         failure remains FAIL; uncertain ownership blocks reuse until recovery/reset.
 
   * -
 
@@ -858,9 +870,12 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Invoke a baseline CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` with Stream ID 0.
-      2. Report ``SKIP`` only for ``NOT_SUPPORTED``; otherwise require ``SUCCESS``.
-      3. Invoke CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` with a non-zero Stream ID.
+      2. Skip only an initially unsupported path; otherwise require successful
+         synchronous completion or exact-keyset polling with the correct handle.
+      3. Repeat CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` for Stream IDs 1 through 255.
       4. Expect ``INVALID_PARAMETERS``.
+      5. Drain and STOP the valid baseline on every safe exit. Do not poll an
+         unexpectedly accepted malformed keyset; report FAIL and retain ownership.
 
   * -
 
@@ -873,9 +888,13 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Invoke a baseline CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` with Substream ID 0b1000.
-      2. Report ``SKIP`` only for ``NOT_SUPPORTED``; otherwise require ``SUCCESS``.
-      3. Invoke CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` with a different Substream ID.
+      2. Skip only an initially unsupported path; otherwise require successful
+         synchronous completion or exact-keyset polling with the correct handle.
+      3. Repeat CXL.cachemem ``FIRME_IDE_KEYSET_PROG`` for every other four-bit
+         Substream ID encoding, keeping all remaining fields valid.
       4. Expect ``INVALID_PARAMETERS``.
+      5. Drain and STOP the valid baseline on every safe exit. Do not poll an
+         unexpectedly accepted malformed keyset; report FAIL and retain ownership.
 
   * -
 
@@ -926,9 +945,11 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Check that IDE key management and ``KEYSET_PROG`` are advertised.
+         Discover an ACS-owned Root Port/endpoint pair and prepare an unused
+         Selective stream in VAL. Use Realm access for its RMEDA lock when present.
       2. Invoke with an invalid ECAM base and expect ``INVALID_PARAMETERS``.
       3. Invoke with an unused IDE type and expect ``INVALID_PARAMETERS``.
-      4. Invoke with a valid platform keyset and expect ``SUCCESS`` or ``INCOMPLETE``.
+      4. Invoke with the discovered keyset and expect ``SUCCESS`` or ``INCOMPLETE``.
       5. If non-blocking, verify same-keyset conflict and poll completion.
       6. In the same FIRME caller instance, program independent random keys for
          a test-owned Root Port and its authenticated endpoint. Require protected
@@ -948,6 +969,8 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Check that IDE key management and ``KEYSET_GO`` are advertised.
+         Discover and prepare an unused Selective pair rather than assuming a
+         platform-configured Stream ID; report unavailable resources explicitly.
       2. Invoke with an invalid ECAM base and expect ``INVALID_PARAMETERS``.
       3. Invoke with an unused IDE type and expect ``INVALID_PARAMETERS``.
       4. Program a valid keyset, invoke ``KEYSET_GO``, and expect ``SUCCESS`` or ``INCOMPLETE``.
@@ -970,6 +993,8 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Check that IDE key management and ``KEYSET_STOP`` are advertised.
+         Discover and prepare an unused Selective pair rather than assuming a
+         platform-configured Stream ID; report unavailable resources explicitly.
       2. Invoke with an invalid ECAM base and expect ``INVALID_PARAMETERS``.
       3. Invoke with an unused IDE type and expect ``INVALID_PARAMETERS``.
       4. Program a valid keyset, invoke ``KEYSET_STOP``, and expect ``SUCCESS`` or ``INCOMPLETE``.
@@ -993,14 +1018,17 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Check that IDE key management and ``KEYSET_POLL`` are advertised.
+         Discover and prepare one unused Selective pair for sequential reuse.
       2. Invoke with an invalid ECAM base and expect ``INVALID_PARAMETERS``.
       3. Poll a keyset with no pending response and expect ``DENIED``.
-      4. Use the PAL-reserved stream for ``KEYSET_PROG``. If it completes
+      4. Use the VAL-prepared stream for ``KEYSET_PROG``. If it completes
          synchronously, report the pending-response scenario as unavailable,
          not a DUT failure. Otherwise poll the exact keyset to ``SUCCESS``.
       5. After consuming that response, reuse the same keyset for poll-any.
          Verify the Handle and defined Keyset ID fields, ignoring unused bits.
       6. Drain owned requests and STOP the stream on success, SKIP, or failure.
+         Release only ACS-owned stream configuration and RMEDA locks after
+         cleanup succeeds. Cleanup errors fail and quarantine the reservation.
 
   * -
 
@@ -1022,7 +1050,7 @@ failures in a DUT claiming the matching ALP4 behavior.
 
     -
 
-      R0231: IDE feature register 0 reports the defined ABI presence bits.
+      R0231: IDE feature registers follow ALP4 Table 4.1.
 
     -
 
@@ -1030,6 +1058,13 @@ failures in a DUT claiming the matching ALP4 behavior.
       2. If absent, report ``SKIP`` for that instance.
       3. Read IDE feature register 0 and ignore unused bits[63:4].
       4. Verify all mandatory IDE ABI presence bits are advertised where the service exists.
+      5. Require ``SUCCESS`` for feature register 1. Decode bits[15:0] as
+         ``MAX_CONCURRENT_OP_CNT`` and ignore unused bits[63:16].
+      6. Query unallocated indices beginning at 2 and require ``NOT_SUPPORTED``.
+
+      The strict body is implemented but temporarily registry-gated pending
+      the reference TF-A ALP4 register-1 implementation and qualification.
+      Missing mandatory register 1 remains a failure, not an optional-feature skip.
 
   * -
 
@@ -1167,10 +1202,11 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. In Realm, require an implemented MECID management service version.
-      2. Read feature register 0 and require only the mandatory
-         ``FIRME_MEC_REFRESH`` bit to be set.
-      3. Read feature register 1 and require bits[63:20] to be zero;
-         bits[19:4] and bits[3:0] retain their defined ALP4 encodings.
+      2. Read feature register 0 and require the mandatory
+         ``FIRME_MEC_REFRESH`` bit; ignore unused output bits.
+      3. Read feature register 1 and ignore unused bits[63:20]. Decode
+         bits[19:4] as ``MAX_CONCURRENT_OP_CNT`` and bits[3:0] as common
+         MECID width minus one. Independent width comparison belongs to R0239.
       4. Query the first unallocated register index and require
          ``NOT_SUPPORTED``.
 
@@ -1311,9 +1347,11 @@ failures in a DUT claiming the matching ALP4 behavior.
          - NS -> NSO
          - NSO -> NS
 
-      3. Expect ``SUCCESS`` only when FEAT_RME_GPC2 is present; otherwise expect DENIED/NOT_SUPPORTED.
-      4. Verify enforcement by probing the transitioned granule from Secure and Realm payloads and confirming
-         the expected fault/no-fault behavior.
+      3. With GPC2, require ``SUCCESS`` and Granule count 1 for both transitions.
+         Without GPC2, require ``INVALID_PARAMETERS`` for the unallocated NSO target.
+      4. Verify NS access and Secure/Realm own-PAS granule protection faults.
+      5. Before NSO -> NS, scrub the entire owned granule and clean to PoC.
+         Verify the scrubbed data after release and check cleanup results.
 
   * -
 
@@ -1333,9 +1371,14 @@ failures in a DUT claiming the matching ALP4 behavior.
          - NSP    -> NS/NSO
          - SA     -> NS/NSO
 
-      3. Expect ``SUCCESS`` only when FEAT_RME_GDI is present; otherwise expect DENIED/NOT_SUPPORTED.
-      4. Verify enforcement using cross-world probes and confirm no transitions beyond the union of Table 3.1–3.3
-         are permitted.
+      3. With GDI, require ``SUCCESS`` and Granule count 1 for every listed edge,
+         including NSO paths. A failed NS -> NSO setup is FAIL, not omitted coverage.
+         Without GDI, require ``INVALID_PARAMETERS`` for NSP and SA targets.
+      4. Require NS, Secure and Realm PE probes to fault for NSP/SA; these PASs
+         are not PE-accessible. Check NS access after restoration without assuming
+         that data survives a change of PAS. Non-PE requester access is not claimed.
+      5. Scrub and clean an NSO granule to PoC before cleanup releases it to NS.
+         Restore NS and scrub the test granule, preserving any original failure.
 
   * -
 
@@ -1348,11 +1391,16 @@ failures in a DUT claiming the matching ALP4 behavior.
     -
 
       1. Check FEAT_RME and ``FIRME_GM_GPI_SET`` advertisement.
-      2. From Secure and Realm worlds, seed two adjacent granules as NS.
+      2. Seed two adjacent granules as NS; require ``SUCCESS`` and count 1
+         for each initialization, rather than accepting any terminal status.
       3. Request a one-granule transition at Base to the caller world's GPI.
       4. Verify the first granule is accessible from the caller world.
       5. Verify the adjacent granule remains NS by expecting a GPF from the caller world.
-      6. Report NS coverage as skipped when no NS changing transition is available.
+      6. When GDI is present, also run from NS with target NSP: the first
+         granule must fault while the adjacent NS granule remains accessible.
+         Without GDI, only this NS subcheck is skipped.
+      7. Restore both granules with checked results and preserve the original
+         diagnostic if setup, observation or cleanup fails.
 
   * -
 
@@ -1360,7 +1408,7 @@ failures in a DUT claiming the matching ALP4 behavior.
 
     -
 
-      R0113: On ``SUCCESS``, the granule count output reports the number of successful transitions.
+      R0113: A valid granule count output reports the successful contiguous prefix.
 
     -
 
@@ -1373,6 +1421,9 @@ failures in a DUT claiming the matching ALP4 behavior.
          remains Non-secure.
       5. Reissue the operation at the updated Base address for any remaining
          granules, then restore both granules to Non-secure state.
+
+      This body qualifies the ``SUCCESS`` path. Full rule coverage also needs
+      the other statuses for which Table 3.4 defines a valid output count.
 
   * -
 
@@ -1546,7 +1597,8 @@ failures in a DUT claiming the matching ALP4 behavior.
       1. Use PAL to prepare a range containing an L0 Block that requires an L1
          object and to induce allocation failure.
       2. Invoke ``FIRME_GM_GPI_SET`` and require exactly ``NOT_FOUND``.
-      3. Require the valid count not to exceed the requested range.
+      3. Require the valid count to be strictly smaller than the requested
+         count: allocation failure leaves at least one granule uncompleted.
       4. Where locally observable, verify that the count describes the exact
          successful prefix before the allocation failure.
       5. Restore the range and release all scenario resources.
@@ -1648,6 +1700,8 @@ failures in a DUT claiming the matching ALP4 behavior.
       2. Transition one NS granule to the Secure or Realm GPI.
       3. Query the same range and require the owner bit to remain unchanged.
       4. Restore the granule to NS, query again, and require the original owner.
+         Attempt restoration even after a malformed transition response;
+         retain the original failure if cleanup also fails.
 
   * -
 
@@ -1854,7 +1908,8 @@ failures in a DUT claiming the matching ALP4 behavior.
       1. Prepare an object with one known non-Non-secure granule and all other
          granules Non-secure.
       2. Record every object's GPI through independent PAL observation.
-      3. Require exact ``DENIED``.
+      3. Resume ``INCOMPLETE`` rollback and retry ``BUSY`` within a bound,
+         requiring terminal ``DENIED`` rather than first-call ``DENIED``.
       4. Recheck the prefix, offending granule, and suffix against their exact
          pre-operation GPIs.
 
