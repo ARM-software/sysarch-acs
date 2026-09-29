@@ -21,13 +21,16 @@ same hosting model.
 - **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
 - **Alpha1 scope:** 123 ALP4 rules across Concepts/Base, GPT, MECID, IDE Key
-  Management, and their ABI interfaces. The current registry schedules 40
-  rules; 81 have implemented but gated bodies or plans, and R0023/R0041 are
+  Management, and their ABI interfaces. The current registry schedules 38
+  rules; 83 have implemented but gated bodies or plans, and R0023/R0041 are
   static interface checks. Active tests can still report SKIP when a platform
   prerequisite is absent. This is development status, not release coverage.
 - **Temporary CI gate:** R0207, R0209, and R0210 retain their strict CXL.cachemem
   test bodies but are not registered while CI lacks the paired firmware/model
   support. Restore them with final qualification and the CI golden-log update.
+- **GPT CI gate:** R0111, R0113, and R0117 retain their strict bodies but are
+  not registered while CI's TF-A rejects their NS setup/restoration with
+  `DENIED` under the GDI profile. Re-enable with qualified firmware and CI logs.
 - **Rule status and algorithms:** See the
   [scenario document](docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst)
   and [ABI interface coverage](docs/FIRME_Alpha1_ABI_Interface_Coverage.md).
@@ -127,12 +130,13 @@ FIRME implementation (the DUT).
 The runner's exit status reports execution completion, not test PASS/FAIL.
 A completed run returns zero even when individual tests fail; CI evaluates
 the unchanged UART results against its golden log. Build/configuration errors,
-abnormal model exits and incomplete runs return nonzero. A configured timeout
-may stop the model after completion without making execution fail.
+abnormal model exits and incomplete runs return nonzero. Normal completion
+uses PSCI SYSTEM_OFF; the configured timeout remains a watchdog. A complete
+summary does not override a model crash.
 
 Useful knobs:
 - `TFA_DIR=/path/to/trusted-firmware-a`
-- `BUILD_MODE=auto|always|never` (controls rebuilds of TF-A + FIRME-ACS)
+- `BUILD_MODE=auto|source|always|never` (controls firmware artifact reuse)
 - `BUILD_TFA=auto|always|never` (controls TF-A rebuilds only)
 - `FVP_TIMEOUT_SECS=240` (auto-terminate the model)
 - `FVP_ENABLE_MEC=1` (enable FVP MEC/MPE parameters for MECID management tests)
@@ -158,9 +162,12 @@ backend. It requires `FVP_ENABLE_IDE=1`, an explicit `FVP_PCIE_HIERARCHY`, and
 matching firmware and model implementations. It is disabled by default and is
 not available in an unmodified upstream TF-A or standard FVP release.
 
-The backend option is recorded in both build stamps. In experimental mode,
-`BUILD_MODE=auto` also visits the firmware build so local TF-A edits cannot be
-missed; tracked diffs and untracked source contents participate in its fingerprint.
+The backend option is recorded in both build stamps. `BUILD_MODE=auto` reuses
+existing images and builds only when they are missing. `never` runs packaged
+images without a TF-A checkout. Build manifests verify hashes and configuration.
+Use `BUILD_MODE=source` to rebuild after source/profile changes or `always` for
+an explicit build; tracked diffs and untracked sources participate in freshness
+checks. Run-only stages do not compare checkout paths or source timestamps.
 A JSON topology or successful key-programming acknowledgment alone does not
 qualify IDE traffic protection. Endpoint discovery, authenticated key exchange,
 Root Port programming, traffic checks, and cleanup must all be validated before

@@ -16,6 +16,7 @@
 #define GPT_START_GRANULE_STEP_ADJACENT_ACCESS UINT64_C(20)
 #define GPT_START_GRANULE_STEP_CLEANUP          UINT64_C(30)
 
+/** @brief Initialize this rule's result to fail until every observation succeeds. */
 static void gpt_start_granule_init(firme_rule_res_t *out)
 {
     if (out) {
@@ -26,6 +27,7 @@ static void gpt_start_granule_init(firme_rule_res_t *out)
     }
 }
 
+/** @brief Record the fault that violated the expected access policy. */
 static void gpt_start_granule_record_fault(firme_rule_res_t *out, uint64_t fail_step,
                                            val_fault_info_t *fault_info)
 {
@@ -36,6 +38,7 @@ static void gpt_start_granule_record_fault(firme_rule_res_t *out, uint64_t fail_
     }
 }
 
+/** @brief Require a completed read through the caller's normal mapping. */
 static uint32_t gpt_start_granule_expect_access(uint64_t addr, firme_rule_res_t *out,
                                                 uint64_t fail_step)
 {
@@ -44,7 +47,7 @@ static uint32_t gpt_start_granule_expect_access(uint64_t addr, firme_rule_res_t 
 
     val_probe_read64(addr, &value, &fault_info);
     if (fault_info.faulted != 0U) {
-        LOG_ERROR(NULL, "%s: expected first granule access esr=%llx far=%llx",
+        LOG_ERROR(NULL, "%s: expected granule access esr=%llx far=%llx",
                   GPT_START_GRANULE_TEST_NAME,
                   (unsigned long long)fault_info.esr,
                   (unsigned long long)fault_info.far);
@@ -55,6 +58,7 @@ static uint32_t gpt_start_granule_expect_access(uint64_t addr, firme_rule_res_t 
     return VAL_TRUE;
 }
 
+/** @brief Require a granule protection fault rather than an unrelated exception. */
 static uint32_t gpt_start_granule_expect_gpf(uint64_t addr, firme_rule_res_t *out,
                                              uint64_t fail_step)
 {
@@ -63,7 +67,7 @@ static uint32_t gpt_start_granule_expect_gpf(uint64_t addr, firme_rule_res_t *ou
 
     val_probe_read64(addr, &value, &fault_info);
     if ((fault_info.faulted == 0U) || !val_fault_is_gpf(fault_info.esr)) {
-        LOG_ERROR(NULL, "%s: expected adjacent granule GPF faulted=%u esr=%llx far=%llx",
+        LOG_ERROR(NULL, "%s: expected granule GPF faulted=%u esr=%llx far=%llx",
                   GPT_START_GRANULE_TEST_NAME, (unsigned int)fault_info.faulted,
                   (unsigned long long)fault_info.esr,
                   (unsigned long long)fault_info.far);
@@ -79,12 +83,10 @@ static uint32_t gpt_start_granule_expect_gpf(uint64_t addr, firme_rule_res_t *ou
  *   @param    - base_pa    : Base PA of the granule.
  *   @param    - target_gpi : Requested target GPI.
  *   @param    - out        : Optional result record.
- *   @param    - require_success : Whether the terminal result must be SUCCESS.
  *   @param    - fail_step      : Failure step identifier.
  *   @return   - VAL_SUCCESS for a completed transition, otherwise VAL_ERROR.
 **/
 static int gpt_start_granule_transition(uint64_t base_pa, uint64_t target_gpi,
-                                        uint32_t require_success,
                                         firme_rule_res_t *out, uint64_t fail_step)
 {
     firme_res_t result = {0};
@@ -94,8 +96,7 @@ static int gpt_start_granule_transition(uint64_t base_pa, uint64_t target_gpi,
     completion_status = val_firme_gm_gpi_set_complete(
         base_pa, granule_count, target_gpi, &result);
     if ((completion_status != VAL_SUCCESS) ||
-        ((require_success == VAL_TRUE) &&
-         !val_firme_status_success(result.x0, result.x1, granule_count))) {
+        !val_firme_status_success(result.x0, result.x1, granule_count)) {
         LOG_ERROR(NULL, "%s: transition failed PA=%llx GPI=%llu x0=%llx x1=%llx",
                   GPT_START_GRANULE_TEST_NAME,
                   (unsigned long long)base_pa,
@@ -124,8 +125,8 @@ static int gpt_start_granule_transition(uint64_t base_pa, uint64_t target_gpi,
 static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_rule_res_t *out)
 {
     const uint64_t first_pa = base_pa;
-    const uint64_t second_pa = base_pa + (uint64_t)PLAT_FIRME_GPT_GRANULE_SIZE;
-    uint32_t first_transitioned = VAL_FALSE;
+    uint64_t second_pa;
+    uint32_t first_access;
     int cleanup_status = VAL_SUCCESS;
 
     if (!out)
@@ -142,37 +143,51 @@ static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_ru
     if (val_firme_gpt_gpi_set_advertised(out, GPT_START_GRANULE_STEP_ADVERTISE) == VAL_FALSE)
         return val_firme_gpt_rule_result_status(out);
 
+    if ((base_pa % PLAT_FIRME_GPT_GRANULE_SIZE != 0ULL) ||
+        (base_pa > UINT64_MAX - UINT64_C(2) * PLAT_FIRME_GPT_GRANULE_SIZE)) {
+        val_firme_gpt_rule_result_fail(out, GPT_START_GRANULE_STEP_SET, base_pa,
+                                       PLAT_FIRME_GPT_GRANULE_SIZE);
+        return VAL_ERROR;
+    }
+
+    second_pa = base_pa + PLAT_FIRME_GPT_GRANULE_SIZE;
+    first_access = (target_gpi != FIRME_GPI_NSP);
+
     /* Step 1: seed two adjacent granules as NS before the one-granule request. */
-    if (gpt_start_granule_transition(first_pa, FIRME_GPI_NONSECURE, VAL_FALSE, out,
+    if (gpt_start_granule_transition(first_pa, FIRME_GPI_NONSECURE, out,
                                      GPT_START_GRANULE_STEP_SET) != VAL_SUCCESS)
         goto cleanup;
-    if (gpt_start_granule_transition(second_pa, FIRME_GPI_NONSECURE, VAL_FALSE, out,
+    if (gpt_start_granule_transition(second_pa, FIRME_GPI_NONSECURE, out,
                                      GPT_START_GRANULE_STEP_SET) != VAL_SUCCESS)
         goto cleanup;
 
     /* Step 2: transition only the start granule at Base. */
-    if (gpt_start_granule_transition(first_pa, target_gpi, VAL_TRUE, out,
+    if (gpt_start_granule_transition(first_pa, target_gpi, out,
                                      GPT_START_GRANULE_STEP_SET) != VAL_SUCCESS)
         goto cleanup;
-    first_transitioned = VAL_TRUE;
-
-    /* Step 3: current caller can access the first granule after transition. */
-    if (gpt_start_granule_expect_access(first_pa, out,
-                                        GPT_START_GRANULE_STEP_FIRST_ACCESS) == VAL_FALSE)
-        goto cleanup;
-
-    /* Step 4: adjacent granule remains NS and must still fault in this caller world. */
-    if (gpt_start_granule_expect_gpf(second_pa, out,
-                                     GPT_START_GRANULE_STEP_ADJACENT_ACCESS) == VAL_FALSE)
-        goto cleanup;
+    /* Step 3: require different access policies for the first and adjacent granules. */
+    if (first_access == VAL_TRUE) {
+        if (!gpt_start_granule_expect_access(first_pa, out,
+                                             GPT_START_GRANULE_STEP_FIRST_ACCESS) ||
+            !gpt_start_granule_expect_gpf(second_pa, out,
+                                          GPT_START_GRANULE_STEP_ADJACENT_ACCESS))
+            goto cleanup;
+    } else {
+        if (!gpt_start_granule_expect_gpf(first_pa, out,
+                                          GPT_START_GRANULE_STEP_FIRST_ACCESS) ||
+            !gpt_start_granule_expect_access(second_pa, out,
+                                             GPT_START_GRANULE_STEP_ADJACENT_ACCESS))
+            goto cleanup;
+    }
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
-    if (gpt_start_granule_transition(first_pa, FIRME_GPI_NONSECURE,
-                                     first_transitioned, out,
-                                     GPT_START_GRANULE_STEP_CLEANUP) != VAL_SUCCESS)
+    /* Step 4: restore both granules, even when a broken DUT changed the adjacent one. */
+    if (!val_firme_gpt_restore_ns(first_pa, out, GPT_START_GRANULE_STEP_CLEANUP))
+        cleanup_status = VAL_ERROR;
+    if (!val_firme_gpt_restore_ns(second_pa, out, GPT_START_GRANULE_STEP_CLEANUP + UINT64_C(1)))
         cleanup_status = VAL_ERROR;
 
     if (cleanup_status != VAL_SUCCESS)
@@ -204,8 +219,8 @@ int firme_gpt_start_granule_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 }
 
 /**
- *   @brief    - Report NS coverage as skipped when no NS changing transition is available.
- *   @param    - base_pa : Unused GPT test window base.
+ *   @brief    - Use GDI to distinguish the transitioned granule from its NS neighbor.
+ *   @param    - base_pa : Owned NS GPT test window base.
  *   @param    - out     : Optional result record.
  *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
 **/
@@ -214,14 +229,11 @@ int firme_gpt_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out)
     if (!out)
         return VAL_ERROR;
 
-    (void)base_pa;
-
-    if (out) {
-        out->status = (uint64_t)ACS_STATUS_SKIP;
-        out->fail_step = 0;
-        out->last_x0 = 0;
-        out->last_x1 = 0;
+    if (!val_firme_feat_rme_gdi_present()) {
+        gpt_start_granule_init(out);
+        out->status = ACS_STATUS_SKIP;
+        return VAL_SUCCESS;
     }
 
-    return val_firme_gpt_rule_result_status(out);
+    return gpt_start_granule_run(base_pa, FIRME_GPI_NSP, out);
 }

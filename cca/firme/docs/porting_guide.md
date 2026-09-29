@@ -149,7 +149,7 @@ Optional knobs:
 export CROSS_COMPILE=/path/to/toolchain/bin/aarch64-none-elf-
 export FIRME_TOOLCHAIN=clang     # gcc (default) | clang
 export SUITE=gpt                 # all (default) | base | gpt | mec | ide | attest
-export BUILD_MODE=auto           # auto (default) | always | never
+export BUILD_MODE=auto           # auto (default) | source | always | never
 export BUILD_TFA=auto            # auto (default) | always | never
 export TFA_LOG_LEVEL=40          # 10..50 (ERROR..VERBOSE)
 export FVP_ENABLE_MEC=1          # enable FVP MEC/MPE model parameters for MEC tests

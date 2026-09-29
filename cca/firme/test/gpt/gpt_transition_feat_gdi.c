@@ -9,370 +9,130 @@
 #include "val_firme_rules.h"
 #include "val_log.h"
 
-/* Fail-step bases for cross-world enforcement matrix checks. */
-#define GPT_TRANS_FEAT_GDI_MATRIX_BASELINE_STEP_BASE        UINT64_C(10)
-#define GPT_TRANS_FEAT_GDI_MATRIX_NSP_STEP_BASE             UINT64_C(40)
-#define GPT_TRANS_FEAT_GDI_MATRIX_RESTORE_AFTER_NSP_STEP    UINT64_C(50)
-#define GPT_TRANS_FEAT_GDI_MATRIX_SA_STEP_BASE              UINT64_C(60)
-#define GPT_TRANS_FEAT_GDI_MATRIX_RESTORE_AFTER_SA_STEP     UINT64_C(70)
-#define GPT_TRANS_FEAT_GDI_MATRIX_NSO_STEP_BASE             UINT64_C(80)
-#define GPT_TRANS_FEAT_GDI_MATRIX_NSP_FROM_NSO_STEP_BASE    UINT64_C(90)
-#define GPT_TRANS_FEAT_GDI_MATRIX_NSO_RESTORE_STEP_BASE     UINT64_C(100)
-#define GPT_TRANS_FEAT_GDI_MATRIX_SA_FROM_NSO_STEP_BASE     UINT64_C(110)
-#define GPT_TRANS_FEAT_GDI_MATRIX_NSO_FROM_SA_STEP_BASE     UINT64_C(120)
-#define GPT_TRANS_FEAT_GDI_CLEANUP_STEP_BASE               UINT64_C(130)
-
 #define GPT_TRANS_FEAT_GDI_TEST_NAME "gpt_transition_feat_gdi"
+#define GPT_TRANS_FEAT_GDI_MATRIX_BASELINE_STEP UINT64_C(10)
+#define GPT_TRANS_FEAT_GDI_TRANSITION_STEP      UINT64_C(20)
+#define GPT_TRANS_FEAT_GDI_MATRIX_STEP          UINT64_C(40)
+#define GPT_TRANS_FEAT_GDI_CLEANUP_STEP         UINT64_C(130)
 
 /**
- *   @brief    - GPT transition policy (FEAT_RME_GDI): NSP/SA transitions
- *               (and NSO interplay via FEAT_RME_GPC2).
- *   @param    - base_pa : Base PA for the GPT test window.
- *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
-**/
+ * @brief Validate all NS/NSO to NSP/SA transitions, or reject unallocated targets.
+ * @param base_pa Owned NS test granule physical address.
+ * @param out Required rule result and failure diagnostics.
+ * @return VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
+ */
 int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
-    uint32_t gdi = 0;
-    uint32_t gpc2 = 0;
-    firme_res_t res = (firme_res_t){0};
-    val_fault_info_t fault_info = (val_fault_info_t){0};
-    const uint64_t test_data = FIRME_TEST_DATA_PATTERN;
-    const uint64_t granule_count = 1ULL;
-    const uint64_t expected_done = granule_count;
-    const uint32_t check_value = 1U;
-    const uint64_t clear_value = 0ULL;
+    const uint64_t transition_targets[] = {
+        FIRME_GPI_NSP, FIRME_GPI_NONSECURE,
+        FIRME_GPI_SA, FIRME_GPI_NONSECURE,
+        FIRME_GPI_NSO, FIRME_GPI_NSP, FIRME_GPI_NSO,
+        FIRME_GPI_SA, FIRME_GPI_NSO,
+    };
+    const uint64_t unallocated_targets[] = {FIRME_GPI_NSP, FIRME_GPI_SA};
+    firme_res_t result = {0};
+    val_fault_info_t fault_info = {0};
+    uint64_t current_gpi = FIRME_GPI_NONSECURE;
+    uint64_t target_gpi;
+    uint64_t step;
+    size_t transition_index;
 
     if (!out)
         return VAL_ERROR;
 
-    if (out) {
-        out->status = (uint64_t)ACS_STATUS_FAIL;
-        out->fail_step = 0;
-        out->last_x0 = 0;
-        out->last_x1 = 0;
+    val_firme_gpt_rule_result_init(out);
+    if (!val_firme_feat_rme_present() || (base_pa == 0ULL)) {
+        out->status = ACS_STATUS_SKIP;
+        return VAL_SUCCESS;
     }
 
-    if (!val_firme_feat_rme_present() || base_pa == 0ULL) {
-        if (out) {
-            out->status = (uint64_t)ACS_STATUS_SKIP;
-        }
-        return val_firme_gpt_rule_result_status(out);
-    }
-
+    /* Step 1: discover the service and establish NS access to the owned granule. */
     if (val_firme_gpt_gpi_set_advertised(out, UINT64_C(1000)) == VAL_FALSE)
         return val_firme_gpt_rule_result_status(out);
 
-    gdi = val_firme_feat_rme_gdi_present();
-    gpc2 = val_firme_feat_rme_gpc2_present();
-
-    /* Step 1: seed the test granule from NS. */
-    if (val_probe_write64(base_pa, test_data, &fault_info) != 0) {
+    if (val_probe_write64(base_pa, FIRME_TEST_DATA_PATTERN, &fault_info) != VAL_SUCCESS) {
         LOG_ERROR(NULL, "%s: baseline write fault esr=%llx far=%llx",
                   GPT_TRANS_FEAT_GDI_TEST_NAME,
                   (unsigned long long)fault_info.esr, (unsigned long long)fault_info.far);
-        if (out) {
-            out->fail_step = 0;
-            out->last_x0 = fault_info.esr;
-            out->last_x1 = fault_info.far;
-        }
+        val_firme_gpt_rule_result_fail(out, GPT_TRANS_FEAT_GDI_MATRIX_BASELINE_STEP,
+                                       fault_info.esr, fault_info.far);
         goto cleanup;
     }
 
-    /* Step 2: validate baseline enforcement for Non-secure GPI. */
-    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NONSECURE, test_data, check_value, out,
-                                       GPT_TRANS_FEAT_GDI_MATRIX_BASELINE_STEP_BASE)) {
-        if (out) {
-            LOG_ERROR(NULL,
-                      "%s: baseline matrix failed step=%llu x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)out->fail_step,
-                      (unsigned long long)out->last_x0,
-                      (unsigned long long)out->last_x1);
-        }
+    if (!val_firme_check_access_matrix(base_pa, current_gpi, FIRME_TEST_DATA_PATTERN,
+                                       VAL_TRUE, out, GPT_TRANS_FEAT_GDI_MATRIX_BASELINE_STEP))
         goto cleanup;
-    }
 
-    if (gdi == 0U) {
-        /* Step 3: without GDI, NSP/SA target encodings are invalid. */
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
-        if (!val_firme_status_invalid_parameters(res.x0)) {
-            LOG_ERROR(NULL, "%s: NS->NSP expected INVALID_PARAMETERS x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)res.x0, (unsigned long long)res.x1);
-            if (out) {
-                out->fail_step = 1;
-                out->last_x0 = res.x0;
-                out->last_x1 = res.x1;
+    /* Step 2: without GDI, both unallocated GPI encodings must be rejected. */
+    if (!val_firme_feat_rme_gdi_present()) {
+        for (transition_index = 0U;
+             transition_index < sizeof(unallocated_targets) / sizeof(unallocated_targets[0]);
+             transition_index++) {
+            target_gpi = unallocated_targets[transition_index];
+            val_firme_gm_gpi_set_complete(base_pa, UINT64_C(1), target_gpi, &result);
+            if (!val_firme_status_invalid_parameters(result.x0)) {
+                LOG_ERROR(NULL, "%s: unallocated target=%llx expected INVALID_PARAMETERS "
+                          "x0=%llx x1=%llx", GPT_TRANS_FEAT_GDI_TEST_NAME,
+                          (unsigned long long)target_gpi,
+                          (unsigned long long)result.x0, (unsigned long long)result.x1);
+                val_firme_gpt_rule_result_fail(out, transition_index + UINT64_C(1),
+                                               result.x0, result.x1);
+                goto cleanup;
             }
+        }
+
+        out->status = ACS_STATUS_PASS;
+        goto cleanup;
+    }
+
+    /* Step 3: GDI includes GPC2, so its NSO transitions must not be silently omitted. */
+    if (!val_firme_feat_rme_gpc2_present()) {
+        LOG_ERROR(NULL, "%s: GDI advertised without required GPC2", GPT_TRANS_FEAT_GDI_TEST_NAME);
+        val_firme_gpt_rule_result_fail(out, GPT_TRANS_FEAT_GDI_TRANSITION_STEP, 0ULL, 0ULL);
+        goto cleanup;
+    }
+
+    /* Step 4: exercise every Table 3.3 edge, checking PAS enforcement after each call. */
+    for (transition_index = 0U;
+         transition_index < sizeof(transition_targets) / sizeof(transition_targets[0]);
+         transition_index++) {
+        target_gpi = transition_targets[transition_index];
+        step = GPT_TRANS_FEAT_GDI_TRANSITION_STEP + transition_index;
+        val_firme_gm_gpi_set_complete(base_pa, UINT64_C(1), target_gpi, &result);
+        if (!val_firme_status_success(result.x0, result.x1, UINT64_C(1))) {
+            LOG_ERROR(NULL, "%s: GPI %llx->%llx expected SUCCESS/count=1 x0=%llx x1=%llx",
+                      GPT_TRANS_FEAT_GDI_TEST_NAME,
+                      (unsigned long long)current_gpi, (unsigned long long)target_gpi,
+                      (unsigned long long)result.x0, (unsigned long long)result.x1);
+            val_firme_gpt_rule_result_fail(out, step, result.x0, result.x1);
             goto cleanup;
         }
 
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
-        if (!val_firme_status_invalid_parameters(res.x0)) {
-            LOG_ERROR(NULL, "%s: NS->SA expected INVALID_PARAMETERS x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)res.x0, (unsigned long long)res.x1);
-            if (out) {
-                out->fail_step = 2;
-                out->last_x0 = res.x0;
-                out->last_x1 = res.x1;
-            }
+        current_gpi = target_gpi;
+        if (!val_firme_check_access_matrix(base_pa, current_gpi, 0ULL, VAL_FALSE, out,
+                                           GPT_TRANS_FEAT_GDI_MATRIX_STEP +
+                                           transition_index * UINT64_C(3))) {
+            LOG_ERROR(NULL, "%s: target=%llx access matrix failed step=%llu x0=%llx x1=%llx",
+                      GPT_TRANS_FEAT_GDI_TEST_NAME, (unsigned long long)current_gpi,
+                      (unsigned long long)out->fail_step,
+                      (unsigned long long)out->last_x0, (unsigned long long)out->last_x1);
             goto cleanup;
         }
-
-        if (out) {
-            out->status = (uint64_t)ACS_STATUS_PASS;
-        }
-        goto cleanup;
     }
 
-    /* Step 4: GDI present: NS -> NSP -> NS. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
-    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-        LOG_ERROR(NULL, "%s: NS->NSP failed x0=%llx x1=%llx",
-                  GPT_TRANS_FEAT_GDI_TEST_NAME,
-                  (unsigned long long)res.x0, (unsigned long long)res.x1);
-        if (out) {
-            out->fail_step = 3;
-            out->last_x0 = res.x0;
-            out->last_x1 = res.x1;
-        }
-        goto cleanup;
-    }
-
-    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSP, test_data, check_value, out,
-                                       GPT_TRANS_FEAT_GDI_MATRIX_NSP_STEP_BASE)) {
-        if (out) {
-            LOG_ERROR(NULL,
-                      "%s: NSP matrix failed step=%llu x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)out->fail_step,
-                      (unsigned long long)out->last_x0,
-                      (unsigned long long)out->last_x1);
-        }
-        goto cleanup;
-    }
-
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
-    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-        LOG_ERROR(NULL, "%s: NSP->NS failed x0=%llx x1=%llx",
-                  GPT_TRANS_FEAT_GDI_TEST_NAME,
-                  (unsigned long long)res.x0, (unsigned long long)res.x1);
-        if (out) {
-            out->fail_step = 4;
-            out->last_x0 = res.x0;
-            out->last_x1 = res.x1;
-        }
-        goto cleanup;
-    }
-
-    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NONSECURE, test_data, check_value, out,
-                                       GPT_TRANS_FEAT_GDI_MATRIX_RESTORE_AFTER_NSP_STEP)) {
-        if (out) {
-            LOG_ERROR(NULL,
-                      "%s: NS restore matrix failed step=%llu x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)out->fail_step,
-                      (unsigned long long)out->last_x0,
-                      (unsigned long long)out->last_x1);
-        }
-        goto cleanup;
-    }
-
-    /* Step 5: GDI present: NS -> SA -> NS. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
-    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-        LOG_ERROR(NULL, "%s: NS->SA failed x0=%llx x1=%llx",
-                  GPT_TRANS_FEAT_GDI_TEST_NAME,
-                  (unsigned long long)res.x0, (unsigned long long)res.x1);
-        if (out) {
-            out->fail_step = 5;
-            out->last_x0 = res.x0;
-            out->last_x1 = res.x1;
-        }
-        goto cleanup;
-    }
-
-    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_SA, test_data, check_value, out,
-                                       GPT_TRANS_FEAT_GDI_MATRIX_SA_STEP_BASE)) {
-        if (out) {
-            LOG_ERROR(NULL,
-                      "%s: SA matrix failed step=%llu x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)out->fail_step,
-                      (unsigned long long)out->last_x0,
-                      (unsigned long long)out->last_x1);
-        }
-        goto cleanup;
-    }
-
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
-    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-        LOG_ERROR(NULL, "%s: SA->NS failed x0=%llx x1=%llx",
-                  GPT_TRANS_FEAT_GDI_TEST_NAME,
-                  (unsigned long long)res.x0, (unsigned long long)res.x1);
-        if (out) {
-            out->fail_step = 6;
-            out->last_x0 = res.x0;
-            out->last_x1 = res.x1;
-        }
-        goto cleanup;
-    }
-
-    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NONSECURE, test_data, check_value, out,
-                                       GPT_TRANS_FEAT_GDI_MATRIX_RESTORE_AFTER_SA_STEP)) {
-        if (out) {
-            LOG_ERROR(NULL,
-                      "%s: NS restore matrix failed step=%llu x0=%llx x1=%llx",
-                      GPT_TRANS_FEAT_GDI_TEST_NAME,
-                      (unsigned long long)out->fail_step,
-                      (unsigned long long)out->last_x0,
-                      (unsigned long long)out->last_x1);
-        }
-        goto cleanup;
-    }
-
-    if (gpc2 != 0U) {
-        /*
-         * Step 6: GPC2 present: validate additional NSO-related transitions.
-         *
-         * These checks are only performed when NS->NSO succeeds.
-         */
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
-        if (val_firme_status_success(res.x0, res.x1, expected_done)) {
-            if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
-                                               GPT_TRANS_FEAT_GDI_MATRIX_NSO_STEP_BASE)) {
-                if (out) {
-                    LOG_ERROR(NULL,
-                              "%s: NSO matrix failed step=%llu x0=%llx x1=%llx",
-                              GPT_TRANS_FEAT_GDI_TEST_NAME,
-                              (unsigned long long)out->fail_step,
-                              (unsigned long long)out->last_x0,
-                              (unsigned long long)out->last_x1);
-                }
-                goto cleanup;
-            }
-
-            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSP, &res);
-            if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-                LOG_ERROR(NULL, "%s: NSO->NSP failed x0=%llx x1=%llx",
-                          GPT_TRANS_FEAT_GDI_TEST_NAME,
-                          (unsigned long long)res.x0, (unsigned long long)res.x1);
-                if (out) {
-                    out->fail_step = 7;
-                    out->last_x0 = res.x0;
-                    out->last_x1 = res.x1;
-                }
-                goto cleanup;
-            }
-
-            if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSP, test_data, check_value, out,
-                                               GPT_TRANS_FEAT_GDI_MATRIX_NSP_FROM_NSO_STEP_BASE)) {
-                if (out) {
-                    LOG_ERROR(NULL,
-                              "%s: NSP matrix failed step=%llu x0=%llx x1=%llx",
-                              GPT_TRANS_FEAT_GDI_TEST_NAME,
-                              (unsigned long long)out->fail_step,
-                              (unsigned long long)out->last_x0,
-                              (unsigned long long)out->last_x1);
-                }
-                goto cleanup;
-            }
-
-            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
-            if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-                LOG_ERROR(NULL, "%s: NSP->NSO failed x0=%llx x1=%llx",
-                          GPT_TRANS_FEAT_GDI_TEST_NAME,
-                          (unsigned long long)res.x0, (unsigned long long)res.x1);
-                if (out) {
-                    out->fail_step = 8;
-                    out->last_x0 = res.x0;
-                    out->last_x1 = res.x1;
-                }
-                goto cleanup;
-            }
-
-            if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
-                                               GPT_TRANS_FEAT_GDI_MATRIX_NSO_RESTORE_STEP_BASE)) {
-                if (out) {
-                    LOG_ERROR(NULL,
-                              "%s: NSO matrix failed step=%llu x0=%llx x1=%llx",
-                              GPT_TRANS_FEAT_GDI_TEST_NAME,
-                              (unsigned long long)out->fail_step,
-                              (unsigned long long)out->last_x0,
-                              (unsigned long long)out->last_x1);
-                }
-                goto cleanup;
-            }
-
-            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_SA, &res);
-            if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-                LOG_ERROR(NULL, "%s: NSO->SA failed x0=%llx x1=%llx",
-                          GPT_TRANS_FEAT_GDI_TEST_NAME,
-                          (unsigned long long)res.x0, (unsigned long long)res.x1);
-                if (out) {
-                    out->fail_step = 9;
-                    out->last_x0 = res.x0;
-                    out->last_x1 = res.x1;
-                }
-                goto cleanup;
-            }
-
-            if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_SA, test_data, check_value, out,
-                                               GPT_TRANS_FEAT_GDI_MATRIX_SA_FROM_NSO_STEP_BASE)) {
-                if (out) {
-                    LOG_ERROR(NULL,
-                              "%s: SA matrix failed step=%llu x0=%llx x1=%llx",
-                              GPT_TRANS_FEAT_GDI_TEST_NAME,
-                              (unsigned long long)out->fail_step,
-                              (unsigned long long)out->last_x0,
-                              (unsigned long long)out->last_x1);
-                }
-                goto cleanup;
-            }
-
-            val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
-            if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
-                LOG_ERROR(NULL, "%s: SA->NSO failed x0=%llx x1=%llx",
-                          GPT_TRANS_FEAT_GDI_TEST_NAME,
-                          (unsigned long long)res.x0, (unsigned long long)res.x1);
-                if (out) {
-                    out->fail_step = 10;
-                    out->last_x0 = res.x0;
-                    out->last_x1 = res.x1;
-                }
-                goto cleanup;
-            }
-
-            if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
-                                               GPT_TRANS_FEAT_GDI_MATRIX_NSO_FROM_SA_STEP_BASE)) {
-                if (out) {
-                    LOG_ERROR(NULL,
-                              "%s: NSO matrix failed step=%llu x0=%llx x1=%llx",
-                              GPT_TRANS_FEAT_GDI_TEST_NAME,
-                              (unsigned long long)out->fail_step,
-                              (unsigned long long)out->last_x0,
-                              (unsigned long long)out->last_x1);
-                }
-                goto cleanup;
-            }
-        }
-    }
-
-    if (out) {
-        out->status = (uint64_t)ACS_STATUS_PASS;
-    }
+    out->status = ACS_STATUS_PASS;
 
 cleanup:
-    if (val_firme_gpt_restore_ns(base_pa, out,
-                                GPT_TRANS_FEAT_GDI_CLEANUP_STEP_BASE) == VAL_FALSE)
+    /* Step 5: scrub NSO to PoC before release; PAS transitions do not promise data retention. */
+    if ((current_gpi == FIRME_GPI_NSO) &&
+        !val_firme_gpt_scrub_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP))
         return VAL_ERROR;
-    if (val_probe_write64(base_pa, clear_value, &fault_info) != VAL_SUCCESS) {
-        val_firme_gpt_rule_result_fail(out,
-            GPT_TRANS_FEAT_GDI_CLEANUP_STEP_BASE + UINT64_C(1),
-            fault_info.esr, fault_info.far);
+
+    if (!val_firme_gpt_restore_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP))
         return VAL_ERROR;
-    }
+
+    if (!val_firme_gpt_scrub_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP + UINT64_C(1)))
+        return VAL_ERROR;
+
     return val_firme_gpt_rule_result_status(out);
 }

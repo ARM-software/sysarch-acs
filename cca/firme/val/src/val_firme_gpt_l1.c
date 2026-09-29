@@ -13,6 +13,7 @@
 #include "val_common/val_status.h"
 #include "val_firme_abi.h"
 #include "val_firme_gpt.h"
+#include "val_firme_gpt_fixture.h"
 #include "val_log.h"
 
 #define VAL_FIRME_GPT_L1_MAX_CALLS UINT32_C(32)
@@ -44,6 +45,70 @@ typedef struct {
     pal_firme_gpt_l1_condition_t condition;
     int64_t expected_status;
 } val_firme_gpt_l1_status_case_t;
+
+static val_firme_gpt_fixture_t g_l1_fixture;
+static uint32_t g_l1_fixture_lock;
+
+/** @brief Prepare a positive lifecycle using an explicitly reserved aperture. */
+static pal_firme_gpt_scenario_status_t val_firme_gpt_l1_owned_prepare(
+    firme_acs_world_t world, pal_firme_gpt_l1_operation_t operation,
+    pal_firme_gpt_l1_condition_t condition, pal_firme_gpt_l1_scenario_t *scenario)
+{
+    pal_firme_gpt_scenario_status_t status;
+    pal_firme_gpt_memory_kind_t kind;
+    uint32_t unlocked = VAL_FALSE;
+
+    if (condition != PAL_FIRME_GPT_L1_CONDITION_VALID_SELF &&
+        condition != PAL_FIRME_GPT_L1_CONDITION_VALID_NON_SELF)
+        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    if (!__atomic_compare_exchange_n(&g_l1_fixture_lock, &unlocked, VAL_TRUE,
+            0, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    kind = condition == PAL_FIRME_GPT_L1_CONDITION_VALID_SELF ?
+           PAL_FIRME_GPT_MEMORY_L1_SELF : PAL_FIRME_GPT_MEMORY_L1_NON_SELF;
+    status = val_firme_gpt_fixture_begin(&g_l1_fixture, world, kind);
+    if (status == PAL_FIRME_GPT_SCENARIO_READY && operation == PAL_FIRME_GPT_L1_DESTROY &&
+        val_firme_gpt_fixture_l1_complete(&g_l1_fixture, VAL_FALSE) != VAL_SUCCESS)
+        status = PAL_FIRME_GPT_SCENARIO_ERROR;
+    if (status != PAL_FIRME_GPT_SCENARIO_READY) {
+        if (val_firme_gpt_fixture_cleanup(&g_l1_fixture) == VAL_SUCCESS)
+            __atomic_store_n(&g_l1_fixture_lock, VAL_FALSE, __ATOMIC_RELEASE);
+        else
+            status = PAL_FIRME_GPT_SCENARIO_ERROR;
+        return status;
+    }
+    *scenario = (pal_firme_gpt_l1_scenario_t){
+        .range_base = g_l1_fixture.memory.range_base,
+        .range_size = g_l1_fixture.range_size,
+        .object_base = g_l1_fixture.memory.object_base,
+        .object_size = g_l1_fixture.object_size,
+        .granule_size = g_l1_fixture.granule_size,
+        .range_initial_gpi = g_l1_fixture.memory.initial_gpi,
+        .object_initial_gpi = FIRME_GPI_NONSECURE,
+        .token = g_l1_fixture.memory.token,
+        .layout = kind == PAL_FIRME_GPT_MEMORY_L1_SELF ?
+            PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING :
+            PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING,
+        .fixture_owned = VAL_TRUE,
+    };
+    return PAL_FIRME_GPT_SCENARIO_READY;
+}
+
+/** @brief Release only the exact owned lifecycle after verified restoration. */
+static pal_firme_gpt_scenario_status_t val_firme_gpt_l1_release(
+    firme_acs_world_t world, pal_firme_gpt_l1_operation_t operation,
+    pal_firme_gpt_l1_condition_t condition,
+    const pal_firme_gpt_l1_scenario_t *scenario)
+{
+    if (!scenario->fixture_owned)
+        return pal_firme_gpt_l1_scenario_cleanup(world, operation, condition, scenario);
+    if (!scenario->token || scenario->token != g_l1_fixture.memory.token ||
+        world != g_l1_fixture.world ||
+        val_firme_gpt_fixture_cleanup(&g_l1_fixture) != VAL_SUCCESS)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    __atomic_store_n(&g_l1_fixture_lock, VAL_FALSE, __ATOMIC_RELEASE);
+    return PAL_FIRME_GPT_SCENARIO_READY;
+}
 
 static const val_firme_gpt_l1_status_case_t g_create_status_cases[] = {
     {PAL_FIRME_GPT_L1_CONDITION_VALID_SELF, FIRME_SUCCESS},
@@ -111,6 +176,9 @@ static void val_firme_gpt_l1_fail(firme_rule_id_t rule_id,
               (unsigned int)rule_id, (unsigned long long)step,
               (unsigned long long)observed,
               (unsigned long long)expected);
+    if (step == VAL_FIRME_GPT_L1_STEP_CLEANUP && out &&
+        out->status == (uint64_t)ACS_STATUS_FAIL && out->fail_step != 0ULL)
+        return;
     val_firme_gpt_rule_result_fail(out, step, observed, expected);
 }
 
@@ -314,14 +382,13 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_validate_scenario(
                               scenario->object_base, scenario->object_size);
         return VAL_FIRME_GPT_L1_FLOW_ERROR;
     }
-
     overlap = val_firme_gpt_l1_ranges_overlap(
         scenario->range_base, scenario->range_size,
         object_granule_base, object_granule_size);
     if (((scenario->layout ==
           PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING) &&
-         ((scenario->object_base < scenario->range_base) ||
-          ((scenario->object_base + scenario->object_size) >
+         ((object_granule_base < scenario->range_base) ||
+          ((object_granule_base + object_granule_size) >
            (scenario->range_base + scenario->range_size)))) ||
         ((scenario->layout ==
           PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING) &&
@@ -361,6 +428,8 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_prepare(
 
     status = pal_firme_gpt_l1_scenario_prepare(
         (uint32_t)world, operation, condition, base_pa, scenario);
+    if (status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE)
+        status = val_firme_gpt_l1_owned_prepare(world, operation, condition, scenario);
     if (status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE) {
         out->status = (uint64_t)ACS_STATUS_SKIP;
         return VAL_FIRME_GPT_L1_FLOW_SKIP;
@@ -379,7 +448,7 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_prepare(
     if (flow == VAL_FIRME_GPT_L1_FLOW_PASS)
         return flow;
 
-    status = pal_firme_gpt_l1_scenario_cleanup(
+    status = val_firme_gpt_l1_release(
         (uint32_t)world, operation, condition, scenario);
     if (status != PAL_FIRME_GPT_SCENARIO_READY) {
         val_firme_gpt_l1_fail(rule_id, out,
@@ -409,7 +478,7 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_cleanup(
 {
     pal_firme_gpt_scenario_status_t status;
 
-    status = pal_firme_gpt_l1_scenario_cleanup(
+    status = val_firme_gpt_l1_release(
         (uint32_t)world, operation, condition, scenario);
     if (status != PAL_FIRME_GPT_SCENARIO_READY) {
         val_firme_gpt_l1_fail(rule_id, out,
@@ -455,15 +524,17 @@ static uint32_t val_firme_gpt_l1_status_valid(
  * @param scenario Prepared scenario.
  * @param continuation Whether CREATE must use a zero object base.
  * @param result Returned registers.
+ * @param record_status Returned ownership/progress recording status.
  * @return Signed FIRME status.
  */
 static int64_t val_firme_gpt_l1_invoke(
     pal_firme_gpt_l1_operation_t operation,
     const pal_firme_gpt_l1_scenario_t *scenario, uint32_t continuation,
-    firme_res_t *result)
+    firme_res_t *result, int *record_status)
 {
     uint64_t object_base;
 
+    *record_status = VAL_SUCCESS;
     if (operation == PAL_FIRME_GPT_L1_CREATE) {
         object_base = (continuation == VAL_TRUE) ? 0ULL :
                       scenario->object_base;
@@ -471,6 +542,14 @@ static int64_t val_firme_gpt_l1_invoke(
             scenario->range_base, object_base, result);
     } else {
         val_firme_gm_l1_gpt_destroy(scenario->range_base, result);
+    }
+
+    if (scenario->fixture_owned) {
+        if (!scenario->token || scenario->token != g_l1_fixture.memory.token)
+            *record_status = VAL_ERROR;
+        else
+            *record_status = val_firme_gpt_fixture_l1_record(&g_l1_fixture,
+                operation == PAL_FIRME_GPT_L1_DESTROY ? VAL_TRUE : VAL_FALSE, result);
     }
 
     return val_firme_status_to_i64(result->x0);
@@ -493,14 +572,16 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_invoke_expected(
 {
     uint32_t continuation;
     int64_t status;
+    int record_status;
 
     continuation =
         ((operation == PAL_FIRME_GPT_L1_CREATE) &&
          (scenario->object_base == 0ULL)) ? VAL_TRUE : VAL_FALSE;
     status = val_firme_gpt_l1_invoke(
-        operation, scenario, continuation, result);
+        operation, scenario, continuation, result, &record_status);
 
-    if ((val_firme_gpt_l1_status_valid(operation, status) == VAL_FALSE) ||
+    if ((record_status != VAL_SUCCESS) ||
+        (val_firme_gpt_l1_status_valid(operation, status) == VAL_FALSE) ||
         (status != expected_status)) {
         val_firme_gpt_l1_fail(rule_id, out,
                               VAL_FIRME_GPT_L1_STEP_INVOKE,
@@ -529,6 +610,7 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_run_to_terminal(
     firme_res_t *result;
     int64_t status = (int64_t)FIRME_BUSY;
     uint32_t continuation = VAL_FALSE;
+    int record_status;
 
     if (!trace)
         return VAL_FIRME_GPT_L1_FLOW_ERROR;
@@ -540,10 +622,11 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_run_to_terminal(
             ((operation == PAL_FIRME_GPT_L1_CREATE) &&
              (continuation == VAL_FALSE)) ? scenario->object_base : 0ULL;
         status = val_firme_gpt_l1_invoke(
-            operation, scenario, continuation, result);
+            operation, scenario, continuation, result, &record_status);
         trace->call_count++;
 
-        if (val_firme_gpt_l1_status_valid(operation, status) == VAL_FALSE) {
+        if (record_status != VAL_SUCCESS ||
+            val_firme_gpt_l1_status_valid(operation, status) == VAL_FALSE) {
             val_firme_gpt_l1_fail(rule_id, out,
                                   VAL_FIRME_GPT_L1_STEP_INVOKE,
                                   result->x0, 0ULL);
@@ -610,7 +693,6 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_check_gpis(
         val_firme_gpt_l1_fail(rule_id, out, step, range_base, range_size);
         return VAL_FIRME_GPT_L1_FLOW_ERROR;
     }
-
     if (scenario && exclude_size && exclude_base == scenario->object_base &&
         exclude_size == scenario->object_size &&
         pal_firme_gpt_granule_envelope(exclude_base, exclude_size,
@@ -619,7 +701,6 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_check_gpis(
         val_firme_gpt_l1_fail(rule_id, out, step, exclude_base, exclude_size);
         return VAL_FIRME_GPT_L1_FLOW_ERROR;
     }
-
     if (!scenario || (scenario->granule_size == 0ULL) ||
         (range_size == 0ULL) ||
         ((range_base % scenario->granule_size) != 0ULL) ||
@@ -1167,7 +1248,6 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_check_object_segment(
         val_firme_gpt_l1_fail(rule_id, out, step, start_index, granule_count);
         return VAL_FIRME_GPT_L1_FLOW_ERROR;
     }
-
     segment_base = object_base +
                    (start_index * scenario->granule_size);
     return val_firme_gpt_l1_check_gpis(
@@ -1215,7 +1295,6 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_create_denied_rule(
         flow = VAL_FIRME_GPT_L1_FLOW_ERROR;
         goto cleanup;
     }
-
     object_granules = object_size / scenario.granule_size;
     if ((scenario.denied_granule_index >= object_granules) ||
         (scenario.denied_granule_gpi == FIRME_GPI_NONSECURE) ||

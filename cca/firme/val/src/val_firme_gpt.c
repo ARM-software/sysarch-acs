@@ -9,6 +9,7 @@
 
 #include "aarch64/sysreg.h"
 #include "pal_platform.h"
+#include "val_common/val_mp.h"
 #include "val_common/val_status.h"
 #include "val_firme_service.h"
 #include "val_log.h"
@@ -197,6 +198,62 @@ uint32_t val_firme_gpt_restore_ns(uint64_t base_pa, firme_rule_res_t *out,
     }
 
     return VAL_TRUE;
+}
+
+/**
+ * @brief Scrub an NS-accessible test granule and clean it to PoC before NSO release.
+ * @param base_pa Owned, identity-mapped test granule physical address.
+ * @param out Rule result, preserving an already recorded primary failure.
+ * @param fail_step Cleanup diagnostic step.
+ * @return VAL_TRUE only after every store and the PoC clean complete.
+ */
+uint32_t val_firme_gpt_scrub_ns(uint64_t base_pa, firme_rule_res_t *out,
+                                 uint64_t fail_step)
+{
+    firme_rule_res_t scrub_result = {0};
+    val_fault_info_t fault_info = {0};
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t granule_size;
+    uint64_t offset;
+
+    if (!out)
+        return VAL_FALSE;
+
+    if (val_firme_gpt_feature_reg1(&feature_reg1, &scrub_result,
+                                   fail_step) == VAL_FALSE)
+        goto failed;
+
+    granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    if ((granule_size == 0ULL) ||
+        (granule_size != PLAT_FIRME_GPT_GRANULE_SIZE) || (base_pa == 0ULL) ||
+        ((base_pa % granule_size) != 0ULL) ||
+        (base_pa > UINT64_MAX - granule_size)) {
+        val_firme_gpt_record_failure(&scrub_result, fail_step, base_pa,
+                                     granule_size);
+        goto failed;
+    }
+
+    for (offset = 0ULL; offset < granule_size; offset += sizeof(uint64_t)) {
+        if (val_probe_write64(base_pa + offset, 0ULL, &fault_info) != VAL_SUCCESS) {
+            val_firme_gpt_record_failure(&scrub_result, fail_step,
+                                         fault_info.esr, fault_info.far);
+            goto failed;
+        }
+    }
+
+    val_cache_clean_poc((uintptr_t)base_pa, (size_t)granule_size);
+    return VAL_TRUE;
+
+failed:
+    LOG_ERROR(NULL, "gpt: scrub/PoC preparation failed step=%llu x0=%llx x1=%llx",
+              (unsigned long long)fail_step,
+              (unsigned long long)scrub_result.last_x0,
+              (unsigned long long)scrub_result.last_x1);
+    if ((out->status != ACS_STATUS_FAIL) ||
+        ((out->fail_step == 0ULL) && (out->last_x0 == 0ULL) &&
+         (out->last_x1 == 0ULL)))
+        *out = scrub_result;
+    return VAL_FALSE;
 }
 
 /**
@@ -911,13 +968,14 @@ uint32_t val_firme_expect_access_world(uint64_t gpi, firme_acs_world_t world)
     case (uint32_t)FIRME_GPI_REALM:
         return (uint32_t)(world == FIRME_ACS_WORLD_REALM);
     case (uint32_t)FIRME_GPI_ROOT:
-        return 0U;
-    case (uint32_t)FIRME_GPI_NONSECURE:
-    case (uint32_t)FIRME_GPI_NSO:
     case (uint32_t)FIRME_GPI_NSP:
     case (uint32_t)FIRME_GPI_SA:
-    default:
+        return VAL_FALSE;
+    case (uint32_t)FIRME_GPI_NONSECURE:
+    case (uint32_t)FIRME_GPI_NSO:
         return (uint32_t)(world == FIRME_ACS_WORLD_NSEL2);
+    default:
+        return VAL_FALSE;
     }
 }
 

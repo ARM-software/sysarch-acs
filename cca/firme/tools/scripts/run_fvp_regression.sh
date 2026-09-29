@@ -22,6 +22,7 @@ UART3_LOG="${UART3_LOG:-${ACS_DIR}/build-fvp-uart3.log}"
 MODEL_LOG="${MODEL_LOG:-${ACS_DIR}/build-fvp-model.log}"
 FVP_PCIE_HIERARCHY="${FVP_PCIE_HIERARCHY:-}"
 FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
+FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH:-0}"
 FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE:-0}"
 FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
 FVP_TIMEOUT_SECS="${FVP_TIMEOUT_SECS:-0}"
@@ -109,14 +110,41 @@ fi
 FVP_MEC_SUPPORT_LEVEL="${FVP_MEC_SUPPORT_LEVEL:-2}"
 FVP_MECID_WIDTH="${FVP_MECID_WIDTH:-16}"
 FVP_ENABLE_SMMU_MEC="${FVP_ENABLE_SMMU_MEC:-${FVP_ENABLE_MEC}}"
+if [[ -z "${FVP_DRAM_SIZE_GB+x}" ]]; then
+    case "${SUITE}" in
+        all|gpt) FVP_DRAM_SIZE_GB=8 ;;
+        *) FVP_DRAM_SIZE_GB=4 ;;
+    esac
+fi
 if [[ -z "${FVP_CACHE_STATE_MODELLED+x}" ]]; then
-    if [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
+    if [[ "${FVP_FIRME_MEC_REFRESH}" == "1" || \
+        "${SUITE}" == "all" || "${SUITE}" == "gpt" ]]; then
+        FVP_CACHE_STATE_MODELLED=1
+    elif [[ "${FVP_ENABLE_MEC}" == "1" ]]; then
         FVP_CACHE_STATE_MODELLED=0
     else
         FVP_CACHE_STATE_MODELLED=1
     fi
 fi
-BUILD_MODE="${BUILD_MODE:-auto}" # auto|always|never
+BUILD_MODE="${BUILD_MODE:-auto}" # auto|always|never|source
+
+case "${FVP_FIRME_MEC_REFRESH}" in
+    0|1) ;;
+    *)
+        echo "ERROR: FVP_FIRME_MEC_REFRESH must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+if [[ "${FVP_FIRME_MEC_REFRESH}" == "1" ]]; then
+    if [[ "${FVP_ENABLE_MEC}" != "1" || "${FVP_ENABLE_RME}" != "1" || \
+        "${PLAT}" != "fvp" || "${FVP_CACHE_STATE_MODELLED}" != "1" ]]; then
+        echo "ERROR: MEC refresh requires FVP MEC/RME and modeled caches." >&2
+        exit 1
+    fi
+fi
+
+source "${ACS_DIR}/tools/scripts/fvp_gpt_config.sh"
+source "${ACS_DIR}/tools/scripts/fvp_tfa_source.sh"
 
 case "${FVP_FIRME_CXL_IDE}" in
     0|1) ;;
@@ -150,22 +178,21 @@ fi
 BUILD_PLAT="${BUILD_BASE}/${PLAT}/${BUILD_TYPE}"
 BUILD_STAMP="${BUILD_PLAT}/firme-build.stamp"
 
-need_build_auto() {
-    python3 - "$ACS_DIR" "$BUILD_PLAT/fip.bin" "$BUILD_STAMP" "$SUITE" "$FVP_ENABLE_SVE" "$FVP_ENABLE_SME" "$FVP_ENABLE_IDE" "$FVP_IDE_KM_PENDING_OPS_MAX" "$FVP_SIMULATE_IDE_KM_UNIT" "$FVP_FIRME_CXL_IDE" "$FIRME_ENABLE_CXL_ENDPOINT_PROBE" "$FIRME_ENABLE_CXL_SPDM" <<'PY'
+need_build_source() {
+    if ! tfa_source_stamp_matches "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+        echo 1
+        return
+    fi
+    if ! firme_run_stamp_matches "${BUILD_STAMP}" \
+        "${FVP_ENABLE_SVE}" "${FVP_ENABLE_SME}" >/dev/null 2>&1; then
+        echo 1
+        return
+    fi
+    python3 - "${ACS_DIR}" "${BUILD_PLAT}/fip.bin" <<'PY'
 import os, sys
 
 acs_dir = sys.argv[1]
 fip = sys.argv[2]
-stamp = sys.argv[3]
-suite = sys.argv[4]
-enable_sve = sys.argv[5]
-enable_sme = sys.argv[6]
-enable_ide = sys.argv[7]
-pending_ops = sys.argv[8]
-simulate_ide = sys.argv[9]
-cxl_ide = sys.argv[10]
-endpoint_probe = sys.argv[11]
-enable_spdm = sys.argv[12]
 
 SOURCE_SUFFIXES = {
     ".c", ".h", ".S", ".s", ".ld", ".mk", ".make", ".json", ".dts", ".dtsi",
@@ -177,7 +204,7 @@ def is_ignored(path: str) -> bool:
     if rel == ".":
         return True
     parts = rel.split(os.sep)
-    if parts[0] in ("build", "build-tfa", ".git", ".venv", "__pycache__"):
+    if parts[0].startswith("build") or parts[0] in (".git", ".venv", "__pycache__"):
         return True
     _, ext = os.path.splitext(rel)
     if ext and ext not in SOURCE_SUFFIXES:
@@ -204,41 +231,6 @@ except FileNotFoundError:
     print("1")
     sys.exit(0)
 
-try:
-    with open(stamp, "r", encoding="utf-8") as stamp_file:
-        stamp_lines = stamp_file.read().splitlines()
-except FileNotFoundError:
-    print("1")
-    sys.exit(0)
-
-if f"SUITE={suite}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FIRME_ENABLE_SVE={enable_sve}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FIRME_ENABLE_SME={enable_sme}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FVP_ENABLE_IDE={enable_ide}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FVP_IDE_KM_PENDING_OPS_MAX={pending_ops}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FVP_SIMULATE_IDE_KM_UNIT={simulate_ide}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FVP_FIRME_CXL_IDE={cxl_ide}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FIRME_ENABLE_CXL_ENDPOINT_PROBE={endpoint_probe}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-if f"FIRME_ENABLE_CXL_SPDM={enable_spdm}" not in stamp_lines:
-    print("1")
-    sys.exit(0)
-
 print("1" if latest > fip_mtime else "0")
 PY
 }
@@ -251,15 +243,20 @@ case "${BUILD_MODE}" in
         DO_BUILD=0
         ;;
     auto)
-        if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
-            # The local TF-A backend may change without any ACS source changes.
-            DO_BUILD=1
-        else
-            DO_BUILD="$(need_build_auto)"
+        DO_BUILD=1
+        if [[ -f "${BUILD_PLAT}/bl1.bin" && -f "${BUILD_PLAT}/fip.bin" ]]; then
+            DO_BUILD=0
         fi
         ;;
+    source)
+        if [[ -z "${TFA_DIR}" || ! -d "${TFA_DIR}" ]]; then
+            echo "ERROR: BUILD_MODE=source requires an available TFA_DIR checkout." >&2
+            exit 1
+        fi
+        DO_BUILD="$(need_build_source)"
+        ;;
     *)
-        echo "ERROR: unknown BUILD_MODE='${BUILD_MODE}' (expected auto|always|never)" >&2
+        echo "ERROR: unknown BUILD_MODE='${BUILD_MODE}' (expected auto|always|never|source)" >&2
         exit 1
         ;;
 esac
@@ -272,48 +269,71 @@ if [[ "${DO_BUILD}" == "1" ]]; then
     fi
     TFA_DIR="${TFA_DIR}" PLAT="${PLAT}" BUILD_BASE="${BUILD_BASE}" BUILD_TYPE="${BUILD_TYPE}" \
         SUITE="${SUITE}" \
+        FVP_GPT_PROFILE="${FVP_GPT_PROFILE}" \
+        TFA_ENABLE_RME_GDI="${TFA_ENABLE_RME_GDI}" \
         FIRME_ENABLE_SVE="${FVP_ENABLE_SVE}" \
         FIRME_ENABLE_SME="${FVP_ENABLE_SME}" \
         FVP_ENABLE_IDE="${FVP_ENABLE_IDE}" \
         FVP_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX}" \
         FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT}" \
         FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE}" \
+        FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH}" \
         FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE}" \
         FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM}" \
         BUILD_TFA="${BUILD_TFA:-auto}" \
         bash "${ACS_DIR}/tools/scripts/build_tfa_fvp.sh"
-    {
-        printf 'SUITE=%s\n' "${SUITE}"
-        printf 'FIRME_ENABLE_SVE=%s\n' "${FVP_ENABLE_SVE}"
-        printf 'FIRME_ENABLE_SME=%s\n' "${FVP_ENABLE_SME}"
-        printf 'FVP_ENABLE_IDE=%s\n' "${FVP_ENABLE_IDE}"
-        printf 'FVP_IDE_KM_PENDING_OPS_MAX=%s\n' "${FVP_IDE_KM_PENDING_OPS_MAX}"
-        printf 'FVP_SIMULATE_IDE_KM_UNIT=%s\n' "${FVP_SIMULATE_IDE_KM_UNIT}"
-        printf 'FVP_FIRME_CXL_IDE=%s\n' "${FVP_FIRME_CXL_IDE}"
-        printf 'FIRME_ENABLE_CXL_ENDPOINT_PROBE=%s\n' "${FIRME_ENABLE_CXL_ENDPOINT_PROBE}"
-        printf 'FIRME_ENABLE_CXL_SPDM=%s\n' "${FIRME_ENABLE_CXL_SPDM}"
-    } > "${BUILD_STAMP}"
 else
     echo "[run] Skipping build (BUILD_MODE=${BUILD_MODE})"
 fi
 
-if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
-    if ! grep -qx 'FVP_FIRME_CXL_IDE=1' "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
-        echo "ERROR: firmware was not built with the requested CXL model backend." >&2
-        exit 1
-    fi
+if ! grep -Fqx "FVP_FIRME_CXL_IDE=${FVP_FIRME_CXL_IDE}" \
+    "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+    echo "ERROR: firmware was not built with the requested CXL model backend." >&2
+    exit 1
+fi
+
+if ! grep -qx "FVP_FIRME_MEC_REFRESH=${FVP_FIRME_MEC_REFRESH}" \
+    "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+    echo "ERROR: rebuild firmware for the requested MEC refresh backend setting." >&2
+    exit 1
+fi
+
+if ! grep -qx "ENABLE_FEAT_RME_GDI=${TFA_ENABLE_RME_GDI}" \
+    "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+    echo "ERROR: rebuild firmware for the requested GPT GDI setting." >&2
+    exit 1
 fi
 
 BL1_BIN="${BUILD_PLAT}/bl1.bin"
 FIP_BIN="${BUILD_PLAT}/fip.bin"
 
-if [[ ! -f "${BL1_BIN}" ]]; then
-    echo "ERROR: BL1 not found: ${BL1_BIN}" >&2
+if [[ ! -s "${BL1_BIN}" ]]; then
+    echo "ERROR: BL1 not found or empty: ${BL1_BIN}" >&2
     exit 1
 fi
-if [[ ! -f "${FIP_BIN}" ]]; then
-    echo "ERROR: FIP not found: ${FIP_BIN}" >&2
+if [[ ! -s "${FIP_BIN}" ]]; then
+    echo "ERROR: FIP not found or empty: ${FIP_BIN}" >&2
     exit 1
+fi
+
+if [[ -f "${BUILD_STAMP}" ]]; then
+    if ! firme_run_stamp_matches "${BUILD_STAMP}" \
+        "${FVP_ENABLE_SVE}" "${FVP_ENABLE_SME}"; then
+        echo "Rebuild explicitly with BUILD_MODE=always for a different run profile." >&2
+        exit 1
+    fi
+else
+    echo "[run] Legacy artifacts: payload manifest unavailable; checking TF-A profile only."
+fi
+if [[ "${BUILD_MODE}" == "source" ]] && \
+    ! tfa_source_stamp_matches "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+    echo "ERROR: firmware does not match the requested TF-A source revision/changes." >&2
+    exit 1
+fi
+echo "[run] DUT provenance from build artifacts (not the run-stage checkout):"
+grep -E '^TFA_GIT_(REV|STATUS_SHA256)=' "${BUILD_PLAT}/.firme_build_tfa.stamp" || true
+if [[ "${BUILD_MODE}" == "auto" || "${BUILD_MODE}" == "never" ]]; then
+    echo "[run] Source freshness is not checked; use BUILD_MODE=source or always to rebuild."
 fi
 
 echo "[run] FVP:"
@@ -326,17 +346,22 @@ echo "  UART2_LOG  : ${UART2_LOG}"
 echo "  UART3_LOG  : ${UART3_LOG}"
 echo "  MODEL_LOG  : ${MODEL_LOG}"
 echo "  SUITE      : ${SUITE}"
+echo "  DRAM GiB   : ${FVP_DRAM_SIZE_GB}"
+echo "  Caches     : ${FVP_CACHE_STATE_MODELLED}"
 echo "  PCIE JSON  : ${FVP_PCIE_HIERARCHY:-model default}"
 echo "  CXL backend: ${FVP_FIRME_CXL_IDE} (experimental)"
+echo "  MEC backend: ${FVP_FIRME_MEC_REFRESH} (experimental)"
 echo "  CXL SPDM   : ${FIRME_ENABLE_CXL_SPDM} (rule-level key/traffic checks)"
 echo "  TELNET     : ${FVP_ENABLE_TELNET} (ports ${FVP_TELNET_PORTS})"
 echo "  TELNET_DIR : ${FVP_TELNET_LOG_DIR}"
 echo "  RME        : ${FVP_ENABLE_RME} (support level ${FVP_RME_SUPPORT_LEVEL})"
+echo "  GPT profile: ${FVP_GPT_PROFILE} (GPC2=${FVP_ENABLE_GPC2}, GDI=${FVP_ENABLE_GDI})"
 echo "  SVE        : ${FVP_ENABLE_SVE}"
 echo "  SME        : ${FVP_ENABLE_SME}"
 echo "  MEC        : ${FVP_ENABLE_MEC} (support level ${FVP_MEC_SUPPORT_LEVEL}, MECID width ${FVP_MECID_WIDTH})"
 echo "  SMMU MEC   : ${FVP_ENABLE_SMMU_MEC}"
-echo "  IDE KM     : ${FVP_ENABLE_IDE} (pending ops ${FVP_IDE_KM_PENDING_OPS_MAX}, simulation ${FVP_SIMULATE_IDE_KM_UNIT})"
+printf '  IDE KM     : %s (pending ops %s, simulation %s)\n' \
+    "${FVP_ENABLE_IDE}" "${FVP_IDE_KM_PENDING_OPS_MAX}" "${FVP_SIMULATE_IDE_KM_UNIT}"
 
 mkdir -p "$(dirname "${UART_LOG}")"
 mkdir -p "$(dirname "${UART1_LOG}")"
@@ -346,6 +371,7 @@ mkdir -p "$(dirname "${MODEL_LOG}")"
 mkdir -p "${FVP_TELNET_LOG_DIR}"
 
 FVP_ARGS=(
+    -C bp.ve_sysregs.exit_on_shutdown=1
     -C pctl.startup=0.0.0.0
     -C bp.vis.disable_visualisation=1
     -C bp.secure_memory=1
@@ -353,6 +379,7 @@ FVP_ARGS=(
     -C cluster0.NUM_CORES=4
     -C cluster1.NUM_CORES=4
     -C cache_state_modelled="${FVP_CACHE_STATE_MODELLED}"
+    -C bp.dram_size="${FVP_DRAM_SIZE_GB}"
     -C bp.secureflashloader.fname="${BL1_BIN}"
     -C bp.flashloader0.fname="${FIP_BIN}"
     -C bp.pl011_uart0.uart_enable=1
@@ -381,6 +408,10 @@ if [[ -n "${FVP_PCIE_HIERARCHY}" ]]; then
     FVP_ARGS+=(-C "pci.hierarchy_file_name=${FVP_PCIE_HIERARCHY}")
 fi
 
+if [[ "${FVP_FIRME_MEC_REFRESH}" == "1" ]]; then
+    FVP_ARGS+=(-C bp.mpe.enable_mec_refresh=1)
+fi
+
 if [[ "${FIRME_ENABLE_CXL_SPDM}" == "1" ]]; then
     FVP_ARGS+=(
         -C pci.chbcr_cxl_mem_base=0x100000000
@@ -404,6 +435,7 @@ if [[ "${FVP_ENABLE_SME}" == "1" ]]; then
 fi
 
 if [[ "${FVP_ENABLE_RME}" == "1" ]]; then
+    # GDI is tri-state: 1 depends on Armv9.6, whereas 2 enables it explicitly.
     # Match the RME enablement knobs used by shrinkwrap configs:
     # -C bp.has_rme=1
     # -C clusterX.rme_support_level=2
@@ -412,6 +444,10 @@ if [[ "${FVP_ENABLE_RME}" == "1" ]]; then
         -C bp.has_rme=1
         -C cluster0.rme_support_level="${FVP_RME_SUPPORT_LEVEL}"
         -C cluster1.rme_support_level="${FVP_RME_SUPPORT_LEVEL}"
+        -C cluster0.has_rme_gpc2="${FVP_ENABLE_GPC2}"
+        -C cluster1.has_rme_gpc2="${FVP_ENABLE_GPC2}"
+        -C cluster0.has_rme_gdi="$((FVP_ENABLE_GDI * 2))"
+        -C cluster1.has_rme_gdi="$((FVP_ENABLE_GDI * 2))"
         -C cluster0.restriction_on_speculative_execution=2
         -C cluster1.restriction_on_speculative_execution=2
         -C cluster0.restriction_on_speculative_execution_aarch32=2
@@ -467,7 +503,8 @@ if [[ "${FVP_TIMEOUT_SECS}" != "0" ]]; then
         echo "ERROR: timeout is required when FVP_TIMEOUT_SECS is set." >&2
         exit 1
     fi
-    FVP_COMMAND=(timeout -k 5 "${FVP_TIMEOUT_SECS}" "${FVP_COMMAND[@]}")
+    FVP_COMMAND=(timeout --preserve-status --verbose -k 5
+        "${FVP_TIMEOUT_SECS}" "${FVP_COMMAND[@]}")
 fi
 fvp_status=0
 
@@ -501,7 +538,7 @@ if [[ "${FVP_ENABLE_TELNET}" == "1" ]]; then
         fi
     done
 
-    "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 &
+    LC_ALL=C "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 &
     fvp_pid="$!"
 
     cleanup() {
@@ -586,20 +623,33 @@ else
     : > "${UART1_LOG}"
     : > "${UART2_LOG}"
     : > "${UART3_LOG}"
-    "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || fvp_status=$?
+    LC_ALL=C "${FVP_COMMAND[@]}" "${FVP_ARGS[@]}" "$@" >"${MODEL_LOG}" 2>&1 || fvp_status=$?
 fi
 
 if [[ "${fvp_status}" != "0" ]] && \
-    [[ "${fvp_status}" != "124" || "${FVP_TIMEOUT_SECS}" == "0" ]]; then
+    { [[ "${fvp_status}" != "143" || "${FVP_TIMEOUT_SECS}" == "0" ]] || \
+        ! grep -Fq 'timeout: sending signal TERM to command ' "${MODEL_LOG}"; }; then
     echo "ERROR: FVP exited abnormally (status ${fvp_status})." >&2
     echo "Check ${MODEL_LOG} and ${UART_LOG}." >&2
+    exit 1
+fi
+
+expected_features="GPT CPU features: RME=${FVP_ENABLE_RME}"
+expected_features+=" GPC2=${FVP_ENABLE_GPC2} GDI=${FVP_ENABLE_GDI}"
+if ! grep -Fq "${expected_features}" "${UART_LOG}"; then
+    echo "ERROR: runtime GPT feature discovery does not match ${FVP_GPT_PROFILE}." >&2
+    echo "Check model parameters, the firmware build and ${UART_LOG}." >&2
     exit 1
 fi
 
 execution_summary='Total Tests run *=[[:space:]]*[1-9][0-9]*[[:space:]]*;'
 execution_summary+=' Tests Passed *=[[:space:]]*[0-9]+[[:space:]]*;'
 execution_summary+=' Tests Failed *=[[:space:]]*[0-9]+[[:space:]]*$'
-if ! grep -Fq 'FIRME tests complete.' "${UART_LOG}" ||
+gpt_abort='GPT state unconfirmed; stopping before memory reuse'
+if grep -Fq "${gpt_abort}" "${UART_LOG}" ||
+    grep -Fq 'FIRME platform shutdown returned unexpectedly' "${UART_LOG}" ||
+    grep -Fq 'CXL Type-2 endpoint DOE cleanup failed' "${UART_LOG}" ||
+    ! grep -Fq 'FIRME tests complete.' "${UART_LOG}" ||
     ! grep -Eq "${execution_summary}" "${UART_LOG}"; then
     echo "ERROR: FVP did not complete FIRME test execution." >&2
     echo "Check ${MODEL_LOG} and ${UART_LOG}." >&2

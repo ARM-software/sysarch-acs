@@ -14,6 +14,7 @@
 #include "val_platform.h"
 #include "val_firme_dispatch.h"
 #include "val_firme_suite.h"
+#include "val_firme_test.h"
 #include "pal_platform.h"
 #include "val_host_mp.h"
 #include "val_common/val_status.h"
@@ -54,6 +55,9 @@ static void nsel2_platform_init(void)
     val_mmu_setup_identity_1g(MMU_EL2, PLAT_DRAM_BASE, PLAT_DRAM_SIZE);
     val_mmu_enable(MMU_EL2);
     val_arch_init_basic(MMU_EL2);
+    LOG_TEST(NULL, "GPT CPU features: RME=%u GPC2=%u GDI=%u",
+             val_firme_feat_rme_present(), val_firme_feat_rme_gpc2_present(),
+             val_firme_feat_rme_gdi_present());
 }
 
 /**
@@ -122,6 +126,8 @@ void nsel2_main(void)
     if (val_host_doe_release_endpoint(&endpoint) != VAL_SUCCESS)
         LOG_ERROR(NULL, "CXL Type-2 endpoint DOE cleanup failed");
 #endif
+    pal_system_off();
+    LOG_ERROR(NULL, "FIRME platform shutdown returned unexpectedly");
     for (;;)
         val_wfe();
 }

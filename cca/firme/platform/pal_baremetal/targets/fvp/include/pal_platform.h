@@ -7,6 +7,9 @@
 
 #pragma once
 
+/** @brief Finish a bare-metal run; successful platform shutdown does not return. */
+void pal_system_off(void);
+
 /*
  * Default platform configuration for the Arm FVP reference platform.
  *

@@ -12,6 +12,7 @@
 #include "val_common/val_status.h"
 #include "val_firme_abi.h"
 #include "val_firme_gpt.h"
+#include "val_firme_gpt_fixture.h"
 #include "val_firme_mec.h"
 #include "val_log.h"
 
@@ -342,6 +343,12 @@ const val_firme_abi_test_ops_t *val_firme_abi_adapter_get(
 
     if (abi_id == VAL_FIRME_ABI_ID_GM_GPT_INFO)
         return &g_gpt_info_ops;
+
+    if ((abi_id == VAL_FIRME_ABI_ID_GM_GPI_SET) ||
+        (abi_id == VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE) ||
+        (abi_id == VAL_FIRME_ABI_ID_GM_L1_GPT_CREATE) ||
+        (abi_id == VAL_FIRME_ABI_ID_GM_L1_GPT_DESTROY))
+        return val_firme_gpt_abi_adapter_get(abi_id);
 
     if ((abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_PROG) ||
         (abi_id == VAL_FIRME_ABI_ID_IDE_KEYSET_GO) ||

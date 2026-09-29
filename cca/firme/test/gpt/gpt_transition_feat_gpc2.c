@@ -26,6 +26,7 @@
 int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
     uint32_t gpc2 = 0;
+    uint32_t nso_owned = VAL_FALSE;
     firme_res_t res = (firme_res_t){0};
     val_fault_info_t fault_info = (val_fault_info_t){0};
     const uint64_t test_data = FIRME_TEST_DATA_PATTERN;
@@ -96,6 +97,7 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
             goto cleanup;
         }
 
+        nso_owned = VAL_TRUE;
         if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
                                            GPT_TRANS_FEAT_GPC2_MATRIX_NSO_STEP_BASE)) {
             if (out) {
@@ -108,7 +110,10 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
             goto cleanup;
         }
 
-        /* Step 4: restore NS and validate enforcement. */
+        /* Step 4: scrub the entire NSO granule to PoC before releasing it to NS. */
+        if (val_firme_gpt_scrub_ns(base_pa, out,
+                                   GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE)
+            return VAL_ERROR;
         val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
         if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
             LOG_ERROR(NULL, "%s: NSO->NS failed x0=%llx x1=%llx",
@@ -122,8 +127,9 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
             goto cleanup;
         }
 
+        nso_owned = VAL_FALSE;
         if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NONSECURE,
-                                           test_data, check_value, out,
+                                           clear_value, check_value, out,
                                            GPT_TRANS_FEAT_GPC2_MATRIX_RESTORE_STEP_BASE)) {
             if (out) {
                 LOG_ERROR(NULL,
@@ -153,6 +159,10 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
+    if ((nso_owned == VAL_TRUE) &&
+        (val_firme_gpt_scrub_ns(base_pa, out,
+                               GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE))
+        return VAL_ERROR;
     if (val_firme_gpt_restore_ns(base_pa, out,
                                 GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE)
         return VAL_ERROR;

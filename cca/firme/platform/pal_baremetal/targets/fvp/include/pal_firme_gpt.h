@@ -21,6 +21,65 @@ typedef enum {
     PAL_FIRME_GPT_SCENARIO_MISMATCH = 3,
 } pal_firme_gpt_scenario_status_t;
 
+typedef enum {
+    PAL_FIRME_GPT_MEMORY_TRANSITION = 0,
+    PAL_FIRME_GPT_MEMORY_L1_SELF,
+    PAL_FIRME_GPT_MEMORY_L1_NON_SELF,
+} pal_firme_gpt_memory_kind_t;
+
+typedef struct {
+    uint64_t range_base;
+    uint64_t range_size;
+    uint64_t initial_gpi;
+    uint64_t object_base;
+    uint64_t pool_base;
+    uint64_t pool_size;
+    uint64_t token;
+} pal_firme_gpt_memory_t;
+
+typedef struct {
+    pal_firme_gpt_scenario_status_t (*acquire)(
+        uint32_t world, pal_firme_gpt_memory_kind_t kind,
+        uint64_t granule_size, uint64_t range_size, uint64_t object_size,
+        pal_firme_gpt_memory_t *memory);
+    pal_firme_gpt_scenario_status_t (*observe)(
+        uint64_t base, uint64_t size, uint64_t granule_size,
+        uint32_t allowed_gpi_mask, uint64_t *checked_count);
+    pal_firme_gpt_scenario_status_t (*release)(uint64_t token);
+} pal_firme_gpt_memory_ops_t;
+
+/**
+ * @brief Install platform reservation and independent GPI observation hooks.
+ * @param ops Permanent hooks, installed once before dispatch on any PE. Acquire
+ * must exclusively reserve backed, mapped, disposable storage, including the
+ * entire target range and all object granules. Release is called only after
+ * restoration; failed sessions retain their reservation until platform reset.
+ * Hooks must serialize leases across worlds and must not infer GPI from the ABI
+ * result being tested. NULL leaves fixtures unavailable.
+ * @return Scenario readiness or error for incomplete/repeated registration.
+ */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_register(
+    const pal_firme_gpt_memory_ops_t *ops);
+
+/** @brief Reserve an explicitly platform-owned fixture; no default PA fallback.
+ * @param world Caller world.
+ * @param kind Required memory layout.
+ * @param granule_size Discovered granule size.
+ * @param range_size Discovered protected range size.
+ * @param object_size Architectural object byte size, not allocation size.
+ * @param memory Returned exclusive reservation and nonzero cleanup token.
+ * @return Scenario readiness, unavailability, or error.
+ */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_acquire(
+    uint32_t world, pal_firme_gpt_memory_kind_t kind, uint64_t granule_size,
+    uint64_t range_size, uint64_t object_size, pal_firme_gpt_memory_t *memory);
+
+/** @brief Release a reservation only after its owning session restores state.
+ * @param token Platform reservation token.
+ * @return Scenario readiness or cleanup error.
+ */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_release(uint64_t token);
+
 /** @brief Compute the complete granule envelope of a nonempty byte range.
  * @param base Byte-range base.
  * @param size Byte-range size.
@@ -98,6 +157,7 @@ typedef struct {
     uint64_t denied_granule_gpi;
     uint64_t token;
     pal_firme_gpt_l1_layout_t layout;
+    uint32_t fixture_owned;
 } pal_firme_gpt_l1_scenario_t;
 
 typedef struct {

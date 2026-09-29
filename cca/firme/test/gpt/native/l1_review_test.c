@@ -35,6 +35,38 @@ static uint64_t g_l1_checked_base;
 static uint64_t g_l1_checked_size;
 static uint64_t g_l1_excluded_size;
 
+/** @brief This fixture supplies PAL scenarios and must not acquire an owned lease. */
+pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
+    val_firme_gpt_fixture_t *fixture, firme_acs_world_t world,
+    pal_firme_gpt_memory_kind_t kind)
+{
+    assert(VAL_FALSE);
+    return PAL_FIRME_GPT_SCENARIO_ERROR;
+}
+
+/** @brief Reject unexpected owned-session operation recording. */
+int val_firme_gpt_fixture_l1_record(val_firme_gpt_fixture_t *fixture,
+    uint32_t destroy, const firme_res_t *result)
+{
+    assert(VAL_FALSE);
+    return VAL_ERROR;
+}
+
+/** @brief Reject unexpected owned-session continuation. */
+int val_firme_gpt_fixture_l1_complete(val_firme_gpt_fixture_t *fixture,
+    uint32_t destroy)
+{
+    assert(VAL_FALSE);
+    return VAL_ERROR;
+}
+
+/** @brief Require cleanup through the prepared PAL fixture instead. */
+int val_firme_gpt_fixture_cleanup(val_firme_gpt_fixture_t *fixture)
+{
+    assert(VAL_FALSE);
+    return VAL_ERROR;
+}
+
 /** @brief Suppress diagnostics from intentional negative cases. */
 uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *fmt, ...)
 {

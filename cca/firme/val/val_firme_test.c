@@ -45,12 +45,11 @@ uint32_t val_firme_feat_rme_present(void)
 }
 
 /**
- *   @brief    - Check whether FEAT_RME_GPC2 is present (TF-A convention).
+ *   @brief    - Check the architected RME feature level for FEAT_RME_GPC2.
  *   @return   - 1 if present, 0 otherwise.
  **/
 uint32_t val_firme_feat_rme_gpc2_present(void)
 {
-    /* TF-A convention: RME level >= 2 indicates FEAT_RME_GPC2. */
     return val_firme_feat_rme_level() >= 2U;
 }
 

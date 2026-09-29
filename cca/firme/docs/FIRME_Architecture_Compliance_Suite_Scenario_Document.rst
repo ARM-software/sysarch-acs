@@ -112,9 +112,12 @@ fixtures, evidence and architecture clarifications are available:
   and after a successful MEC refresh.
 
 **Known TF-A behavior mismatches:** R0092 and R0123 return non-conformant
-status values on the current TF-A. R0113 and R0117 are also gated because
-TF-A rejects the required two-granule operation with
-``FIRME_INVALID_PARAMETERS``.
+status values on the current TF-A. R0111, R0113 and R0117 are temporarily
+registry-gated because the CI firmware returns ``DENIED`` during strict NS
+setup/restoration with the GDI profile. These failures occur before the
+intended progress checks and do not establish their multi-granule behavior.
+Keep the strict bodies and restore their entries with qualified firmware
+and the final CI golden-log update.
 
 R0094, R0095, R0098 and R0120 are temporarily gated after strict setup,
 negative-case and cleanup checks exposed related failures. R0094/R0120

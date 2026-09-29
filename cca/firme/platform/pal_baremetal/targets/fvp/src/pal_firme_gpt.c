@@ -7,6 +7,22 @@
 
 #include "pal_firme_gpt.h"
 
+#include <stddef.h>
+
+static const pal_firme_gpt_memory_ops_t *g_gpt_memory_ops;
+
+/** @brief Install immutable platform-owned memory hooks before MP dispatch. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_register(
+    const pal_firme_gpt_memory_ops_t *ops)
+{
+    if (!ops)
+        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    if (g_gpt_memory_ops || !ops->acquire || !ops->observe || !ops->release)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    g_gpt_memory_ops = ops;
+    return PAL_FIRME_GPT_SCENARIO_READY;
+}
+
 /** @brief Compute a checked full-granule ownership envelope. */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_granule_envelope(
     uint64_t base, uint64_t size, uint64_t granule_size,
@@ -27,6 +43,28 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_granule_envelope(
     *covered_base = aligned_base;
     *covered_size = top - aligned_base;
     return PAL_FIRME_GPT_SCENARIO_READY;
+}
+
+/** @brief Request an exclusive backed-memory lease without guessing addresses. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_acquire(
+    uint32_t world, pal_firme_gpt_memory_kind_t kind, uint64_t granule_size,
+    uint64_t range_size, uint64_t object_size, pal_firme_gpt_memory_t *memory)
+{
+    if (!memory)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    *memory = (pal_firme_gpt_memory_t){0};
+    if (!g_gpt_memory_ops)
+        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    return g_gpt_memory_ops->acquire(world, kind, granule_size, range_size,
+                                    object_size, memory);
+}
+
+/** @brief Return an independently restored reservation to its platform owner. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_memory_release(uint64_t token)
+{
+    if (!token || !g_gpt_memory_ops)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    return g_gpt_memory_ops->release(token);
 }
 
 /**
@@ -232,7 +270,7 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_monitor_end(
 }
 
 /**
- * @brief Report independent L1 GPT GPI observation support for the FVP.
+ * @brief Check complete granules using the registered independent observer.
  * @param range_base First granule physical address.
  * @param range_size Size of the complete range in bytes.
  * @param granule_size Granule size in bytes.
@@ -240,22 +278,54 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_monitor_end(
  * @param exclude_size Optional excluded subrange size.
  * @param allowed_gpi_mask Bit mask of accepted GPI encodings.
  * @param checked_count Number of granules checked.
- * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE until instrumentation exists.
+ * @return Readiness only when every non-excluded granule was observed.
  */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_gpi_range_check(
     uint64_t range_base, uint64_t range_size, uint64_t granule_size,
     uint64_t exclude_base, uint64_t exclude_size,
     uint32_t allowed_gpi_mask, uint64_t *checked_count)
 {
-    (void)range_base;
-    (void)range_size;
-    (void)granule_size;
-    (void)exclude_base;
-    (void)exclude_size;
-    (void)allowed_gpi_mask;
+    uint64_t segment_base[2];
+    uint64_t segment_size[2];
+    uint64_t observed;
+    uint32_t segment;
+    pal_firme_gpt_scenario_status_t status;
 
-    if (checked_count)
-        *checked_count = 0ULL;
-
-    return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    if (!checked_count)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    *checked_count = 0ULL;
+    if (!granule_size || !range_size || !allowed_gpi_mask ||
+        (granule_size & (granule_size - 1ULL)) ||
+        (allowed_gpi_mask & ~UINT32_C(0xffff)) ||
+        (range_base % granule_size) || (range_size % granule_size) ||
+        (range_base > UINT64_MAX - range_size) ||
+        (exclude_size > range_size))
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    if (exclude_size && ((exclude_base < range_base) ||
+        (exclude_base > range_base + range_size - exclude_size) ||
+        (exclude_base % granule_size) || (exclude_size % granule_size)))
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+    if (!g_gpt_memory_ops)
+        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    segment_base[0] = range_base;
+    segment_size[0] = exclude_size ? exclude_base - range_base : range_size;
+    segment_base[1] = exclude_size ? exclude_base + exclude_size : 0ULL;
+    segment_size[1] = exclude_size ?
+        range_base + range_size - segment_base[1] : 0ULL;
+    for (segment = 0U; segment < 2U; segment++) {
+        if (!segment_size[segment])
+            continue;
+        observed = 0ULL;
+        status = g_gpt_memory_ops->observe(
+            segment_base[segment], segment_size[segment], granule_size,
+            allowed_gpi_mask, &observed);
+        if (observed > segment_size[segment] / granule_size)
+            return PAL_FIRME_GPT_SCENARIO_ERROR;
+        *checked_count += observed;
+        if (status != PAL_FIRME_GPT_SCENARIO_READY)
+            return status;
+        if (observed != segment_size[segment] / granule_size)
+            return PAL_FIRME_GPT_SCENARIO_ERROR;
+    }
+    return PAL_FIRME_GPT_SCENARIO_READY;
 }

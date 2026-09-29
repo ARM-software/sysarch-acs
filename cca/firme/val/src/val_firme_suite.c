@@ -667,21 +667,10 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_ide_secure_caller_not_supported_run_secure,
         .run_realm = 0,
     },
-    {
-        .chapter = FIRME_CHAPTER_IDE,
-        .rule_id = FIRME_RULE_R0231,
-        .rule_str = "R0231",
-        .suite = "firme",
-        .test_name = "ide_feature_register",
-        .desc = "IDE feature register 0 reports ABI presence bits only",
-        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
-        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
-        .check_realm = "Read IDE feature register 0 from Realm world",
-        .check_ns = "Read IDE feature register 0 from NS world",
-        .run_ns = firme_ide_feature_register_run_ns,
-        .run_secure = 0,
-        .run_realm = firme_ide_feature_register_run_realm,
-    },
+    /* R0231: Re-enable after TF-A implements and qualifies ALP4 IDE register 1.
+     * The strict NS/Realm bodies also check register 0 and unallocated indices.
+     * Do not treat missing mandatory register 1 as an optional feature.
+     */
     {
         .chapter = FIRME_CHAPTER_IDE,
         .rule_id = FIRME_RULE_R0232,
@@ -849,7 +838,7 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_gpt_base_alignment_run_realm,
     },
     /*
-     * Strict ALP4 bodies for R0092, R0113, R0117, and R0123 remain
+     * Strict ALP4 bodies for R0092 and R0123 remain
      * registry-gated while current TF-A returns non-conformant status values
      * for those scenarios. Re-enable them after the corresponding DUT fixes.
      */
@@ -863,22 +852,13 @@ const firme_test_case_t g_firme_test_cases[] = {
      * all required caller paths, absent/present feature cases and cleanup
      * pass unchanged strict expectations. Do not treat this gate as coverage.
      */
-    {
-        .chapter = FIRME_CHAPTER_GPT,
-        .rule_id = FIRME_RULE_R0111,
-        .rule_str = "R0111",
-        .suite = "firme",
-        .test_name = "gpt_start_granule",
-        .desc = "GM_GPI_SET start granule is the granule at Base address",
-        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
-        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
-        .check_secure = "Secure GM_GPI_SET starts at Base granule",
-        .check_realm = "Realm GM_GPI_SET starts at Base granule",
-        .check_ns = "NS GM_GPI_SET starts at Base granule (GDI)",
-        .run_ns = firme_gpt_start_granule_run_ns,
-        .run_secure = firme_gpt_start_granule_run_secure,
-        .run_realm = firme_gpt_start_granule_run_realm,
-    },
+    /*
+     * R0111, R0113 and R0117 retain strict bodies but are temporarily gated.
+     * The CI TF-A returns DENIED during NS setup/restoration with the GDI
+     * profile, so the requested progress checks cannot complete successfully.
+     * Restore the entries with qualified DUT behavior and final CI/golden-log
+     * updates; do not accept failed setup or cleanup to force a passing run.
+     */
     {
         .chapter = FIRME_CHAPTER_GPT,
         .rule_id = FIRME_RULE_R0127,

@@ -11,6 +11,20 @@
 
 #include "../../../val/src/val_firme_gpt.c"
 #include "../../../val/src/val_firme_gpt_l1.c"
+#include "../../../val/src/val_firme_gpt_fixture.c"
+#define pal_firme_gpt_scenario_prepare native_unused_scenario_prepare
+#define pal_firme_gpt_scenario_cleanup native_unused_scenario_cleanup
+#define pal_firme_gpt_concurrent_info_prepare native_unused_concurrent_prepare
+#define pal_firme_gpt_concurrent_info_begin native_unused_concurrent_begin
+#define pal_firme_gpt_concurrent_info_finish native_unused_concurrent_finish
+#define pal_firme_gpt_concurrent_info_cleanup native_unused_concurrent_cleanup
+#include "../../../platform/pal_baremetal/targets/fvp/src/pal_firme_gpt.c"
+#undef pal_firme_gpt_scenario_prepare
+#undef pal_firme_gpt_scenario_cleanup
+#undef pal_firme_gpt_concurrent_info_prepare
+#undef pal_firme_gpt_concurrent_info_begin
+#undef pal_firme_gpt_concurrent_info_finish
+#undef pal_firme_gpt_concurrent_info_cleanup
 #include "../gpt_op_continue_progress.c"
 #include "../gpt_busy_retry.c"
 #include "../gpt_gpi_set_progress.c"
@@ -74,6 +88,15 @@ static uint64_t probe_accessible_count;
 static uint64_t feature_reg1;
 static uint64_t feature_reg0;
 static int64_t feature_status;
+static uint32_t feature_gpc2;
+static uint32_t feature_gdi;
+static uint32_t allow_protected_access;
+static uint64_t current_gpi;
+static uint64_t granule_data[TEST_PGS / sizeof(uint64_t)];
+static size_t scrub_writes;
+static size_t cleaned_writes;
+static size_t clean_count;
+static size_t failed_write_index;
 static pal_firme_gpt_scenario_status_t fixture_status;
 static pal_firme_gpt_scenario_t fixture;
 
@@ -91,6 +114,15 @@ static void test_reset(void)
     feature_reg1 = 0ULL;
     feature_reg0 = FIRME_GM_FEATURE_REG0_ALLOCATED_BITS | (UINT64_C(1) << 63);
     feature_status = FIRME_SUCCESS;
+    feature_gpc2 = VAL_FALSE;
+    feature_gdi = VAL_FALSE;
+    allow_protected_access = VAL_FALSE;
+    current_gpi = FIRME_GPI_NONSECURE;
+    memset(granule_data, 0, sizeof(granule_data));
+    scrub_writes = 0U;
+    cleaned_writes = 0U;
+    clean_count = 0U;
+    failed_write_index = SIZE_MAX;
     fixture_status = PAL_FIRME_GPT_SCENARIO_READY;
     fixture = (pal_firme_gpt_scenario_t){
         .base_pa = TEST_BASE,
@@ -197,16 +229,16 @@ uint32_t val_firme_feat_rme_present(void)
     return VAL_TRUE;
 }
 
-/** @brief Select the baseline-RME path for GPC2 regressions. */
+/** @brief Select the GPC2 feature-present or feature-absent path. */
 uint32_t val_firme_feat_rme_gpc2_present(void)
 {
-    return VAL_FALSE;
+    return feature_gpc2;
 }
 
-/** @brief Select the baseline-RME path for GDI regressions. */
+/** @brief Select the GDI feature-present or feature-absent path. */
 uint32_t val_firme_feat_rme_gdi_present(void)
 {
-    return VAL_FALSE;
+    return feature_gdi;
 }
 
 /** @brief Model the other worlds' GPFs against an NS granule. */
@@ -232,6 +264,13 @@ void val_firme_gm_gpi_set_do(uint64_t base, uint64_t count, uint64_t target,
         probe_accessible_count += result->x1;
 }
 
+/** @brief Forward raw fixture calls to the existing scripted native transport. */
+void val_firme_gm_gpi_set(uint64_t base, uint64_t count, uint64_t attributes,
+                          firme_res_t *result)
+{
+    val_firme_gm_gpi_set_do(base, count, attributes, result);
+}
+
 /** @brief Return one scripted continuation response. */
 void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *result)
 {
@@ -243,9 +282,21 @@ int val_firme_gm_gpi_set_complete(uint64_t base, uint64_t count,
                                   uint64_t target, firme_res_t *result)
 {
     test_invoke(TEST_COMPLETE, base, count, target, result);
+    if ((feature_gpc2 || feature_gdi) &&
+        val_firme_status_success(result->x0, result->x1, count)) {
+        if ((current_gpi == FIRME_GPI_NSO) && (target == FIRME_GPI_NONSECURE)) {
+            assert(clean_count != 0U && cleaned_writes == scrub_writes);
+            assert(scrub_writes >= TEST_PGS / sizeof(uint64_t));
+        }
+
+        current_gpi = target;
+    }
     if ((target == FIRME_GPI_NONSECURE) &&
         (val_firme_status_to_i64(result->x0) == FIRME_SUCCESS))
         probe_accessible_count = 0ULL;
+    if ((target == FIRME_GPI_REALM) &&
+        (val_firme_status_to_i64(result->x0) == FIRME_SUCCESS))
+        probe_accessible_count = result->x1;
     return VAL_SUCCESS;
 }
 
@@ -314,8 +365,13 @@ int val_probe_read64(uint64_t address, uint64_t *value, val_fault_info_t *fault)
     probe_count++;
     *value = FIRME_TEST_DATA_PATTERN;
     *fault = (val_fault_info_t){0};
-    if ((probe_fault == VAL_TRUE) &&
-        (address >= TEST_BASE + probe_accessible_count * TEST_PGS)) {
+    if ((feature_gpc2 || feature_gdi) &&
+        (address >= TEST_BASE) && (address < TEST_BASE + TEST_PGS))
+        *value = granule_data[(address - TEST_BASE) / sizeof(uint64_t)];
+    if (((probe_fault == VAL_TRUE) &&
+         (address >= TEST_BASE + probe_accessible_count * TEST_PGS)) ||
+        (!allow_protected_access && (address == TEST_BASE) &&
+         ((current_gpi == FIRME_GPI_NSP) || (current_gpi == FIRME_GPI_SA)))) {
         fault->faulted = 1ULL;
         fault->esr = (UINT64_C(0x25) << 26) | UINT64_C(0x28);
         fault->far = address;
@@ -328,7 +384,27 @@ int val_probe_read64(uint64_t address, uint64_t *value, val_fault_info_t *fault)
 int val_probe_write64(uint64_t address, uint64_t value, val_fault_info_t *fault)
 {
     *fault = (val_fault_info_t){0};
+    if (scrub_writes == failed_write_index) {
+        fault->faulted = VAL_TRUE;
+        fault->esr = (UINT64_C(0x25) << 26) | UINT64_C(0x28);
+        fault->far = address;
+        return VAL_ERROR;
+    }
+
+    if ((address >= TEST_BASE) && (address < TEST_BASE + TEST_PGS))
+        granule_data[(address - TEST_BASE) / sizeof(uint64_t)] = value;
+    if (value == 0ULL)
+        scrub_writes++;
     return VAL_SUCCESS;
+}
+
+/** @brief Require a whole-granule scrub before the caller performs its PoC clean. */
+void val_cache_clean_poc(uintptr_t address, size_t size)
+{
+    assert(address == TEST_BASE && size == TEST_PGS);
+    assert(scrub_writes >= TEST_PGS / sizeof(uint64_t));
+    cleaned_writes = scrub_writes;
+    clean_count++;
 }
 
 /** @brief Supply a prepared fixture without manipulating real memory. */
@@ -561,7 +637,7 @@ static void test_cleanup(void)
     test_reply(FIRME_DENIED, 0ULL, 0ULL);
     assert(firme_gpt_transition_feat_gdi_run_ns(TEST_BASE, &out) == VAL_ERROR);
     assert(out.status == ACS_STATUS_FAIL);
-    assert(out.fail_step == GPT_TRANS_FEAT_GDI_CLEANUP_STEP_BASE);
+    assert(out.fail_step == GPT_TRANS_FEAT_GDI_CLEANUP_STEP);
 
     test_reset();
     test_reply(FIRME_DENIED, 0ULL, 0ULL);
@@ -743,6 +819,100 @@ static void test_absent_feature_status(void)
     assert(out.status == ACS_STATUS_PASS && call_count == response_count);
 }
 
+/** @brief Exercise every positive GDI edge and reject a failure at any transition. */
+static void test_present_feature_transitions(void)
+{
+    const size_t transition_count = 9U;
+    firme_rule_res_t out;
+    size_t failed_transition;
+    size_t transition_index;
+    size_t word_index;
+
+    test_reset();
+    feature_gpc2 = VAL_TRUE;
+    for (transition_index = 0U; transition_index < 3U; transition_index++)
+        test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    assert(firme_gpt_transition_feat_gpc2_run_ns(TEST_BASE, &out) == VAL_SUCCESS);
+    assert(out.status == ACS_STATUS_PASS && call_count == response_count);
+    assert(clean_count == 1U);
+    for (word_index = 0U; word_index < TEST_PGS / sizeof(uint64_t); word_index++)
+        assert(granule_data[word_index] == 0ULL);
+
+    for (failed_transition = 0U; failed_transition <= transition_count; failed_transition++) {
+        test_reset();
+        feature_gpc2 = VAL_TRUE;
+        feature_gdi = VAL_TRUE;
+        for (transition_index = 0U; transition_index < failed_transition; transition_index++)
+            test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+        if (failed_transition < transition_count)
+            test_reply(FIRME_DENIED, 0ULL, 0ULL);
+        test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+
+        if (failed_transition < transition_count) {
+            assert(firme_gpt_transition_feat_gdi_run_ns(TEST_BASE, &out) == VAL_ERROR);
+            assert(out.status == ACS_STATUS_FAIL);
+            assert(out.fail_step == GPT_TRANS_FEAT_GDI_TRANSITION_STEP + failed_transition);
+        } else {
+            assert(firme_gpt_transition_feat_gdi_run_ns(TEST_BASE, &out) == VAL_SUCCESS);
+            assert(out.status == ACS_STATUS_PASS && clean_count == 2U);
+        }
+
+        assert(call_count == response_count);
+        assert(current_gpi == FIRME_GPI_NONSECURE);
+    }
+
+    test_reset();
+    feature_gpc2 = VAL_TRUE;
+    feature_gdi = VAL_TRUE;
+    allow_protected_access = VAL_TRUE;
+    test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    assert(firme_gpt_transition_feat_gdi_run_ns(TEST_BASE, &out) == VAL_ERROR);
+    assert(out.fail_step == GPT_TRANS_FEAT_GDI_MATRIX_STEP);
+
+    test_reset();
+    failed_write_index = 2U;
+    val_firme_gpt_rule_result_init(&out);
+    assert(!val_firme_gpt_scrub_ns(TEST_BASE, &out, 1ULL));
+    assert(out.status == ACS_STATUS_FAIL && clean_count == 0U);
+    assert(!val_firme_gpt_scrub_ns(TEST_BASE + 1ULL, &out, 2ULL));
+    assert(out.fail_step == 1ULL);
+    assert(!val_firme_gpt_scrub_ns(TEST_BASE, NULL, 3ULL));
+}
+
+/** @brief Reject terminal setup errors and exercise the GDI-aware NS start-granule check. */
+static void test_start_granule_setup(void)
+{
+    firme_rule_res_t out;
+    size_t call_index;
+
+    test_reset();
+    test_reply(FIRME_DENIED, 0ULL, 0ULL);
+    test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    assert(firme_gpt_start_granule_run_realm(TEST_BASE, &out) == VAL_ERROR);
+    assert(out.fail_step == GPT_START_GRANULE_STEP_SET);
+    assert(val_firme_status_to_i64(out.last_x0) == FIRME_DENIED);
+    assert(call_count == response_count && calls[2].base == TEST_BASE + TEST_PGS);
+
+    test_reset();
+    feature_gpc2 = VAL_TRUE;
+    feature_gdi = VAL_TRUE;
+    for (call_index = 0U; call_index < 5U; call_index++)
+        test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    assert(firme_gpt_start_granule_run_ns(TEST_BASE, &out) == VAL_SUCCESS);
+    assert(out.status == ACS_STATUS_PASS && call_count == response_count);
+    assert(calls[2].target == FIRME_GPI_NSP);
+    assert(calls[4].base == TEST_BASE + TEST_PGS);
+
+    test_reset();
+    probe_fault = VAL_TRUE;
+    for (call_index = 0U; call_index < 5U; call_index++)
+        test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    assert(firme_gpt_start_granule_run_realm(TEST_BASE, &out) == VAL_SUCCESS);
+    assert(out.status == ACS_STATUS_PASS && call_count == response_count);
+}
+
 /** @brief Check failure returns from GPT_INFO assertions and retained-operation cleanup. */
 static void test_additional_body_failures(void)
 {
@@ -807,6 +977,7 @@ static void test_additional_body_failures(void)
     test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
     test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
     test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
+    test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
     assert(firme_gpt_start_granule_run_realm(TEST_BASE, &out) == VAL_ERROR);
     assert(out.status == ACS_STATUS_FAIL && call_count == response_count);
     assert(out.fail_step == GPT_START_GRANULE_STEP_ADJACENT_ACCESS);
@@ -815,7 +986,7 @@ static void test_additional_body_failures(void)
     out.status = ACS_STATUS_FAIL;
     test_reply(FIRME_SUCCESS, 1ULL, 0ULL);
     assert(gpt_start_granule_transition(TEST_BASE, FIRME_GPI_REALM,
-        VAL_TRUE, &out, 1ULL) == VAL_SUCCESS);
+        &out, 1ULL) == VAL_SUCCESS);
     assert(out.status == ACS_STATUS_FAIL);
     assert(firme_gpt_info_concurrent_state_run_ns(TEST_BASE, &out) == VAL_SUCCESS);
     assert(out.status == ACS_STATUS_SKIP);
@@ -833,6 +1004,8 @@ int main(void)
     test_features();
     test_rule_return_contract();
     test_absent_feature_status();
+    test_present_feature_transitions();
+    test_start_granule_setup();
     test_additional_body_failures();
     puts("GPT native regressions: PASS");
     return VAL_SUCCESS;

@@ -20,6 +20,7 @@ SPMD_SPM_AT_SEL2="${SPMD_SPM_AT_SEL2:-1}" # 1: SPMC at S-EL2, 0: SPMC at S-EL1
 CTX_INCLUDE_EL2_REGS="${CTX_INCLUDE_EL2_REGS:-}" # TF-A internal knob; set only when needed
 TFA_E="${TFA_E:-}" # TF-A warnings-as-errors (E=1 enables -Werror)
 FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
+FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH:-0}"
 SUITE="${SUITE:-all}"
 SUITE="$(printf '%s' "${SUITE}" | tr '[:upper:]' '[:lower:]')"
 
@@ -31,6 +32,8 @@ case "${SUITE}" in
         exit 1
         ;;
 esac
+
+source "${ACS_DIR}/tools/scripts/fvp_gpt_config.sh"
 
 if [[ -z "${FVP_ENABLE_IDE+x}" ]]; then
     case "${SUITE}" in
@@ -63,6 +66,25 @@ if [[ "${FVP_FIRME_CXL_IDE}" == "1" ]]; then
     fi
     if ! grep -q 'FVP_FIRME_CXL_IDE' "${TFA_DIR}/plat/arm/board/fvp/platform.mk"; then
         echo "ERROR: this TF-A checkout does not provide the experimental CXL backend." >&2
+        exit 1
+    fi
+fi
+
+case "${FVP_FIRME_MEC_REFRESH}" in
+    0|1) ;;
+    *)
+        echo "ERROR: FVP_FIRME_MEC_REFRESH must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+if [[ "${FVP_FIRME_MEC_REFRESH}" == "1" ]]; then
+    if [[ "${FIRME_SUPPORT}" != "1" || "${PLAT}" != "fvp" ]]; then
+        echo "ERROR: MEC refresh requires FIRME_SUPPORT=1 and PLAT=fvp." >&2
+        exit 1
+    fi
+    if ! grep -q 'FVP_FIRME_MEC_REFRESH' \
+        "${TFA_DIR}/plat/arm/board/fvp/platform.mk"; then
+        echo "ERROR: this TF-A checkout has no experimental MEC refresh backend." >&2
         exit 1
     fi
 fi
@@ -223,6 +245,7 @@ echo "  FIRME IDE KM      : ${FVP_ENABLE_IDE}"
 echo "  IDE pending ops   : ${FVP_IDE_KM_PENDING_OPS_MAX}"
 echo "  IDE KM simulation : ${FVP_SIMULATE_IDE_KM_UNIT}"
 echo "  CXL model backend : ${FVP_FIRME_CXL_IDE} (experimental)"
+echo "  MEC model backend : ${FVP_FIRME_MEC_REFRESH} (experimental)"
 
 if [[ "${SPMD_SPM_AT_SEL2}" == "0" ]]; then
     cat <<'EOF'
@@ -295,43 +318,7 @@ print(h.hexdigest())
 PY
 }
 
-tfa_git_rev() {
-    if command -v git >/dev/null 2>&1 && [[ -e "${TFA_DIR}/.git" ]]; then
-        git -C "${TFA_DIR}" rev-parse HEAD 2>/dev/null || true
-    fi
-}
-
-tfa_git_status_sha256() {
-    if command -v git >/dev/null 2>&1 && [[ -e "${TFA_DIR}/.git" ]]; then
-        python3 - "${TFA_DIR}" <<'PY'
-import hashlib
-import os
-import subprocess
-import sys
-
-tfa_dir = sys.argv[1]
-digest = hashlib.sha256(subprocess.check_output(
-    ["git", "-C", tfa_dir, "diff", "--binary", "HEAD", "--"],
-    stderr=subprocess.DEVNULL,
-))
-untracked = subprocess.check_output(
-    ["git", "-C", tfa_dir, "ls-files", "--others", "--exclude-standard", "-z"],
-    stderr=subprocess.DEVNULL,
-)
-for name in sorted(filter(None, untracked.split(b"\0"))):
-    digest.update(name + b"\0")
-    path = os.path.join(os.fsencode(tfa_dir), name)
-    if os.path.islink(path):
-        digest.update(os.readlink(path))
-    else:
-        with open(path, "rb") as source:
-            for chunk in iter(lambda: source.read(65536), b""):
-                digest.update(chunk)
-    digest.update(b"\0")
-print(digest.hexdigest())
-PY
-    fi
-}
+source "${ACS_DIR}/tools/scripts/fvp_tfa_source.sh"
 
 expected_stamp() {
     local rev
@@ -347,6 +334,7 @@ BUILD_TYPE=${BUILD_TYPE}
 LOG_LEVEL=${TFA_LOG_LEVEL}
 SPD=spmd
 ENABLE_RME=1
+ENABLE_FEAT_RME_GDI=${TFA_ENABLE_RME_GDI}
 SPMD_SPM_AT_SEL2=${SPMD_SPM_AT_SEL2}
 CTX_INCLUDE_EL2_REGS=${CTX_INCLUDE_EL2_REGS}
 ENABLE_SVE_FOR_NS=${TFA_ENABLE_SVE_FOR_NS}
@@ -361,6 +349,7 @@ FIRME_SUPPORT_IDE_KM=${FVP_ENABLE_IDE}
 PLAT_IDE_KM_PENDING_OPS_MAX=${FVP_IDE_KM_PENDING_OPS_MAX}
 FVP_SIMULATE_IDE_KM_UNIT=${FVP_SIMULATE_IDE_KM_UNIT}
 FVP_FIRME_CXL_IDE=${FVP_FIRME_CXL_IDE}
+FVP_FIRME_MEC_REFRESH=${FVP_FIRME_MEC_REFRESH}
 SP_LAYOUT_FILE=${ACS_DIR}/tools/config/sp_layout.json
 SP_LAYOUT_SHA256=$(sp_layout_sha256 "${ACS_DIR}/tools/config/sp_layout.json")
 SPMC_MANIFEST_SHA256=$(sp_layout_sha256 "${ACS_DIR}/tools/config/fvp_spmc_manifest.dts")
@@ -426,6 +415,7 @@ EOF
         LOG_LEVEL="${TFA_LOG_LEVEL}" \
         SPD=spmd \
         ENABLE_RME=1 \
+        ENABLE_FEAT_RME_GDI="${TFA_ENABLE_RME_GDI}" \
         SPMD_SPM_AT_SEL2="${SPMD_SPM_AT_SEL2}" \
         CTX_INCLUDE_EL2_REGS="${CTX_INCLUDE_EL2_REGS}" \
         ENABLE_SVE_FOR_NS="${TFA_ENABLE_SVE_FOR_NS}" \
@@ -440,6 +430,7 @@ EOF
         PLAT_IDE_KM_PENDING_OPS_MAX="${FVP_IDE_KM_PENDING_OPS_MAX}" \
         FVP_SIMULATE_IDE_KM_UNIT="${FVP_SIMULATE_IDE_KM_UNIT}" \
         FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE}" \
+        FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH}" \
         SP_LAYOUT_FILE="${ACS_DIR}/tools/config/sp_layout.json" \
         ARM_SPMC_MANIFEST_DTS="${ACS_DIR}/tools/config/fvp_spmc_manifest.dts" \
         BL32="${BL32_BIN}" \
@@ -484,6 +475,8 @@ echo "Creating ${FIP_BIN}..."
     "${FIP_BIN}"
 
 "${FIPTOOL_BIN}" info "${FIP_BIN}"
+
+firme_run_stamp_write "${BUILD_PLAT_ABS}" "${FIRME_ENABLE_SVE}" "${FIRME_ENABLE_SME}"
 
 echo "Done."
 echo "Artifacts:"
