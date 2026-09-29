@@ -221,6 +221,7 @@ static void val_firme_abi_invoke(val_firme_abi_test_context_t *context)
     int64_t status;
 
     for (attempt = 0U; attempt < VAL_FIRME_ABI_RETRY_LIMIT; attempt++) {
+        context->call_issued = VAL_TRUE;
         val_smccc_smc_call_frame(&context->input, &context->output);
         if (context->abi->execution_model !=
             VAL_FIRME_ABI_EXEC_RETRYABLE)
@@ -347,7 +348,6 @@ static int val_firme_abi_execute_case(
     firme_rule_res_t *out)
 {
     uint32_t case_pass = VAL_TRUE;
-    uint32_t call_issued = VAL_FALSE;
     int adapter_status = VAL_SUCCESS;
     int cleanup_status = VAL_SUCCESS;
     int prepare_status = VAL_SUCCESS;
@@ -355,6 +355,7 @@ static int val_firme_abi_execute_case(
     val_firme_abi_frame_clear(&context->input);
     val_firme_abi_frame_clear(&context->output);
     val_firme_abi_scratch_clear(context);
+    context->call_issued = VAL_FALSE;
     context->input.registers[0] = context->abi->fid;
 
     if (ops->prepare_state)
@@ -393,7 +394,6 @@ static int val_firme_abi_execute_case(
 
     if (adapter_status == VAL_SUCCESS) {
         val_firme_abi_invoke(context);
-        call_issued = VAL_TRUE;
         case_pass = val_firme_abi_validate_expectation(context);
 
         if ((case_pass == VAL_TRUE) && ops->validate_output)
@@ -416,7 +416,7 @@ static int val_firme_abi_execute_case(
         LOG_ERROR(NULL,
                   "%s: adapter error for %s case=%s issued=%u cleanup=%d",
                   context->plan->name, context->abi->name,
-                  context->test_case->name, (unsigned int)call_issued,
+                  context->test_case->name, (unsigned int)context->call_issued,
                   cleanup_status);
         if (out->fail_step == 0ULL) {
             val_firme_abi_result_fail(
@@ -500,6 +500,7 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
     context.world = request->world;
     context.base_pa = request->base_pa;
     context.adapter_context = request->adapter_context;
+    context.call_issued = VAL_FALSE;
     val_firme_abi_frame_clear(&context.input);
     val_firme_abi_frame_clear(&context.output);
     val_firme_abi_scratch_clear(&context);

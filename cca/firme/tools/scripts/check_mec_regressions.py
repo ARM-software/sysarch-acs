@@ -76,7 +76,8 @@ int firme_mec_context_refresh_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 int firme_mec_ciphertext_decorrelation_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 int firme_mec_common_mecid_width_payload(firme_acs_world_t world, uint32_t phase,
                                          uint32_t argument, firme_rule_res_t *out);
-int firme_mec_common_mecid_width_entry(uint32_t num_pe, val_test_run_payload_t run_payload,
+int firme_mec_common_mecid_width_entry(firme_acs_world_t world, uint32_t num_pe,
+                                       val_test_run_payload_t run_payload,
                                        firme_rule_res_t *out);
 
 /** @brief Suppress production diagnostics during expected-failure checks. */
@@ -214,33 +215,40 @@ static void check_common_width(void)
 
     g_pe_widths[PAL_PE_COUNT - 1U] = 4U;
     g_smmu_reads = 0U;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS && g_smmu_reads == 4U);
     g_advertised_width = 5U;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     g_advertised_width = 4U;
     g_smmu_widths[1] = 3U;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     g_advertised_width = 3U;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS);
     g_smmu_widths[1] = 0U;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_SUCCESS);
     assert(result.status == ACS_STATUS_SKIP);
     g_mmio_fail = VAL_TRUE;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     g_mmio_fail = VAL_FALSE;
     g_duplicate_smmu = VAL_TRUE;
-    assert(firme_mec_common_mecid_width_entry(PAL_PE_COUNT, run_payload, &result) ==
+    assert(firme_mec_common_mecid_width_entry(FIRME_ACS_WORLD_REALM,
+             PAL_PE_COUNT, run_payload, &result) ==
            VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
 }

@@ -11,8 +11,13 @@ MP-aware entries execute as part of the normal registry, not a separate run.
 
 - Set `num_pe` to a fixed count or `VAL_TEST_ALL_PES`. Insufficient PEs produce
   an explicit SKIP; VAL does not silently reduce the requested count.
-- The dispatcher calls `mp_entry(num_pe, run_payload, out)`. The test owns setup,
-  payload phases, reduction, cleanup, and the single final rule result.
+- The dispatcher calls `mp_entry(world, num_pe, run_payload, out)` for each
+  declared caller world. The test owns that world's setup, payload phases,
+  reduction and cleanup; VAL combines these into one rule result.
+- Required-world unavailability is an error. A required-world SKIP prevents
+  an overall PASS, and an optional world's malformed response is not an
+  availability SKIP. Successful MP aggregation runs the same `post_run` hook
+  as ordinary tests, with all per-world result words available.
 - Invoke `run_payload(num_pe, &request, results)` for a phase. The request names
   the registered rule, caller world, phase, and a 32-bit test-defined argument.
   Results include the actual PE index and all four 64-bit rule-result words.
@@ -28,6 +33,10 @@ MP-aware entries execute as part of the normal registry, not a separate run.
   despite SMC32 messaging and RMMD's limited return-register forwarding.
 - Worker contexts reside in persistent VAL storage, not the entry's stack.
   Failed cleanup prevents storage reuse and stops subsequent suite execution.
+
+Ordinary Realm rule calls also retain results per PE and retrieve every word
+with a matching execution sequence. This preserves `last_x1` diagnostics without
+assuming that the platform dispatcher forwards additional return registers.
 
 R0239 registers `VAL_TEST_ALL_PES`. It reads MECIDR_EL2 on each PE in Realm,
 reads every discovered SMMU's R_IDR3 and R_MECIDR, and computes the independent

@@ -29,7 +29,7 @@ typedef int (*val_test_run_payload_t)(uint32_t num_pe,
                                       const val_test_payload_t *payload,
                                       val_test_pe_result_t *results);
 
-typedef int (*val_test_mp_entry_t)(uint32_t num_pe,
+typedef int (*val_test_mp_entry_t)(firme_acs_world_t world, uint32_t num_pe,
                                   val_test_run_payload_t run_payload,
                                   firme_rule_res_t *out);
 

@@ -14,10 +14,90 @@
 #include "val_firme_test.h"
 #include "val_firme_ide_link.h"
 #include "val_firme_mp_test.h"
+#include "val_common/val_mp.h"
 
 #include <stddef.h>
 
 #define RMI_SUCCESS UINT64_C(0)
+
+typedef struct {
+    firme_rule_res_t result;
+    uint32_t rule_id;
+    uint32_t sequence;
+    uint32_t valid;
+} val_realm_rule_record_t;
+
+static val_realm_rule_record_t g_realm_rule_records[PAL_PE_COUNT];
+
+/**
+ * @brief Retain ordinary rule diagnostics and return each full-width word safely.
+ * @param cmd Execute or retrieve the current PE's result.
+ * @param rule_id Registered rule identifier.
+ * @param base_or_sequence Base address for execution, sequence for retrieval.
+ * @param sequence_or_word Execution sequence, or result word index.
+ * @param expected_pe Physical PE index expected by the host.
+ * @param response ACS status and payload, restricted to RMMD-forwarded words.
+ */
+static void val_realm_rule_command(uint64_t cmd, uint64_t rule_id,
+                                    uint64_t base_or_sequence,
+                                    uint64_t sequence_or_word, uint64_t expected_pe,
+                                    firme_acs_call_res_t *response)
+{
+    uint32_t pe_index = val_pe_index();
+    val_realm_rule_record_t *record;
+    uint64_t value;
+
+    if (response == NULL)
+        return;
+
+    *response = (firme_acs_call_res_t){.x0 = ACS_STATUS_ERR};
+    if ((pe_index >= PAL_PE_COUNT) || (expected_pe != pe_index) ||
+        (rule_id > UINT32_MAX))
+        return;
+
+    record = &g_realm_rule_records[pe_index];
+    if (cmd == FIRME_ACS_CMD_RUN_RULE) {
+        record->valid = VAL_FALSE;
+        if ((sequence_or_word == 0U) || (sequence_or_word > UINT32_MAX))
+            return;
+
+        record->rule_id = (uint32_t)rule_id;
+        record->sequence = (uint32_t)sequence_or_word;
+        record->result = (firme_rule_res_t){.status = ACS_STATUS_ERR};
+        val_firme_rule_run_realm((firme_rule_id_t)rule_id, base_or_sequence,
+                                 &record->result);
+        record->valid = VAL_TRUE;
+        response->x0 = record->result.status;
+        response->x1 = record->sequence;
+        response->x2 = rule_id;
+        return;
+    }
+
+    if ((cmd != FIRME_ACS_CMD_GET_RULE_RESULT) || !record->valid ||
+        (record->rule_id != rule_id) || (record->sequence != base_or_sequence))
+        return;
+
+    switch (sequence_or_word) {
+    case 0U:
+        value = record->result.status;
+        break;
+    case 1U:
+        value = record->result.fail_step;
+        break;
+    case 2U:
+        value = record->result.last_x0;
+        break;
+    case 3U:
+        value = record->result.last_x1;
+        break;
+    default:
+        return;
+    }
+
+    response->x0 = record->result.status;
+    response->x1 = (uint32_t)value;
+    response->x2 = (uint32_t)(value >> 32);
+}
 
 /**
  *   @brief    - Complete an ACS RMI dispatch request and return to RMMD.
@@ -107,12 +187,12 @@ void rel2_handle_smc(smc_args_t *args)
         status = mp_response.x0;
         out0 = mp_response.x1;
         out1 = mp_response.x2;
-    } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_RULE) {
-        firme_rule_res_t rr = {0};
-        val_firme_rule_run_realm((firme_rule_id_t)a0, a1, &rr);
-        status = rr.status;
-        out0 = rr.fail_step;
-        out1 = rr.last_x0;
+    } else if ((cmd == FIRME_ACS_CMD_RUN_RULE) ||
+               (cmd == FIRME_ACS_CMD_GET_RULE_RESULT)) {
+        val_realm_rule_command(cmd, a0, a1, a2, a3, &mp_response);
+        status = mp_response.x0;
+        out0 = mp_response.x1;
+        out1 = mp_response.x2;
     } else {
         status = (uint64_t)ACS_STATUS_ERR;
         out0 = cmd;

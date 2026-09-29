@@ -16,9 +16,11 @@
 #include "val_firme_spmd_msg.h"
 #include "val_host_mp.h"
 
-static int is_pass_or_skip(uint64_t s)
+/** @brief Identify completed passing or explicitly skipped rule outcomes. */
+static int is_pass_or_skip(uint64_t status)
 {
-    return (s == (uint64_t)ACS_STATUS_PASS) || (s == (uint64_t)ACS_STATUS_SKIP);
+    return (status == (uint64_t)ACS_STATUS_PASS) ||
+           (status == (uint64_t)ACS_STATUS_SKIP);
 }
 
 /**
@@ -159,6 +161,125 @@ static void update_counts(uint64_t status,
 }
 
 /**
+ * @brief Execute all declared MP worlds and apply the ordinary post-run contract.
+ * @param test_case Registered MP entry and world requirements.
+ * @param overall Aggregated outcome; required-world skips cannot become PASS.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
+ */
+static int val_host_run_mp_case(const firme_test_case_t *test_case,
+                                firme_acs_call_res_t *overall)
+{
+    firme_acs_call_res_t worlds[3] = { {0} };
+    firme_acs_call_res_t ping = {0};
+    firme_rule_res_t result = {.status = ACS_STATUS_ERR};
+    uint32_t num_pe;
+    uint32_t selected;
+    uint32_t world_index;
+    uint32_t world_mask;
+    uint32_t have_result = VAL_FALSE;
+    uint32_t required_skip = VAL_FALSE;
+    firme_acs_call_res_t skipped = {.x0 = ACS_STATUS_SKIP};
+    int entry_status = VAL_ERROR;
+    int post_status = VAL_ERROR;
+    int transport_status = VAL_SUCCESS;
+
+    if (overall == NULL)
+        return VAL_ERROR;
+
+    *overall = (firme_acs_call_res_t){.x0 = ACS_STATUS_ERR};
+    if ((test_case == NULL) || (test_case->mp_entry == NULL) ||
+        (test_case->mp_payload == NULL))
+        return VAL_ERROR;
+
+    num_pe = (test_case->num_pe == VAL_TEST_ALL_PES) ?
+             PAL_PE_COUNT : test_case->num_pe;
+    selected = test_case->required_worlds_mask | test_case->optional_worlds_mask;
+    if ((num_pe == 0U) || (selected == 0U) ||
+        ((selected & ~(FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                       FIRME_WORLD_MASK_REALM)) != 0U) ||
+        ((test_case->required_worlds_mask & test_case->optional_worlds_mask) != 0U))
+        return VAL_ERROR;
+
+    if (num_pe > PAL_PE_COUNT) {
+        LOG_WARN(NULL, "MP test requires %u PEs; platform provides %u",
+                 num_pe, (unsigned int)PAL_PE_COUNT);
+        overall->x0 = ACS_STATUS_SKIP;
+        overall->x1 = num_pe;
+        overall->x2 = PAL_PE_COUNT;
+        return VAL_SUCCESS;
+    }
+
+    for (world_index = 0U; world_index <= FIRME_ACS_WORLD_REALM; world_index++) {
+        worlds[world_index].x0 = ACS_STATUS_SKIP;
+        world_mask = UINT32_C(1) << world_index;
+        if ((selected & world_mask) == 0U)
+            continue;
+
+        result = (firme_rule_res_t){.status = ACS_STATUS_ERR};
+        transport_status = VAL_SUCCESS;
+        ping = (firme_acs_call_res_t){.x0 = ACS_STATUS_PASS};
+        if (world_index != FIRME_ACS_WORLD_NSEL2)
+            transport_status = val_firme_world_call((firme_acs_world_t)world_index,
+                                                     FIRME_ACS_CMD_PING,
+                                                     0U, 0U, 0U, 0U, &ping);
+
+        if (transport_status != VAL_SUCCESS) {
+            result.status = (test_case->required_worlds_mask & world_mask) ?
+                            ACS_STATUS_ERR : ACS_STATUS_SKIP;
+            result.fail_step = world_mask;
+            LOG_WARN(NULL, "MP world=%u unavailable; required=%u", world_index,
+                     (test_case->required_worlds_mask & world_mask) != 0U);
+        } else if (ping.x0 != ACS_STATUS_PASS) {
+            result.status = ACS_STATUS_ERR;
+            result.fail_step = world_mask;
+            result.last_x0 = ping.x0;
+        } else {
+            LOG_TEST(NULL, "MP test: world=%u selected PEs=%u", world_index, num_pe);
+            entry_status = test_case->mp_entry((firme_acs_world_t)world_index,
+                                               num_pe, val_host_run_test_payload,
+                                               &result);
+            if ((result.status != ACS_STATUS_PASS) &&
+                (result.status != ACS_STATUS_SKIP) &&
+                (result.status != ACS_STATUS_FAIL) &&
+                (result.status != ACS_STATUS_ERR))
+                result.status = ACS_STATUS_ERR;
+
+            if ((entry_status != VAL_SUCCESS) && is_pass_or_skip(result.status))
+                result.status = ACS_STATUS_ERR;
+        }
+
+        worlds[world_index] = (firme_acs_call_res_t){
+            .x0 = result.status, .x1 = result.fail_step,
+            .x2 = result.last_x0, .x3 = result.last_x1,
+        };
+        combine_rule_result(overall, &worlds[world_index], &have_result);
+        if (((test_case->required_worlds_mask & world_mask) != 0U) &&
+            (result.status == ACS_STATUS_SKIP)) {
+            required_skip = VAL_TRUE;
+            skipped = worlds[world_index];
+        }
+
+        if (!val_host_test_payload_healthy()) {
+            overall->x0 = ACS_STATUS_ERR;
+            return VAL_ERROR;
+        }
+    }
+
+    if (is_pass_or_skip(overall->x0) && required_skip)
+        *overall = skipped;
+
+    if ((overall->x0 == ACS_STATUS_PASS) && (test_case->post_run != NULL)) {
+        post_status = test_case->post_run(&worlds[FIRME_ACS_WORLD_NSEL2],
+                                          &worlds[FIRME_ACS_WORLD_SECURE],
+                                          &worlds[FIRME_ACS_WORLD_REALM], overall);
+        if ((post_status != VAL_SUCCESS) && is_pass_or_skip(overall->x0))
+            overall->x0 = ACS_STATUS_ERR;
+    }
+
+    return is_pass_or_skip(overall->x0) ? VAL_SUCCESS : VAL_ERROR;
+}
+
+/**
  *   @brief    - Run a single test case from the registry (may involve multiple worlds).
  *   @param    - tc      : Test case descriptor.
  *   @param    - total   : Total rules executed (in/out).
@@ -180,8 +301,6 @@ static void run_test_case(const firme_test_case_t *tc,
     uint32_t realm_required = 0U;
     uint32_t ns_required = 0U;
     int post_status = VAL_SUCCESS;
-    firme_rule_res_t mp_result = {.status = ACS_STATUS_ERR};
-    uint32_t num_pe = 0U;
 
     if (!tc)
         return;
@@ -196,24 +315,7 @@ static void run_test_case(const firme_test_case_t *tc,
     print_test_begin(tc->suite, tc->test_name, tc->rule_str, tc->desc);
 
     if (tc->mp_entry != NULL) {
-        num_pe = (tc->num_pe == VAL_TEST_ALL_PES) ? PAL_PE_COUNT : tc->num_pe;
-        if (num_pe > PAL_PE_COUNT) {
-            LOG_WARN(NULL, "MP test requires %u PEs; platform provides %u",
-                     num_pe, (unsigned int)PAL_PE_COUNT);
-            mp_result.status = ACS_STATUS_SKIP;
-        } else if ((num_pe != 0U) && (tc->mp_payload != NULL)) {
-            LOG_TEST(NULL, "MP test: selected PEs=%u", num_pe);
-            post_status = tc->mp_entry(num_pe, val_host_run_test_payload, &mp_result);
-            if ((post_status != VAL_SUCCESS) &&
-                ((mp_result.status == ACS_STATUS_PASS) ||
-                 (mp_result.status == ACS_STATUS_SKIP)))
-                mp_result.status = ACS_STATUS_ERR;
-        }
-
-        overall.x0 = mp_result.status;
-        overall.x1 = mp_result.fail_step;
-        overall.x2 = mp_result.last_x0;
-        overall.x3 = mp_result.last_x1;
+        val_host_run_mp_case(tc, &overall);
         log_rule_status(tc->rule_str, &overall);
         print_test_end();
         update_counts(overall.x0, total, passed, failed, skipped);

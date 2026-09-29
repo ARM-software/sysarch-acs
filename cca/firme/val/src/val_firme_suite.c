@@ -156,7 +156,7 @@ extern int firme_ide_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *o
 #endif
 
 #if FIRME_ENABLE_MEC
-extern int firme_mec_common_mecid_width_entry(uint32_t num_pe,
+extern int firme_mec_common_mecid_width_entry(firme_acs_world_t world, uint32_t num_pe,
                                              val_test_run_payload_t run_payload,
                                              firme_rule_res_t *out);
 extern int firme_mec_common_mecid_width_payload(firme_acs_world_t world,
@@ -702,8 +702,9 @@ const firme_test_case_t g_firme_test_cases[] = {
 #if FIRME_ENABLE_MEC
     /*
      * Strict ALP4 bodies for R0236 and R0238 remain registry-gated because
-     * the current FVP TF-A refresh hook does not replace the MPE context.
-     * Re-enable them when the DUT provides an observable context refresh.
+     * the default FVP TF-A refresh hook does not replace the MPE context.
+     * Local opt-in functional-model qualification does not qualify the
+     * default DUT; re-enable only for a qualified deployment.
      */
     {
         .chapter = FIRME_CHAPTER_MEC,
@@ -873,7 +874,7 @@ const firme_test_case_t g_firme_test_cases[] = {
         .optional_worlds_mask = FIRME_WORLD_MASK_NS,
         .check_secure = "Secure GM_GPI_SET starts at Base granule",
         .check_realm = "Realm GM_GPI_SET starts at Base granule",
-        .check_ns = "NS changing transition unavailable on this platform",
+        .check_ns = "NS GM_GPI_SET starts at Base granule (GDI)",
         .run_ns = firme_gpt_start_granule_run_ns,
         .run_secure = firme_gpt_start_granule_run_secure,
         .run_realm = firme_gpt_start_granule_run_realm,

@@ -136,6 +136,7 @@ set(FIRME_COMMON_CFLAGS
     -Wdeclaration-after-statement
     -ffreestanding -fno-builtin -fno-stack-protector -fno-omit-frame-pointer
     $<$<COMPILE_LANGUAGE:C>:-mstrict-align>
+    $<$<COMPILE_LANGUAGE:C>:-mno-outline-atomics>
     -O2 -g
 )
 

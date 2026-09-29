@@ -264,12 +264,13 @@ static int mec_common_width_collect_status(uint32_t num_pe, firme_rule_res_t *ou
 
 /**
  * @brief Coordinate R0239 in the normal suite using all platform PEs and SMMUs.
+ * @param world Selected caller world; this rule executes in Realm only.
  * @param num_pe Number selected by the registry; this rule requires every PE.
  * @param run_payload VAL-owned boot/dispatch/wait/off lifecycle for each phase.
  * @param out One aggregated rule result, independent of the number of PEs.
  * @return VAL_SUCCESS for PASS/SKIP, VAL_ERROR for any test/infrastructure error.
  */
-int firme_mec_common_mecid_width_entry(uint32_t num_pe,
+int firme_mec_common_mecid_width_entry(firme_acs_world_t world, uint32_t num_pe,
                                        val_test_run_payload_t run_payload,
                                        firme_rule_res_t *out)
 {
@@ -292,7 +293,8 @@ int firme_mec_common_mecid_width_entry(uint32_t num_pe,
         return VAL_ERROR;
 
     mec_common_width_init_result(out);
-    if ((num_pe != PAL_PE_COUNT) || (run_payload == NULL) ||
+    if ((world != FIRME_ACS_WORLD_REALM) || (num_pe != PAL_PE_COUNT) ||
+        (run_payload == NULL) ||
         (val_iovirt_smmu_count(&smmu_count) != VAL_SUCCESS)) {
         mec_common_width_fail(out, MEC_COMMON_WIDTH_STEP_TOPOLOGY, num_pe, PAL_PE_COUNT);
         return VAL_ERROR;

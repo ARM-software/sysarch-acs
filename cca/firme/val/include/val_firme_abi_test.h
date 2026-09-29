@@ -45,6 +45,7 @@ struct val_firme_abi_test_context {
     const val_firme_abi_case_t *test_case;
     smccc_call_frame_t input;
     smccc_call_frame_t output;
+    uint32_t call_issued;
     firme_acs_world_t world;
     uint64_t base_pa;
     uint64_t scratch[VAL_FIRME_ABI_SCRATCH_QWORDS];

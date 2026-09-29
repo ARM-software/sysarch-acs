@@ -9,9 +9,13 @@
 
 #include "val_firme_spmd_msg.h"
 #include "val_firme_rmmd.h"
+#include "val_firme_mp_test.h"
 #include "val_common/val_smccc.h"
 #include "val_common/val_status.h"
+#include "val_common/val_mp.h"
 #include "pal_platform.h"
+
+static uint32_t g_realm_rule_sequence[PAL_PE_COUNT];
 
 /**
  *   @brief    - Check whether a value is an ACS rule status.
@@ -79,6 +83,47 @@ static int realm_transport_rmi_dispatch(uint64_t cmd,
 }
 
 /**
+ * @brief Retrieve a rule result without reading registers RMMD does not forward.
+ * @param rule_id Rule whose execution completed on this PE.
+ * @param sequence Token matching the retained result.
+ * @param pe_index Physical PE on which execution and retrieval occur.
+ * @param status ACS status from the execution acknowledgement.
+ * @param result Destination for all four rule-result words.
+ * @return VAL_SUCCESS for a consistent result, otherwise VAL_ERROR.
+ */
+static int val_firme_realm_rule_result(uint64_t rule_id, uint32_t sequence,
+                                       uint32_t pe_index, uint64_t status,
+                                       firme_acs_call_res_t *result)
+{
+    smccc_res_t response = {0};
+    uint64_t words[VAL_TEST_RESULT_WORDS] = {0};
+    uint32_t word_index;
+
+    if ((result == NULL) || !val_firme_is_rule_status(status))
+        return VAL_ERROR;
+
+    for (word_index = 0U; word_index < VAL_TEST_RESULT_WORDS; word_index++) {
+        if ((realm_transport_rmi_dispatch(FIRME_ACS_CMD_GET_RULE_RESULT,
+                                          rule_id, sequence, word_index,
+                                          pe_index, &response) != VAL_SUCCESS) ||
+            (response.x0 != 0ULL) || (response.x1 != 0ULL) ||
+            (response.x2 != status) || (response.x3 > UINT32_MAX) ||
+            (response.x4 > UINT32_MAX))
+            return VAL_ERROR;
+
+        words[word_index] = response.x3 | (response.x4 << 32);
+    }
+
+    if (words[0] != status)
+        return VAL_ERROR;
+
+    *result = (firme_acs_call_res_t){
+        .x0 = words[0], .x1 = words[1], .x2 = words[2], .x3 = words[3],
+    };
+    return VAL_SUCCESS;
+}
+
+/**
  *   @brief    - Call into another world and return a normalized result.
  *   @param    - world : Target world (Secure or Realm).
  *   @param    - cmd   : FIRME ACS command to execute.
@@ -95,6 +140,8 @@ int val_firme_world_call(firme_acs_world_t world, firme_acs_cmd_t cmd,
 {
     smccc_res_t out = {0};
     uint16_t ns_id = 0;
+    uint32_t pe_index = 0U;
+    uint32_t sequence = 0U;
 
     if (res) {
         volatile uint64_t *dst = (volatile uint64_t *)(void *)res;
@@ -126,6 +173,18 @@ int val_firme_world_call(firme_acs_world_t world, firme_acs_cmd_t cmd,
     }
 
     if (world == FIRME_ACS_WORLD_REALM) {
+        if (cmd == FIRME_ACS_CMD_RUN_RULE) {
+            pe_index = val_pe_index();
+            if ((pe_index >= PAL_PE_COUNT) || (arg0 > UINT32_MAX))
+                return VAL_ERROR;
+
+            sequence = ++g_realm_rule_sequence[pe_index];
+            if (sequence == 0U)
+                sequence = ++g_realm_rule_sequence[pe_index];
+            arg2 = sequence;
+            arg3 = pe_index;
+        }
+
         if (realm_transport_rmi_dispatch((uint64_t)cmd, arg0, arg1, arg2, arg3, &out) !=
             VAL_SUCCESS) {
             return VAL_ERROR;
@@ -139,6 +198,17 @@ int val_firme_world_call(firme_acs_world_t world, firme_acs_cmd_t cmd,
              */
             if ((out.x0 == 0ULL) && (out.x1 == 0ULL) &&
                 val_firme_is_rule_status(out.x2)) {
+                if (cmd == FIRME_ACS_CMD_RUN_RULE) {
+                    res->x0 = ACS_STATUS_ERR;
+                    if ((out.x3 != sequence) || (out.x4 != arg0) ||
+                        (val_firme_realm_rule_result(arg0, sequence, pe_index,
+                                                     out.x2, res) != VAL_SUCCESS)) {
+                        res->x0 = ACS_STATUS_ERR;
+                        res->x1 = sequence;
+                    }
+                    return VAL_SUCCESS;
+                }
+
                 res->x0 = out.x2;
                 res->x1 = out.x3;
                 res->x2 = out.x4;
