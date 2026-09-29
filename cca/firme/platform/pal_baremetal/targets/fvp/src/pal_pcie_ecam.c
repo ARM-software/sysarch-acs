@@ -8,6 +8,7 @@
 #include "pal_pcie.h"
 #include "pal_platform.h"
 #include "val_common/val_status.h"
+#include "val_common/val_fault.h"
 
 #define PAL_PCIE_BDF_SEG_SHIFT 24U
 #define PAL_PCIE_BDF_BUS_SHIFT 16U
@@ -58,27 +59,6 @@ static uint32_t pal_pcie_bdf_device(uint32_t bdf)
 static uint32_t pal_pcie_bdf_function(uint32_t bdf)
 {
     return (bdf >> PAL_PCIE_BDF_FUNC_SHIFT) & PAL_PCIE_BDF_FIELD_MASK;
-}
-
-/**
- *   @brief    - Read a 32-bit MMIO value from a platform address.
- *   @param    - address : MMIO address to read.
- *   @return   - 32-bit MMIO value.
- **/
-static uint32_t pal_mmio_read32(uint64_t address)
-{
-    return *(volatile uint32_t *)(uintptr_t)address;
-}
-
-/**
- *   @brief    - Write a 32-bit MMIO value to a platform address.
- *   @param    - address : MMIO address to write.
- *   @param    - value   : 32-bit MMIO value.
- *   @return   - void
- **/
-static void pal_mmio_write32(uint64_t address, uint32_t value)
-{
-    *(volatile uint32_t *)(uintptr_t)address = value;
 }
 
 /**
@@ -258,8 +238,7 @@ int pal_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value)
     if (pal_pcie_cfg_address(bdf, offset, &address) != VAL_SUCCESS)
         return VAL_ERROR;
 
-    *value = pal_mmio_read32(address);
-    return VAL_SUCCESS;
+    return val_mmio_read32_checked(address, value);
 }
 
 /**
@@ -276,6 +255,5 @@ int pal_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value)
     if (pal_pcie_cfg_address(bdf, offset, &address) != VAL_SUCCESS)
         return VAL_ERROR;
 
-    pal_mmio_write32(address, value);
-    return VAL_SUCCESS;
+    return val_mmio_write32_checked(address, value);
 }

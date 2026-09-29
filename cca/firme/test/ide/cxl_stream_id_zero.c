@@ -5,6 +5,7 @@
  *
  */
 
+#include "cxl_test_common.h"
 #include "val_pcie.h"
 #include "val_firme_ide.h"
 #include "val_firme_rules.h"
@@ -17,7 +18,10 @@
 #define IDE_CXL_STREAM_STEP_STREAM_ID   UINT64_C(3)
 #define IDE_CXL_STREAM_HANDLE_BASELINE  UINT64_C(0x49444543584c5300)
 #define IDE_CXL_STREAM_HANDLE_FIELD     UINT64_C(0x49444543584c5301)
-#define IDE_CXL_STREAM_NONZERO_ID       1U
+
+#define IDE_CXL_STREAM_STEP_ACQUIRE UINT64_C(6)
+#define IDE_CXL_STREAM_STEP_CLEANUP UINT64_C(4)
+#define IDE_CXL_STREAM_HANDLE_STOP UINT64_C(0x49444543584c5354)
 
 /**
  *   @brief    - Initialize a rule result for CXL Stream ID handling.
@@ -57,87 +61,88 @@ static void ide_cxl_stream_fail(firme_rule_res_t *out, uint64_t fail_step,
 }
 
 /**
- *   @brief    - Invoke one CXL.cachemem PROG request.
- *   @param    - stream_id : Stream ID field value.
- *   @param    - handle    : Caller handle.
- *   @param    - out_res   : Raw FIRME result.
- *   @return   - VAL_ERROR for a mismatched POLL handle, otherwise VAL_SUCCESS.
- **/
-static int ide_cxl_stream_prog(uint32_t stream_id, uint64_t handle,
-                                firme_res_t *out_res)
-{
-    val_firme_ide_prog_args_t prog_args = {0};
-    uint64_t keyset_id = val_firme_ide_cxl_keyset_id(0U, stream_id,
-                                                     VAL_FIRME_IDE_CXL_SUBSTREAM_ID);
-
-    val_firme_ide_prog_args_init(&prog_args, val_pcie_ecam_base(),
-                                 VAL_FIRME_IDE_TYPE_CXL_CACHEMEM,
-                                 keyset_id, handle);
-    val_firme_ide_keyset_prog_do_retry(&prog_args, out_res);
-    if (val_firme_status_to_i64(out_res->x0) == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(val_pcie_ecam_base(),
-                                           val_firme_ide_poll_flags(VAL_FALSE),
-                                           keyset_id, out_res);
-        if ((val_firme_status_to_i64(out_res->x0) == (int64_t)FIRME_SUCCESS) &&
-            (out_res->x1 != handle))
-            return VAL_ERROR;
-    }
-
-    return VAL_SUCCESS;
-}
-
-/**
- *   @brief    - Validate the CXL.cachemem Stream ID field is zero.
+ *   @brief    - Validate CXL Stream ID rejection without leaking the valid baseline.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP with cleanup, otherwise VAL_ERROR.
  **/
 int firme_ide_cxl_stream_id_zero_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
+    firme_rule_res_t local_result = {0};
+    firme_ide_cxl_state_t state = {0};
     firme_res_t res = {0};
-    int64_t status = 0;
+    firme_res_t cleanup_res = {0};
+    val_firme_ide_prog_args_t args = {0};
+    uint64_t keyset_id;
+    uint32_t stream_id;
+    int64_t status;
     int completion;
 
     (void)base_pa;
+    if (!out)
+        out = &local_result;
     ide_cxl_stream_init_result(out);
 
-    /* Step 1: Skip if the current Realm FIRME instance does not implement IDE KM. */
+    /* Step 1: Distinguish an absent IDE service from an invalid version response. */
     val_firme_service_version(FIRME_SERVICE_ID_IDE_KEY_MGMT, &res);
     status = val_firme_status_to_i64(res.x0);
     if (status == (int64_t)FIRME_NOT_SUPPORTED) {
-        if (out)
-            out->status = (uint64_t)ACS_STATUS_SKIP;
+        out->status = ACS_STATUS_SKIP;
         return VAL_SUCCESS;
     }
+
     if (status < 0) {
         ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_UNSUPPORTED, res.x0, res.x1);
         return VAL_ERROR;
     }
 
-    /* Step 2: Require a usable CXL.cachemem path in the platform setup. */
-    completion = ide_cxl_stream_prog(0U, IDE_CXL_STREAM_HANDLE_BASELINE, &res);
+    /* Step 2: Reserve the valid CXL keyset; a quarantined path must not be reused. */
+    keyset_id = val_firme_ide_cxl_keyset_id(0U, 0U, VAL_FIRME_IDE_CXL_SUBSTREAM_ID);
+    if (firme_ide_cxl_begin(&state, keyset_id) != VAL_SUCCESS) {
+        ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_ACQUIRE, keyset_id, 0);
+        return VAL_ERROR;
+    }
+
+    /* Step 3: Establish the valid baseline and retain every accepted request. */
+    completion = firme_ide_cxl_prog(&state, IDE_CXL_STREAM_HANDLE_BASELINE, &res);
     status = val_firme_status_to_i64(res.x0);
-    if (status == (int64_t)FIRME_NOT_SUPPORTED) {
-        if (out)
-            out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+    if (!state.programmed && status == (int64_t)FIRME_NOT_SUPPORTED) {
+        out->status = ACS_STATUS_SKIP;
+        goto cleanup;
     }
-    if ((completion != VAL_SUCCESS) || (status != (int64_t)FIRME_SUCCESS)) {
+
+    if (completion != VAL_SUCCESS) {
         ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_BASELINE, res.x0, res.x1);
-        return VAL_ERROR;
+        goto cleanup;
     }
 
-    /* Step 3: Non-zero CXL.cachemem Stream ID must be rejected. */
-    completion = ide_cxl_stream_prog(IDE_CXL_STREAM_NONZERO_ID,
-                                      IDE_CXL_STREAM_HANDLE_FIELD, &res);
-    if ((completion != VAL_SUCCESS) ||
-        (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_INVALID_PARAMETERS)) {
-        ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_STREAM_ID, res.x0, res.x1);
-        return VAL_ERROR;
+    /* Step 4: Reject every nonzero Stream ID without polling malformed input. */
+    for (stream_id = 1U; stream_id <= VAL_FIRME_IDE_KEYSET_STREAM_MASK; stream_id++) {
+        keyset_id = val_firme_ide_cxl_keyset_id(0U, stream_id,
+                                              VAL_FIRME_IDE_CXL_SUBSTREAM_ID);
+        val_firme_ide_prog_args_init(&args, state.ecam_address,
+                                    VAL_FIRME_IDE_TYPE_CXL_CACHEMEM, keyset_id,
+                                    IDE_CXL_STREAM_HANDLE_FIELD);
+        val_firme_ide_keyset_prog_do_retry(&args, &res);
+        firme_ide_cxl_rejected(&state, &res);
+        if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_INVALID_PARAMETERS) {
+            ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_STREAM_ID, res.x0, keyset_id);
+            goto cleanup;
+        }
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    out->status = ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+cleanup:
+    /* Step 5: Drain and stop accepted work, preserving the original failure. */
+    completion = firme_ide_cxl_finish(&state, IDE_CXL_STREAM_HANDLE_STOP,
+                                     &cleanup_res);
+    if (completion != VAL_SUCCESS) {
+        if (out->status != ACS_STATUS_FAIL)
+            ide_cxl_stream_fail(out, IDE_CXL_STREAM_STEP_CLEANUP,
+                           cleanup_res.x0, cleanup_res.x1);
+        out->status = ACS_STATUS_FAIL;
+    }
+
+    return out->status == ACS_STATUS_FAIL ? VAL_ERROR : VAL_SUCCESS;
 }

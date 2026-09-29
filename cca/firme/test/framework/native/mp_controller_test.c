@@ -96,6 +96,21 @@ uint64_t val_pcie_ecam_base(void)
     return REVIEW_DEVICE_BASE;
 }
 
+/** @brief Resolve the single synthetic Root Port used by this ownership check. */
+uint32_t val_pcie_bdf_from_requester_id(uint32_t segment, uint32_t requester_id)
+{
+    assert(segment == 0U && requester_id == 0U);
+    return 0U;
+}
+
+/** @brief Return the ECAM aperture for the synthetic Root Port. */
+int val_pcie_ecam_base_for_bdf(uint32_t bdf, uint64_t *ecam_base)
+{
+    assert(bdf == 0U && ecam_base);
+    *ecam_base = REVIEW_DEVICE_BASE;
+    return VAL_SUCCESS;
+}
+
 /** @brief Supply fixed flags for the dispatcher ownership test only. */
 uint64_t val_firme_ide_flags(uint32_t ide_type)
 {

@@ -11,26 +11,46 @@
 #include "val_firme_rules.h"
 #include "val_log.h"
 #include "val_pcie.h"
+#include "val_pcie_ide.h"
 
 typedef struct {
+    val_pcie_ide_stream_t stream;
     uint64_t ecam_address;
     uint64_t keyset_id;
     uint64_t pending_handle;
     uint32_t programmed;
     uint32_t pending;
+    uint32_t quarantined;
 } firme_ide_test_state_t;
 
 /**
- * @brief Select the PAL-reserved Selective IDE keyset, not an invented stream.
- * @return Initial test-owned keyset state.
+ * @brief Discover and configure the Selective pair from the Realm caller.
+ * @param state Initially empty test-owned state.
+ * @param out Rule result, including unavailable-resource diagnostics.
+ * @return VAL_TRUE when ready, otherwise VAL_FALSE with SKIP or FAIL recorded.
  */
-static inline firme_ide_test_state_t firme_ide_test_state(void)
+static inline uint32_t firme_ide_test_prepare(firme_ide_test_state_t *state,
+                                             firme_rule_res_t *out)
 {
-    firme_ide_test_state_t state = {0};
+    val_firme_ide_keyset_fields_t fields = {0};
+    uint32_t result = ACS_STATUS_SKIP;
 
-    state.ecam_address = val_pcie_ecam_base();
-    state.keyset_id = val_firme_ide_default_keyset_id();
-    return state;
+    result = val_pcie_ide_stream_discover(VAL_TRUE, &state->stream);
+    if (result != ACS_STATUS_PASS) {
+        out->status = result;
+        out->fail_step = state->stream.reason;
+        out->last_x0 = state->stream.path.root_port_bdf;
+        out->last_x1 = state->stream.path.endpoint_bdf;
+        LOG_WARN(NULL, "Selective IDE setup %s: no usable ACS-owned pair or access error\n",
+                 result == ACS_STATUS_SKIP ? "unavailable" : "failed");
+        return VAL_FALSE;
+    }
+    fields.segment = state->stream.path.segment;
+    fields.root_port_id = state->stream.path.root_port_id;
+    fields.stream_id = state->stream.stream_id;
+    state->ecam_address = state->stream.path.ecam_base;
+    state->keyset_id = val_firme_ide_keyset_id(&fields);
+    return VAL_TRUE;
 }
 
 /**
@@ -50,6 +70,20 @@ static inline void firme_ide_test_track(firme_ide_test_state_t *state,
         state->pending = VAL_TRUE;
         state->pending_handle = handle;
     }
+}
+
+/**
+ * @brief Retain ownership if a request expected to be rejected was accepted.
+ * @param state Test reservation whose DUT operation state is now uncertain.
+ * @param res Unexpected response to malformed or conflicting input.
+ */
+static inline void firme_ide_test_unexpected_accept(firme_ide_test_state_t *state,
+                                                    const firme_res_t *res)
+{
+    int64_t status = val_firme_status_to_i64(res->x0);
+
+    if (status == FIRME_SUCCESS || status == FIRME_INCOMPLETE)
+        state->quarantined = VAL_TRUE;
 }
 
 /**
@@ -101,6 +135,11 @@ static inline int firme_ide_test_cleanup(firme_ide_test_state_t *state,
     firme_res_t res = {0};
     uint64_t handle = UINT64_C(0x494445434c45414e);
 
+    if (state->quarantined) {
+        LOG_ERROR(NULL, "IDE stream quarantined: DUT accepted a rejected-input scenario\n");
+        out->status = ACS_STATUS_FAIL;
+        return VAL_ERROR;
+    }
     if (state->pending && firme_ide_test_complete(state, &res) != VAL_SUCCESS)
         goto fail;
     if (state->programmed) {
@@ -112,6 +151,9 @@ static inline int firme_ide_test_cleanup(firme_ide_test_state_t *state,
             goto fail;
         state->programmed = VAL_FALSE;
     }
+    if (state->stream.acquired &&
+        val_pcie_ide_stream_release(&state->stream) != VAL_SUCCESS)
+        goto fail;
 
     return out->status == ACS_STATUS_FAIL ? VAL_ERROR : VAL_SUCCESS;
 

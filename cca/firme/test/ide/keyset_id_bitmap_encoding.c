@@ -7,6 +7,7 @@
 
 #include "val_pcie.h"
 #include "val_firme_ide.h"
+#include "ide_test_common.h"
 #include "val_firme_rules.h"
 #include "val_log.h"
 
@@ -79,14 +80,17 @@ static uint32_t ide_keyset_bitmap_field_matches(uint64_t keyset_id, uint32_t shi
  **/
 int firme_ide_keyset_id_bitmap_encoding_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
+    firme_ide_test_state_t state = {0};
     val_firme_ide_keyset_fields_t fields = {0};
     val_firme_ide_prog_args_t prog_args = {0};
     firme_res_t res = {0};
     uint64_t keyset_id = 0ULL;
-    uint64_t operation_keyset_id = val_firme_ide_default_keyset_id();
+    uint64_t operation_keyset_id = 0ULL;
     int64_t status = 0;
 
     (void)base_pa;
+    if (!out)
+        return VAL_ERROR;
     ide_keyset_bitmap_init_result(out);
 
     fields.segment = 1U;
@@ -139,31 +143,32 @@ int firme_ide_keyset_id_bitmap_encoding_run_realm(uint64_t base_pa, firme_rule_r
         return VAL_ERROR;
     }
 
-    /* Step 3: A valid platform keyset must not be rejected as INVALID_PARAMETERS. */
-    val_firme_ide_prog_args_init(&prog_args, val_pcie_ecam_base(),
+    /* Step 3: Prepare an owned stream and exercise its actual encoded keyset. */
+    if (!firme_ide_test_prepare(&state, out))
+        return out->status == ACS_STATUS_SKIP ? VAL_SUCCESS : VAL_ERROR;
+    operation_keyset_id = state.keyset_id;
+    val_firme_ide_prog_args_init(&prog_args, state.ecam_address,
                                  VAL_FIRME_IDE_TYPE_SELECTIVE,
                                  operation_keyset_id,
                                  IDE_KEYSET_BITMAP_HANDLE);
     val_firme_ide_keyset_prog_do_retry(&prog_args, &res);
+    firme_ide_test_track(&state, &res, IDE_KEYSET_BITMAP_HANDLE);
     status = val_firme_status_to_i64(res.x0);
     if (val_firme_ide_status_can_complete(status) == VAL_FALSE) {
         ide_keyset_bitmap_fail(out, IDE_KEYSET_BITMAP_STEP_PROG_ACCEPT,
                                res.x0, operation_keyset_id);
-        return VAL_ERROR;
+        goto cleanup;
     }
     if (status == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(val_pcie_ecam_base(),
-                                           val_firme_ide_poll_flags(VAL_FALSE),
-                                           operation_keyset_id, &res);
-        if ((val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) ||
-            (res.x1 != IDE_KEYSET_BITMAP_HANDLE)) {
+        if (firme_ide_test_complete(&state, &res) != VAL_SUCCESS) {
             ide_keyset_bitmap_fail(out, IDE_KEYSET_BITMAP_STEP_POLL, res.x0, res.x1);
-            return VAL_ERROR;
+            goto cleanup;
         }
     }
 
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
-    return VAL_SUCCESS;
+cleanup:
+    return firme_ide_test_cleanup(&state, out);
 }

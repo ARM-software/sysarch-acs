@@ -17,6 +17,8 @@
 #define VAL_IDE_LINK_GO       5U
 #define VAL_IDE_LINK_STOP     6U
 #define VAL_IDE_LINK_RELEASE  7U
+#define VAL_IDE_LINK_DRAIN    8U
+#define VAL_IDE_LINK_QUIESCE  9U
 
 void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                                 uint64_t data0, uint64_t data1,

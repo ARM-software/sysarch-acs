@@ -35,6 +35,10 @@ fi
     "$firme_dir/val/src/val_firme_ide.c" \
     "$firme_dir/platform/pal_baremetal/targets/fvp/src/pal_firme_ide_abi.c" \
     "${link_flags[@]}" -o "$build_dir/ide_completion_test"
+"$compiler" "${flags[@]}" "$unit_dir/ide_unavailable_test.c" \
+    "$firme_dir/platform/pal_baremetal/targets/fvp/src/pal_firme_ide_abi.c" \
+    "$firme_dir/platform/pal_baremetal/targets/fvp/src/pal_firme_ide_namespace.c" \
+    "${link_flags[@]}" -o "$build_dir/ide_unavailable_test"
 "$compiler" "${flags[@]}" "${spdm_flags[@]}" -DFIRME_ENABLE_CXL_SPDM=1 \
     '-DLIBSPDM_CONFIG=<val_host_spdm_config.h>' \
     -I"$unit_dir/include" -I"$firme_dir/tools/config" \
@@ -45,5 +49,6 @@ fi
 status=0
 "$build_dir/pcie_bounds_test" || status=1
 "$build_dir/ide_completion_test" || status=1
+"$build_dir/ide_unavailable_test" || status=1
 "$build_dir/spdm_buffer_test" || status=1
 exit "$status"

@@ -5,6 +5,7 @@
  *
  */
 
+#include "cxl_test_common.h"
 #include "val_pcie.h"
 #include "val_firme_ide.h"
 #include "val_firme_rules.h"
@@ -13,13 +14,14 @@
 #define IDE_CXL_KEY_SET_TEST_NAME "ide_cxl_key_set_unused"
 
 #define IDE_CXL_KEY_SET_STEP_UNSUPPORTED UINT64_C(1)
-#define IDE_CXL_KEY_SET_STEP_KEY_SET     UINT64_C(2)
 #define IDE_CXL_KEY_SET_STEP_BASELINE    UINT64_C(3)
 #define IDE_CXL_KEY_SET_STEP_GO          UINT64_C(4)
 #define IDE_CXL_KEY_SET_STEP_STOP        UINT64_C(5)
 #define IDE_CXL_KEY_SET_HANDLE_BASELINE  UINT64_C(0x49444543584c4b00)
 #define IDE_CXL_KEY_SET_HANDLE_GO        UINT64_C(0x49444543584c4b01)
 #define IDE_CXL_KEY_SET_HANDLE_STOP      UINT64_C(0x49444543584c4b02)
+
+#define IDE_CXL_KEY_SET_STEP_ACQUIRE UINT64_C(6)
 
 /**
  *   @brief    - Initialize a rule result for CXL Key Set handling.
@@ -59,124 +61,77 @@ static void ide_cxl_key_set_fail(firme_rule_res_t *out, uint64_t fail_step,
 }
 
 /**
- *   @brief    - Invoke one CXL.cachemem PROG request.
- *   @param    - keyset_id : Encoded CXL.cachemem Keyset ID.
- *   @param    - handle    : Caller handle.
- *   @param    - out_res   : Raw FIRME result.
- *   @return   - VAL_ERROR for a mismatched POLL handle, otherwise VAL_SUCCESS.
- **/
-static int ide_cxl_key_set_prog(uint64_t keyset_id, uint64_t handle,
-                                 firme_res_t *out_res)
-{
-    val_firme_ide_prog_args_t prog_args = {0};
-
-    val_firme_ide_prog_args_init(&prog_args, val_pcie_ecam_base(),
-                                 VAL_FIRME_IDE_TYPE_CXL_CACHEMEM,
-                                 keyset_id, handle);
-    val_firme_ide_keyset_prog_do_retry(&prog_args, out_res);
-    if (val_firme_status_to_i64(out_res->x0) == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(val_pcie_ecam_base(),
-                                           val_firme_ide_poll_flags(VAL_FALSE),
-                                           keyset_id, out_res);
-        if ((val_firme_status_to_i64(out_res->x0) == (int64_t)FIRME_SUCCESS) &&
-            (out_res->x1 != handle))
-            return VAL_ERROR;
-    }
-
-    return VAL_SUCCESS;
-}
-
-/**
- *   @brief    - Validate the CXL.cachemem Key Set field is unused.
+ *   @brief    - Validate the unused CXL Key Set field with bounded cleanup.
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS for PASS/SKIP with cleanup, otherwise VAL_ERROR.
  **/
 int firme_ide_cxl_key_set_unused_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
+    firme_rule_res_t local_result = {0};
+    firme_ide_cxl_state_t state = {0};
     firme_res_t res = {0};
-    uint64_t keyset_id = 0;
-    int64_t status = 0;
+    firme_res_t cleanup_res = {0};
+    uint64_t keyset_id;
+    int64_t status;
     int completion;
 
     (void)base_pa;
+    if (!out)
+        out = &local_result;
     ide_cxl_key_set_init_result(out);
 
-    /* Step 1: Skip if the current Realm FIRME instance does not implement IDE KM. */
+    /* Step 1: Distinguish an absent IDE service from an invalid version response. */
     val_firme_service_version(FIRME_SERVICE_ID_IDE_KEY_MGMT, &res);
     status = val_firme_status_to_i64(res.x0);
     if (status == (int64_t)FIRME_NOT_SUPPORTED) {
-        if (out)
-            out->status = (uint64_t)ACS_STATUS_SKIP;
+        out->status = ACS_STATUS_SKIP;
         return VAL_SUCCESS;
     }
+
     if (status < 0) {
         ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_UNSUPPORTED, res.x0, res.x1);
         return VAL_ERROR;
     }
 
-    /* Step 2: Keep the unused Key Set field zero in the production request. */
-    keyset_id = val_firme_ide_cxl_keyset_id(0U, 0U,
-                                            VAL_FIRME_IDE_CXL_SUBSTREAM_ID);
-    if (((keyset_id >> VAL_FIRME_IDE_KEYSET_KEY_SET_SHIFT) &
-         VAL_FIRME_IDE_KEYSET_KEY_SET_MASK) != 0ULL) {
-        ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_KEY_SET, keyset_id, 0);
+    /* Step 2: Reserve the valid CXL keyset; a quarantined path must not be reused. */
+    keyset_id = val_firme_ide_cxl_keyset_id(0U, 0U, VAL_FIRME_IDE_CXL_SUBSTREAM_ID);
+    if (firme_ide_cxl_begin(&state, keyset_id) != VAL_SUCCESS) {
+        ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_ACQUIRE, keyset_id, 0);
         return VAL_ERROR;
     }
 
-    /* Step 3: Exercise the valid request when CXL.cachemem is available. */
-    completion = ide_cxl_key_set_prog(keyset_id, IDE_CXL_KEY_SET_HANDLE_BASELINE, &res);
+    /* Step 3: Establish the valid baseline and retain every accepted request. */
+    completion = firme_ide_cxl_prog(&state, IDE_CXL_KEY_SET_HANDLE_BASELINE, &res);
     status = val_firme_status_to_i64(res.x0);
-    if (status == (int64_t)FIRME_NOT_SUPPORTED) {
-        if (out)
-            out->status = (uint64_t)ACS_STATUS_SKIP;
-        return VAL_SUCCESS;
+    if (!state.programmed && status == (int64_t)FIRME_NOT_SUPPORTED) {
+        out->status = ACS_STATUS_SKIP;
+        goto cleanup;
     }
-    if ((completion != VAL_SUCCESS) || (status != (int64_t)FIRME_SUCCESS)) {
+
+    if (completion != VAL_SUCCESS) {
         ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_BASELINE, res.x0, res.x1);
-        return VAL_ERROR;
+        goto cleanup;
     }
 
-    /* Step 4: Start the programmed CXL.cachemem keyset with Key Set zero. */
-    val_firme_ide_keyset_go_do_retry(val_pcie_ecam_base(),
-                                     val_firme_ide_flags(VAL_FIRME_IDE_TYPE_CXL_CACHEMEM),
-                                     keyset_id, IDE_CXL_KEY_SET_HANDLE_GO, &res);
-    if (val_firme_status_to_i64(res.x0) == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(val_pcie_ecam_base(),
-                                           val_firme_ide_poll_flags(VAL_FALSE),
-                                           keyset_id, &res);
-        if ((val_firme_status_to_i64(res.x0) == (int64_t)FIRME_SUCCESS) &&
-            (res.x1 != IDE_CXL_KEY_SET_HANDLE_GO)) {
-            ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_GO, res.x0, res.x1);
-            return VAL_ERROR;
-        }
-    }
-    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
+    /* Step 4: Keep Key Set zero when activating the programmed CXL keyset. */
+    if (firme_ide_cxl_go(&state, IDE_CXL_KEY_SET_HANDLE_GO, &res) != VAL_SUCCESS) {
         ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_GO, res.x0, res.x1);
-        return VAL_ERROR;
+        goto cleanup;
     }
 
-    /* Step 5: Stop the same CXL.cachemem keyset before the next test. */
-    val_firme_ide_keyset_stop_do_retry(val_pcie_ecam_base(),
-                                       val_firme_ide_flags(VAL_FIRME_IDE_TYPE_CXL_CACHEMEM),
-                                       keyset_id, IDE_CXL_KEY_SET_HANDLE_STOP, &res);
-    if (val_firme_status_to_i64(res.x0) == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(val_pcie_ecam_base(),
-                                           val_firme_ide_poll_flags(VAL_FALSE),
-                                           keyset_id, &res);
-        if ((val_firme_status_to_i64(res.x0) == (int64_t)FIRME_SUCCESS) &&
-            (res.x1 != IDE_CXL_KEY_SET_HANDLE_STOP)) {
-            ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_STOP, res.x0, res.x1);
-            return VAL_ERROR;
-        }
-    }
-    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
-        ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_STOP, res.x0, res.x1);
-        return VAL_ERROR;
+    out->status = ACS_STATUS_PASS;
+
+cleanup:
+    /* Step 5: Drain and stop accepted work, preserving the original failure. */
+    completion = firme_ide_cxl_finish(&state, IDE_CXL_KEY_SET_HANDLE_STOP,
+                                     &cleanup_res);
+    if (completion != VAL_SUCCESS) {
+        if (out->status != ACS_STATUS_FAIL)
+            ide_cxl_key_set_fail(out, IDE_CXL_KEY_SET_STEP_STOP,
+                           cleanup_res.x0, cleanup_res.x1);
+        out->status = ACS_STATUS_FAIL;
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
-
-    return VAL_SUCCESS;
+    return out->status == ACS_STATUS_FAIL ? VAL_ERROR : VAL_SUCCESS;
 }

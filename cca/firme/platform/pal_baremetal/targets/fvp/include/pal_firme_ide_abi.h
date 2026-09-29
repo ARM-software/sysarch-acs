@@ -46,8 +46,8 @@ typedef struct {
  * @param operation IDE ABI to exercise.
  * @param condition Scenario to prepare.
  * @param scenario Returned path, key, handle and cleanup token.
- * @return READY only when the path and rollback are safe to use. A non-READY
- *         result must leave no platform resources reserved.
+ * @return READY only when the path and rollback are safe to use. UNAVAILABLE
+ *         leaves no reservation; ERROR may quarantine a backend-owned fixture.
  */
 pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
     uint32_t world, pal_firme_ide_abi_operation_t operation,
@@ -55,7 +55,7 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
     pal_firme_ide_abi_scenario_t *scenario);
 
 /**
- * @brief Restore Root Port, endpoint and test-key state after an ABI case.
+ * @brief Restore the paired fixture after the adapter drains and stops its raw keyset.
  * @param world FIRME caller world.
  * @param operation IDE ABI exercised.
  * @param condition Scenario that was prepared.
@@ -66,3 +66,26 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_cleanup(
     uint32_t world, pal_firme_ide_abi_operation_t operation,
     pal_firme_ide_abi_condition_t condition,
     const pal_firme_ide_abi_scenario_t *scenario);
+
+/**
+ * @brief Establish a measured pre-state after the adapter's setup operations.
+ * @return READY only when the exact invocation has a usable functional observer.
+ */
+pal_firme_ide_abi_status_t pal_firme_ide_abi_ready(
+    uint32_t world, pal_firme_ide_abi_operation_t operation,
+    pal_firme_ide_abi_condition_t condition,
+    const pal_firme_ide_abi_scenario_t *scenario);
+/**
+ * @brief Observe the issued invocation without reprogramming its Root Port keyset.
+ * @return READY only for the expected traffic effect or independently proven no-effect.
+ */
+pal_firme_ide_abi_status_t pal_firme_ide_abi_observe(
+    uint32_t world, pal_firme_ide_abi_operation_t operation,
+    pal_firme_ide_abi_condition_t condition,
+    const pal_firme_ide_abi_scenario_t *scenario);
+/**
+ * @brief Stop the peer transmitter before the adapter stops its receive keyset.
+ * @return READY only after peer STOP is acknowledged; failure retains ownership.
+ */
+pal_firme_ide_abi_status_t pal_firme_ide_abi_quiesce(
+    uint32_t world, const pal_firme_ide_abi_scenario_t *scenario);

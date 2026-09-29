@@ -8,7 +8,9 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define pal_firme_ide_abi_observe test_pal_ide_observe
 #include "../../../val/src/val_firme_ide_abi_adapter.c"
+#undef pal_firme_ide_abi_observe
 
 #define TEST_ECAM UINT64_C(0x40000000)
 #define TEST_KEYSET UINT64_C(0x12345)
@@ -17,6 +19,33 @@
 
 static uint64_t g_keyset_error;
 static uint64_t g_handle_error;
+
+/** @brief Execute the decoding fixture on its owning primary PE. */
+uint32_t val_pe_index(void)
+{
+    return 0U;
+}
+
+/** @brief Supply independent mock evidence after a correctly decoded POLL. */
+pal_firme_ide_abi_status_t test_pal_ide_observe(
+    uint32_t world, pal_firme_ide_abi_operation_t operation,
+    pal_firme_ide_abi_condition_t condition, const pal_firme_ide_abi_scenario_t *scenario)
+{
+    (void)world;
+    assert(operation == PAL_FIRME_IDE_ABI_POLL);
+    assert(condition == PAL_FIRME_IDE_ABI_POLL_ANY);
+    assert(scenario->keyset_id == TEST_KEYSET && scenario->handle == TEST_HANDLE);
+    return PAL_FIRME_IDE_ABI_READY;
+}
+
+/** @brief Reset ownership and pending state before each independent decode. */
+static void test_pending(val_firme_abi_test_context_t *context)
+{
+    g_ide_abi_owned = VAL_TRUE;
+    g_ide_abi_owner_pe = 0U;
+    context->scratch[IDE_ABI_PENDING] = VAL_TRUE;
+    context->scratch[IDE_ABI_PENDING_OP] = PAL_FIRME_IDE_ABI_PROG + 1U;
+}
 
 /** @brief Decode the architected status from the mock transport. */
 int64_t val_firme_status_to_i64(uint64_t value)
@@ -94,23 +123,28 @@ int main(void)
     context.scratch[IDE_ABI_ECAM] = TEST_ECAM;
     context.scratch[IDE_ABI_KEYSET] = TEST_KEYSET;
     context.scratch[IDE_ABI_HANDLE] = TEST_HANDLE;
-    context.scratch[IDE_ABI_PENDING] = VAL_TRUE;
+    test_pending(&context);
     assert(val_firme_ide_abi_poll_complete(&context, VAL_TRUE) == VAL_SUCCESS);
     g_keyset_error = UINT64_C(1);
+    test_pending(&context);
     assert(val_firme_ide_abi_poll_complete(&context, VAL_TRUE) == VAL_ERROR);
     g_keyset_error = 0ULL;
     g_handle_error = UINT64_C(1);
+    test_pending(&context);
     assert(val_firme_ide_abi_poll_complete(&context, VAL_TRUE) == VAL_ERROR);
     g_handle_error = 0ULL;
 
     context.output.registers[0] = FIRME_SUCCESS;
     context.output.registers[1] = TEST_HANDLE;
     context.output.registers[2] = TEST_UNUSED | TEST_KEYSET;
+    test_pending(&context);
     assert(val_firme_ide_abi_validate(&context) == VAL_TRUE);
     context.output.registers[2] ^= UINT64_C(1);
+    test_pending(&context);
     assert(val_firme_ide_abi_validate(&context) == VAL_FALSE);
     context.output.registers[2] = TEST_UNUSED | TEST_KEYSET;
     context.output.registers[1] ^= UINT64_C(1);
+    test_pending(&context);
     assert(val_firme_ide_abi_validate(&context) == VAL_FALSE);
     puts("Generated IDE ABI POLL masks: PASS");
     return VAL_SUCCESS;

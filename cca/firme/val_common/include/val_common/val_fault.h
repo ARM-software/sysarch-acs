@@ -64,6 +64,9 @@ int val_fault_begin(uint64_t resume_pc);
  */
 uint64_t val_fault_end(void);
 
+int val_mmio_read32_checked(uint64_t address, uint32_t *value);
+int val_mmio_write32_checked(uint64_t address, uint32_t value);
+
 /*
  * Best-effort memory probe: attempt a 64-bit load from `addr`.
  * - Returns VAL_SUCCESS if the access completed (no exception).

@@ -16,6 +16,13 @@ fi
 "${CC:-cc}" "${flags[@]}" \
     -I"$firme_dir/val/include" -I"$firme_dir/val_common/include" \
     -I"$firme_dir/platform/pal_baremetal/targets/fvp/include" \
+    "$firme_dir/test/ide/unit/pcie_ide_stream_test.c" \
+    "$firme_dir/val/src/val_pcie.c" "$firme_dir/val/src/val_pcie_ide.c" \
+    -Wl,--gc-sections -o "$build_dir/pcie_ide_stream_test"
+"$build_dir/pcie_ide_stream_test"
+"${CC:-cc}" "${flags[@]}" \
+    -I"$firme_dir/val/include" -I"$firme_dir/val_common/include" \
+    -I"$firme_dir/platform/pal_baremetal/targets/fvp/include" \
     "$firme_dir/test/ide/unit/ide_rule_test.c" \
     "$firme_dir/val/src/val_firme_ide.c" \
     -Wl,--gc-sections -o "$build_dir/ide_rule_test"

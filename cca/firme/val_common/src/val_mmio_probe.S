@@ -46,3 +46,38 @@ func val_mmio_read32_checked
     mov w0, #VAL_ERROR
     ret
 endfunc val_mmio_read32_checked
+
+/**
+ * @brief Write a naturally aligned MMIO word with scoped synchronous recovery.
+ * @param x0 Device-mapped address in the caller's physical address space.
+ * @param w1 Register value.
+ * @return VAL_SUCCESS on completion, VAL_ERROR on alignment or access faults.
+ */
+func val_mmio_write32_checked
+    tst x0, #3
+    b.ne 3f
+    stp x29, x30, [sp, #-32]!
+    mov x29, sp
+    stp x19, x20, [sp, #16]
+    mov x19, x0
+    mov w20, w1
+    adr x0, 1f
+    bl val_fault_begin
+    cbnz w0, 2f
+    str w20, [x19]
+    .inst 0xd5033f9f
+    bl val_fault_end
+    mov w0, #VAL_SUCCESS
+    b 4f
+1:
+    bl val_fault_end
+2:
+    mov w0, #VAL_ERROR
+4:
+    ldp x19, x20, [sp, #16]
+    ldp x29, x30, [sp], #32
+    ret
+3:
+    mov w0, #VAL_ERROR
+    ret
+endfunc val_mmio_write32_checked

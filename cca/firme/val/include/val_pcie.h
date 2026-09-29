@@ -60,6 +60,7 @@ uint32_t val_pcie_bdf_function(uint32_t bdf);
 uint32_t val_pcie_bdf_from_requester_id(uint32_t segment, uint32_t requester_id);
 uint32_t val_pcie_requester_id_from_bdf(uint32_t bdf);
 uint64_t val_pcie_ecam_base(void);
+int val_pcie_ecam_base_for_bdf(uint32_t bdf, uint64_t *ecam_base);
 uint64_t val_pcie_invalid_ecam_base(void);
 uint32_t val_pcie_default_segment(void);
 uint32_t val_pcie_default_root_port_id(void);

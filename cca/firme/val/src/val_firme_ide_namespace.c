@@ -10,6 +10,8 @@
 #include "val_firme_abi.h"
 #include "val_firme_ide.h"
 #include "val_log.h"
+#include "val_common/val_mp.h"
+#include "val_common/val_mem.h"
 
 #define IDE_NAMESPACE_PATH_COUNT 2U
 #define IDE_NAMESPACE_KEY_QWORDS 4U
@@ -31,6 +33,21 @@ typedef enum {
     IDE_NAMESPACE_GO,
     IDE_NAMESPACE_STOP,
 } ide_namespace_operation_t;
+
+typedef struct {
+    pal_firme_ide_namespace_scenario_t scenario;
+    pal_firme_ide_namespace_kind_t kind;
+    uint32_t prepared;
+    uint32_t pe_index;
+    uint32_t programmed[IDE_NAMESPACE_PATH_COUNT];
+    uint32_t stopped[IDE_NAMESPACE_PATH_COUNT];
+    uint32_t pending[IDE_NAMESPACE_PATH_COUNT];
+    uint32_t quarantined[IDE_NAMESPACE_PATH_COUNT];
+    ide_namespace_operation_t operation[IDE_NAMESPACE_PATH_COUNT];
+} ide_namespace_owner_t;
+
+static ide_namespace_owner_t g_ide_namespace_owner;
+static uint64_t g_ide_namespace_handle;
 
 /**
  * @brief Record a failed IDE namespace check and the last DUT response.
@@ -97,10 +114,28 @@ static uint32_t ide_namespace_paths_valid(
         return VAL_FALSE;
 
     if (((first->ide_type != VAL_FIRME_IDE_TYPE_SELECTIVE) &&
-         (first->ide_type != VAL_FIRME_IDE_TYPE_PCIE_LINK)) ||
+         (first->ide_type != VAL_FIRME_IDE_TYPE_PCIE_LINK) &&
+         (first->ide_type != VAL_FIRME_IDE_TYPE_CXL_CACHEMEM)) ||
         ((second->ide_type != VAL_FIRME_IDE_TYPE_SELECTIVE) &&
-         (second->ide_type != VAL_FIRME_IDE_TYPE_PCIE_LINK)))
+         (second->ide_type != VAL_FIRME_IDE_TYPE_PCIE_LINK) &&
+         (second->ide_type != VAL_FIRME_IDE_TYPE_CXL_CACHEMEM)))
         return VAL_FALSE;
+
+    if ((first->ide_type == VAL_FIRME_IDE_TYPE_CXL_CACHEMEM ||
+         second->ide_type == VAL_FIRME_IDE_TYPE_CXL_CACHEMEM) &&
+        first->ecam_address == second->ecam_address &&
+        (first->keyset_id >> VAL_FIRME_IDE_KEYSET_ROOT_PORT_SHIFT) ==
+        (second->keyset_id >> VAL_FIRME_IDE_KEYSET_ROOT_PORT_SHIFT))
+        return VAL_FALSE;
+
+    for (key_index = 0U; key_index < IDE_NAMESPACE_PATH_COUNT; key_index++) {
+        if (scenario->path[key_index].ide_type == VAL_FIRME_IDE_TYPE_CXL_CACHEMEM &&
+            (((scenario->path[key_index].keyset_id >> VAL_FIRME_IDE_KEYSET_STREAM_SHIFT) &
+              VAL_FIRME_IDE_KEYSET_STREAM_MASK) != 0ULL ||
+             ((scenario->path[key_index].keyset_id >> VAL_FIRME_IDE_KEYSET_SUBSTREAM_SHIFT) &
+              VAL_FIRME_IDE_KEYSET_SUBSTREAM_MASK) != VAL_FIRME_IDE_CXL_SUBSTREAM_ID))
+            return VAL_FALSE;
+    }
 
     for (key_index = 0U; key_index < IDE_NAMESPACE_KEY_QWORDS; key_index++) {
         if (first->keyqw[key_index] != second->keyqw[key_index])
@@ -110,24 +145,65 @@ static uint32_t ide_namespace_paths_valid(
     return distinct_keys;
 }
 
+/** @brief Apply a correlated completion to its persistent namespace owner. */
+static void ide_namespace_acknowledge(uint32_t path_index)
+{
+    ide_namespace_owner_t *owner = &g_ide_namespace_owner;
+
+    if (owner->operation[path_index] == IDE_NAMESPACE_PROGRAM)
+        owner->programmed[path_index] = VAL_TRUE;
+    owner->stopped[path_index] = owner->operation[path_index] == IDE_NAMESPACE_STOP;
+    owner->pending[path_index] = VAL_FALSE;
+}
+
+/** @brief Drain a retained request without releasing or reusing its PAL path. */
+static int ide_namespace_drain(uint32_t path_index, firme_res_t *result)
+{
+    ide_namespace_owner_t *owner = &g_ide_namespace_owner;
+    const pal_firme_ide_namespace_path_t *path = &owner->scenario.path[path_index];
+    int64_t status;
+
+    if (owner->quarantined[path_index])
+        return VAL_ERROR;
+    if (!owner->pending[path_index])
+        return VAL_SUCCESS;
+    val_firme_ide_keyset_poll_do_retry(path->ecam_address,
+        val_firme_ide_poll_flags(VAL_FALSE), path->keyset_id, result);
+    status = val_firme_status_to_i64(result->x0);
+    if (status == FIRME_SUCCESS && result->x1 == path->handle) {
+        ide_namespace_acknowledge(path_index);
+        return VAL_SUCCESS;
+    }
+    if (status != FIRME_BUSY && status != FIRME_INCOMPLETE)
+        owner->quarantined[path_index] = VAL_TRUE;
+    return VAL_ERROR;
+}
+
 /**
  * @brief Complete one Root Port operation, including asynchronous POLL.
- * @param path Platform-selected ECAM, keyset, key material and handle.
+ * @param path_index Persistent owner of the selected ECAM, keyset and key material.
  * @param operation FIRME operation to invoke.
  * @param result Last ABI response.
  * @return VAL_SUCCESS only after terminal SUCCESS and matching POLL handle.
  */
 static int ide_namespace_invoke(
-    const pal_firme_ide_namespace_path_t *path,
+    uint32_t path_index,
     ide_namespace_operation_t operation, firme_res_t *result)
 {
+    ide_namespace_owner_t *owner = &g_ide_namespace_owner;
+    pal_firme_ide_namespace_path_t *path;
     val_firme_ide_prog_args_t program = {0};
     uint64_t flags = 0ULL;
     int64_t status;
 
-    if (!path || !result)
+    if (path_index >= IDE_NAMESPACE_PATH_COUNT || !result ||
+        owner->pending[path_index] || owner->quarantined[path_index] ||
+        g_ide_namespace_handle == UINT64_MAX)
         return VAL_ERROR;
 
+    path = &owner->scenario.path[path_index];
+    path->handle = ++g_ide_namespace_handle;
+    owner->operation[path_index] = operation;
     flags = val_firme_ide_flags(path->ide_type);
 
     if (operation == IDE_NAMESPACE_PROGRAM) {
@@ -153,16 +229,46 @@ static int ide_namespace_invoke(
 
     status = val_firme_status_to_i64(result->x0);
     if (status == (int64_t)FIRME_INCOMPLETE) {
-        val_firme_ide_keyset_poll_do_retry(
-            path->ecam_address, val_firme_ide_poll_flags(VAL_FALSE),
-            path->keyset_id, result);
-        if ((val_firme_status_to_i64(result->x0) !=
-             (int64_t)FIRME_SUCCESS) || (result->x1 != path->handle))
-            return VAL_ERROR;
+        owner->pending[path_index] = VAL_TRUE;
+        return ide_namespace_drain(path_index, result);
+    }
+    if (status == FIRME_SUCCESS) {
+        ide_namespace_acknowledge(path_index);
         return VAL_SUCCESS;
     }
+    if (status != FIRME_BUSY && status != FIRME_DENIED &&
+        status != FIRME_INVALID_PARAMETERS && status != FIRME_NOT_SUPPORTED)
+        owner->quarantined[path_index] = VAL_TRUE;
+    return VAL_ERROR;
+}
 
-    return (status == (int64_t)FIRME_SUCCESS) ? VAL_SUCCESS : VAL_ERROR;
+/** @brief Release namespace fixtures only after every owned operation and STOP completes. */
+static int ide_namespace_cleanup(firme_res_t *result)
+{
+    ide_namespace_owner_t *owner = &g_ide_namespace_owner;
+    uint32_t path_index;
+    int status = VAL_SUCCESS;
+
+    if (!owner->prepared)
+        return VAL_SUCCESS;
+    if (owner->pe_index != val_pe_index())
+        return VAL_ERROR;
+    for (path_index = 0U; path_index < IDE_NAMESPACE_PATH_COUNT; path_index++) {
+        if (ide_namespace_drain(path_index, result) != VAL_SUCCESS) {
+            status = VAL_ERROR;
+            continue;
+        }
+        if (owner->programmed[path_index] && !owner->stopped[path_index] &&
+            ide_namespace_invoke(path_index, IDE_NAMESPACE_STOP, result) != VAL_SUCCESS)
+            status = VAL_ERROR;
+    }
+    if (status != VAL_SUCCESS)
+        return VAL_ERROR;
+    if (pal_firme_ide_namespace_cleanup(owner->kind, &owner->scenario) !=
+        PAL_FIRME_IDE_NAMESPACE_READY)
+        return VAL_ERROR;
+    memset(owner, 0, sizeof(*owner));
+    return VAL_SUCCESS;
 }
 
 /**
@@ -190,7 +296,7 @@ static int ide_namespace_observe(
 }
 
 /**
- * @brief Exercise two keysets while checking independent link behavior.
+ * @brief Exercise two keysets serially on the owning PE while checking independent links.
  * @param kind Equal IDs across ECAMs or different IDs within one ECAM.
  * @param out Rule result.
  * @return VAL_SUCCESS on PASS/SKIP, otherwise VAL_ERROR.
@@ -198,11 +304,10 @@ static int ide_namespace_observe(
 int val_firme_ide_namespace_run(pal_firme_ide_namespace_kind_t kind,
                                 firme_rule_res_t *out)
 {
-    pal_firme_ide_namespace_scenario_t scenario = {0};
+    ide_namespace_owner_t *owner = &g_ide_namespace_owner;
+    pal_firme_ide_namespace_scenario_t *scenario = &owner->scenario;
     pal_firme_ide_namespace_status_t platform_status;
     firme_res_t result = {0};
-    uint32_t programmed[IDE_NAMESPACE_PATH_COUNT] = {VAL_FALSE, VAL_FALSE};
-    uint32_t stopped[IDE_NAMESPACE_PATH_COUNT] = {VAL_FALSE, VAL_FALSE};
     uint32_t path_index;
     int test_status = VAL_SUCCESS;
 
@@ -213,6 +318,8 @@ int val_firme_ide_namespace_run(pal_firme_ide_namespace_kind_t kind,
     out->fail_step = 0ULL;
     out->last_x0 = 0ULL;
     out->last_x1 = 0ULL;
+    if (ide_namespace_cleanup(&result) != VAL_SUCCESS)
+        return ide_namespace_fail(out, IDE_NAMESPACE_STEP_CLEANUP, &result);
 
     /* Step 1: Test only an instance that advertises IDE Key Management. */
     val_firme_service_version(FIRME_SERVICE_ID_IDE_KEY_MGMT, &result);
@@ -232,50 +339,52 @@ int val_firme_ide_namespace_run(pal_firme_ide_namespace_kind_t kind,
         return ide_namespace_fail(out, IDE_NAMESPACE_STEP_FEATURE, &result);
 
     /* Step 3: Reserve two real Root Port and endpoint paths. */
-    platform_status = pal_firme_ide_namespace_prepare(kind, &scenario);
+    platform_status = pal_firme_ide_namespace_prepare(kind, scenario);
     if (platform_status == PAL_FIRME_IDE_NAMESPACE_UNAVAILABLE) {
         out->status = (uint64_t)ACS_STATUS_SKIP;
         return VAL_SUCCESS;
     }
     if (platform_status != PAL_FIRME_IDE_NAMESPACE_READY)
         return ide_namespace_fail(out, IDE_NAMESPACE_STEP_PREPARE, NULL);
+    owner->prepared = VAL_TRUE;
+    owner->pe_index = val_pe_index();
+    owner->kind = kind;
 
     /* Step 4: Verify the paths actually exercise the selected namespace. */
-    if (ide_namespace_paths_valid(kind, &scenario) == VAL_FALSE) {
+    if (ide_namespace_paths_valid(kind, scenario) == VAL_FALSE) {
         LOG_ERROR(NULL,
                   "IDE namespace setup: kind=%u ECAM=%llx/%llx keyset=%llx/%llx",
                   (unsigned int)kind,
-                  (unsigned long long)scenario.path[0].ecam_address,
-                  (unsigned long long)scenario.path[1].ecam_address,
-                  (unsigned long long)scenario.path[0].keyset_id,
-                  (unsigned long long)scenario.path[1].keyset_id);
+                  (unsigned long long)scenario->path[0].ecam_address,
+                  (unsigned long long)scenario->path[1].ecam_address,
+                  (unsigned long long)scenario->path[0].keyset_id,
+                  (unsigned long long)scenario->path[1].keyset_id);
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_PATHS, NULL);
         goto cleanup;
     }
 
     /* Step 5: Program distinguishable keys into both Root Port contexts. */
     for (path_index = 0U; path_index < IDE_NAMESPACE_PATH_COUNT; path_index++) {
-        if (ide_namespace_invoke(&scenario.path[path_index],
+        if (ide_namespace_invoke(path_index,
                                  IDE_NAMESPACE_PROGRAM, &result) != VAL_SUCCESS) {
             LOG_ERROR(NULL, "IDE namespace PROG: path=%u ECAM=%llx keyset=%llx",
                       (unsigned int)path_index,
-                      (unsigned long long)scenario.path[path_index].ecam_address,
-                      (unsigned long long)scenario.path[path_index].keyset_id);
+                      (unsigned long long)scenario->path[path_index].ecam_address,
+                      (unsigned long long)scenario->path[path_index].keyset_id);
             test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_PROGRAM,
                                               &result);
             goto cleanup;
         }
-        programmed[path_index] = VAL_TRUE;
     }
 
     /* Step 6: Start both streams without changing the other keyset. */
     for (path_index = 0U; path_index < IDE_NAMESPACE_PATH_COUNT; path_index++) {
-        if (ide_namespace_invoke(&scenario.path[path_index],
+        if (ide_namespace_invoke(path_index,
                                  IDE_NAMESPACE_GO, &result) != VAL_SUCCESS) {
             LOG_ERROR(NULL, "IDE namespace GO: path=%u ECAM=%llx keyset=%llx",
                       (unsigned int)path_index,
-                      (unsigned long long)scenario.path[path_index].ecam_address,
-                      (unsigned long long)scenario.path[path_index].keyset_id);
+                      (unsigned long long)scenario->path[path_index].ecam_address,
+                      (unsigned long long)scenario->path[path_index].keyset_id);
             test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_GO,
                                               &result);
             goto cleanup;
@@ -283,55 +392,42 @@ int val_firme_ide_namespace_run(pal_firme_ide_namespace_kind_t kind,
     }
 
     /* Step 7: Observe protected traffic through both independent paths. */
-    if (ide_namespace_observe(kind, &scenario, VAL_TRUE, VAL_TRUE) != VAL_SUCCESS) {
+    if (ide_namespace_observe(kind, scenario, VAL_TRUE, VAL_TRUE) != VAL_SUCCESS) {
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_BOTH_ACTIVE,
                                           NULL);
         goto cleanup;
     }
 
     /* Step 8: Stop the first stream while the second remains active. */
-    if (ide_namespace_invoke(&scenario.path[0], IDE_NAMESPACE_STOP,
+    if (ide_namespace_invoke(0U, IDE_NAMESPACE_STOP,
                              &result) != VAL_SUCCESS) {
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_STOP_FIRST,
                                           &result);
         goto cleanup;
     }
-    stopped[0] = VAL_TRUE;
 
     /* Step 9: Require the first path to stop without affecting the second. */
-    if (ide_namespace_observe(kind, &scenario, VAL_FALSE, VAL_TRUE) != VAL_SUCCESS) {
+    if (ide_namespace_observe(kind, scenario, VAL_FALSE, VAL_TRUE) != VAL_SUCCESS) {
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_FIRST_STOPPED,
                                           NULL);
         goto cleanup;
     }
 
     /* Step 10: Stop the remaining stream and check both paths are idle. */
-    if (ide_namespace_invoke(&scenario.path[1], IDE_NAMESPACE_STOP,
+    if (ide_namespace_invoke(1U, IDE_NAMESPACE_STOP,
                              &result) != VAL_SUCCESS) {
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_STOP_SECOND,
                                           &result);
         goto cleanup;
     }
-    stopped[1] = VAL_TRUE;
-    if (ide_namespace_observe(kind, &scenario, VAL_FALSE, VAL_FALSE) != VAL_SUCCESS)
+    if (ide_namespace_observe(kind, scenario, VAL_FALSE, VAL_FALSE) != VAL_SUCCESS)
         test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_BOTH_STOPPED,
                                           NULL);
 
 cleanup:
     /* Restore EL3 and endpoint state even when an intermediate check fails. */
-    for (path_index = 0U; path_index < IDE_NAMESPACE_PATH_COUNT; path_index++) {
-        if ((programmed[path_index] == VAL_TRUE) &&
-            (stopped[path_index] == VAL_FALSE)) {
-            if (ide_namespace_invoke(&scenario.path[path_index],
-                                     IDE_NAMESPACE_STOP, &result) != VAL_SUCCESS)
-                test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_CLEANUP,
-                                                  &result);
-        }
-    }
-
-    platform_status = pal_firme_ide_namespace_cleanup(kind, &scenario);
-    if (platform_status != PAL_FIRME_IDE_NAMESPACE_READY)
-        test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_CLEANUP, NULL);
+    if (ide_namespace_cleanup(&result) != VAL_SUCCESS)
+        test_status = ide_namespace_fail(out, IDE_NAMESPACE_STEP_CLEANUP, &result);
 
     if (test_status != VAL_SUCCESS)
         return VAL_ERROR;

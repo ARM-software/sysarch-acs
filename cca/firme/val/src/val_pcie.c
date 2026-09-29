@@ -77,6 +77,23 @@ static int val_pcie_ecam_for_bdf(uint32_t bdf, pal_pcie_ecam_info_t *info)
 }
 
 /**
+ * @brief Resolve the actual ECAM allocation for a discovered Root Port.
+ * @param bdf Packed PCI function address, including its segment.
+ * @param ecam_base Receives the matching allocation base only on success.
+ * @return VAL_ERROR for malformed or unmapped functions; never use a default.
+ */
+int val_pcie_ecam_base_for_bdf(uint32_t bdf, uint64_t *ecam_base)
+{
+    pal_pcie_ecam_info_t info = {0};
+
+    if (!ecam_base || val_pcie_requester_id_from_bdf(bdf) == VAL_PCIE_REQ_ID_INVALID ||
+        val_pcie_ecam_for_bdf(bdf, &info) != VAL_SUCCESS)
+        return VAL_ERROR;
+    *ecam_base = info.ecam_base;
+    return VAL_SUCCESS;
+}
+
+/**
  *   @brief    - Test whether a PCIe device type is an endpoint type.
  *   @param    - port_type : PCIe Device/Port Type field.
  *   @return   - VAL_TRUE if endpoint-like, otherwise VAL_FALSE.

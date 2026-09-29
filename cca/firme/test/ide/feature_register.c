@@ -14,6 +14,8 @@
 #define IDE_FEATURE_REGISTER_STEP_VERSION       UINT64_C(1)
 #define IDE_FEATURE_REGISTER_STEP_REG0_STATUS   UINT64_C(2)
 #define IDE_FEATURE_REGISTER_STEP_MANDATORY_ABI UINT64_C(4)
+#define IDE_FEATURE_REGISTER_STEP_REG1_STATUS   UINT64_C(5)
+#define IDE_FEATURE_REGISTER_STEP_UNALLOCATED   UINT64_C(6)
 
 /**
  *   @brief    - Initialize a rule result for the IDE feature-register test.
@@ -53,7 +55,7 @@ static void ide_feature_register_fail(firme_rule_res_t *out, uint64_t fail_step,
 }
 
 /**
- *   @brief    - Validate IDE feature register 0 from an IDE-capable instance.
+ *   @brief    - Validate the ALP4 IDE feature-register table at an implemented instance.
  *   @param    - out : Optional result record.
  *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
@@ -62,6 +64,8 @@ static int ide_feature_register_run(firme_rule_res_t *out)
     firme_res_t res = {0};
     int64_t status = 0;
     uint64_t feature_reg0 = 0ULL;
+    uint64_t maximum_operations = 0ULL;
+    uint32_t feature_index = 0U;
 
     ide_feature_register_init_result(out);
 
@@ -94,6 +98,30 @@ static int ide_feature_register_run(firme_rule_res_t *out)
         ide_feature_register_fail(out, IDE_FEATURE_REGISTER_STEP_MANDATORY_ABI,
                                   res.x0, feature_reg0);
         return VAL_ERROR;
+    }
+
+    /* Step 4: Require register 1 and decode only its architected count field. */
+    val_firme_service_features(FIRME_SERVICE_ID_IDE_KEY_MGMT,
+                               FIRME_IDE_FEATURE_REG1_INDEX, &res);
+    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
+        ide_feature_register_fail(out, IDE_FEATURE_REGISTER_STEP_REG1_STATUS,
+                                  res.x0, res.x1);
+        return VAL_ERROR;
+    }
+
+    maximum_operations = res.x1 & FIRME_IDE_FEATURE_MAX_OP_COUNT_MASK;
+    LOG_DEBUG(NULL, "%s: MAX_CONCURRENT_OP_CNT=%llu (zero means no advertised limit)\n",
+              IDE_FEATURE_REGISTER_TEST_NAME, (unsigned long long)maximum_operations);
+
+    /* Step 5: Every unallocated register index must return NOT_SUPPORTED. */
+    for (feature_index = FIRME_IDE_FEATURE_REG_COUNT;
+         feature_index <= FIRME_FEATURE_REG_INDEX_8BIT_MAX; feature_index++) {
+        val_firme_service_features(FIRME_SERVICE_ID_IDE_KEY_MGMT, feature_index, &res);
+        if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_NOT_SUPPORTED) {
+            ide_feature_register_fail(out, IDE_FEATURE_REGISTER_STEP_UNALLOCATED,
+                                      res.x0, feature_index);
+            return VAL_ERROR;
+        }
     }
 
     if (out)

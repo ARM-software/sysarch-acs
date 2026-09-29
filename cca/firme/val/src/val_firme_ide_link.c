@@ -21,40 +21,95 @@
 typedef struct {
     val_firme_ide_prog_args_t args;
     uint32_t open;
+    uint32_t pe_index;
     uint32_t words;
     uint32_t programmed;
     uint32_t stopped;
     uint32_t pending;
+    uint32_t quarantined;
+    uint64_t pending_operation;
 } val_firme_ide_link_state_t;
 
 static val_firme_ide_link_state_t g_val_ide_link[2];
+static uint64_t g_val_ide_link_handle;
+
+/**
+ * @brief Apply only an acknowledged operation to the retained link state.
+ * @param state Owner of the acknowledged operation.
+ */
+static void val_firme_ide_link_acknowledge(val_firme_ide_link_state_t *state)
+{
+    if (state->pending_operation == VAL_IDE_LINK_PROG) {
+        state->programmed = VAL_TRUE;
+        state->stopped = VAL_FALSE;
+        state->words = 0U;
+        state->args.keyqw0 = 0ULL;
+        state->args.keyqw1 = 0ULL;
+        state->args.keyqw2 = 0ULL;
+        state->args.keyqw3 = 0ULL;
+    } else {
+        state->stopped = (state->pending_operation == VAL_IDE_LINK_STOP);
+    }
+    state->pending = VAL_FALSE;
+    state->pending_operation = 0ULL;
+}
+
+/**
+ * @brief Drain one retained operation without reissuing PROG, GO or STOP.
+ * @param state Owner of the operation and any still-needed key material.
+ * @param res Raw POLL response, including the original error on failure.
+ * @return VAL_SUCCESS only for a correlated completion or an idle owner.
+ */
+static int val_firme_ide_link_drain(val_firme_ide_link_state_t *state,
+                                    firme_res_t *res)
+{
+    int64_t status;
+
+    if (state->quarantined)
+        return VAL_ERROR;
+    if (!state->pending)
+        return VAL_SUCCESS;
+
+    val_firme_ide_keyset_poll_do_retry(state->args.ecam_address,
+                                       val_firme_ide_poll_flags(VAL_FALSE),
+                                       state->args.keyset_id, res);
+    status = val_firme_status_to_i64(res->x0);
+    if (status == FIRME_SUCCESS && res->x1 == state->args.handle) {
+        val_firme_ide_link_acknowledge(state);
+        return VAL_SUCCESS;
+    }
+    if (status != FIRME_BUSY && status != FIRME_INCOMPLETE)
+        state->quarantined = VAL_TRUE;
+    return VAL_ERROR;
+}
 
 /**
  * @brief Complete an accepted operation before reusing its keyset or handle.
  * @param state Owner of the operation and its key material.
  * @param res In/out FIRME response; errors and unfinished operations are retained.
- * @return VAL_ERROR for an incorrect completion echo, without changing the DUT response.
+ * @return VAL_SUCCESS only for correlated SUCCESS, preserving failures otherwise.
  */
 static int val_firme_ide_link_complete(val_firme_ide_link_state_t *state,
                                         firme_res_t *res)
 {
-    if (val_firme_status_to_i64(res->x0) != FIRME_INCOMPLETE)
-        return VAL_SUCCESS;
+    int64_t status = val_firme_status_to_i64(res->x0);
 
-    state->pending = VAL_TRUE;
-    val_firme_ide_keyset_poll_do_retry(state->args.ecam_address,
-                                       val_firme_ide_poll_flags(VAL_FALSE),
-                                       state->args.keyset_id, res);
-    if (val_firme_status_to_i64(res->x0) == FIRME_SUCCESS) {
-        if (res->x1 != state->args.handle)
-            return VAL_ERROR;
-        state->pending = VAL_FALSE;
+    if (status == FIRME_SUCCESS) {
+        val_firme_ide_link_acknowledge(state);
+        return VAL_SUCCESS;
     }
-    return VAL_SUCCESS;
+    if (status == FIRME_INCOMPLETE) {
+        state->pending = VAL_TRUE;
+        return val_firme_ide_link_drain(state, res);
+    }
+    if (status != FIRME_BUSY && status != FIRME_DENIED &&
+        status != FIRME_INVALID_PARAMETERS && status != FIRME_NOT_SUPPORTED)
+        state->quarantined = VAL_TRUE;
+    return VAL_ERROR;
 }
 
 /**
- * @brief Execute a primary-PE link operation in the selected FIRME caller world.
+ * @brief Execute a serial link operation on its owning PE in the selected caller world.
  * @param operation ACS link command, not an EL3 ABI identifier.
  * @param keyset_id Fully encoded, test-owned CXL keyset.
  * @param data0 ECAM base or first key quadword for the selected command.
@@ -68,6 +123,8 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
     val_firme_ide_link_state_t *state;
     firme_res_t res = {0};
     uint32_t direction;
+    uint32_t root_bdf;
+    uint64_t ecam_base;
     int completion = VAL_SUCCESS;
 
     if (!out)
@@ -100,17 +157,42 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                           VAL_FIRME_IDE_KEYSET_DIRECTION_MASK);
     state = &g_val_ide_link[direction];
     if (operation == VAL_IDE_LINK_BEGIN) {
-        if (state->open || data0 != val_pcie_ecam_base() || data1 != 0ULL)
+        root_bdf = val_pcie_bdf_from_requester_id(
+            (uint32_t)((keyset_id >> VAL_FIRME_IDE_KEYSET_SEGMENT_SHIFT) &
+                       VAL_FIRME_IDE_KEYSET_SEGMENT_MASK),
+            (uint32_t)((keyset_id >> VAL_FIRME_IDE_KEYSET_ROOT_PORT_SHIFT) &
+                       VAL_FIRME_IDE_KEYSET_ROOT_PORT_MASK));
+        if (state->open || data1 != 0ULL ||
+            val_pcie_ecam_base_for_bdf(root_bdf, &ecam_base) != VAL_SUCCESS ||
+            data0 != ecam_base)
             return;
         memset(state, 0, sizeof(*state));
         state->args.ecam_address = data0;
         state->args.flags = val_firme_ide_flags(VAL_FIRME_IDE_TYPE_CXL_CACHEMEM);
         state->args.keyset_id = keyset_id;
-        state->args.handle = UINT64_C(0x43584c4c494e4b00) | direction;
+        state->pe_index = val_pe_index();
         state->open = VAL_TRUE;
     } else {
-        if (!state->open || state->pending || state->args.keyset_id != keyset_id)
+        if (!state->open || state->quarantined || state->args.keyset_id != keyset_id ||
+            state->pe_index != val_pe_index())
             return;
+        if (operation == VAL_IDE_LINK_DRAIN || operation == VAL_IDE_LINK_QUIESCE) {
+            completion = val_firme_ide_link_drain(state, &res);
+            if (completion != VAL_SUCCESS || operation == VAL_IDE_LINK_DRAIN)
+                goto result;
+            if (!state->programmed || state->stopped)
+                goto result;
+            operation = VAL_IDE_LINK_STOP;
+        } else if (state->pending) {
+            return;
+        }
+        if (operation == VAL_IDE_LINK_PROG || operation == VAL_IDE_LINK_GO ||
+            operation == VAL_IDE_LINK_STOP) {
+            if (g_val_ide_link_handle == UINT64_MAX)
+                return;
+            state->args.handle = ++g_val_ide_link_handle;
+            state->pending_operation = operation;
+        }
         switch (operation) {
         case VAL_IDE_LINK_KEY_LOW:
         case VAL_IDE_LINK_KEY_HIGH:
@@ -134,16 +216,6 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                 return;
             val_firme_ide_keyset_prog_do_retry(&state->args, &res);
             completion = val_firme_ide_link_complete(state, &res);
-            if (completion == VAL_SUCCESS &&
-                val_firme_status_to_i64(res.x0) == FIRME_SUCCESS) {
-                state->programmed = VAL_TRUE;
-                state->stopped = VAL_FALSE;
-                state->words = 0U;
-                state->args.keyqw0 = 0ULL;
-                state->args.keyqw1 = 0ULL;
-                state->args.keyqw2 = 0ULL;
-                state->args.keyqw3 = 0ULL;
-            }
             break;
         case VAL_IDE_LINK_GO:
         case VAL_IDE_LINK_STOP:
@@ -156,9 +228,6 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
                 val_firme_ide_keyset_stop_do_retry(state->args.ecam_address,
                     state->args.flags, keyset_id, state->args.handle, &res);
             completion = val_firme_ide_link_complete(state, &res);
-            if (completion == VAL_SUCCESS &&
-                val_firme_status_to_i64(res.x0) == FIRME_SUCCESS)
-                state->stopped = (operation == VAL_IDE_LINK_STOP);
             break;
         case VAL_IDE_LINK_RELEASE:
             if (state->programmed && !state->stopped)
@@ -170,6 +239,7 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
         }
     }
 
+result:
     out->x1 = res.x0;
     out->x2 = res.x1;
     if (completion == VAL_SUCCESS && val_firme_status_to_i64(res.x0) == FIRME_SUCCESS)

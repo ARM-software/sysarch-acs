@@ -15,7 +15,7 @@
  * @param scenario Returned scenario, cleared when present.
  * @return UNAVAILABLE until real Root Port programming and cleanup exist.
  */
-pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
+__attribute__((weak)) pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
     uint32_t world, pal_firme_ide_abi_operation_t operation,
     pal_firme_ide_abi_condition_t condition,
     pal_firme_ide_abi_scenario_t *scenario)
@@ -38,7 +38,7 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
  * @param scenario Previously reserved path, if any.
  * @return UNAVAILABLE because no test path was prepared.
  */
-pal_firme_ide_abi_status_t pal_firme_ide_abi_cleanup(
+__attribute__((weak)) pal_firme_ide_abi_status_t pal_firme_ide_abi_cleanup(
     uint32_t world, pal_firme_ide_abi_operation_t operation,
     pal_firme_ide_abi_condition_t condition,
     const pal_firme_ide_abi_scenario_t *scenario)
@@ -48,5 +48,40 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_cleanup(
     (void)condition;
     (void)scenario;
 
+    return PAL_FIRME_IDE_ABI_UNAVAILABLE;
+}
+
+/** @brief Require a paired backend to establish the actual invocation pre-state. */
+__attribute__((weak)) pal_firme_ide_abi_status_t pal_firme_ide_abi_ready(
+    uint32_t world, pal_firme_ide_abi_operation_t operation,
+    pal_firme_ide_abi_condition_t condition,
+    const pal_firme_ide_abi_scenario_t *scenario)
+{
+    (void)world;
+    (void)operation;
+    (void)condition;
+    (void)scenario;
+    return PAL_FIRME_IDE_ABI_UNAVAILABLE;
+}
+
+/** @brief Never substitute status-only success for per-invocation traffic evidence. */
+__attribute__((weak)) pal_firme_ide_abi_status_t pal_firme_ide_abi_observe(
+    uint32_t world, pal_firme_ide_abi_operation_t operation,
+    pal_firme_ide_abi_condition_t condition,
+    const pal_firme_ide_abi_scenario_t *scenario)
+{
+    (void)world;
+    (void)operation;
+    (void)condition;
+    (void)scenario;
+    return PAL_FIRME_IDE_ABI_UNAVAILABLE;
+}
+
+/** @brief Require the paired backend to stop its transmitter before Root Port cleanup. */
+__attribute__((weak)) pal_firme_ide_abi_status_t pal_firme_ide_abi_quiesce(
+    uint32_t world, const pal_firme_ide_abi_scenario_t *scenario)
+{
+    (void)world;
+    (void)scenario;
     return PAL_FIRME_IDE_ABI_UNAVAILABLE;
 }

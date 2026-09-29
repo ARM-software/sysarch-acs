@@ -109,7 +109,7 @@ static uint32_t ide_keyset_prog_check_available(uint64_t abi_bit, firme_rule_res
  **/
 int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
-    firme_ide_test_state_t state = firme_ide_test_state();
+    firme_ide_test_state_t state = {0};
     val_firme_ide_prog_args_t prog_args = {0};
     firme_res_t res = {0};
     uint64_t ecam_address = state.ecam_address;
@@ -125,6 +125,12 @@ int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
     if (ide_keyset_prog_check_available(FIRME_IDE_FEATURE_REG0_PROG_BIT, out) == VAL_FALSE)
         return out->status == ACS_STATUS_SKIP ? VAL_SUCCESS : VAL_ERROR;
 
+    /* Prepare one discovered pair without assuming any additional stream IDs. */
+    if (!firme_ide_test_prepare(&state, out))
+        return out->status == ACS_STATUS_SKIP ? VAL_SUCCESS : VAL_ERROR;
+    ecam_address = state.ecam_address;
+    keyset_id = state.keyset_id;
+
     /* Step 2: Invalid ECAM base must be rejected. */
     val_firme_ide_prog_args_init(&prog_args, val_pcie_invalid_ecam_base(),
                                  VAL_FIRME_IDE_TYPE_SELECTIVE, keyset_id,
@@ -132,7 +138,8 @@ int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
     val_firme_ide_keyset_prog(&prog_args, &res);
     if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_INVALID_PARAMETERS) {
         ide_keyset_prog_fail(out, IDE_KEYSET_PROG_STEP_INVALID_ECAM, res.x0, res.x1);
-        return VAL_ERROR;
+        firme_ide_test_unexpected_accept(&state, &res);
+        goto cleanup;
     }
 
     /* Step 3: Unused IDE type encoding must be rejected. */
@@ -142,7 +149,8 @@ int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
     val_firme_ide_keyset_prog(&prog_args, &res);
     if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_INVALID_PARAMETERS) {
         ide_keyset_prog_fail(out, IDE_KEYSET_PROG_STEP_UNUSED_TYPE, res.x0, res.x1);
-        return VAL_ERROR;
+        firme_ide_test_unexpected_accept(&state, &res);
+        goto cleanup;
     }
 
     /* Step 4: Valid PROG must complete or enter non-blocking completion. */
@@ -161,6 +169,7 @@ int firme_ide_keyset_prog_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
         val_firme_ide_keyset_prog(&prog_args, &res);
         if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_OP_CONFLICT) {
             ide_keyset_prog_fail(out, IDE_KEYSET_PROG_STEP_OPERATION, res.x0, res.x1);
+            firme_ide_test_unexpected_accept(&state, &res);
             goto cleanup;
         }
 
