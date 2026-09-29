@@ -31,6 +31,19 @@ static uint64_t g_version = 0x10000;
 static uint64_t g_poison;
 static uint64_t g_mpidr;
 
+/** @brief Replace the architectural barrier in native-only caller checks. */
+void dsb_sy(void)
+{
+}
+
+/** @brief Reject unplanned PAT calls in the discovery-only caller fixture. */
+void val_smccc_smc_call_frame(const smccc_call_frame_t *input, smccc_call_frame_t *output)
+{
+    (void)input;
+    (void)output;
+    assert(VAL_FALSE);
+}
+
 /** @brief Keep native caller checks independent of the UART logger. */
 uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *fmt, ...)
 {
@@ -186,6 +199,18 @@ int main(void)
 """
 
 
+PAT_SOURCE = Path(__file__).with_name("check_abi_pat.c").read_text()
+PAT_FILES = [
+    "val/src/val_firme_abi.c", "val/src/val_firme_service.c",
+    "val/src/val_firme_shared_buffer.c", "val/src/val_firme_partial_retrieval.c",
+    "test/base/shared_buffer_test_common.c", "test/base/shared_buffer_alignment.c",
+    "test/base/shared_buffer_size_bounds.c", "test/base/shared_buffer_mapping_attributes.c",
+    "test/base/shared_buffer_pas_gpi.c", "test/base/partial_retrieval_test_common.c",
+    "test/base/partial_retrieval_last_chunk.c", "test/base/partial_retrieval_intermediate_chunk.c",
+    "test/base/partial_retrieval_no_chunk.c",
+]
+
+
 def main():
     """Compile the current production decoders against an instrumented SMC stub."""
     root = Path(__file__).resolve().parents[2]
@@ -203,6 +228,15 @@ def main():
                         str(root / "val/src/val_firme_shared_buffer.c"),
                         str(root / "test/base/reserved_output_bits.c"),
                         str(root / "test/base/reserved_output_registers.c"),
+                        "-o", str(binary)])
+        subprocess.run(command, check=True)
+        subprocess.run([str(binary)], check=True)
+        source.write_text(PAT_SOURCE)
+        command = [os.environ.get("HOST_CC", "cc"), "-std=c11", "-Wall", "-Wextra", "-Werror"]
+        for include in [root / "val/include", root / "val_common/include",
+                        root / "platform/pal_baremetal/targets/fvp/include"]:
+            command.extend(["-I", str(include)])
+        command.extend([str(source), *(str(root / filename) for filename in PAT_FILES),
                         "-o", str(binary)])
         subprocess.run(command, check=True)
         subprocess.run([str(binary)], check=True)

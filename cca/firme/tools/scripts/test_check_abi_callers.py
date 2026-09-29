@@ -25,6 +25,11 @@ COMMON = r"""
 #include "val_firme_smccc_probe_private.h"
 #include "val_log.h"
 
+/** @brief Replace the architectural barrier for native-only fixtures. */
+void dsb_sy(void)
+{
+}
+
 /** @brief Supply a stable PE identity to production FIRME wrappers. */
 uint64_t read_mpidr_el1(void)
 {
@@ -377,6 +382,14 @@ static uint64_t g_maximum_pages = 7U;
 static uint32_t g_unwritten;
 static uint32_t g_oversized;
 static uint32_t g_above_maximum_calls;
+
+/** @brief Keep the legacy evidence fixtures separate from real PAT driver tests. */
+void val_smccc_smc_call_frame(const smccc_call_frame_t *input, smccc_call_frame_t *output)
+{
+    (void)input;
+    (void)output;
+    assert(VAL_FALSE);
+}
 
 /** @brief Return Base buffer limits to the real production decoder. */
 void val_smccc_smc_call(uint64_t fid, uint64_t arg1, uint64_t arg2, uint64_t arg3,
@@ -817,6 +830,15 @@ int main(void)
         g_state_return = VAL_SUCCESS;
         check_result(smc64[index], VAL_SUCCESS, ACS_STATUS_PASS);
         check_result(status_codes[index], VAL_SUCCESS, ACS_STATUS_PASS);
+        g_base_version = FIRME_SUCCESS;
+        check_result(status_codes[index], VAL_ERROR, ACS_STATUS_FAIL);
+        g_base_version = UINT64_C(0x10000);
+        g_gm_version_status = FIRME_BUSY;
+        check_result(status_codes[index], VAL_ERROR, ACS_STATUS_FAIL);
+        g_gm_version_status = FIRME_SUCCESS;
+        g_reg1_status = FIRME_NO_MEMORY;
+        check_result(status_codes[index], VAL_ERROR, ACS_STATUS_FAIL);
+        g_reg1_status = FIRME_SUCCESS;
         g_base_version = UINT64_C(0x10001);
         g_baseline_status = ACS_STATUS_FAIL;
         check_result(compatibility[index], VAL_ERROR, ACS_STATUS_FAIL);
@@ -871,6 +893,162 @@ int main(void)
 """
 
 
+PAL_PAT_SOURCE = COMMON + r"""
+#include "pal_firme_shared_buffer.h"
+#include "val_common/val_mmu.h"
+#include "val_firme_shared_buffer.h"
+
+uint64_t g_val_mmu_l1[512];
+static uint64_t g_current_el = 8ULL;
+static uint64_t g_sctlr = 5ULL;
+static uint64_t g_tcr = VAL_MMU_EL2_BOOT_TCR;
+static uint64_t g_mair = VAL_MMU_BOOT_MAIR;
+static uint64_t g_ttbr;
+static uint64_t g_hcr;
+
+/** @brief Supply the caller EL to the production precondition checker. */
+uint64_t read_currentel(void)
+{
+    return g_current_el;
+}
+
+/** @brief Supply native SCTLR fixtures without executing privileged instructions. */
+uint64_t read_sctlr_el2(void)
+{
+    return g_sctlr;
+}
+
+/** @brief Supply native TCR fixtures to the actual boot-map validator. */
+uint64_t val_read_tcr_el2(void)
+{
+    return g_tcr;
+}
+
+/** @brief Model the assembly MAIR read for native precondition checks. */
+uint64_t pal_firme_shared_buffer_read_mair_el2(void)
+{
+    return g_mair;
+}
+
+/** @brief Supply HCR fixtures to distinguish non-VHE from VHE translation. */
+uint64_t pal_firme_shared_buffer_read_hcr_el2(void)
+{
+    return g_hcr;
+}
+
+/** @brief Model the assembly TTBR read for native precondition checks. */
+uint64_t pal_firme_shared_buffer_read_ttbr0_el2(void)
+{
+    return g_ttbr;
+}
+
+#ifndef CHECK_BOOT_MAPPING
+static uint32_t g_mapping_ready = VAL_TRUE;
+
+/** @brief Test ownership separately from hardware mapping, not as DUT evidence. */
+uint32_t pal_firme_shared_buffer_ns_mapping_ready(uint64_t base, uint64_t size)
+{
+    assert(base % PAL_FIRME_PAT_ALIGNMENT == 0ULL);
+    assert(size == PAL_FIRME_PAT_BUFFER_SIZE);
+    return g_mapping_ready;
+}
+#endif
+
+/** @brief Regress the real mapping preconditions or the real PAL lease lifetime. */
+int main(void)
+{
+#ifdef CHECK_BOOT_MAPPING
+    const uint64_t base = UINT64_C(0x88001000);
+    const uint64_t descriptor = UINT64_C(0x80000705);
+    const uint64_t bad_bits[] = {UINT64_C(1), UINT64_C(4), UINT64_C(0x100),
+                                UINT64_C(0x400), UINT64_C(0x80), UINT64_C(1) << 63,
+                                UINT64_C(1) << 30};
+    uint32_t index = 0U;
+
+    g_ttbr = (uint64_t)(uintptr_t)g_val_mmu_l1;
+    g_val_mmu_l1[2] = descriptor;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_TRUE);
+    g_tcr |= UINT64_C(1) << 31;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_TRUE);
+    g_tcr |= UINT64_C(1) << 23;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_TRUE);
+    g_hcr = UINT64_C(1) << 34;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_hcr = 0ULL;
+    g_tcr |= UINT64_C(1) << 20;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_tcr = VAL_MMU_EL2_BOOT_TCR;
+    for (index = 0U; index < sizeof(bad_bits) / sizeof(bad_bits[0]); index++) {
+        g_val_mmu_l1[2] = descriptor ^ bad_bits[index];
+        assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    }
+    g_val_mmu_l1[2] = descriptor;
+    g_current_el = 4ULL;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_current_el = 8ULL;
+    g_sctlr = 1ULL;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_sctlr = 5ULL;
+    g_tcr++;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_tcr = VAL_MMU_EL2_BOOT_TCR;
+    g_mair = 0ULL;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_mair = VAL_MMU_BOOT_MAIR;
+    g_ttbr++;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 8192ULL) == VAL_FALSE);
+    g_ttbr = (uint64_t)(uintptr_t)g_val_mmu_l1;
+    assert(pal_firme_shared_buffer_ns_mapping_ready(UINT64_MAX, 8192ULL) == VAL_FALSE);
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, UINT64_MAX) == VAL_FALSE);
+    assert(pal_firme_shared_buffer_ns_mapping_ready(base, 0ULL) == VAL_FALSE);
+    assert(pal_firme_shared_buffer_ns_mapping_ready(UINT64_C(0x881ff000), 8192ULL) == VAL_FALSE);
+#else
+    val_firme_shared_buffer_lease_t first = {0};
+    val_firme_shared_buffer_lease_t second = {0};
+    val_firme_shared_buffer_lease_t stale = {0};
+
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, NULL) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
+    assert(val_firme_shared_buffer_acquire_ns_pat(0ULL, 4096ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 3ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
+    assert(val_firme_shared_buffer_acquire_ns_pat(8193ULL, 4096ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 16384ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    g_mapping_ready = VAL_FALSE;
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    assert(first.base_va == NULL && first.owner_token == 0ULL);
+    g_mapping_ready = VAL_TRUE;
+    assert(val_firme_shared_buffer_acquire_ns_pat(8192ULL, 4096ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE);
+    assert(first.base_pa == (uint64_t)(uintptr_t)first.base_va && first.capacity == 8192ULL);
+    assert(first.challenge_size == 32U && first.challenge != first.base_va);
+    assert(first.owner_token != 0ULL);
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, &second) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    assert(val_firme_shared_buffer_release_ns_pat(&second, VAL_FALSE) == VAL_ERROR);
+    assert(val_firme_shared_buffer_release_ns_pat(&first, 2U) == VAL_ERROR);
+    assert(val_firme_shared_buffer_release_ns_pat(NULL, VAL_FALSE) == VAL_ERROR);
+    stale = first;
+    assert(val_firme_shared_buffer_release_ns_pat(&first, VAL_FALSE) == VAL_SUCCESS);
+    assert(val_firme_shared_buffer_release_ns_pat(&first, VAL_FALSE) == VAL_ERROR);
+    assert(val_firme_shared_buffer_acquire_ns_pat(4097ULL, 4096ULL, &second) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE);
+    assert(stale.owner_token != second.owner_token);
+    assert(val_firme_shared_buffer_release_ns_pat(&stale, VAL_FALSE) == VAL_ERROR);
+    assert(val_firme_shared_buffer_release_ns_pat(&second, VAL_TRUE) == VAL_SUCCESS);
+    assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, &first) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    assert(val_firme_shared_buffer_release_ns_pat(&second, VAL_FALSE) == VAL_ERROR);
+#endif
+    return VAL_SUCCESS;
+}
+"""
+
+
 class CallerChecksTests(unittest.TestCase):
     """Exercise production callers against controlled responses and failures."""
 
@@ -920,6 +1098,35 @@ class CallerChecksTests(unittest.TestCase):
         """Inject unused outputs into the actual production wrapper consumers."""
         result = self.run_native(check_abi_callers.SOURCE, self.caller_files())
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_pat_driver_and_cleanup(self):
+        """Exercise real PAT frames, status-dependent outputs and durable ownership."""
+        result = self.run_native(check_abi_callers.PAT_SOURCE, check_abi_callers.PAT_FILES)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_fvp_pat_lease_and_mapping(self):
+        """Check actual PAL lease ownership and live-map validation independently."""
+        for prefix in ("", "#define CHECK_BOOT_MAPPING\n"):
+            with self.subTest(mapping=bool(prefix)):
+                result = self.run_native(prefix + PAL_PAT_SOURCE, [
+                    "platform/pal_baremetal/targets/fvp/src/pal_firme_shared_buffer.c",
+                ])
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_pat_poisoning_catches_decoder(self):
+        """Reject a production decoder mutated to consume unused SUCCESS X2."""
+        filename = "val/src/val_firme_shared_buffer.c"
+        original = (ROOT / filename).read_text()
+        mutated = original.replace(
+            "return response->written_size != 0ULL ? VAL_TRUE : VAL_FALSE;",
+            "return (response->written_size != 0ULL && response->remaining_size == 0ULL) "
+            "? VAL_TRUE : VAL_FALSE;").replace(
+                "if (response->abi_status == (int64_t)FIRME_INCOMPLETE) {",
+                "if (val_firme_shared_buffer_status_accepted(response->abi_status) == VAL_TRUE) {")
+        self.assertNotEqual(original, mutated)
+        result = self.run_native(check_abi_callers.PAT_SOURCE, check_abi_callers.PAT_FILES,
+                                 {filename: mutated})
+        self.assertNotEqual(result.returncode, 0)
 
     def test_poisoning_catches_decoder(self):
         """Prove the caller check detects a deliberately corrupted decoder."""

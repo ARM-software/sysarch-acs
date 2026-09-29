@@ -19,6 +19,7 @@
 #define VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE   0
 #define VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE 1
 #define VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_ERROR       (-1)
+#define VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_FAILED      2
 
 typedef enum {
     VAL_FIRME_PARTIAL_RETRIEVAL_LAST_CHUNK = 0,
@@ -32,6 +33,7 @@ typedef struct {
     uint64_t remaining_size;
     uint32_t service_id;
     uint32_t valid_fields;
+    uint64_t abi_fid;
 } val_firme_partial_retrieval_evidence_t;
 
 /**
@@ -43,6 +45,9 @@ uint32_t val_firme_partial_retrieval_probe_available(firme_acs_world_t world);
 
 /**
  *   @brief    - Exercise a controlled partial-retrieval service scenario.
+ *             - NS PAT supplies only observed intermediate/no-chunk patterns.
+ *               Table 8.26 makes Remaining unused on SUCCESS, so this adapter
+ *               cannot provide the two output parameters required by R0080.
  *   @param    - world     : FIRME caller world.
  *   @param    - test_case : Retrieval scenario to exercise.
  *   @param    - evidence  : Returned ABI and size evidence.

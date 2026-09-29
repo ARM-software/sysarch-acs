@@ -60,7 +60,7 @@ void firme_shared_buffer_test_fail(firme_rule_res_t *out, uint64_t fail_step,
  **/
 static void shared_buffer_skip(firme_rule_res_t *out, firme_acs_world_t world)
 {
-    LOG_WARN(NULL, "%s: no shared-buffer service probe for world=%u",
+    LOG_WARN(NULL, "%s: service or safe shared-buffer resources unavailable world=%u",
              SHARED_BUFFER_TEST_NAME, (unsigned int)world);
 
     if (out == 0)
@@ -132,6 +132,13 @@ int firme_shared_buffer_test_collect(
     if (probe_result == VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE) {
         shared_buffer_skip(out, world);
         return VAL_SUCCESS;
+    }
+
+    if (probe_result == VAL_FIRME_SHARED_BUFFER_PROBE_FAILED) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_PROBE,
+                                       (uint64_t)evidence->abi_status, test_case);
+        return VAL_ERROR;
     }
 
     if (probe_result != VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE) {

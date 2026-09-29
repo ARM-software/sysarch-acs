@@ -9,6 +9,7 @@
 
 #include "val_firme_abi.h"
 #include "val_firme_shared_buffer.h"
+#include "val_log.h"
 
 /**
  *   @brief    - Validate R0070 shared-buffer mapping attributes.
@@ -40,6 +41,12 @@ static int shared_buffer_mapping_attributes_run(
         return result;
 
     if ((evidence.valid_fields & required_fields) != required_fields) {
+        if ((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_OBSERVATION_UNAVAILABLE) != 0U) {
+            LOG_WARN(NULL, "shared_buffer: independent caller/EL3 mapping evidence unavailable");
+            out->status = (uint64_t)ACS_STATUS_SKIP;
+            out->fail_step = SHARED_BUFFER_STEP_EVIDENCE;
+            return VAL_SUCCESS;
+        }
         out->status = (uint64_t)ACS_STATUS_ERR;
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EVIDENCE,
                            evidence.valid_fields, required_fields);

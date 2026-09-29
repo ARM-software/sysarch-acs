@@ -52,16 +52,16 @@ static void status_codes_fail(firme_rule_res_t *out, uint64_t fail_step,
 }
 
 /**
- *   @brief    - Validate an observed negative FIRME return against Table 2.1.
+ *   @brief    - Validate SERVICE_VERSION against ALP4 Table 8.2.
  *   @param    - status : Signed FIRME return value.
- *   @return   - VAL_TRUE when the value is architected or non-negative.
+ *   @return   - VAL_TRUE for a positive version or NOT_SUPPORTED.
  **/
 static uint32_t status_codes_is_valid_observed_status(int64_t status)
 {
-    if (status >= 0)
+    if ((status > 0) || (status == (int64_t)FIRME_NOT_SUPPORTED))
         return VAL_TRUE;
 
-    return (uint32_t)val_firme_status_is_architected(status);
+    return VAL_FALSE;
 }
 
 /**
@@ -74,6 +74,7 @@ static int status_codes_run(firme_rule_res_t *out)
     firme_res_t res = {0};
     int64_t status = 0;
     uint32_t service_id = 0U;
+    uint32_t feature_index = 0U;
 
     if (!out)
         return VAL_ERROR;
@@ -90,7 +91,7 @@ static int status_codes_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    /* Step 3: SERVICE_VERSION negative returns must be architected. */
+    /* Step 3: SERVICE_VERSION returns a positive version or NOT_SUPPORTED. */
     for (service_id = FIRME_SERVICE_ID_BASE; service_id <= FIRME_SERVICE_ID_8BIT_MAX;
          service_id++) {
         val_firme_service_version((uint64_t)service_id, &res);
@@ -112,30 +113,35 @@ static int status_codes_run(firme_rule_res_t *out)
         }
     }
 
-    /* Step 4: SERVICE_FEATURES negative returns must be architected. */
+    /* Step 4: Query both defined feature indices using Table 8.4 statuses. */
     for (service_id = FIRME_SERVICE_ID_BASE; service_id <= FIRME_SERVICE_ID_8BIT_MAX;
          service_id++) {
-        val_firme_service_features((uint64_t)service_id, FIRME_BASE_FEATURE_REG0_INDEX,
-                                   &res);
-        status = val_firme_status_to_i64(res.x0);
-        if (val_firme_status_is_architected(status) != VAL_TRUE) {
-            LOG_ERROR(NULL, "%s: service_id=%u features unarchitected status=%lld",
-                      STATUS_CODES_TEST_NAME, (unsigned int)service_id,
-                      (long long)status);
-            status_codes_fail(out, STATUS_CODES_STEP_FEATURES_STATUS, res.x0, service_id);
-            return VAL_ERROR;
-        }
-        if ((service_id >= FIRME_SERVICE_ID_MAX) &&
-            (status != (int64_t)FIRME_NOT_SUPPORTED)) {
-            LOG_ERROR(NULL, "%s: service_id=%u features expected NOT_SUPPORTED x0=%llx",
-                      STATUS_CODES_TEST_NAME, (unsigned int)service_id,
-                      (unsigned long long)res.x0);
-            status_codes_fail(out, STATUS_CODES_STEP_UNALLOCATED_FEATURE, res.x0, service_id);
-            return VAL_ERROR;
+        for (feature_index = FIRME_BASE_FEATURE_REG0_INDEX;
+             feature_index <= FIRME_BASE_FEATURE_REG1_INDEX; feature_index++) {
+            val_firme_service_features((uint64_t)service_id, feature_index, &res);
+            status = val_firme_status_to_i64(res.x0);
+            if ((status != (int64_t)FIRME_SUCCESS) &&
+                (status != (int64_t)FIRME_NOT_SUPPORTED)) {
+                LOG_ERROR(NULL, "%s: service_id=%u reg=%u invalid status=%lld",
+                          STATUS_CODES_TEST_NAME, service_id, feature_index,
+                          (long long)status);
+                status_codes_fail(out, STATUS_CODES_STEP_FEATURES_STATUS, res.x0,
+                                   ((uint64_t)service_id << 32) | feature_index);
+                return VAL_ERROR;
+            }
+            if ((service_id >= FIRME_SERVICE_ID_MAX) &&
+                (status != (int64_t)FIRME_NOT_SUPPORTED)) {
+                LOG_ERROR(NULL, "%s: service_id=%u features expected NOT_SUPPORTED x0=%llx",
+                          STATUS_CODES_TEST_NAME, (unsigned int)service_id,
+                          (unsigned long long)res.x0);
+                status_codes_fail(out, STATUS_CODES_STEP_UNALLOCATED_FEATURE, res.x0,
+                                   ((uint64_t)service_id << 32) | feature_index);
+                return VAL_ERROR;
+            }
         }
     }
 
-    /* Step 5: Every advertised ABI must return only an architected status. */
+    /* Step 5: Sample advertised ABI statuses, not every reachable return path. */
     if (val_firme_smccc_check_state(0U, out) != VAL_SUCCESS) {
         if (out && (out->fail_step == 0U))
             out->fail_step = STATUS_CODES_STEP_ADVERTISED_ABI;

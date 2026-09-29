@@ -14,23 +14,28 @@
 #define PARTIAL_RETRIEVAL_TEST_NAME "partial_retrieval"
 
 /**
- * @brief Leave status validation unavailable until the service adapter supplies it.
+ * @brief Supply the NS PAT adapter's Table 6.3 status/size-validity contract.
  * @param world Caller world.
  * @param test_case Requested chunk scenario.
  * @param evidence Selected service and completion evidence.
- * @param expected_status Specification-derived status supplied by an override.
- * @return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE.
+ * @param expected_status Specification-derived status, independent of observation.
+ * @return PROBE_AVAILABLE for supported PAT cases, UNAVAILABLE otherwise, or ERROR.
  */
 __attribute__((weak)) int firme_partial_retrieval_test_expected_status(
     firme_acs_world_t world, val_firme_partial_retrieval_case_t test_case,
     const val_firme_partial_retrieval_evidence_t *evidence,
     int64_t *expected_status)
 {
-    (void)world;
-    (void)test_case;
-    (void)evidence;
-    (void)expected_status;
-
+    if ((evidence == 0) || (expected_status == 0))
+        return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_ERROR;
+    if ((world == FIRME_ACS_WORLD_NSEL2) &&
+        (evidence->service_id == FIRME_SERVICE_ID_ATTESTATION) &&
+        (evidence->abi_fid == FIRME_FID_ATTEST_PAT_GET) &&
+        ((test_case == VAL_FIRME_PARTIAL_RETRIEVAL_INTERMEDIATE_CHUNK) ||
+         (test_case == VAL_FIRME_PARTIAL_RETRIEVAL_NO_CHUNK))) {
+        *expected_status = (int64_t)FIRME_INCOMPLETE;
+        return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE;
+    }
     return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE;
 }
 
@@ -84,7 +89,7 @@ void firme_partial_retrieval_test_fail(firme_rule_res_t *out,
 static void partial_retrieval_skip(firme_acs_world_t world,
                                    firme_rule_res_t *out)
 {
-    LOG_WARN(NULL, "%s: no service adapter for world=%u",
+    LOG_WARN(NULL, "%s: service, resources or requested chunk evidence unavailable world=%u",
              PARTIAL_RETRIEVAL_TEST_NAME, (unsigned int)world);
 
     if (out == 0)
@@ -146,8 +151,19 @@ int firme_partial_retrieval_test_collect(
     probe_result = val_firme_partial_retrieval_probe(world, test_case,
                                                       evidence);
     if (probe_result == VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE) {
+        if ((world == FIRME_ACS_WORLD_NSEL2) &&
+            (test_case == VAL_FIRME_PARTIAL_RETRIEVAL_LAST_CHUNK))
+            LOG_WARN(NULL, "%s: PAT SUCCESS has no Remaining output in Table 8.26",
+                     PARTIAL_RETRIEVAL_TEST_NAME);
         partial_retrieval_skip(world, out);
         return VAL_SUCCESS;
+    }
+
+    if (probe_result == VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_FAILED) {
+        out->status = (uint64_t)ACS_STATUS_FAIL;
+        firme_partial_retrieval_test_fail(out, PARTIAL_RETRIEVAL_STEP_PROBE,
+                                           (uint64_t)evidence->abi_status, test_case);
+        return VAL_ERROR;
     }
 
     if (probe_result != VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE) {
