@@ -675,54 +675,6 @@ pal_gic_free_irq (
   return;
 }
 
-/** SMMU PAL PAI's **/
-#define SMMU_V3_IDR1 0x4
-#define SMMU_V3_IDR1_PASID_SHIFT 6
-#define SMMU_V3_IDR1_PASID_MASK  0x1f
-
-/**
-  @brief   Check if input address is within the IOVA translation range for the device
-  @param   port - Pointer to the DMA port
-  @param   dma_addr   - The input address to be checked
-
-  @return
-    - 0               : Success
-    - PAL_STATUS_NOT_IMPLEMENTED : Feature not implemented
-    - non-zero        : Failure (implementation-specific error code)
-**/
-uint32_t pal_smmu_check_device_iova(void *port, uint64_t dma_addr)
-{
-  (void) port;
-  (void) dma_addr;
-
-  pal_warn_not_implemented(__func__);
-  return PAL_STATUS_NOT_IMPLEMENTED;
-}
-
-/**
-  @brief   Start monitoring an IO virtual address coming from DMA port
-  @param   port - Pointer to the DMA port
-  @return  None
-**/
-void pal_smmu_device_start_monitor_iova(void *port)
-{
-  (void) port;
-
-  return;
-}
-
-/**
-  @brief   Stop monitoring an IO virtual address coming from DMA port
-  @param   port - Pointer to the DMA port
-  @return  None
-**/
-void pal_smmu_device_stop_monitor_iova(void *port)
-{
-  (void) port;
-
-  return;
-}
-
 /** PCIe PAL API's */
 
 /**

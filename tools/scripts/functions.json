@@ -67,21 +67,6 @@
     },
     {
       "return_type": "uint32_t",
-      "function_name": "pal_smmu_check_device_iova",
-      "parameters": ["void *port", "uint64_t dma_addr"]
-    },
-    {
-      "return_type": "void",
-      "function_name": "pal_smmu_device_start_monitor_iova",
-      "parameters": ["void *port"]
-    },
-    {
-      "return_type": "void",
-      "function_name": "pal_smmu_device_stop_monitor_iova",
-      "parameters": ["void *port"]
-    },
-    {
-      "return_type": "uint32_t",
       "function_name": "pal_pcie_p2p_support",
       "parameters": []
     },

@@ -64,9 +64,14 @@ val_smmu_start_monitor_dev(uint32_t ctrl_index)
       return ACS_STATUS_ERR;
   }
 
+#ifdef TARGET_LINUX
   pal_smmu_device_start_monitor_iova(ap);
 
   return 0;
+#else
+  /* PAL implementation is Linux-only. */
+  return ACS_STATUS_PAL_NOT_IMPLEMENTED;
+#endif
 }
 
 /**
@@ -88,9 +93,14 @@ val_smmu_stop_monitor_dev(uint32_t ctrl_index)
       return ACS_STATUS_ERR;
   }
 
+#ifdef TARGET_LINUX
   pal_smmu_device_stop_monitor_iova(ap);
 
   return 0;
+#else
+  /* PAL implementation is Linux-only. */
+  return ACS_STATUS_PAL_NOT_IMPLEMENTED;
+#endif
 }
 
 
@@ -110,7 +120,6 @@ static uint32_t
 val_smmu_check_device_iova(uint32_t ctrl_index, addr_t dma_addr)
 {
   void *ap = NULL;
-  uint32_t status;
 
   ap = (void *)val_dma_get_info(DMA_PORT_INFO, ctrl_index);
   if (ap == NULL) {
@@ -119,9 +128,12 @@ val_smmu_check_device_iova(uint32_t ctrl_index, addr_t dma_addr)
   }
   val_print(DEBUG, "\n       Input dma addr = %lx", dma_addr);
 
-  status = pal_smmu_check_device_iova(ap, dma_addr);
-
-  return status;
+#ifdef TARGET_LINUX
+  return pal_smmu_check_device_iova(ap, dma_addr);
+#else
+  /* PAL implementation is Linux-only. */
+  return ACS_STATUS_PAL_NOT_IMPLEMENTED;
+#endif
 }
 
 /**
