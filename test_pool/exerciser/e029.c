@@ -98,6 +98,11 @@ payload()
           val_print(DEBUG, "\n       Skipping for bdf %x", e_bdf);
           val_set_status(pe_index, RESULT_SKIP(01));
           return;
+      } else if (status) {
+          val_print(ERROR, "\n       Failed to configure BAR response for BDF %x", e_bdf);
+          test_skip = 0;
+          fail_cnt++;
+          continue;
       }
 
       ras_node = val_exerciser_get_pcie_ras_compliant_err_node(e_bdf, erp_bdf);
