@@ -314,6 +314,7 @@
   ../../test_pool/ras/ras016.c
   ../../test_pool/ras/ras017.c
   ../../test_pool/ras/ras018.c
+  ../../test_pool/ras/ras019.c
   ../../test_pool/ete/ete001.c
   ../../test_pool/ete/ete002.c
   ../../test_pool/ete/ete003.c

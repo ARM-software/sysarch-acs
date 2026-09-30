@@ -1069,6 +1069,14 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_RAS_TEST_NUM_BASE + 9,
         },
+        [S_L7RAS_2] = {
+            .test_entry_id    = RAS019_ENTRY,
+            .module_id        = RAS,
+            .rule_desc        = "Check speculative SError support",
+            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
+            .flag             = BASE_RULE,
+            .test_num         = ACS_RAS_TEST_NUM_BASE + 19,
+        },
         [S_RAS_01] = {
             .test_entry_id    = RAS014_ENTRY,
             .module_id        = RAS,
@@ -3930,9 +3938,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_RAS_03] = {
             .module_id        = RAS,
         },
-        [S_L7RAS_2] = {
-            .module_id        = RAS,
-        },
         [B_SMMU_07] = {
             .module_id        = SMMU,
         },
@@ -4698,6 +4703,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [RAS016_ENTRY] = ras016_entry,
     [RAS017_ENTRY] = ras017_entry,
     [RAS018_ENTRY] = ras018_entry,
+    [RAS019_ENTRY] = ras019_entry,
     [TPM001_ENTRY] = tpm001_entry,
     [TPM002_ENTRY] = tpm002_entry,
 #endif
@@ -5030,6 +5036,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [RAS016_ENTRY] = ras016_entry,
     [RAS017_ENTRY] = ras017_entry,
     [RAS018_ENTRY] = ras018_entry,
+    [RAS019_ENTRY] = ras019_entry,
     [E027_ENTRY] = e027_entry,
     [E026_ENTRY] = e026_entry,
     [E032_ENTRY] = e032_entry,

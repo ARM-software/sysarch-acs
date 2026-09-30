@@ -139,5 +139,6 @@ uint32_t ras015_entry(uint32_t num_pe);
 uint32_t ras016_entry(uint32_t num_pe);
 uint32_t ras017_entry(uint32_t num_pe);
 uint32_t ras018_entry(uint32_t num_pe);
+uint32_t ras019_entry(uint32_t num_pe);
 
 #endif // __ACS_RAS_H

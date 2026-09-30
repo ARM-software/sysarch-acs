@@ -2487,11 +2487,11 @@ The checklist provides information about:
       <td>L7</td>
       <td>S_L7RAS_2</td>
       <td>S_L7RAS_2</td>
-      <td>Not covered</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
+      <td>1219</td>
+      <td>Check speculative SError support</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No</td>
       <td></td>
       <td></td>
     </tr>
