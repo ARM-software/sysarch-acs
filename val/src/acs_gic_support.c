@@ -292,14 +292,13 @@ its_fail:
   @param   its_id ID of the ITS Block
   @return  Index in ITS Info Block
 **/
-static
-uint32_t get_its_index(uint32_t its_id)
+uint32_t val_gic_get_its_index(uint32_t its_id)
 {
   uint32_t  index;
 
   for (index = 0; index < g_gic_its_info->GicNumIts; index++)
   {
-    if (its_id == g_gic_its_info->GicIts[index].its_index)
+    if (its_id == g_gic_its_info->GicIts[index].ID)
       return index;
   }
   return ACS_INVALID_INDEX;
@@ -472,7 +471,7 @@ void val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
   uint32_t its_index;
   uint32_t msi_cap_offset;
 
-  its_index = get_its_index(its_id);
+  its_index = val_gic_get_its_index(its_id);
   if (its_index >= g_gic_its_info->GicNumIts)
   {
     val_print(ERROR, "\n       Could not find ITS ID [%x]", its_id);
@@ -516,7 +515,7 @@ uint32_t val_gic_request_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
    if ((g_gic_its_info == NULL) || (g_gic_its_info->GicNumIts == 0))
     return ACS_STATUS_ERR;
 
-  its_index = get_its_index(its_id);
+  its_index = val_gic_get_its_index(its_id);
 
   if (its_index >= g_gic_its_info->GicNumIts) {
     val_print(ERROR, "\n       Could not find ITS ID [%x]", its_id);
@@ -564,7 +563,7 @@ uint32_t val_gic_its_get_base(uint32_t its_id, uint64_t *its_base)
    if ((g_gic_its_info == NULL) || (g_gic_its_info->GicNumIts == 0))
     return ACS_STATUS_ERR;
 
-  its_index = get_its_index(its_id);
+  its_index = val_gic_get_its_index(its_id);
 
   if (its_index >= g_gic_its_info->GicNumIts) {
     val_print(ERROR, "\n       Could not find ITS ID [%x]", its_id);

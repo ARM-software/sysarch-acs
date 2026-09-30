@@ -2278,19 +2278,6 @@ val_mpam_mbwu_wait_for_update(uint32_t msc_index)
         --nrdy_timeout;
 }
 
-static
-uint32_t mpam_get_its_index(uint32_t its_id)
-{
-    uint32_t index;
-
-    for (index = 0; index < g_gic_its_info->GicNumIts; index++) {
-        if (its_id == g_gic_its_info->GicIts[index].its_index)
-            return index;
-    }
-
-    return ACS_INVALID_INDEX;
-}
-
 /**
   @brief   This function creates the MSI mappings for an MPAM MSC device.
 
@@ -2318,7 +2305,7 @@ val_mpam_msc_request_msi(uint32_t msc_index, uint32_t device_id, uint32_t its_id
     if ((g_gic_its_info == NULL) || (g_gic_its_info->GicNumIts == 0))
         return ACS_STATUS_ERR;
 
-    its_index = mpam_get_its_index(its_id);
+    its_index = val_gic_get_its_index(its_id);
     if (its_index >= g_gic_its_info->GicNumIts) {
         val_print(ERROR, "\n       Could not find ITS ID [%x]", its_id);
         return ACS_STATUS_ERR;

@@ -223,6 +223,7 @@ uint32_t val_gic_install_isr(uint32_t int_id, void (*isr)(void));
 uint32_t val_gic_end_of_interrupt(uint32_t int_id);
 uint32_t val_gic_get_intr_trigger_type(uint32_t int_id, INTR_TRIGGER_INFO_TYPE_e *trigger_type);
 uint32_t val_gic_its_configure(void);
+uint32_t val_gic_get_its_index(uint32_t its_id);
 uint32_t val_gic_its_get_base(uint32_t its_id, uint64_t *its_base);
 uint32_t val_gic_request_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
                              uint32_t int_id, uint32_t msi_index);
