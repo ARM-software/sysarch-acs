@@ -49,6 +49,16 @@
  */
 uint32_t rule_status_map[RULE_ID_SENTINEL] __attribute__((aligned(8))) = { 0 };
 
+/*
+ * Per-test-entry status map
+ *
+ * Stores the latest execution status for each test entry, indexed by
+ * TEST_ENTRY_ID_e. Values mirror the status codes returned by test payloads.
+ * Use test_entry_status_map_reset() to initialize all entries to
+ * TEST_STATUS_UNKNOWN before a run.
+ */
+uint32_t test_entry_status_map[TEST_ENTRY_SENTINEL] __attribute__((aligned(8))) = { 0 };
+
 /* Following structure has every test entry that was is sysarch-acs on 23/07/25 */
 rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_L3_01] = {

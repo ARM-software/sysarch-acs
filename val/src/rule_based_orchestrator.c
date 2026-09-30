@@ -251,7 +251,12 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
             }
             old_log_indent = val_log_get_indent();
             val_log_set_indent(indent);
-            precheck_status = test_entry_func_table[entry_id](num_pe);
+            if (!test_entry_status_cached(entry_id, &precheck_status)) {
+                precheck_status = test_entry_func_table[entry_id](num_pe);
+                test_entry_status_store(entry_id, precheck_status);
+            } else {
+                val_print(DEBUG, "\n       Reusing cached result");
+            }
             val_log_set_indent(old_log_indent);
 
             if (GET_STATE(precheck_status) == TEST_SKIP) {
@@ -320,7 +325,12 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
             (test_entry_func_table[entry_id] != NULL)) {
             old_log_indent = val_log_get_indent();
             val_log_set_indent(indent);
-            rule_test_status = test_entry_func_table[entry_id](num_pe);
+            if (!test_entry_status_cached(entry_id, &rule_test_status)) {
+                rule_test_status = test_entry_func_table[entry_id](num_pe);
+                test_entry_status_store(entry_id, rule_test_status);
+            } else {
+                val_print(DEBUG, "\n       Reusing cached result");
+            }
             val_log_set_indent(old_log_indent);
         } else {
             val_print(ERROR, "\n\n  Rule failed due to NULL entry \n\r ", 0);
@@ -668,6 +678,9 @@ run_tests(const acs_run_request_t *ctx)
 
     /* Initialize per-rule status map to TEST_STATUS_UNKNOWN for this run */
     rule_status_map_reset();
+    test_entry_status_cache_enable(ctx->arch_selection == ARCH_SYS_MPAM);
+    /* Initialize per-test-entry status map to TEST_STATUS_UNKNOWN for this run */
+    test_entry_status_map_reset();
 
     /* Get number of PEs in the system */
     num_pe = val_pe_get_num();
@@ -706,4 +719,5 @@ report_status:
     }
     val_print(INFO,
               "\n\n----------------- Suite run complete ----------------\n");
+    test_entry_status_cache_enable(false);
 }

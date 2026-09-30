@@ -97,6 +97,10 @@ uint32_t alias_rule_map_get_index(RULE_ID_e alias_rule_id);
 void     print_rule_test_start(uint32_t rule_enum, uint32_t indent);
 void     print_rule_test_status(uint32_t rule_enum, uint32_t indent, uint32_t status);
 void     rule_status_map_reset(void);
+void     test_entry_status_cache_enable(bool enable);
+void     test_entry_status_map_reset(void);
+bool     test_entry_status_cached(TEST_ENTRY_ID_e entry_id, uint32_t *cached_status);
+void     test_entry_status_store(TEST_ENTRY_ID_e entry_id, uint32_t status);
 bool     rule_in_list(RULE_ID_e rid, const RULE_ID_e *list, uint32_t count);
 void     print_pal_validation_info(uint32_t rule_enum, uint32_t indent);
 void     rule_reference_path_reset(void);
@@ -107,6 +111,7 @@ const RULE_ID_e *rule_reference_path_get(void);
 
 /* ---------------------------- Externs ---------------------------- */
 extern uint32_t rule_status_map[RULE_ID_SENTINEL];
+extern uint32_t test_entry_status_map[TEST_ENTRY_SENTINEL];
 
 /* Rule lookup tables (defined in rule_lookup.c) */
 extern const bsa_rule_entry_t bsa_rule_list[];

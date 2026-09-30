@@ -28,6 +28,7 @@ extern uint8_t g_current_pal;
 static RULE_ID_e rule_reference_path[RULE_REFERENCE_PATH_MAX_DEPTH + 1] = {
     RULE_ID_SENTINEL
 };
+static bool test_entry_cache_enabled;
 
 /**
  * @brief Check if a rule ID exists in a list.
@@ -419,6 +420,50 @@ void rule_status_map_reset(void)
 
     if (RULE_ID_SENTINEL & 1U) {
         rule_status_map[RULE_ID_SENTINEL - 1] = TEST_STATE_UNKNOWN;
+    }
+}
+
+/**
+ * @brief Enable or disable per-test-entry result caching.
+ */
+void test_entry_status_cache_enable(bool enable)
+{
+    test_entry_cache_enabled = enable;
+}
+
+/**
+ * @brief Reset all cached test entry statuses to unknown.
+ */
+void test_entry_status_map_reset(void)
+{
+    for (uint32_t i = 0; i < TEST_ENTRY_SENTINEL; i++) {
+        test_entry_status_map[i] = TEST_STATE_UNKNOWN;
+    }
+}
+
+/**
+ * @brief Query cached status for a test entry.
+ *
+ * @return true if cached status exists, false otherwise.
+ */
+bool test_entry_status_cached(TEST_ENTRY_ID_e entry_id, uint32_t *cached_status)
+{
+    if (!test_entry_cache_enabled || cached_status == NULL ||
+        entry_id >= TEST_ENTRY_SENTINEL) {
+        return false;
+    }
+
+    *cached_status = test_entry_status_map[entry_id];
+    return (*cached_status != TEST_STATE_UNKNOWN);
+}
+
+/**
+ * @brief Store status for a test entry in the cache.
+ */
+void test_entry_status_store(TEST_ENTRY_ID_e entry_id, uint32_t status)
+{
+    if (test_entry_cache_enabled && entry_id < TEST_ENTRY_SENTINEL) {
+        test_entry_status_map[entry_id] = status;
     }
 }
 

@@ -44,12 +44,34 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
     bool test_ns_flag = 0;
     bool test_warn_flag = 0;
     bool previous_print_subtests = g_print_subtests;
+    TEST_ENTRY_ID_e entry_id;
+
+    if (tst_entry_list == NULL) {
+        val_print(ERROR, "\n       Invalid test entry list");
+        return RESULT_FAIL(0);
+    }
 
     g_print_subtests = true;
 
-    for (i = 0; tst_entry_list[i] != TEST_ENTRY_SENTINEL ; i++) {
-        if (test_entry_func_table[tst_entry_list[i]] != NULL) {
-            entry_status = test_entry_func_table[tst_entry_list[i]](num_pe);
+    for (i = 0; i < TEST_ENTRY_SENTINEL; i++) {
+        entry_id = tst_entry_list[i];
+        if (entry_id == TEST_ENTRY_SENTINEL) {
+            break;
+        }
+
+        if ((uint32_t)entry_id >= (uint32_t)TEST_ENTRY_SENTINEL) {
+            val_print(ERROR, "\n       Invalid test entry ID: 0x%x", (uint32_t)entry_id);
+            rule_status = RESULT_FAIL(0);
+            break;
+        }
+
+        if (test_entry_func_table[entry_id] != NULL) {
+            if (!test_entry_status_cached(entry_id, &entry_status)) {
+                entry_status = test_entry_func_table[entry_id](num_pe);
+                test_entry_status_store(entry_id, entry_status);
+            } else {
+                val_print(DEBUG, "\n       Reusing cached result");
+            }
         } else {
             /* If entry is NULL, then the entry is not supported in current PAL */
             entry_status = RESULT_PARTIAL_COVERED;
@@ -69,6 +91,11 @@ static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_p
         if ((entry_status > rule_status) || (rule_status == TEST_STATE_UNKNOWN)) {
             rule_status = entry_status;
         }
+    }
+
+    if (i == TEST_ENTRY_SENTINEL) {
+        val_print(ERROR, "\n       Test entry list is missing its sentinel");
+        rule_status = RESULT_FAIL(0);
     }
 
     g_print_subtests = previous_print_subtests;
