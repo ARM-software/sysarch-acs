@@ -47,11 +47,18 @@ pal_get_platform_time_us(void)
 
 /** SMMU API's **/
 /**
-  @brief  Platform defined method to check if CATU is behind an ETR device
+  @brief  Check whether the specified ETR trace path is protected by a CATU.
 
-  @param  etr_path  full path of ETR device
+  ACS calls this when an ETR named component is not found behind an SMMU in
+  IOVIRT. The PAL must use platform trace topology data to decide whether the
+  ETR identified by etr_path has CATU coverage before trace writes reach memory.
 
-  @return 0 - Success, PAL_STATUS_NOT_IMPLEMENTED - API not implemented, Other values - Failure
+  @param  etr_path  Full ACPI namespace path of the ETR device being checked.
+
+  @return 0 when that ETR is behind a CATU.
+  @return PAL_STATUS_NOT_IMPLEMENTED when the check is not implemented.
+  @return Any other non-zero value when no suitable CATU is present or the
+          topology check fails.
 **/
 uint32_t
 pal_smmu_is_etr_behind_catu(char *etr_path)

@@ -748,9 +748,16 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE Type, exerciser_data_t *Data
 }
 
 /**
-  @brief   This API disables the RP-PIO register support of the RP
-  @param   type         - RP BDF of which the RP-PIO needs to be disabled
-  @return  None
+  @brief  Disable Root Port PIO error-register support for the specified Root Port.
+
+  ACS calls this before validating that DPC RP Extensions are disabled. The PAL
+  should clear or mask the platform-specific control that exposes Root Port PIO
+  error registers while preserving unrelated DPC/AER state. Platforms that do
+  not expose RP PIO controls may implement this as a no-op.
+
+  @param  bdf  BDF of the Root Port whose RP PIO support must be disabled.
+
+  @return None.
 **/
 void
 pal_exerciser_disable_rp_pio_register(uint32_t bdf)
@@ -761,9 +768,15 @@ pal_exerciser_disable_rp_pio_register(uint32_t bdf)
 }
 
 /**
-  @brief   This API checks if forwarding poison data forwarding is supported or not
-  @return  status      - 1 if poison data forwarding is supported
-                         0 if poison data forwarding is not supported
+  @brief  Report whether poisoned data is forwarded to the PCIe RAS recording node.
+
+  ACS enables exerciser poison mode separately. This API only reports whether a
+  poisoned BAR read can propagate through the platform to the RAS-compliant node
+  used for PCIe error recording.
+
+  @return 1 when poisoned data forwarding is supported for the exerciser path.
+  @return 0 when poison is blocked, consumed, converted, or cannot be guaranteed
+          to reach the RAS recording node.
 **/
 uint32_t
 pal_exerciser_check_poison_data_forwarding_support()
@@ -809,11 +822,18 @@ pal_exerciser_get_ras_status(uint32_t ras_node, uint32_t bdf, uint32_t rp_bdf)
 }
 
 /**
-  @brief   This API ensures that an external abort is obtained when MMIO soace is targeted
-           with reads
-  @param   bdf         - BDF of the device
-  @return  status      - 0 if implemented, else
-                       - PAL_STATUS_NOT_IMPLEMENTED
+  @brief  Configure BAR access behavior so ACS observes an external abort.
+
+  The PAL must apply platform-specific setup so that a later ACS read from the
+  saved exerciser BAR address, after memory-space access is disabled, raises a
+  synchronous external abort or SError instead of completing normally.
+
+  @param  bdf  BDF of the exerciser whose BAR access is used by the test.
+
+  @return 0 on successful configuration.
+  @return PAL_STATUS_NOT_IMPLEMENTED when the platform cannot provide this
+          behavior.
+  @return Any other non-zero value for a configuration failure.
 **/
 uint32_t
 pal_exerciser_set_bar_response(uint32_t bdf)
@@ -823,10 +843,17 @@ pal_exerciser_set_bar_response(uint32_t bdf)
 }
 
 /**
-  @brief   This API ensures that system implements firmware-first handling of memory
-           error notifications with reads
-  @return  status      - 0 if supported, else
-                       - PAL_STATUS_NOT_IMPLEMENTED
+  @brief  Report whether firmware-first handling of CXL MEFN VDMs is enabled.
+
+  The PAL must inspect platform firmware/RAS configuration and return success
+  only when generated CXL Memory Error Fault Notification VDMs are expected to
+  be handled by firmware and surfaced through the platform error-notification
+  path visible to ACS.
+
+  @return 0 when firmware-first handling is supported and enabled.
+  @return PAL_STATUS_NOT_IMPLEMENTED when the PAL cannot perform the check.
+  @return Any other non-zero value when the platform is known not to support the
+          required firmware-first handling.
 **/
 uint32_t
 pal_exerciser_check_firmware_handle_support(void)
