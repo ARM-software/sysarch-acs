@@ -3758,11 +3758,11 @@ The checklist provides information about:
       <td>FR</td>
       <td>B_PCIe_11</td>
       <td>B_PCIe_11</td>
-      <td>891</td>
-      <td>Steering Tag value properties</td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>Yes</td>
+      <td>Not Covered</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
   </tbody>
