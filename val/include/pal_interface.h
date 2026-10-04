@@ -848,8 +848,6 @@ void     pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);
 #define RID_VALID      1
 #define RID_NOT_VALID  0
 
-#define EXERCISER_ID   0xED0113B5 //device id + vendor id
-
 typedef enum {
     TYPE0 = 0x0,
     TYPE1 = 0x1,
