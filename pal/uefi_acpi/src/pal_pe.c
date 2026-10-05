@@ -565,6 +565,21 @@ pal_pe_update_elr(VOID *context, UINT64 offset)
 }
 
 /**
+  @brief Update saved GPRs and SP in the UEFI exception context
+
+  @param  context - exception context structure
+  @param  sp - stack pointer with which context should be updated
+
+  @return  None
+**/
+VOID
+pal_pe_update_sp(VOID *context, UINT64 sp)
+{
+  (void)context;
+  (void)sp;
+}
+
+/**
   @brief Get the Exception syndrome from UEFI exception handler
 
   @param  context - exception context structure

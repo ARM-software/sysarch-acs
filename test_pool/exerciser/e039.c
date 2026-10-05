@@ -31,6 +31,7 @@
 static const ARM_NORMAL_MEM ARM_NORMAL_MEM_ARRAY[] = {NORMAL_NC, NORMAL_WT};
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 
 static
@@ -39,8 +40,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received Exception of type %d", interrupt_type);
   val_set_status(index, RESULT_FAIL(02));
@@ -64,6 +67,7 @@ payload(void)
   status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
   status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
   branch_to_test = &&test_fail;
+  branch_stack_pointer = val_pe_save_exception_return_context();
   if (status)
   {
       val_print(ERROR, "\n       Failed in installing the exception handler");

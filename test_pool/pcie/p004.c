@@ -25,6 +25,7 @@
 #define KNOWN_DATA  0xABABABAB
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static
 void
 esr(uint64_t interrupt_type, void *context)
@@ -33,8 +34,10 @@ esr(uint64_t interrupt_type, void *context)
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR and SP to return to the test cleanup path. */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received exception of type: %d", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(01));
@@ -113,13 +116,15 @@ payload(void)
   /* Install sync and async handlers to handle exceptions.*/
   status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
   status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
-  branch_to_test = &&exception_return;
   if (status)
   {
       val_print(ERROR, "\n       Failed in installing the exception handler");
       val_set_status(pe_index, RESULT_FAIL(01));
       return;
   }
+
+  branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   /* Since this is a memory space access test.
    * Enable BME & MSE for all the BDFs.
@@ -190,6 +195,8 @@ payload(void)
          * Read the same
          */
 
+        ori_mem_base = mem_base;
+        branch_stack_pointer = val_pe_save_exception_return_context();
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &old_value);
         val_pcie_bar_mem_write(bdf, mem_base + mem_offset, KNOWN_DATA);
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &read_value);
@@ -218,8 +225,6 @@ payload(void)
          * If the limit exceeds 1MB then modify the range to be 1MB
          * and access out of the limit set
          **/
-        ori_mem_base = mem_base;
-
         if ((mem_lim >> MEM_SHIFT) > (mem_base >> MEM_SHIFT))
         {
            val_print(DEBUG, "\n       Entered Check_2 for bdf 0x%x", bdf);

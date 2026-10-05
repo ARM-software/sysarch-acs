@@ -35,6 +35,7 @@ UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;
 static UINT32 g_num_pe;
 extern INT32 gPsciConduit;
+
 UINT32
 pal_strncmp(CHAR8 *str1, CHAR8 *str2, UINT32 len);
 
@@ -512,6 +513,21 @@ VOID
 pal_pe_update_elr(VOID *context, UINT64 offset)
 {
   ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ELR = offset;
+}
+
+/**
+  @brief Update saved GPRs and SP in the UEFI exception context
+
+  @param  context - exception context structure
+  @param  sp - stack pointer provided by the caller
+
+  @return  None
+**/
+VOID
+pal_pe_update_sp(VOID *context, UINT64 sp)
+{
+  (void)context;
+  (void)sp;
 }
 
 /**

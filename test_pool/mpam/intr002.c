@@ -29,6 +29,7 @@ static uint32_t msc_index;
 static uint32_t intr_num;
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static
 void
@@ -36,8 +37,10 @@ esr(uint64_t exception_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (exception_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(WARN, "\n       Received Exception of type %d", exception_type);
   val_set_status(index, RESULT_FAIL(05));
@@ -78,6 +81,7 @@ void payload(void)
     val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
 
     branch_to_test = &&exception_taken;
+    branch_stack_pointer = val_pe_save_exception_return_context();
 
     for (msc_index = 0; msc_index < total_nodes; msc_index++) {
 
