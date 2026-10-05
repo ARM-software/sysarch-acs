@@ -33,12 +33,19 @@
        .global  _CONCATENATE (__USER_LABEL_PREFIX__, func__)    ;\
        .type ASM_PFX(func__), %function
 
+#define GCC_ASM_IMPORT(func__)  \
+       .extern  _CONCATENATE (__USER_LABEL_PREFIX__, func__)
+
 
 .text
 .align 3
 
 
+GCC_ASM_IMPORT (exception_return_regs)
+GCC_ASM_IMPORT (exception_return_regs_valid)
+
 GCC_ASM_EXPORT (AA64ReadSp)
+GCC_ASM_EXPORT (AA64SaveExceptionReturnContext)
 GCC_ASM_EXPORT (AA64WriteSp)
 GCC_ASM_EXPORT (ArmRdvl)
 GCC_ASM_EXPORT (AA64SetupTraceAccess)
@@ -52,6 +59,39 @@ GCC_ASM_EXPORT (AA64DisableTFO)
 
 ASM_PFX(AA64ReadSp):
   mov   x0, sp
+  ret
+
+ASM_PFX(AA64SaveExceptionReturnContext):
+  stp   x0, x1, [sp, #-16]!
+  adrp  x0, exception_return_regs
+  add   x0, x0, :lo12:exception_return_regs
+  ldr   x1, [sp]
+  str   x1, [x0]
+  ldr   x1, [sp, #8]
+  str   x1, [x0, #8]
+  add   sp, sp, #16
+  stp   x2, x3, [x0, #8 * 2]
+  stp   x4, x5, [x0, #8 * 4]
+  stp   x6, x7, [x0, #8 * 6]
+  stp   x8, x9, [x0, #8 * 8]
+  stp   x10, x11, [x0, #8 * 10]
+  stp   x12, x13, [x0, #8 * 12]
+  stp   x14, x15, [x0, #8 * 14]
+  stp   x16, x17, [x0, #8 * 16]
+  stp   x18, x19, [x0, #8 * 18]
+  stp   x20, x21, [x0, #8 * 20]
+  stp   x22, x23, [x0, #8 * 22]
+  stp   x24, x25, [x0, #8 * 24]
+  stp   x26, x27, [x0, #8 * 26]
+  stp   x28, x29, [x0, #8 * 28]
+  str   x30, [x0, #8 * 30]
+  mov   x1, sp
+  str   x1, [x0, #8 * 31]
+  adrp  x0, exception_return_regs_valid
+  add   x0, x0, :lo12:exception_return_regs_valid
+  mov   x2, #1
+  str   x2, [x0]
+  mov   x0, x1
   ret
 
 ASM_PFX(AA64WriteSp):

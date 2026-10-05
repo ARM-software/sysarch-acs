@@ -35,6 +35,7 @@
 static uint64_t l_uart_base;
 static uint32_t int_id;
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint32_t test_fail;
 
 static
@@ -60,8 +61,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Error : Received Exception of type %d", interrupt_type);
   val_set_status(index, TEST_FAIL);
@@ -132,6 +135,7 @@ check_arm_generic_uart()
   val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
 
   branch_to_test = &&exception_taken;
+  branch_stack_pointer = val_pe_save_exception_return_context();
   if (count == 0) {
       val_print(ERROR, "\n       No UART defined by Platform      ");
       if (g_build_sbsa)

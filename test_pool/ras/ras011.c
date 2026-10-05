@@ -45,6 +45,7 @@ intr_handler(void)
 }
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static
 void
@@ -52,8 +53,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   esr_pending = 0;
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received exception of type: %d", interrupt_type);
 }
@@ -166,6 +169,7 @@ payload_poison_supported()
       return;
     }
     branch_to_test = &&exception_return;
+    branch_stack_pointer = val_pe_save_exception_return_context();
     esr_pending = 1;
 
     /* Install handler for interrupt */
@@ -356,6 +360,7 @@ payload_poison_unsupported()
       return;
     }
     branch_to_test = &&exception_return;
+    branch_stack_pointer = val_pe_save_exception_return_context();
 
     /* Install handler for interrupt */
     val_gic_install_isr(int_id, intr_handler);
