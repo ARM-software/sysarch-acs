@@ -654,6 +654,12 @@
 #define IOVIRT_RC_MEMORY_PROPERTIES   0x1
 #define IOVIRT_RC_ATS_ATTRIBUTE       0x1
 
+/*
+ * Set to 1 when output_ref and PMCG node_ref contain IOVIRT node indexes.
+ * Set to 0 when they contain final byte offsets from the IOVIRT table base.
+ */
+#define PLATFORM_IOVIRT_REF_IS_NODE_INDEX  0
+
 #define RC_MAP0_INPUT_BASE            0x0
 #define RC_MAP0_ID_COUNT              0x8FFF
 #define RC_MAP0_OUTPUT_BASE           0x30000

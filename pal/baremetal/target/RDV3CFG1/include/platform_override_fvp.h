@@ -626,6 +626,12 @@
 #define IOVIRT_SMMUV3_0_NUM_MAP       6            /* SMMU mapping entries                       */
 #define IOVIRT_NAMED_COMP0_NUM_MAP    0            /* Name component mapping entries             */
 
+/*
+ * Set to 1 when output_ref and PMCG node_ref contain IOVIRT node indexes.
+ * Set to 0 when they contain final byte offsets from the IOVIRT table base.
+ */
+#define PLATFORM_IOVIRT_REF_IS_NODE_INDEX  0
+
 #define RC_MAP0_INPUT_BASE            0x0          /* Input base - Refer table 4 in IORT table   */
 #define RC_MAP0_ID_COUNT              0x8FF        /* The number of IDs in the range minus one   */
 #define RC_MAP0_OUTPUT_BASE           0x0          /* The lowest value in the output range       */
