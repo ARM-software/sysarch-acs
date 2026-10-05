@@ -876,15 +876,15 @@ pal_iovirt_create_info_table_dt(IOVIRT_INFO_TABLE *IoVirtTable)
 
       P_dma = fdt_get_property_namelen((void *)dt_ptr, offset, "dma-coherent", 12, &prop_len);
       if ((P_dma == NULL) || prop_len < 0)
-        (*data).rc.cca = 1;
-      else
         (*data).rc.cca = 0;
+      else
+        (*data).rc.cca = 1;
 
       P_ats = fdt_get_property_namelen((void *)dt_ptr, offset, "ats-supported", 13, &prop_len);
       if ((P_ats == NULL) || prop_len < 0)
-          (*data).rc.ats_attr = 1;
-      else
           (*data).rc.ats_attr = 0;
+      else
+          (*data).rc.ats_attr = 1;
 
       next_block = ADD_PTR(IOVIRT_BLOCK, data_map, 0);
       offset = fdt_node_offset_by_prop_value((const void *) dt_ptr, offset, "device_type",
