@@ -52,20 +52,36 @@ intr_handler(void)
   return;
 }
 
+static void
+free_config_space(void)
+{
+  uint32_t idx;
+
+  for (idx = 0; idx < MAX_DEVICES; idx++)
+  {
+      if (cfg_space_buf[idx] != NULL)
+      {
+          val_memory_free_aligned(cfg_space_buf[idx]);
+          cfg_space_buf[idx] = NULL;
+      }
+  }
+}
+
 static uint32_t
 restore_config_space(uint32_t rp_bdf)
 {
 
   uint32_t idx;
   uint32_t bdf, dev_rp_bdf;
-  uint32_t tbl_index = 0;
+  uint32_t tbl_index;
   addr_t   cfg_space_addr;
 
   pcie_device_bdf_table *bdf_tbl_ptr;
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  while (tbl_index < bdf_tbl_ptr->num_entries)
+  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries && tbl_index < MAX_DEVICES;
+       tbl_index++)
   {
-      bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
+      bdf = bdf_tbl_ptr->device[tbl_index].bdf;
 
       if (val_pcie_get_rootport(bdf, &dev_rp_bdf))
               continue;
@@ -73,6 +89,9 @@ restore_config_space(uint32_t rp_bdf)
       /* Check if the RP of the device matches with the rp_bdf */
       if (rp_bdf != dev_rp_bdf)
               continue;
+
+      if (cfg_space_buf[tbl_index] == NULL)
+          continue;
 
       /* Traverse through the devices under this RP and restore its config space */
       cfg_space_addr = val_pcie_get_bdf_config_addr(bdf);
@@ -82,6 +101,7 @@ restore_config_space(uint32_t rp_bdf)
       }
 
       val_memory_free_aligned(cfg_space_buf[tbl_index]);
+      cfg_space_buf[tbl_index] = NULL;
    }
   return 0;
 }
@@ -92,7 +112,7 @@ save_config_space(uint32_t rp_bdf)
 
   uint32_t idx;
   uint32_t bdf, dev_rp_bdf;
-  uint32_t tbl_index = 0;
+  uint32_t tbl_index;
   addr_t   cfg_space_addr;
   uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
@@ -105,9 +125,10 @@ save_config_space(uint32_t rp_bdf)
       val_print(WARN, "\n       and test may fail");
   }
 
-  while (tbl_index < bdf_tbl_ptr->num_entries)
+  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries && tbl_index < MAX_DEVICES;
+       tbl_index++)
   {
-      bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
+      bdf = bdf_tbl_ptr->device[tbl_index].bdf;
 
       if (val_pcie_get_rootport(bdf, &dev_rp_bdf))
           continue;
@@ -160,6 +181,7 @@ payload(void)
   uint32_t its_id = 0;
   uint32_t msi_index = 0;
   uint32_t msi_cap_offset = 0;
+  uint64_t delay_status;
 
   fail_cnt = 0;
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -257,7 +279,11 @@ payload(void)
 
           /* Save the config space of all the devices connected to the RP
            to restore after Secondary Bus Reset (SBR)*/
-          save_config_space(erp_bdf);
+          if (save_config_space(erp_bdf))
+          {
+              free_config_space();
+              return;
+          }
 
           irq_pending = 1;
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
@@ -302,6 +328,29 @@ payload(void)
               continue;
           }
 
+          /* RP Busy is applicable only when RP Extensions for DPC are supported. */
+          val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
+          if ((reg_value >> DPC_RP_EXT_OFFSET) & DPC_RP_EXT_MASK)
+          {
+              /* Wait for RP Busy to clear while DPC Trigger Status is set. */
+              timeout = TIMEOUT_LARGE;
+              do
+              {
+                  val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, &reg_value);
+                  if (!(reg_value & DPC_STATUS_MASK) || !(reg_value & DPC_RP_BUSY_MASK))
+                      break;
+              } while (--timeout);
+
+              if (timeout == 0)
+              {
+                  val_print(ERROR, "\n       DPC RP Busy did not clear for BDF 0x%x", erp_bdf);
+                  fail_cnt++;
+                  /* Do not access the EP or clear DPC Trigger Status while RP Busy is set. */
+                  free_config_space();
+                  val_set_status(pe_index, RESULT_FAIL(fail_cnt));
+                  return;
+              }
+          }
           val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, 1);
 
           val_pcie_read_cfg(erp_bdf, TYPE01_ILR, &reg_value);
@@ -325,12 +374,12 @@ payload(void)
               if (!status)
               {
                   /* Wait for for additional Timeout and check the status*/
-                  uint32_t delay_status = val_time_delay_ms(100 * ONE_MILLISECOND);
-                  if (!delay_status)
+                  delay_status = val_time_delay_ms(100 * ONE_MILLISECOND);
+                  if (delay_status)
                   {
                       val_print(ERROR,
                                "\n       Failed to time delay for BDF 0x%x ", erp_bdf);
-                      val_memory_free_aligned(cfg_space_buf);
+                      free_config_space();
                       val_set_status(pe_index, RESULT_FAIL(02));
                       return;
                   }
@@ -343,6 +392,7 @@ payload(void)
           {
               val_print(ERROR,
                        "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
+              val_set_status(pe_index, RESULT_FAIL(02));
               return ;
           }
 

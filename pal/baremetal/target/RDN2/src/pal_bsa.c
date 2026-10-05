@@ -841,6 +841,7 @@ uint64_t
 pal_time_delay_ms(uint64_t MicroSeconds)
 {
   (void) MicroSeconds;
+  pal_warn_not_implemented(__func__);
   return 0;
 }
 

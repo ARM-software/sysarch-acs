@@ -254,6 +254,7 @@
 #define DPC_STATUS_OFFSET      0x8
 #define DPC_STATUS_RESET       0xFFFFFFFF
 #define DPC_STATUS_MASK        0x1
+#define DPC_RP_BUSY_MASK       0x10
 #define DPC_TRIGGER_MASK       0x6
 #define DPC_TRIGGER_FATAL      0x2
 #define DPC_TRIGGER_NON_FATAL  0x1
