@@ -28,6 +28,7 @@
 #define TEST_RULE  "PCI_ER_07"
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint32_t exception;
 
 static
@@ -35,8 +36,10 @@ void
 esr(uint64_t interrupt_type, void *context)
 {
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(DEBUG, "\n       Received exception of type: %d", interrupt_type);
   exception = 1;
@@ -75,6 +78,7 @@ payload()
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   while (instance-- != 0) {
 

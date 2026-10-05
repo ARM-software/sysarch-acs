@@ -34,6 +34,7 @@ typedef struct {
 } test_data_t;
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint32_t test_num;
 
 static
@@ -44,8 +45,10 @@ esr(uint64_t interrupt_type, void *context)
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(DEBUG, "\n       Received exception of type: %d", interrupt_type);
   val_set_status(pe_index, RESULT_PASS);
@@ -142,6 +145,7 @@ payload(void *arg)
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   bar_data = 0;
   tbl_index = 0;

@@ -28,6 +28,7 @@
 #define ACCESS_CNTPCT   2
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint64_t fault_timer_index;
 static uint32_t fault_access_type;
 
@@ -37,7 +38,9 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+    val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received exception type %d", interrupt_type);
   if (fault_access_type == ACCESS_CNTTIDR)
@@ -62,6 +65,7 @@ payload()
   uint64_t timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
 
   branch_to_test = &&exception_taken;
+  branch_stack_pointer = val_pe_save_exception_return_context();
   status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
   status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
   if (status) {

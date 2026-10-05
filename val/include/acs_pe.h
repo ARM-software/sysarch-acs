@@ -211,12 +211,28 @@ typedef enum {
 
 uint64_t AA64WriteSp(uint64_t write_data);
 uint64_t AA64ReadSp(void);
+uint64_t AA64SaveExceptionReturnContext(void);
+/**
+  @brief  Save exception return context for firmware exception recovery
+
+  @return Stack pointer captured with the saved context, or 0 on Linux
+**/
+static inline __attribute__((always_inline)) uint64_t
+val_pe_save_exception_return_context(void)
+{
+#ifndef TARGET_LINUX
+  return AA64SaveExceptionReturnContext();
+#else
+  return 0;
+#endif
+}
 uint64_t ArmRdvl(void);
 
 void AA64IssueISB(void);
 void DisableSpe(void);
 
 void val_pe_update_elr(void *context, uint64_t offset);
+void val_pe_update_elr_and_sp(void *context, uint64_t offset, uint64_t sp);
 void val_pe_context_save(uint64_t sp, uint64_t elr);
 void val_pe_initialize_default_exception_handler(void (*esr)(uint64_t, void *));
 void val_pe_context_restore(uint64_t sp);
