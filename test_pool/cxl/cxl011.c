@@ -34,6 +34,7 @@
 #define PGT_WB 0x448
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 typedef struct {
   uint32_t uncor_status;
@@ -52,7 +53,9 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+    val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
   val_print(ERROR, "\n       Received exception type: %d", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(1));
 }
@@ -177,6 +180,7 @@ payload(void)
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   dpb_field = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64ISAR1_EL1), 0, 3);
   val_print(TRACE, "\n       DPB %x", dpb_field);

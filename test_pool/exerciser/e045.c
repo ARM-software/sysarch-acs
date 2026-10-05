@@ -27,14 +27,17 @@
 #define TEST_DESC  "CXL MEFN VDM sink handling on host    "
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static volatile uint32_t exception_observed;
 
 static
 void
 esr(uint64_t interrupt_type, void *context)
 {
-  /* Return to the test flow after handling the exception. */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+    /* Return to the test flow after handling the exception. */
+    val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
   val_print(ERROR, "\n       Received exception of type: %d", interrupt_type);
   exception_observed = 1;
 }
@@ -96,6 +99,7 @@ payload(void)
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   while (num_instances-- != 0) {
     instance = num_instances;

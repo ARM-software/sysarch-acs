@@ -36,6 +36,7 @@
 static uint8_t contend_flag;
 static uint32_t num_pe_cont;
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static
 void
@@ -43,8 +44,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received Exception of type %d", interrupt_type);
   val_set_status(index, RESULT_FAIL(01));
@@ -282,6 +285,7 @@ payload_primary(void)
     status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
     status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
     branch_to_test = &&exception_return;
+    branch_stack_pointer = val_pe_save_exception_return_context();
     if (status)
     {
         val_print(ERROR, "\n       Failed in installing the exception handler");

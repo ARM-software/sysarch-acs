@@ -27,6 +27,7 @@
 #define LOOP_VAR   3          /* Number of Addresses to check */
 
 static uint64_t branch_to_test;
+static uint64_t branch_stack_pointer;
 uint32_t loop_var = LOOP_VAR;
 uint32_t instance = 0;
 uint32_t timeout;
@@ -39,8 +40,10 @@ static
 void
 esr(uint64_t interrupt_type, void *context)
 {
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, branch_to_test, branch_stack_pointer);
+  }
 
   val_print(DEBUG, "\n       Received Exception of type %d", interrupt_type);
 }
@@ -65,6 +68,7 @@ payload()
   }
 
   branch_to_test = (uint64_t)&&exception_taken_d;
+  branch_stack_pointer = val_pe_save_exception_return_context();
   while (loop_var) {
       timeout = TIMEOUT_SMALL;
       /* Get the address of device memory region */
@@ -92,6 +96,7 @@ normal_mem_test:
   loop_var = LOOP_VAR;
   instance = 0;
   branch_to_test = (uint64_t)&&exception_taken_n;
+  branch_stack_pointer = val_pe_save_exception_return_context();
   while (loop_var) {
       timeout = TIMEOUT_SMALL;
       /* Get the address of normal memory region */

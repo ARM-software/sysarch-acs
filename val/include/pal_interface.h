@@ -831,7 +831,9 @@ void     pal_mmio_write16(uint64_t addr, uint16_t data);
 void     pal_mmio_write(uint64_t addr, uint32_t data);
 void     pal_mmio_write64(uint64_t addr, uint64_t data);
 
+
 void     pal_pe_update_elr(void *context, uint64_t offset);
+void     pal_pe_update_sp(void *context, uint64_t sp);
 uint64_t pal_pe_get_esr(void *context);
 uint64_t pal_pe_get_far(void *context);
 void     pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);

@@ -37,6 +37,7 @@ typedef struct {
 #define TEST_DATA_NUM_PAGES  1
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 /*
  * Execption is not expected in this test scenario.
@@ -47,8 +48,10 @@ void
 esr(uint64_t interrupt_type, void *context)
 {
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(TRACE, "\n       Received exception of type: %d", interrupt_type);
 }
@@ -90,6 +93,7 @@ payload(void *arg)
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   /* Create a buffer of size TEST_DMA_SIZE in DRAM */
   dram_buf_virt = val_memory_alloc_pages(TEST_DATA_NUM_PAGES);

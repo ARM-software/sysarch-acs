@@ -25,6 +25,7 @@
 #define TEST_DESC "Check UART Non-secure register access "
 
 static void *uart_probe_recovery_addr;
+static uint64_t uart_probe_stack_pointer;
 static volatile uint32_t uart_probe_fault;
 
 static
@@ -73,7 +74,8 @@ uart_probe_esr(uint64_t interrupt_type, void *context)
       return;
   }
 
-  val_pe_update_elr(context, (uint64_t)uart_probe_recovery_addr);
+  val_pe_update_elr_and_sp(context, (uint64_t)uart_probe_recovery_addr,
+                           uart_probe_stack_pointer);
   val_print(DEBUG, "\n       Received Exception of type %d", interrupt_type);
   uart_probe_fault = 1;
 }
@@ -84,6 +86,7 @@ uart_probe_restore_esr(void)
 {
   val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_pe_default_esr);
   uart_probe_recovery_addr = NULL;
+  uart_probe_stack_pointer = 0;
   uart_probe_fault = 0;
 }
 
@@ -101,6 +104,7 @@ uart_probe_non_secure_access(uint64_t uart_base, uint32_t interface_type,
 
   uart_probe_fault = 1;
   uart_probe_recovery_addr = &&uart_probe_done;
+  uart_probe_stack_pointer = val_pe_save_exception_return_context();
 
   val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, uart_probe_esr);
 
