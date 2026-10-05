@@ -156,6 +156,7 @@
 #define TYPE1_P_MEM_LU  0x2C    /* Prefetchable Limit Upper Offset */
 
 /* Type 1 Bridge Control Register */
+#define BRIDGE_CTRL_SERRE_SET   (1U << 17)
 #define BRIDGE_CTRL_SBR_SET     0x400000
 
 /* Memory Base Reg Shifts */

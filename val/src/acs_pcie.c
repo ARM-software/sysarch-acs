@@ -1267,6 +1267,13 @@ val_pcie_enable_eru(uint32_t bdf)
   dis_mask = (1 << CR_SERRE_SHIFT);
   val_pcie_write_cfg(bdf, TYPE01_CR, reg_value | dis_mask);
 
+  /* Enable SERR# forwarding for functions with a Type 1 configuration header. */
+  if (val_pcie_function_header_type(bdf) == TYPE1_HEADER)
+  {
+      val_pcie_read_cfg(bdf, TYPE01_ILR, &reg_value);
+      val_pcie_write_cfg(bdf, TYPE01_ILR, reg_value | BRIDGE_CTRL_SERRE_SET);
+  }
+
   /* Get the PCI Express Capability structure offset and
    * use that offset to read the Device Control register
    */
