@@ -131,7 +131,7 @@ val_mmu_check_for_entry(uint64_t addr)
 
         /* update level and remaining VA bits to resolve */
         ++this_level;
-        bits_remaining -= bits_at_this_level;
+        bits_remaining -= bits_per_level;
         bits_at_this_level = bits_per_level;
     }
     /* execution should don't reach here */
