@@ -1553,7 +1553,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         },
     /* PCIE */
         [B_REP_1] = {
-            .test_entry_id    = NULL_ENTRY,
+            .test_entry_id    = B_REP_1_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check RCiEP Devices",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
@@ -1567,7 +1567,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = ALIAS_RULE,
         },
         [B_IEP_1] = {
-            .test_entry_id    = NULL_ENTRY,
+            .test_entry_id    = B_IEP_1_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check i-EP Devices",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
@@ -3480,6 +3480,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [M006_ENTRY] = m006_entry,
     [P095_ENTRY] = p095_entry,
     [M007_ENTRY] = m007_entry,
+    [B_IEP_1_ENTRY] = b_iep_1_entry,
+    [B_REP_1_ENTRY] = b_rep_1_entry,
 /* Skip build of sbsa only tests for BSA */
 #ifndef BSA_LINUX_BUILD
     [I023_ENTRY] = i023_entry,
@@ -3724,6 +3726,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P085_ENTRY] = p085_entry,
     [P086_ENTRY] = p086_entry,
     [S_L6PCI_1_ENTRY] = s_l6pci_1_entry,
+    [B_IEP_1_ENTRY] = b_iep_1_entry,
+    [B_REP_1_ENTRY] = b_rep_1_entry,
     [P087_ENTRY] = p087_entry,
     [P088_ENTRY] = p088_entry, // used in wrapper.
     [P089_ENTRY] = p089_entry, // used in wrapper.
@@ -4302,6 +4306,8 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [RE_REC_1_ENTRY]   = re_rec_1_entry,
     [RE_REG_1_ENTRY]   = re_reg_1_entry,
     [RI_SMU_1_ENTRY]   = ri_smu_1_entry,
+    [B_IEP_1_ENTRY] = b_iep_1_entry,
+    [B_REP_1_ENTRY] = b_rep_1_entry,
     [CXL_02_ENTRY]     = cxl_02_entry,
     [CXL_11_ENTRY]     = cxl_11_entry,
     [CXL_12_ENTRY]     = cxl_12_entry,
