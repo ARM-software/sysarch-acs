@@ -27,6 +27,7 @@
 #define MAX_VFS 256
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static uint32_t num_vf;
 static uint32_t skip_rid_list[MAX_VFS];
@@ -39,8 +40,10 @@ esr(uint64_t interrupt_type, void *context)
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(TRACE, "\n       Received exception of type: %d", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(01));
@@ -122,6 +125,7 @@ payload(void)
   }
 
   branch_to_test = &&exception_return;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   num_ecam = val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
 

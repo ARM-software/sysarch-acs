@@ -849,13 +849,36 @@ void
 val_pe_update_elr(void *context, uint64_t offset)
 {
 
-    if (pal_target_is_dt()) {
+    if (pal_target_is_dt() || pal_target_is_bm()) {
 #ifndef TARGET_LINUX
         bsa_gic_update_elr(offset);
 #endif
     }
     pal_pe_update_elr(context, offset);
     return;
+}
+
+/**
+  @brief  Update ELR and, for the bare-metal vector handler, recover SP on eret.
+
+  @param  *context  Context to be restored
+  @param  offset    Address to return to
+  @param  sp        Stack pointer to restore before eret
+  @return None
+**/
+void
+val_pe_update_elr_and_sp(void *context, uint64_t offset, uint64_t sp)
+{
+    if (pal_target_is_dt() || pal_target_is_bm()) {
+#ifndef TARGET_LINUX
+        bsa_gic_set_exception_return_sp(sp);
+#endif
+    }
+#ifdef TARGET_UEFI
+    else
+        pal_pe_update_sp(context, sp);
+#endif
+    val_pe_update_elr(context, offset);
 }
 
 /**

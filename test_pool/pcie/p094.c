@@ -31,6 +31,7 @@ test_config_t test_entries[] = {
 #define DATA 0xC0DECAFE
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint32_t test_num;
 static uint32_t onchip_peripherals_check;
 
@@ -40,8 +41,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to point to next instrcution */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received Exception of type %d", interrupt_type);
   val_set_status(index, RESULT_FAIL(02));
@@ -219,6 +222,7 @@ next_bdf:
               val_pcie_enable_msa(bdf);
 
           branch_to_test = &&exception_return_normal;
+          branch_stack_pointer = val_pe_save_exception_return_context();
 
           test_skip = 0;
 
