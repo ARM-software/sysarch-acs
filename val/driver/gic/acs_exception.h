@@ -24,6 +24,7 @@
 
 void bsa_gic_set_el2_vector_table(void);
 void bsa_gic_update_elr(uint64_t elr_value);
+void bsa_gic_set_exception_return_sp(uint64_t sp);
 uint64_t bsa_gic_get_elr(void);
 uint64_t bsa_gic_get_far(void);
 uint64_t bsa_gic_get_esr(void);

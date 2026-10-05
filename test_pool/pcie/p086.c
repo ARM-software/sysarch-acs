@@ -25,6 +25,7 @@
 #define TEST_RULE  "S_PCIe_02"
 
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 static uint32_t bdf;
 static uint32_t tbl_index;
 static pcie_device_bdf_table *bdf_tbl_ptr;
@@ -38,8 +39,10 @@ esr(uint64_t interrupt_type, void *context)
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(TRACE, "\n       Received exception of type: %d in test 861", interrupt_type);
   val_set_status(pe_index, RESULT_FAIL(01));
@@ -121,6 +124,7 @@ payload(void)
   }
 
   branch_to_test = &&exception_return861;
+  branch_stack_pointer = val_pe_save_exception_return_context();
 
   bar_data = 0;
   tbl_index = 0;

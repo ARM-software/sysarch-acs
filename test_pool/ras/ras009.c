@@ -32,6 +32,7 @@
 
 static uint32_t esr_pending = 1;
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static
 void
@@ -39,8 +40,10 @@ esr(uint64_t interrupt_type, void *context)
 {
   esr_pending = 0;
 
-  /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
+      /* Update the ELR to return to test specified address */
+      val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test, branch_stack_pointer);
+  }
 
   val_print(ERROR, "\n       Received exception of type: %d", interrupt_type);
 }
@@ -99,6 +102,8 @@ payload()
 
   for (node_index = 0; node_index < num_node; node_index++) {
 
+    esr_pending = 1;
+
     /* check whether current node is memory controller node */
     status = val_ras_get_info(RAS_INFO_NODE_TYPE, node_index, &node_type);
     if (status) {
@@ -147,6 +152,7 @@ payload()
       return;
     }
     branch_to_test = &&exception_return;
+    branch_stack_pointer = val_pe_save_exception_return_context();
 
     /* Inject error with following parameters */
     err_in_params.rec_index = 0;           /* not applicable for scenario*/

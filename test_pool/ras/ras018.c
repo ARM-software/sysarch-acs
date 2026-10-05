@@ -29,6 +29,7 @@
 
 static uint32_t esr_pending = 1;
 static void *branch_to_test;
+static uint64_t branch_stack_pointer;
 
 static
 void
@@ -36,8 +37,11 @@ esr(uint64_t interrupt_type, void *context)
 {
     esr_pending = 0;
 
+  if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
     /* Update the ELR to return to test specified address */
-    val_pe_update_elr(context, (uint64_t)branch_to_test);
+    val_pe_update_elr_and_sp(context, (uint64_t)branch_to_test,
+                             branch_stack_pointer);
+  }
 
     val_print(ERROR, "\n       Received exception of type: 0x%llx", interrupt_type);
 }
@@ -126,6 +130,7 @@ payload()
             return;
         }
         branch_to_test = &&exception_return;
+        branch_stack_pointer = val_pe_save_exception_return_context();
 
         /* Inject error with following parameters */
         err_in_params.rec_index = 0; /* not applicable for scenario*/
