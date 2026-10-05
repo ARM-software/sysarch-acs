@@ -95,7 +95,10 @@ get_target_exer_bdf(uint32_t req_rp_bdf, uint32_t *tgt_e_bdf,
              goto clean_fail;
           }
 
-          if (req_rp_ecam_index != erp_ecam_index)
+          if ((val_pcie_get_info(PCIE_INFO_ECAM, req_rp_ecam_index) !=
+               val_pcie_get_info(PCIE_INFO_ECAM, erp_ecam_index)) ||
+              (val_pcie_get_info(PCIE_INFO_SEGMENT, req_rp_ecam_index) !=
+               val_pcie_get_info(PCIE_INFO_SEGMENT, erp_ecam_index)))
               continue;
 
           *tgt_e_bdf = e_bdf;
@@ -302,9 +305,12 @@ payload(void)
       else if (status)
           curr_bdf_failed++;
 
-      val_exerciser_set_param(CFG_TXN_ATTRIBUTES, TXN_REQ_ID, RID_NOT_VALID, instance);
+      val_exerciser_set_param(CFG_TXN_ATTRIBUTES, TXN_REQ_ID_VALID, RID_NOT_VALID, instance);
 
       status = check_transaction_blocking(instance, req_rp_bdf, bar_base);
+
+      val_exerciser_set_param(CFG_TXN_ATTRIBUTES, TXN_ADDR_TYPE, AT_UNTRANSLATED, instance);
+
       if (status == ACS_STATUS_SKIP)
           val_print(DEBUG,
                     "\n       ACS Transaction Blocking Skipped for 0x%x", req_rp_bdf);

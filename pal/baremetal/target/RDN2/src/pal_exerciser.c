@@ -17,6 +17,9 @@
 
 #include "pal_exerciser.h"
 
+#define TXN_ADDR_TYPE_SHIFT  10
+#define TXN_ADDR_TYPE_MASK   (0x3ul << TXN_ADDR_TYPE_SHIFT)
+
 extern PCIE_INFO_TABLE *g_pcie_info_table;
 
 uint64_t
@@ -298,16 +301,12 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
                 switch (Value2)
                 {
                     case AT_UNTRANSLATED:
-                        Data = 0x1;
-                        pal_mmio_write(Base + DMACTL1, pal_mmio_read(Base + DMACTL1) | (Data << 10));
-                        break;
                     case AT_TRANSLATED:
-                        Data = 0x2;
-                        pal_mmio_write(Base + DMACTL1, pal_mmio_read(Base + DMACTL1) | (Data << 10));
-                        break;
                     case AT_RESERVED:
-                        Data = 0x3;
-                        pal_mmio_write(Base + DMACTL1, pal_mmio_read(Base + DMACTL1) | (Data << 10));
+                        Data = pal_mmio_read(Base + DMACTL1);
+                        Data &= ~TXN_ADDR_TYPE_MASK;
+                        Data |= ((Value2 << TXN_ADDR_TYPE_SHIFT) & TXN_ADDR_TYPE_MASK);
+                        pal_mmio_write(Base + DMACTL1, Data);
                         break;
                 }
                 return 0;

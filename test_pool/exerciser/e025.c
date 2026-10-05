@@ -86,7 +86,10 @@ get_target_exer_bdf(uint32_t req_rp_bdf, uint32_t *tgt_e_bdf,
              goto clean_fail;
           }
 
-          if (req_rp_ecam_index != erp_ecam_index)
+          if ((val_pcie_get_info(PCIE_INFO_ECAM, req_rp_ecam_index) !=
+               val_pcie_get_info(PCIE_INFO_ECAM, erp_ecam_index)) ||
+              (val_pcie_get_info(PCIE_INFO_SEGMENT, req_rp_ecam_index) !=
+               val_pcie_get_info(PCIE_INFO_SEGMENT, erp_ecam_index)))
               continue;
 
           *tgt_e_bdf = e_bdf;
