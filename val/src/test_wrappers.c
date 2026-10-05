@@ -467,6 +467,60 @@ s_l6pci_1_entry(uint32_t num_pe)
     return RESULT_PASS;
 }
 
+/* B_IEP_1 */
+uint32_t
+b_iep_1_entry(uint32_t num_pe)
+{
+    pcie_device_bdf_table *bdf_tbl_ptr;
+    uint32_t i;
+    uint32_t dp_type;
+
+    (void)num_pe;
+
+    bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+    if (bdf_tbl_ptr == NULL) {
+        return RESULT_SKIP(0);
+    }
+
+    for (i = 0; i < bdf_tbl_ptr->num_entries; i++) {
+        dp_type = val_pcie_device_port_type(bdf_tbl_ptr->device[i].bdf);
+        if ((dp_type == iEP_EP) || (dp_type == iEP_RP)) {
+            return RESULT_PASS;
+        }
+    }
+
+    val_print(WARN, "\n     *** No i-EP Devices Found, "
+              "Skipping i-EP PCIe tests ***\n");
+    return RESULT_SKIP(0);
+}
+
+/* B_REP_1 */
+uint32_t
+b_rep_1_entry(uint32_t num_pe)
+{
+    pcie_device_bdf_table *bdf_tbl_ptr;
+    uint32_t i;
+    uint32_t dp_type;
+
+    (void)num_pe;
+
+    bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+    if (bdf_tbl_ptr == NULL) {
+        return RESULT_SKIP(0);
+    }
+
+    for (i = 0; i < bdf_tbl_ptr->num_entries; i++) {
+        dp_type = val_pcie_device_port_type(bdf_tbl_ptr->device[i].bdf);
+        if ((dp_type == RCiEP) || (dp_type == RCEC)) {
+            return RESULT_PASS;
+        }
+    }
+
+    val_print(WARN, "\n     *** No RCiEP or RCEC Devices Found, "
+              "Skipping RCiEP PCIe tests ***\n");
+    return RESULT_SKIP(0);
+}
+
 /* RCXL_02 */
 uint32_t
 cxl_02_entry(uint32_t num_pe)

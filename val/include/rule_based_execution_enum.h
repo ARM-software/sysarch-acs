@@ -1007,6 +1007,8 @@ typedef enum {
     CXL013_ENTRY,
     D005_ENTRY,
     S_L6PCI_1_ENTRY,
+    B_IEP_1_ENTRY,
+    B_REP_1_ENTRY,
     TEST_ENTRY_SENTINEL
 } TEST_ENTRY_ID_e;
 
