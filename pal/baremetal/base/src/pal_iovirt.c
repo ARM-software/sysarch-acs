@@ -20,7 +20,12 @@
 #include "platform_override_fvp.h"
 #include "platform_override_struct.h"
 
+#ifndef PLATFORM_IOVIRT_REF_IS_NODE_INDEX
+#define PLATFORM_IOVIRT_REF_IS_NODE_INDEX  0
+#endif
+
 extern const PLATFORM_OVERRIDE_IOVIRT_INFO_TABLE platform_iovirt_cfg;
+extern const PLATFORM_OVERRIDE_GIC_INFO_TABLE platform_gic_cfg;
 extern const PLATFORM_OVERRIDE_NODE_DATA platform_node_type;
 extern const PLATFORM_OVERRIDE_PMCG_NODE_DATA platform_pmcg_node_data;
 extern const PLATFORM_OVERRIDE_NAMED_NODE_DATA platform_named_node_data;
@@ -181,13 +186,14 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
 {
 
   uint64_t iort;
-  uint32_t its_count = NUM_ITS_COUNT;
   IOVIRT_BLOCK *block;
   NODE_DATA_MAP *data_map;
   uint32_t node[IORT_NODE_COUNT];
-  uint32_t identifier[5][1] ={{0}, {1}, {2}, {3}, {4}};
+  uint32_t ref;
+  uint32_t target_type;
+  uint32_t its_identifier;
 
-  uint32_t j, k=0, m=0, i=0, z = 0, n = 0, p = 0;
+  uint32_t j, k = 0, m = 0, i = 0, n = 0, p = 0, its_id_index = 0;
 
   if (IoVirtTable == NULL)
     return;
@@ -206,16 +212,43 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
      return;
   }
 
-  block = &(IoVirtTable->blocks[0]);
-  for (i = 0; i < platform_iovirt_cfg.node_count; i++, block=IOVIRT_NEXT_BLOCK(block))
+  if (platform_iovirt_cfg.node_count > IORT_NODE_COUNT)
   {
+     pal_print_msg(ACS_PRINT_ERR,
+                   "\n       IOVIRT node count exceeds platform limit");
+     return;
+  }
+
+  block = &(IoVirtTable->blocks[0]);
+  for (i = 0; i < platform_iovirt_cfg.node_count; i++, block = IOVIRT_NEXT_BLOCK(block))
+  {
+     if ((platform_iovirt_cfg.type[i] != IOVIRT_NODE_ITS_GROUP) &&
+         (platform_iovirt_cfg.num_map[i] > IOVIRT_MAX_NUM_MAP))
+     {
+        pal_print_msg(ACS_PRINT_ERR,
+                      "\n       IOVIRT mapping count exceeds platform limit");
+        goto iovirt_error;
+     }
+
      block->type = platform_iovirt_cfg.type[i];
      block->flags = 0;
      switch(platform_iovirt_cfg.type[i]){
           case IOVIRT_NODE_ITS_GROUP:
              block->data.its_count = platform_node_type.its_count;
+             if ((block->data.its_count != 1) ||
+                 (its_id_index >= platform_gic_cfg.num_gicits) ||
+                 (platform_gic_cfg.gicits_id[its_id_index] > 0xFFFFFFFFULL))
+             {
+                 pal_print_msg(ACS_PRINT_ERR,
+                               "\n       Invalid IOVIRT ITS identifier configuration");
+                 goto iovirt_error;
+             }
+
+             /* IOVIRT ITS nodes follow the platform GIC ITS configuration order. */
+             its_identifier = (uint32_t)platform_gic_cfg.gicits_id[its_id_index++];
              data_map = &block->data_map[0];
-             pal_memcpy(&((*data_map).id[0]), &identifier[i][0], sizeof(uint32_t) * block->data.its_count);
+             pal_memcpy(&((*data_map).id[0]), &its_identifier,
+                        sizeof(uint32_t) * block->data.its_count);
              block->num_data_map = (block->data.its_count +3)/4;
              IoVirtTable->num_its_groups++;
              break;
@@ -258,6 +291,7 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
           case IOVIRT_NODE_PMCG:
              block->data.pmcg.base = platform_pmcg_node_data.pmcg[p].base;
              block->data.pmcg.overflow_gsiv = platform_pmcg_node_data.pmcg[p].overflow_gsiv;
+             block->data.pmcg.node_ref = platform_pmcg_node_data.pmcg[p].node_ref;
              /* if the PMCG node is associated with a SMMU, store SMMU base */
              block->data.pmcg.smmu_base = platform_pmcg_node_data.pmcg[p].smmu_base;
              block->num_data_map = platform_iovirt_cfg.num_map[i];
@@ -267,14 +301,11 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
           default:
              pal_print_msg(ACS_PRINT_ERR,
                            "\n       Invalid IORT node type");
-             return;
+             goto iovirt_error;
      }
-     node[i] = (uint8_t*)(block) - (uint8_t*)IoVirtTable;
 
-     if (platform_iovirt_cfg.type[i] == IOVIRT_NODE_PMCG)
-     {
-         block->data.pmcg.node_ref = node[i];
-     }
+     if (PLATFORM_IOVIRT_REF_IS_NODE_INDEX)
+         node[i] = (uint8_t *)block - (uint8_t *)IoVirtTable;
 
      if (platform_iovirt_cfg.type[i] != IOVIRT_NODE_ITS_GROUP)
      {
@@ -284,25 +315,62 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
              (*data_map).map.input_base = platform_iovirt_cfg.map[i].input_base[j];
              (*data_map).map.id_count = platform_iovirt_cfg.map[i].id_count[j];
              (*data_map).map.output_base = platform_iovirt_cfg.map[i].output_base[j];
-             if (platform_iovirt_cfg.type[i] == IOVIRT_NODE_SMMU_V3)
-             {
-                 (*data_map).map.output_ref = node[z];
-             }
-             if (platform_iovirt_cfg.type[i] == IOVIRT_NODE_PCI_ROOT_COMPLEX)
-             {
-                 (*data_map).map.output_ref = node[j + its_count];
-             }
-             else
-             {
-                  (*data_map).map.output_ref = platform_iovirt_cfg.map[i].output_ref[j];
-             }
+             (*data_map).map.output_ref = platform_iovirt_cfg.map[i].output_ref[j];
 
              data_map++;
          }
-         z++;
       }
 
      IoVirtTable->num_blocks++;
+  }
+
+  if (PLATFORM_IOVIRT_REF_IS_NODE_INDEX)
+  {
+    block = &(IoVirtTable->blocks[0]);
+    for (i = 0; i < platform_iovirt_cfg.node_count; i++, block = IOVIRT_NEXT_BLOCK(block))
+    {
+      if ((block->type == IOVIRT_NODE_PMCG) && (block->data.pmcg.smmu_base != 0))
+      {
+          ref = block->data.pmcg.node_ref;
+          if (ref >= platform_iovirt_cfg.node_count)
+          {
+              pal_print_msg(ACS_PRINT_ERR, "\n       Invalid IOVIRT PMCG node index");
+              goto iovirt_error;
+          }
+
+          target_type = platform_iovirt_cfg.type[ref];
+          if ((target_type != IOVIRT_NODE_SMMU) && (target_type != IOVIRT_NODE_SMMU_V3))
+          {
+              pal_print_msg(ACS_PRINT_ERR, "\n       IOVIRT PMCG index does not reference SMMU");
+              goto iovirt_error;
+          }
+          block->data.pmcg.node_ref = node[ref];
+      }
+
+      if (block->type != IOVIRT_NODE_ITS_GROUP)
+      {
+          data_map = &block->data_map[0];
+          for (j = 0; j < block->num_data_map; j++, data_map++)
+          {
+              ref = data_map->map.output_ref;
+              if (ref >= platform_iovirt_cfg.node_count)
+              {
+                  pal_print_msg(ACS_PRINT_ERR, "\n       Invalid IOVIRT mapping node index");
+                  goto iovirt_error;
+              }
+
+              target_type = platform_iovirt_cfg.type[ref];
+              if ((target_type != IOVIRT_NODE_ITS_GROUP) &&
+                  (target_type != IOVIRT_NODE_SMMU) &&
+                  (target_type != IOVIRT_NODE_SMMU_V3))
+              {
+                  pal_print_msg(ACS_PRINT_ERR, "\n       Invalid IOVIRT mapping target type");
+                  goto iovirt_error;
+              }
+              data_map->map.output_ref = node[ref];
+          }
+      }
+    }
   }
 
   block = &(IoVirtTable->blocks[0]);
@@ -316,6 +384,17 @@ pal_iovirt_create_info_table(IOVIRT_INFO_TABLE *IoVirtTable)
         dump_block(block);
       }
   }
+
+  return;
+
+iovirt_error:
+  /* Do not expose a partially constructed IOVIRT table. */
+  IoVirtTable->num_blocks = 0;
+  IoVirtTable->num_smmus = 0;
+  IoVirtTable->num_pci_rcs = 0;
+  IoVirtTable->num_named_components = 0;
+  IoVirtTable->num_its_groups = 0;
+  IoVirtTable->num_pmcgs = 0;
 
 }
 
