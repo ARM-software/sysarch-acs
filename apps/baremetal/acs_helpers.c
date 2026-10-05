@@ -28,10 +28,17 @@ createIoVirtInfoTable(
 )
 {
   uint64_t   *IoVirtInfoTable;
+
   IoVirtInfoTable = val_aligned_alloc(SIZE_4K, (sizeof(IOVIRT_INFO_TABLE)
                     + ((IOVIRT_ITS_COUNT + IOVIRT_SMMUV3_COUNT + IOVIRT_RC_COUNT
                     + IOVIRT_SMMUV2_COUNT + IOVIRT_NAMED_COMPONENT_COUNT + IOVIRT_PMCG_COUNT)
-                    * sizeof(IOVIRT_BLOCK)) + (IOVIRT_MAX_NUM_MAP * sizeof(ID_MAP))));
+                    * sizeof(IOVIRT_BLOCK)) + (IORT_NODE_COUNT * IOVIRT_MAX_NUM_MAP
+                    * sizeof(NODE_DATA_MAP))));
+  if (IoVirtInfoTable == NULL) {
+    val_print(ERROR, "\n       IOVIRT info table allocation failed");
+    return;
+  }
+
   val_iovirt_create_info_table(IoVirtInfoTable);
 }
 
