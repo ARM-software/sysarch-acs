@@ -333,7 +333,7 @@ uint64_t *val_find_pte(pgt_descriptor_t pgt_desc, uint64_t virtual_address)
         /* Move to the next level translation table */
         tt_base_phys = val64 & (((0x1ull << (ias - page_size_log2)) - 1) << page_size_log2);
         ++this_level;
-        bits_remaining -= bits_at_this_level;
+        bits_remaining -= bits_per_level;
         bits_at_this_level = bits_per_level;
     }
 }
@@ -755,7 +755,7 @@ uint64_t val_pgt_get_attributes(pgt_descriptor_t pgt_desc, uint64_t virtual_addr
         }
         tt_base_phys = val64 & (((0x1ull << (ias - page_size_log2)) - 1) << page_size_log2);
         ++this_level;
-        bits_remaining -= bits_at_this_level;
+        bits_remaining -= bits_per_level;
         bits_at_this_level = bits_per_level;
     }
 }
