@@ -53,6 +53,7 @@ uint32_t cxl_11_entry(uint32_t num_pe);
 uint32_t cxl_12_entry(uint32_t num_pe);
 uint32_t ie_reg_2_entry(uint32_t num_pe);
 uint32_t ie_reg_4_entry(uint32_t num_pe);
+uint32_t s_l6pci_1_entry(uint32_t num_pe);
 uint32_t pci_in_13_entry(uint32_t num_pe);
 uint32_t pci_in_17_entry(uint32_t num_pe);
 uint32_t pci_in_05_entry(uint32_t num_pe);

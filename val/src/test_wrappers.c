@@ -31,6 +31,7 @@
 #include "rule_based_execution.h"
 
 extern test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL];
+extern uint32_t g_pcie_integrated_devices;
 
 /* Helper to execute test entries  */
 static uint32_t run_test_entries(TEST_ENTRY_ID_e *tst_entry_list, uint32_t num_pe)
@@ -440,6 +441,23 @@ ri_smu_1_entry(uint32_t num_pe)
     TEST_ENTRY_ID_e e_list[] = { E019_ENTRY, E020_ENTRY, TEST_ENTRY_SENTINEL };
 
     return run_pcie_static_and_exerciser(p_list, e_list, num_pe);
+}
+
+/* S_L6PCI_1 rule is conditional based on presence of pcie integrated devices in the system
+   If the condition is satisfied, then B_REP_1 and B_IEP_1 entries are invoked
+*/
+uint32_t
+s_l6pci_1_entry(uint32_t num_pe)
+{
+    (void)num_pe;
+
+    if (g_pcie_integrated_devices == 0) {
+        val_print(WARN, "\n     *** No integrated PCIe Devices Found, "
+                  "Skipping remaining PCIE tests ***\n");
+        return RESULT_SKIP(0);
+    }
+
+    return RESULT_PASS;
 }
 
 /* RCXL_02 */

@@ -2221,7 +2221,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = ALIAS_RULE,
         },
         [S_L6PCI_1] = {
-            .test_entry_id    = NULL_ENTRY,
+            .test_entry_id    = S_L6PCI_1_ENTRY,
             .module_id        = PCIE,
             .rule_desc        = "Check PCIe On-chip Peripherals",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI | PLATFORM_LINUX,
@@ -3484,6 +3484,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
 #ifndef BSA_LINUX_BUILD
     [I023_ENTRY] = i023_entry,
     [P046_ENTRY] = p046_entry,
+    [S_L6PCI_1_ENTRY] = s_l6pci_1_entry,
 #endif /* BSA_LINUX_BUILD */
 #endif /* TARGET_LINUX */
 
@@ -3722,6 +3723,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P084_ENTRY] = p084_entry,
     [P085_ENTRY] = p085_entry,
     [P086_ENTRY] = p086_entry,
+    [S_L6PCI_1_ENTRY] = s_l6pci_1_entry,
     [P087_ENTRY] = p087_entry,
     [P088_ENTRY] = p088_entry, // used in wrapper.
     [P089_ENTRY] = p089_entry, // used in wrapper.
@@ -4181,6 +4183,7 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [P007_ENTRY] = p007_entry,
     [P087_ENTRY] = p087_entry,
     [P086_ENTRY] = p086_entry,
+    [S_L6PCI_1_ENTRY] = s_l6pci_1_entry,
     [P046_ENTRY] = p046_entry,
     [PMU003_ENTRY] = pmu003_entry,
     [PMU008_ENTRY] = pmu008_entry,
