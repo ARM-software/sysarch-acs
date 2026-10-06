@@ -19,6 +19,11 @@
 #include "val_interface.h"
 #include "acs_pgt.h"
 
+/* Preserve the full 5-bit IDR1 queue sizes unless the platform opts into a cap. */
+#ifndef SMMU_SW_QUEUE_LOG2_MAX
+#define SMMU_SW_QUEUE_LOG2_MAX 0x1FU
+#endif
+
 smmu_dev_t *g_smmu;
 uint32_t    g_smmu_index;
 uint64_t    g_page1_base;
@@ -885,6 +890,17 @@ static uint32_t smmu_probe(smmu_dev_t *smmu)
 
     smmu->cmdq.queue.log2nent = BITFIELD_GET(IDR1_CMDQS, data);
     smmu->evntq.queue.log2nent = BITFIELD_GET(IDR1_EVNTQS, data);
+
+    /* Use the selected sizes for allocation, BASE.LOG2SIZE and queue indices. */
+    if (smmu->cmdq.queue.log2nent > SMMU_SW_QUEUE_LOG2_MAX)
+        smmu->cmdq.queue.log2nent = SMMU_SW_QUEUE_LOG2_MAX;
+    if (smmu->evntq.queue.log2nent > SMMU_SW_QUEUE_LOG2_MAX)
+        smmu->evntq.queue.log2nent = SMMU_SW_QUEUE_LOG2_MAX;
+
+    val_print(TRACE, "\nCMDQ log2 entries: advertised %u, selected %u",
+              BITFIELD_GET(IDR1_CMDQS, data), smmu->cmdq.queue.log2nent);
+    val_print(TRACE, "\nEVENTQ log2 entries: advertised %u, selected %u",
+              BITFIELD_GET(IDR1_EVNTQS, data), smmu->evntq.queue.log2nent);
 
     /* SID/SSID sizes */
     smmu->sid_bits = (BITFIELD_GET(IDR1_SIDSIZE, data) < MAX_SID) ?
