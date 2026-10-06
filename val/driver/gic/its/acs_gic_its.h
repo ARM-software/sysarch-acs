@@ -194,7 +194,7 @@ uint32_t val_its_gicr_lpi_support(uint64_t rd_base);
 
 
 void EnableLPIsRD(uint64_t rd_base);
-void val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
+uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
                             uint32_t int_id, uint32_t Priority);
 void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id);
 

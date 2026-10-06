@@ -2690,6 +2690,7 @@ uint32_t
 val_mpam_msc_request_msi(uint32_t msc_index, uint32_t device_id, uint32_t its_id,
                          uint32_t int_id, uint32_t is_oflow_msi)
 {
+    uint32_t status;
     uint32_t its_index;
     uint64_t msi_addr;
     uint32_t msi_data;
@@ -2713,7 +2714,11 @@ val_mpam_msc_request_msi(uint32_t msc_index, uint32_t device_id, uint32_t its_id
         return ACS_STATUS_ERR;
     }
 
-    val_its_create_lpi_map(its_index, device_id, int_id, LPI_PRIORITY1);
+    status = val_its_create_lpi_map(its_index, device_id, int_id, LPI_PRIORITY1);
+    if (status != ACS_STATUS_PASS) {
+        val_print(ERROR, "\n       Failed to create LPI mapping for DeviceID 0x%x", device_id);
+        return status;
+    }
 
     msi_addr = val_its_get_translater_addr(its_index);
     msi_data = int_id - ARM_LPI_MINID;

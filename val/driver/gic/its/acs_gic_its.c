@@ -18,11 +18,99 @@
 
 #include "acs_gic_its.h"
 #include "acs_gic_support.h"
+#include "acs_memory.h"
+#include "acs_pe.h"
 #include "val_sysreg_pe.h"
 
 extern GIC_ITS_INFO    *g_gic_its_info;
 static uint32_t        *g_cwriter_ptr;
 static uint32_t        g_its_setup_done;
+
+typedef struct {
+  uint64_t *l1_base;
+  uint64_t id_count;
+  uint32_t l1_entries;
+  uint32_t l2_entries;
+  uint32_t page_size;
+} ITS_DEVICE_TABLE;
+
+typedef ITS_DEVICE_TABLE ITS_DEVICE_TABLES[ARM_NUM_GITS_BASER];
+static ITS_DEVICE_TABLES *g_device_tables;
+
+#define ITS_L2_PA_MASK 0x000FFFFFFFFFF000ULL
+
+static uint64_t ItsAllocateL2(uint32_t page_size)
+{
+  void *page = val_aligned_alloc(page_size, page_size);
+  uint64_t pa;
+
+  if (page == NULL)
+    return 0;
+
+  pa = (uint64_t)val_memory_virt_to_phys(page);
+  if ((pa == 0) || (pa & ~ITS_L2_PA_MASK) || (pa & (page_size - 1))) {
+    val_memory_free_aligned(page);
+    return 0;
+  }
+
+  val_memory_set(page, page_size, 0);
+  val_pe_cache_clean_range((uint64_t)page, page_size);
+  dsbsy();
+
+  return pa | ARM_GITS_BASER_VALID;
+}
+
+static uint32_t ItsEnsureDeviceTable(uint32_t its_index, uint32_t device_id,
+                                     uint32_t allocate_l2)
+{
+  uint32_t baser_index, l1_index;
+  uint32_t device_table_found = 0;
+  uint64_t descriptor, typer;
+  ITS_DEVICE_TABLE *table;
+  uint64_t *entry;
+
+  if ((g_gic_its_info == NULL) || (g_device_tables == NULL) ||
+      (its_index >= g_gic_its_info->GicNumIts))
+    return ACS_STATUS_ERR;
+
+  typer = val_mmio_read64(g_gic_its_info->GicIts[its_index].Base + ARM_GITS_TYPER);
+  if ((uint64_t)device_id >= (1ULL << (ARM_GITS_TYPER_DevBits(typer) + 1)))
+    return ACS_STATUS_ERR;
+
+  for (baser_index = 0; baser_index < ARM_NUM_GITS_BASER; baser_index++) {
+    table = &g_device_tables[its_index][baser_index];
+    if (table->id_count == 0)
+      continue;
+
+    device_table_found = 1;
+    if ((uint64_t)device_id >= table->id_count)
+      return ACS_STATUS_ERR;
+    if (table->l1_base == NULL)
+      continue;
+
+    l1_index = device_id / table->l2_entries;
+    if (l1_index >= table->l1_entries)
+      return ACS_STATUS_ERR;
+
+    entry = &table->l1_base[l1_index];
+    if (*entry & ARM_GITS_BASER_VALID)
+      continue;
+    if (!allocate_l2)
+      return ACS_STATUS_ERR;
+
+    descriptor = ItsAllocateL2(table->page_size);
+    if (descriptor == 0) {
+      val_print(ERROR, "\nITS : L2 allocation failed for DeviceID 0x%x", device_id);
+      return ACS_STATUS_ERR;
+    }
+
+    *entry = descriptor;
+    val_pe_cache_clean_range((uint64_t)entry, sizeof(*entry));
+    dsbsy();
+  }
+
+  return device_table_found ? ACS_STATUS_PASS : ACS_STATUS_ERR;
+}
 
 uint32_t GET_NUM_BITS(uint64_t value)
 {
@@ -132,7 +220,9 @@ ArmGicSetItsCommandQueueBase(
 static uint32_t ArmGicSetItsTables(uint32_t its_index)
 {
   uint32_t                Pages;
-  uint32_t                TableSize, entry_size;
+  uint32_t                entry_size;
+  uint64_t                TableSize;
+  uint64_t                id_count, flat_table_capacity;
   uint64_t                its_baser, its_typer;
   uint8_t                 it, table_type;
   uint64_t                write_value, read_value;
@@ -144,6 +234,7 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
   uint64_t                baser_pgsz = 0x00, indirect_table;
   uint64_t                *lvl1_ptr = NULL;
   uint64_t                temp_val;
+  ITS_DEVICE_TABLE        *device_table;
 
   ItsBase = g_gic_its_info->GicIts[its_index].Base;
 
@@ -153,6 +244,13 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
     its_baser = val_mmio_read64(ItsBase + ARM_GITS_BASER(it));
     table_type = ARM_GITS_BASER_GET_TYPE(its_baser);
     entry_size = ARM_GITS_BASER_GET_ENTRY_SIZE(its_baser);
+
+    if ((table_type != ARM_GITS_TBL_TYPE_DEVICE) &&
+        (table_type != ARM_GITS_TBL_TYPE_CLCN))
+      continue;
+    indirect_supported = 0;
+    max_page_size = 0;
+    baser_pgsz = 0;
 
     its_typer = val_mmio_read64(ItsBase + ARM_GITS_TYPER);
     DevBits = ARM_GITS_TYPER_DevBits(its_typer);
@@ -198,11 +296,18 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
    /* reset the register to original value */
     val_mmio_write64(ItsBase + ARM_GITS_BASER(it), its_baser);
 
+    if (max_page_size == 0) {
+      val_print(ERROR, "\nITS : No supported BASER page size");
+      return ACS_STATUS_ERR;
+    }
+
     if (table_type == ARM_GITS_TBL_TYPE_DEVICE) {
-      TableSize = (1 << (DevBits+1))*(entry_size+1); // Assuming Single Level Table
+      id_count = 1ULL << (DevBits + 1);
+      TableSize = id_count * (entry_size + 1); // Assuming Single Level Table
 
     } else if (table_type == ARM_GITS_TBL_TYPE_CLCN) {
-      TableSize = (1 << (CIDBits+1))*(entry_size+1); // Assuming Single Level Table
+      id_count = 1ULL << (CIDBits + 1);
+      TableSize = id_count * (entry_size + 1); // Assuming Single Level Table
 
     } else {
       continue;
@@ -225,7 +330,7 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
       }
 
       // level 1 needs 64 bits i.e 8 bytes
-      TableSize = (1 << (lvl1_bits))*ARM_GITS_BASER_INDIRECT_LVL1_ENTRY_SIZE;
+      TableSize = (1ULL << lvl1_bits)*ARM_GITS_BASER_INDIRECT_LVL1_ENTRY_SIZE;
       if (TableSize > max_page_size*ARM_GITS_BASER_MAX_PAGES) {
         val_print(WARN, "\nITS : Level 1 table size exceeded limit");
         val_print(WARN, "\nmax did size will not be supported..");
@@ -256,18 +361,25 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
 
   val_memory_set((void *)Address,  TableSize, 0);
 
-  if (indirect_table == 1) {
+  if ((indirect_table == 1) && (table_type == ARM_GITS_TBL_TYPE_CLCN)) {
     lvl1_ptr = (uint64_t *)(Address);
-    for (int i = 0; i < (1 << lvl1_bits); i++) {
-      temp_val = (uint64_t)val_aligned_alloc(max_page_size, max_page_size);
-      val_memory_set((void *)temp_val,  max_page_size, 0);
-      temp_val =  temp_val | ARM_GITS_BASER_VALID;
+    for (uint64_t i = 0; (i < (1ULL << lvl1_bits)) &&
+                         (i < TableSize / sizeof(*lvl1_ptr)); i++) {
+      temp_val = ItsAllocateL2((uint32_t)max_page_size);
+      if (temp_val == 0) {
+        val_print(ERROR, "\nITS : Could not allocate Collection Table L2 page");
+        return ACS_STATUS_ERR;
+      }
       lvl1_ptr[i] = temp_val;
     }
   }
 
+  val_pe_cache_clean_range(Address, TableSize);
+  dsbsy();
+
   write_value = val_mmio_read64(ItsBase + ARM_GITS_BASER(it));
-  write_value = write_value & (~ARM_GITS_BASER_PA_MASK);
+  write_value &= ~(ARM_GITS_BASER_PA_MASK | ARM_GITS_BASER_INDIRECT |
+                   ARM_GITS_BASER_PAGE_MASK | 0xFFULL);
   if (indirect_table ==  1) {
     write_value = write_value | ARM_GITS_BASER_INDIRECT;
   }
@@ -277,6 +389,22 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
   write_value = write_value | (Pages-1);
   write_value = write_value | ((7ULL << 59) | (7ULL << 53) | (2ULL << 10));
   val_mmio_write64(ItsBase + ARM_GITS_BASER(it), write_value);
+
+  if (table_type == ARM_GITS_TBL_TYPE_DEVICE) {
+    device_table = &g_device_tables[its_index][it];
+    device_table->id_count = id_count;
+    if (!indirect_table) {
+      flat_table_capacity = TableSize / (entry_size + 1);
+      if (flat_table_capacity < id_count)
+        device_table->id_count = flat_table_capacity;
+    }
+    device_table->page_size = (uint32_t)max_page_size;
+    if (indirect_table) {
+      device_table->l1_base = (uint64_t *)Address;
+      device_table->l1_entries = TableSize / sizeof(*lvl1_ptr);
+      device_table->l2_entries = (uint32_t)lvl2_entries;
+    }
+  }
 
   }
 
@@ -481,6 +609,9 @@ void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_
   if (!g_its_setup_done)
     return;
 
+  if (ItsEnsureDeviceTable(its_index, device_id, 0) != ACS_STATUS_PASS)
+    return;
+
   ItsBase        = g_gic_its_info->GicIts[its_index].Base;
   ItsCommandBase = g_gic_its_info->GicIts[its_index].CommandQBase;
 
@@ -510,8 +641,8 @@ void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_
 
 }
 
-void val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
-                            uint32_t int_id, uint32_t Priority)
+uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
+                                uint32_t int_id, uint32_t Priority)
 {
   uint64_t    value;
   uint64_t    RDBase;
@@ -519,7 +650,12 @@ void val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
   uint64_t    ItsCommandBase;
 
   if (!g_its_setup_done)
-    return;
+    return ACS_STATUS_ERR;
+
+  if (ItsEnsureDeviceTable(its_index, device_id, 1) != ACS_STATUS_PASS) {
+    val_print(ERROR, "\nITS : Device Table unavailable for DeviceID 0x%x", device_id);
+    return ACS_STATUS_ERR;
+  }
 
   ItsBase        = g_gic_its_info->GicIts[its_index].Base;
   ItsCommandBase = g_gic_its_info->GicIts[its_index].CommandQBase;
@@ -559,6 +695,8 @@ void val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
   /* Check CREADR value which ensures Command Queue is processed */
   PollTillCommandQueueDone(its_index);
   dsbsy();
+
+  return ACS_STATUS_PASS;
 
 }
 
@@ -626,13 +764,32 @@ uint32_t val_its_init(void)
 {
   uint32_t    Status;
   uint32_t    index;
+  uint64_t    state_size;
+
+  if (g_its_setup_done)
+    return ACS_STATUS_PASS;
+  if ((g_gic_its_info == NULL) || (g_gic_its_info->GicNumIts == 0))
+    return ACS_STATUS_ERR;
+
+  state_size = (uint64_t)g_gic_its_info->GicNumIts * sizeof(*g_device_tables);
+  if (state_size > 0xFFFFFFFFULL)
+    return ACS_STATUS_ERR;
+
+  g_device_tables = val_aligned_alloc(MEM_ALIGN_4K, (uint32_t)state_size);
+  if (g_device_tables == NULL) {
+    val_print(ERROR, "\nITS : Could Not Allocate Device Table state");
+    return ACS_STATUS_ERR;
+  }
+  val_memory_set(g_device_tables, (uint32_t)state_size, 0);
 
   g_cwriter_ptr = (uint32_t *)pal_aligned_alloc(MEM_ALIGN_4K,
                                                 sizeof(uint32_t) * (g_gic_its_info->GicNumIts));
 
   if (g_cwriter_ptr == NULL) {
     val_print(ERROR, "\nITS : Could Not Allocate Memory CWriteR. Test may not pass.");
-    return 0;
+    val_memory_free_aligned(g_device_tables);
+    g_device_tables = NULL;
+    return ACS_STATUS_ERR;
   }
 
   for (index = 0; index < g_gic_its_info->GicNumIts; index++)
