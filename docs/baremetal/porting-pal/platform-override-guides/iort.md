@@ -139,6 +139,34 @@ If your platform supports these, they **must be consistent** across:
 - Interrupt controller configuration
 - Linux `arm-smmu-v3` expectations
 
+### Optional SMMUv3 queue size cap
+
+The shared BSA/SBSA SMMUv3 driver normally sizes its command and event queues
+using the maximum log2 entry counts advertised by `SMMU_IDR1.CMDQS` and
+`SMMU_IDR1.EVENTQS`. On emulation platforms, allocating and clearing queues at
+these maximum sizes can delay SMMU initialization.
+
+To opt into smaller queues, define a software cap in the platform's
+`pal/baremetal/target/<platform>/include/platform_override_fvp.h`. For example,
+platform can select a maximum of 256 entries per queue with:
+
+```c
+#define SMMU_SW_QUEUE_LOG2_MAX 8U
+```
+
+The driver selects `min(advertised_log2, SMMU_SW_QUEUE_LOG2_MAX)` independently
+for each queue before allocation. It uses that selected size for allocation
+and clearing, `CMDQ_BASE.LOG2SIZE`, `EVENTQ_BASE.LOG2SIZE`, and queue indices.
+Hardware advertising a smaller maximum continues to use that smaller size.
+Without an override, the default is `0x1FU`, preserving the full 5-bit
+hardware-advertised values.
+
+For advertised values of `0x13`, a cap of `8U` reduces each queue from 524,288
+entries to 256. The command queue payload becomes 4 KiB and the event queue
+payload becomes 8 KiB, before allocator/alignment overhead. Choose a cap that
+can accommodate the platform's command and event traffic. TRACE output reports
+both the advertised and selected log2 entry counts.
+
 ---
 
 ## 5. Root Complex (RC) Node
