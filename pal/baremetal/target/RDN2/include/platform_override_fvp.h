@@ -604,7 +604,7 @@
 #define VDM_RSP_MASK   7
 
 /* PERIPHERAL platform config parameters */
-#define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 3  //UART + USB + SATA
+#define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 64 //PCI peripherals + UART/USB/SATA
 
 #define UART_ADDRESS                     0xF98DFE18
 #define BASE_ADDRESS_ADDRESS_SPACE_ID    0x0

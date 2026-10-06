@@ -31,6 +31,12 @@ g004.c
 g005.c
 g012.c
 g014.c
+g015.c
+g016.c
+its003.c
+its004.c
+its005.c
+its006.c
 interface010.c
 interface011.c
 i001.c

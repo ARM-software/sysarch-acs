@@ -35,6 +35,111 @@ extern const PCIE_INFO_TABLE platform_pcie_cfg;
 
 uint32_t spcr_baudrate_id[] = {0, 0, 0, 9600, 19200, 0, 57600, 115200};
 
+static uint32_t
+pal_peripheral_is_duplicate(PERIPHERAL_INFO_BLOCK *start,
+                            PERIPHERAL_INFO_BLOCK *current,
+                            uint32_t bdf)
+{
+  PERIPHERAL_INFO_BLOCK *iter = start;
+
+  while (iter < current) {
+    if ((iter->bdf == bdf) && (bdf != 0))
+      return 1;
+    iter++;
+  }
+
+  return 0;
+}
+
+static void
+pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
+                           PERIPHERAL_INFO_BLOCK **per_info)
+{
+  uint32_t ecam_index;
+  uint32_t bus;
+  uint32_t dev;
+  uint32_t func;
+  uint32_t seg;
+  uint32_t start_bus;
+  uint32_t end_bus;
+  uint32_t bdf;
+  uint32_t vendor_id;
+  uint32_t header_value;
+  uint32_t class_code;
+  uint32_t bar_count;
+  uint32_t bar_index;
+  uint32_t bar_reg_value;
+  uint64_t bar_value;
+  PERIPHERAL_INFO_BLOCK *info = *per_info;
+  PERIPHERAL_INFO_BLOCK *start = peripheralInfoTable->info;
+
+  for (ecam_index = 0; ecam_index < platform_pcie_cfg.num_entries; ecam_index++) {
+    seg = platform_pcie_cfg.block[ecam_index].segment_num;
+    start_bus = platform_pcie_cfg.block[ecam_index].start_bus_num;
+    end_bus = platform_pcie_cfg.block[ecam_index].end_bus_num;
+
+    for (bus = start_bus; bus <= end_bus; bus++) {
+      for (dev = 0; dev < PCIE_MAX_DEV; dev++) {
+        for (func = 0; func < PCIE_MAX_FUNC; func++) {
+          pal_pci_cfg_read(seg, bus, dev, func, 0, &vendor_id);
+          if ((vendor_id == 0x0) || (vendor_id == 0xFFFFFFFF))
+            continue;
+
+          bdf = PCIE_CREATE_BDF(seg, bus, dev, func);
+          if (pal_peripheral_is_duplicate(start, info, bdf))
+            continue;
+
+          pal_pci_cfg_read(seg, bus, dev, func, HEADER_OFFSET, &header_value);
+          pal_pci_cfg_read(seg, bus, dev, func, TYPE01_RIDR, &class_code);
+
+          if (PCIE_HEADER_TYPE(header_value) != TYPE0_HEADER)
+            continue;
+
+          bar_count = TYPE0_MAX_BARS;
+
+          info->type = PERIPHERAL_TYPE_OTHER;
+          info->bdf = bdf;
+          info->base0 = 0;
+          info->base1 = 0;
+          info->width = 0;
+          info->irq = 0;
+          info->flags = 0;
+          info->msi = 0;
+          info->msix = 0;
+          info->max_pasids = 0;
+          info->baud_rate = 0;
+          info->interface_type = 0;
+          info->platform_type = 0;
+
+          for (bar_index = 0; bar_index < bar_count; bar_index++) {
+            pal_pci_cfg_read(seg, bus, dev, func, BAR0_OFFSET + (4 * bar_index), &bar_reg_value);
+            bar_value = pal_pcie_get_base(bdf, bar_index);
+            if (bar_value != 0) {
+              if (info->base0 == 0)
+                info->base0 = bar_value;
+              else if (info->base1 == 0)
+                info->base1 = bar_value;
+            }
+
+            if (BAR_REG(bar_reg_value) == BAR_64_BIT)
+              bar_index++;
+          }
+
+          pal_print_msg(ACS_PRINT_DEBUG, "\n       BDF is 0x%x", info->bdf);
+          pal_print_msg(ACS_PRINT_DEBUG, "\n       Class code is 0x%x", class_code);
+          pal_print_msg(ACS_PRINT_DEBUG, "\n       PCI peripheral BAR0 0x%llx BAR1 0x%llx",
+                                        info->base0, info->base1);
+
+          peripheralInfoTable->header.num_all++;
+          info++;
+        }
+      }
+    }
+  }
+
+  *per_info = info;
+}
+
 /**
   @brief  This API fills in the PERIPHERAL_INFO_TABLE with information about peripherals
           in the system.
@@ -50,6 +155,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   uint32_t   DeviceBdf = 0;
   uint32_t   StartBdf  = 0;
   uint32_t   bar_index = 0;
+  uint32_t   class_code = 0;
   uint32_t   i = 0;
   uint64_t   uart;
   PERIPHERAL_INFO_BLOCK *per_info = NULL;
@@ -88,9 +194,14 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           }
           per_info->bdf   = DeviceBdf;
           per_info->platform_type = 0;
-
-          pal_print_msg(ACS_PRINT_INFO,
-                        "\n       Found a USB controller %4x",
+          pal_pci_cfg_read(PCIE_EXTRACT_BDF_SEG(DeviceBdf),
+                           PCIE_EXTRACT_BDF_BUS(DeviceBdf),
+                           PCIE_EXTRACT_BDF_DEV(DeviceBdf),
+                           PCIE_EXTRACT_BDF_FUNC(DeviceBdf),
+                           TYPE01_RIDR, &class_code);
+          pal_print_msg(ACS_PRINT_INFO, "\n       BDF is 0x%x", per_info->bdf);
+          pal_print_msg(ACS_PRINT_INFO, "\n       Class code is 0x%x", class_code);
+          pal_print_msg(ACS_PRINT_INFO, "\n       Found a USB controller %4x",
                         per_info->base0);
           peripheralInfoTable->header.num_usb++;
           peripheralInfoTable->header.num_all++;
@@ -119,7 +230,13 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
           }
           per_info->platform_type = 0;
           per_info->bdf   = DeviceBdf;
-
+          pal_pci_cfg_read(PCIE_EXTRACT_BDF_SEG(DeviceBdf),
+                           PCIE_EXTRACT_BDF_BUS(DeviceBdf),
+                           PCIE_EXTRACT_BDF_DEV(DeviceBdf),
+                           PCIE_EXTRACT_BDF_FUNC(DeviceBdf),
+                           TYPE01_RIDR, &class_code);
+          pal_print_msg(ACS_PRINT_INFO, "\n       BDF is 0x%x", per_info->bdf);
+          pal_print_msg(ACS_PRINT_INFO, "\n       Class code is 0x%x", class_code);
           pal_print_msg(ACS_PRINT_INFO,
                         "\n       Found a SATA controller %4x",
                         per_info->base0);
@@ -163,6 +280,9 @@ UART_CONFIG:
     peripheralInfoTable->header.num_all++;
     per_info++;
   }
+
+  if (platform_pcie_cfg.num_entries != 0)
+    pal_peripheral_add_all_pci(peripheralInfoTable, &per_info);
 
   per_info->type = 0xFF; //indicate end of table
 }
