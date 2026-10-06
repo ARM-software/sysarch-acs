@@ -583,7 +583,7 @@
 #define PLATFORM_OVERRIDE_CXL0_WINDOW_RESTRICTIONS   0x0  /* CFMWS Window restrictions*/
 
 /* -----------------------------  Peripheral info  ----------------------------- */
-#define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 2  //UART + USB + SATA
+#define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 64 //PCI peripherals + UART/USB/SATA
 
 #define UART_ADDRESS                     0xF98DFE18  /* Non-zero if UART is present              */
 #define BASE_ADDRESS_ADDRESS             0x2A400000  /* UART MMIO base                           */

@@ -120,6 +120,7 @@ pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
   UINT32                bar_count;
   UINT32                DeviceBdf;
   UINT32                *bars;
+  UINT32                class_code;
   PCI_TYPE_GENERIC      PciHeader;
   PERIPHERAL_INFO_BLOCK *info = *per_info;
   PERIPHERAL_INFO_BLOCK *start = peripheralInfoTable->info;
@@ -150,12 +151,15 @@ pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
     if (EFI_ERROR (Status))
       continue;
 
+    class_code = ((PciHeader.Device.Hdr.ClassCode[2] << 16) |
+                  (PciHeader.Device.Hdr.ClassCode[1] << 8)  |
+                  PciHeader.Device.Hdr.ClassCode[0]);
+
+    if ((PciHeader.Device.Hdr.HeaderType & HEADER_LAYOUT_CODE) != HEADER_TYPE_DEVICE)
+      continue;
+
     bars = PciHeader.Device.Device.Bar;
     bar_count = TYPE0_MAX_BARS;
-    if (IS_PCI_BRIDGE(&(PciHeader.Bridge)) || IS_CARDBUS_BRIDGE(&(PciHeader.Bridge))) {
-      bars = PciHeader.Bridge.Bridge.Bar;
-      bar_count = TYPE1_MAX_BARS;
-    }
 
     info->type = PERIPHERAL_TYPE_OTHER;
     info->bdf = DeviceBdf;
@@ -184,6 +188,11 @@ pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
       if ((((bars[bar_index]) >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BITS_64)
         bar_index++;
     }
+
+    pal_print_msg(ACS_PRINT_INFO, "\n       BDF is 0x%x", info->bdf);
+    pal_print_msg(ACS_PRINT_INFO, "\n       Class code is 0x%x", class_code);
+    pal_print_msg(ACS_PRINT_INFO, "\n       PCI peripheral BAR0 0x%llx BAR1 0x%llx",
+                                            info->base0, info->base1);
 
     peripheralInfoTable->header.num_all++;
     info++;
