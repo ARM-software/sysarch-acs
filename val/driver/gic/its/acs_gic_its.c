@@ -37,6 +37,109 @@ typedef struct {
 typedef ITS_DEVICE_TABLE ITS_DEVICE_TABLES[ARM_NUM_GITS_BASER];
 static ITS_DEVICE_TABLES *g_device_tables;
 
+typedef struct ITS_EVENT_MAPPING {
+  uint32_t int_id;
+  struct ITS_EVENT_MAPPING *next;
+} ITS_EVENT_MAPPING;
+
+typedef struct ITS_DEVICE_ITT {
+  uint32_t device_id;
+  uint32_t event_count;
+  void *itt_base;
+  uint64_t itt_pa;
+  uint32_t itt_size;
+  ITS_EVENT_MAPPING *events;
+  struct ITS_DEVICE_ITT *next;
+} ITS_DEVICE_ITT;
+
+static ITS_DEVICE_ITT **g_device_itts;
+
+#define ITS_ITT_ALIGNMENT 256U
+
+static ITS_DEVICE_ITT *ItsFindDeviceITT(uint32_t its_index, uint32_t device_id)
+{
+  ITS_DEVICE_ITT *device;
+
+  for (device = g_device_itts[its_index]; device != NULL; device = device->next) {
+    if (device->device_id == device_id)
+      return device;
+  }
+
+  return NULL;
+}
+
+static ITS_EVENT_MAPPING *ItsFindEvent(ITS_DEVICE_ITT *device, uint32_t int_id)
+{
+  ITS_EVENT_MAPPING *event;
+
+  for (event = device->events; event != NULL; event = event->next) {
+    if (event->int_id == int_id)
+      return event;
+  }
+
+  return NULL;
+}
+
+static ITS_DEVICE_ITT *ItsAllocateDeviceITT(uint32_t its_index, uint32_t device_id)
+{
+  ITS_DEVICE_ITT *device;
+  uint64_t entry_count, itt_size, typer, pa;
+  uint32_t entry_size, id_bits;
+  void *itt_base;
+
+  typer = val_mmio_read64(g_gic_its_info->GicIts[its_index].Base + ARM_GITS_TYPER);
+  id_bits = g_gic_its_info->GicIts[its_index].IDBits;
+  entry_size = ARM_GITS_TYPER_ITTEntrySize(typer) + 1;
+  entry_count = 1ULL << (id_bits + 1);
+  itt_size = entry_count * entry_size;
+  itt_size = (itt_size + ITS_ITT_ALIGNMENT - 1) & ~(ITS_ITT_ALIGNMENT - 1);
+  if ((itt_size == 0) || (itt_size > 0xFFFFFFFFULL))
+    return NULL;
+
+  itt_base = val_aligned_alloc(ITS_ITT_ALIGNMENT, (uint32_t)itt_size);
+  if (itt_base == NULL)
+    return NULL;
+
+  pa = (uint64_t)val_memory_virt_to_phys(itt_base);
+  if ((pa == 0) || (pa & ~ITT_PAR_MASK) || (pa & (ITS_ITT_ALIGNMENT - 1))) {
+    val_memory_free_aligned(itt_base);
+    return NULL;
+  }
+
+  device = val_memory_calloc(1, sizeof(*device));
+  if (device == NULL) {
+    val_memory_free_aligned(itt_base);
+    return NULL;
+  }
+
+  val_memory_set(itt_base, (uint32_t)itt_size, 0);
+  val_pe_cache_clean_range((uint64_t)itt_base, itt_size);
+  dsbsy();
+
+  device->device_id = device_id;
+  device->itt_base = itt_base;
+  device->itt_pa = pa;
+  device->itt_size = (uint32_t)itt_size;
+  device->next = g_device_itts[its_index];
+  g_device_itts[its_index] = device;
+
+  return device;
+}
+
+static void ItsRemoveDeviceITT(uint32_t its_index, ITS_DEVICE_ITT *device)
+{
+  ITS_DEVICE_ITT **link = &g_device_itts[its_index];
+
+  while ((*link != NULL) && (*link != device))
+    link = &(*link)->next;
+  if (*link == NULL)
+    return;
+
+  *link = device->next;
+  val_memory_free_aligned(device->itt_base);
+  val_memory_free(device);
+}
+
 #define ITS_L2_PA_MASK 0x000FFFFFFFFFF000ULL
 
 static uint64_t ItsAllocateL2(uint32_t page_size)
@@ -408,17 +511,6 @@ static uint32_t ArmGicSetItsTables(uint32_t its_index)
 
   }
 
-  /* Allocate Memory for Interrupt Translation Table */
-  Address = (uint64_t)val_aligned_alloc(SIZE_64KB, (NUM_PAGES_8 * SIZE_4KB));
-
-  if (!Address) {
-    val_print(ERROR, "\nITS : Could Not Allocate Memory For ITT. Test may not pass.");
-    return 1;
-  }
-
-  val_memory_set((void *)Address, (NUM_PAGES_8*SIZE_4KB), 0);
-
-  g_gic_its_info->GicIts[its_index].ITTBase = Address;
 
   return 0;
 }
@@ -538,7 +630,7 @@ WriteCmdQSYNC(
     g_cwriter_ptr[its_index] = g_cwriter_ptr[its_index] + ITS_NEXT_CMD_PTR;
 }
 
-static void PollTillCommandQueueDone(uint32_t its_index)
+static uint32_t PollTillCommandQueueDone(uint32_t its_index)
 {
   uint32_t    count;
   uint64_t    creadr_value;
@@ -566,12 +658,13 @@ static void PollTillCommandQueueDone(uint32_t its_index)
     if (count > WAIT_ITS_COMMAND_DONE) {
       val_print(ERROR,
                 "\n       ITS : Command Queue READR not moving, Test may not pass");
-      break;
+      return ACS_STATUS_ERR;
     }
 
     creadr_value = val_mmio_read64(ItsBase + ARM_GITS_CREADR);
   }
 
+  return ACS_STATUS_PASS;
 }
 
 static uint64_t GetRDBaseFormat(uint32_t its_index)
@@ -601,55 +694,79 @@ static uint64_t GetRDBaseFormat(uint32_t its_index)
 
 void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id)
 {
-  uint64_t    value;
-  uint64_t    RDBase;
-  uint64_t    ItsBase;
-  uint64_t    ItsCommandBase;
+  uint64_t value;
+  uint64_t RDBase;
+  uint64_t ItsBase;
+  uint64_t ItsCommandBase;
+  ITS_DEVICE_ITT *device;
+  ITS_EVENT_MAPPING *event;
+  ITS_EVENT_MAPPING **event_link;
+  uint32_t last_event;
 
-  if (!g_its_setup_done)
+  if (!g_its_setup_done || (g_gic_its_info == NULL) || (g_device_itts == NULL) ||
+      (its_index >= g_gic_its_info->GicNumIts))
     return;
 
   if (ItsEnsureDeviceTable(its_index, device_id, 0) != ACS_STATUS_PASS)
     return;
 
-  ItsBase        = g_gic_its_info->GicIts[its_index].Base;
+  device = ItsFindDeviceITT(its_index, device_id);
+  if (device == NULL)
+    return;
+
+  event = ItsFindEvent(device, int_id);
+  if (event == NULL)
+    return;
+  last_event = (device->event_count == 1);
+
+  ItsBase = g_gic_its_info->GicIts[its_index].Base;
   ItsCommandBase = g_gic_its_info->GicIts[its_index].CommandQBase;
-
-  /* Clear Config table for LPI=int_id */
-  ClearConfigTable(int_id);
-
-  /* Get RDBase Depending on GITS_TYPER.PTA */
   RDBase = GetRDBaseFormat(its_index);
 
-  /* Discard Mappings */
-  WriteCmdQDISCARD(its_index, (uint64_t *)(ItsCommandBase), device_id, int_id);
-  /* Un Map Device using MAPD */
-  WriteCmdQMAPD(its_index, (uint64_t *)(ItsCommandBase), device_id,
-                g_gic_its_info->GicIts[its_index].ITTBase,
-                0, 0 /*InValid*/);
-  /* ITS SYNC Command */
-  WriteCmdQSYNC(its_index, (uint64_t *)(ItsCommandBase), RDBase);
+  WriteCmdQDISCARD(its_index, (uint64_t *)ItsCommandBase, device_id, int_id);
+  if (last_event)
+    WriteCmdQMAPD(its_index, (uint64_t *)ItsCommandBase, device_id, 0, 0, 0);
+  WriteCmdQSYNC(its_index, (uint64_t *)ItsCommandBase, RDBase);
 
   dsbsy();
-  /* Update the CWRITER Register so that all the commands from Command queue gets executed.*/
-  value = ((g_cwriter_ptr[its_index] * NUM_BYTES_IN_DW));
-  val_mmio_write64((ItsBase + ARM_GITS_CWRITER), value);
-
-  /* Check CREADR value which ensures Command Queue is processed */
-  PollTillCommandQueueDone(its_index);
+  value = g_cwriter_ptr[its_index] * NUM_BYTES_IN_DW;
+  val_mmio_write64(ItsBase + ARM_GITS_CWRITER, value);
+  if (PollTillCommandQueueDone(its_index) != ACS_STATUS_PASS)
+    return;
   dsbsy();
 
+  ClearConfigTable(int_id);
+  event_link = &device->events;
+  while ((*event_link != NULL) && (*event_link != event))
+    event_link = &(*event_link)->next;
+  if (*event_link != NULL) {
+    *event_link = event->next;
+    val_memory_free(event);
+    device->event_count--;
+  }
+
+  if (device->event_count == 0)
+    ItsRemoveDeviceITT(its_index, device);
 }
 
 uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
                                 uint32_t int_id, uint32_t Priority)
 {
-  uint64_t    value;
-  uint64_t    RDBase;
-  uint64_t    ItsBase;
-  uint64_t    ItsCommandBase;
+  uint64_t value;
+  uint64_t RDBase;
+  uint64_t ItsBase;
+  uint64_t ItsCommandBase;
+  ITS_DEVICE_ITT *device;
+  ITS_EVENT_MAPPING *event;
+  uint32_t map_device = 0;
 
-  if (!g_its_setup_done)
+  if (!g_its_setup_done || (g_gic_its_info == NULL) || (g_device_itts == NULL) ||
+      (its_index >= g_gic_its_info->GicNumIts))
+    return ACS_STATUS_ERR;
+
+  if ((int_id < ARM_LPI_MINID) ||
+      ((uint64_t)(int_id - ARM_LPI_MINID) >=
+       (1ULL << (g_gic_its_info->GicIts[its_index].IDBits + 1))))
     return ACS_STATUS_ERR;
 
   if (ItsEnsureDeviceTable(its_index, device_id, 1) != ACS_STATUS_PASS) {
@@ -657,47 +774,54 @@ uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
     return ACS_STATUS_ERR;
   }
 
-  ItsBase        = g_gic_its_info->GicIts[its_index].Base;
+  device = ItsFindDeviceITT(its_index, device_id);
+  if (device == NULL) {
+    device = ItsAllocateDeviceITT(its_index, device_id);
+    if (device == NULL) {
+      val_print(ERROR, "\nITS : ITT allocation failed for DeviceID 0x%x", device_id);
+      return ACS_STATUS_ERR;
+    }
+    map_device = 1;
+  }
+
+  event = ItsFindEvent(device, int_id);
+  if (event == NULL) {
+    event = val_memory_calloc(1, sizeof(*event));
+    if (event == NULL) {
+      if (map_device)
+        ItsRemoveDeviceITT(its_index, device);
+      return ACS_STATUS_ERR;
+    }
+    event->int_id = int_id;
+    event->next = device->events;
+    device->events = event;
+    device->event_count++;
+  }
+
+  ItsBase = g_gic_its_info->GicIts[its_index].Base;
   ItsCommandBase = g_gic_its_info->GicIts[its_index].CommandQBase;
 
-  /* Set Config table with enable the LPI = int_id, Priority. */
   SetConfigTable(int_id, Priority);
-
-  /* Enable Redistributor */
   EnableLPIsRD(g_gic_its_info->GicRdBase);
-
-  /* Enable ITS */
   EnableITS(ItsBase);
-
-  /* Get RDBase Depending on GITS_TYPER.PTA */
   RDBase = GetRDBaseFormat(its_index);
 
-  /* Map Device using MAPD */
-  WriteCmdQMAPD(its_index, (uint64_t *)(ItsCommandBase), device_id,
-                g_gic_its_info->GicIts[its_index].ITTBase,
-                g_gic_its_info->GicIts[its_index].IDBits, 0x1 /*Valid*/);
-  /* Map Collection using MAPC */
-  WriteCmdQMAPC(its_index, (uint64_t *)(ItsCommandBase),
-                0x1 /*Clctn_ID*/, RDBase, 0x1 /*Valid*/);
-  /* Map Interrupt using MAPI */
-  WriteCmdQMAPTI(its_index, (uint64_t *)(ItsCommandBase), device_id, int_id, 0x1 /*Clctn_ID*/);
-  /* Invalid Entry */
-  WriteCmdQINV(its_index, (uint64_t *)(ItsCommandBase), device_id, int_id);
-  /* ITS SYNC Command */
-  WriteCmdQSYNC(its_index, (uint64_t *)(ItsCommandBase), RDBase);
+  if (map_device)
+    WriteCmdQMAPD(its_index, (uint64_t *)ItsCommandBase, device_id,
+                  device->itt_pa, g_gic_its_info->GicIts[its_index].IDBits, 1);
+  WriteCmdQMAPC(its_index, (uint64_t *)ItsCommandBase, 1, RDBase, 1);
+  WriteCmdQMAPTI(its_index, (uint64_t *)ItsCommandBase, device_id, int_id, 1);
+  WriteCmdQINV(its_index, (uint64_t *)ItsCommandBase, device_id, int_id);
+  WriteCmdQSYNC(its_index, (uint64_t *)ItsCommandBase, RDBase);
 
   dsbsy();
-
-  /* Update the CWRITER Register so that all the commands from Command queue gets executed.*/
-  value = ((g_cwriter_ptr[its_index] * NUM_BYTES_IN_DW));
-  val_mmio_write64((ItsBase + ARM_GITS_CWRITER), value);
-
-  /* Check CREADR value which ensures Command Queue is processed */
-  PollTillCommandQueueDone(its_index);
+  value = g_cwriter_ptr[its_index] * NUM_BYTES_IN_DW;
+  val_mmio_write64(ItsBase + ARM_GITS_CWRITER, value);
+  if (PollTillCommandQueueDone(its_index) != ACS_STATUS_PASS)
+    return ACS_STATUS_ERR;
   dsbsy();
 
   return ACS_STATUS_PASS;
-
 }
 
 
@@ -771,13 +895,24 @@ uint32_t val_its_init(void)
   if ((g_gic_its_info == NULL) || (g_gic_its_info->GicNumIts == 0))
     return ACS_STATUS_ERR;
 
-  state_size = (uint64_t)g_gic_its_info->GicNumIts * sizeof(*g_device_tables);
-  if (state_size > 0xFFFFFFFFULL)
+  g_device_itts = val_memory_calloc(g_gic_its_info->GicNumIts, sizeof(*g_device_itts));
+  if (g_device_itts == NULL) {
+    val_print(ERROR, "\nITS : Could Not Allocate Device ITT state");
     return ACS_STATUS_ERR;
+  }
+
+  state_size = (uint64_t)g_gic_its_info->GicNumIts * sizeof(*g_device_tables);
+  if (state_size > 0xFFFFFFFFULL) {
+    val_memory_free(g_device_itts);
+    g_device_itts = NULL;
+    return ACS_STATUS_ERR;
+  }
 
   g_device_tables = val_aligned_alloc(MEM_ALIGN_4K, (uint32_t)state_size);
   if (g_device_tables == NULL) {
     val_print(ERROR, "\nITS : Could Not Allocate Device Table state");
+    val_memory_free(g_device_itts);
+    g_device_itts = NULL;
     return ACS_STATUS_ERR;
   }
   val_memory_set(g_device_tables, (uint32_t)state_size, 0);
@@ -789,6 +924,8 @@ uint32_t val_its_init(void)
     val_print(ERROR, "\nITS : Could Not Allocate Memory CWriteR. Test may not pass.");
     val_memory_free_aligned(g_device_tables);
     g_device_tables = NULL;
+    val_memory_free(g_device_itts);
+    g_device_itts = NULL;
     return ACS_STATUS_ERR;
   }
 
