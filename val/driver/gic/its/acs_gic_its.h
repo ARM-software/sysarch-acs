@@ -126,6 +126,7 @@
 #define ARM_GITS_TYPER_DevBits(its_typer)           ((its_typer >> 13) & 0x1F)
 #define ARM_GITS_TYPER_CIDBits(its_typer)           ((its_typer >> 32) & 0xF)
 #define ARM_GITS_TYPER_IDbits(its_typer)            ((its_typer >> 8) & 0x1F)
+#define ARM_GITS_TYPER_ITTEntrySize(its_typer)       ((its_typer >> 4) & 0xF)
 #define ARM_GITS_TYPER_PTA                          (1 << 19)
 
 /* GITS_CREADR Bits */
