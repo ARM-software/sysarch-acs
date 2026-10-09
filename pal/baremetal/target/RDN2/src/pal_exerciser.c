@@ -227,6 +227,7 @@ pal_is_bdf_exerciser(uint32_t bdf)
   @param   Value2       - Parameter 2 that needs to be set
   @param   Instance     - Stimulus hardware instance number
   @return  Status       - SUCCESS if the input parameter type is successfully written
+                         For PM_VDM_TYPE, success requires completed PMReq/PMRes with PM_Ack.
 **/
 uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uint64_t Value2, uint32_t Bdf)
 {
@@ -358,14 +359,36 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         return 1;
 
       case PM_VDM_TYPE:
-        /* Transition to D3hot state */
-        pal_mmio_write(Base + PM_VDM_CTLR, 1);
-        pal_mmio_write(Base + PM_VDM_CTLR, (pal_mmio_read(Base + PM_VDM_CTLR) | PM_D3_VDM));
-        pal_mmio_write(Base + PM_VDM_CTLR, (pal_mmio_read(Base + PM_VDM_CTLR) | TRIGGER_PM_VDM));
-        if ((pal_mmio_read(Base + PM_VDM_CTLR) >> VDM_RSP_SHIFT) & VDM_RSP_MASK)
-            return 0;
-        else
+      {
+        uint32_t poll;
+
+        /* Program PMReq(D3hot), then trigger the request. */
+        Data = VDM_TYPE_PM | PM_D3_VDM;
+        pal_mmio_write(Base + PM_VDM_CTLR, Data);
+        pal_mmio_write(Base + PM_VDM_CTLR, Data | TRIGGER_PM_VDM);
+
+        /* The response is valid after both the trigger and type fields clear. */
+        for (poll = 0; poll < PM_VDM_MAX_POLLS; poll++) {
+            Data = pal_mmio_read(Base + PM_VDM_CTLR);
+            if ((Data & (TRIGGER_PM_VDM | VDM_TYPE_MASK)) == 0)
+                break;
+        }
+
+        if (poll == PM_VDM_MAX_POLLS) {
+            pal_print_msg(ACS_PRINT_ERR, "\n       PM VDM timed out for BDF 0x%x", Bdf);
+            pal_print_msg(ACS_PRINT_ERR, " (VDM control 0x%x)", Data);
             return 1;
+        }
+
+        /* PM_Denied, PM_NotProcessed and unexpected responses are failures. */
+        if (((Data >> VDM_RSP_SHIFT) & VDM_RSP_MASK) != PM_VDM_RSP_ACK) {
+            pal_print_msg(ACS_PRINT_ERR, "\n       PM VDM was not acknowledged for BDF 0x%x", Bdf);
+            pal_print_msg(ACS_PRINT_ERR, " (VDM control 0x%x)", Data);
+            return 1;
+        }
+
+        return 0;
+      }
 
       case GENERATE_MEFN_VDM:
         return 1;
