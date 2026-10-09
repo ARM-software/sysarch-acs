@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="630" viewBox="0 0 1080 630" role="img" aria-labelledby="title desc">
+  <title id="title">FIRME-ACS architecture and DUT boundary</title>
+  <desc id="desc">The NS host coordinates Secure and Realm ACS payloads. Tests, VAL and PAL in each caller state invoke the EL3 FIRME implementation. The model or silicon platform supplies the resources and observable effects.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse">
+      <path d="M0 0L8 4L0 8Z" fill="#415563"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #152d3b; }
+      .heading { font-size: 21px; font-weight: 700; }
+      .label { font-size: 17px; }
+      .small { font-size: 15px; }
+      .light { fill: #ffffff; }
+      .flow { fill: none; stroke: #415563; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1080" height="630" fill="#ffffff"/>
+  <text x="540" y="31" text-anchor="middle" class="heading">ACS callers exercise the EL3 firmware interface</text>
+  <path d="M520 105V69H190V105 M560 105V69H890V105" fill="none" stroke="#6c7e88" stroke-width="2" stroke-dasharray="7 5"/>
+  <rect x="315" y="52" width="450" height="27" fill="#ffffff"/>
+  <text x="540" y="71" text-anchor="middle" class="small">Host coordination via firmware routing, not direct world calls</text>
+  <g>
+    <rect x="30" y="105" width="320" height="228" rx="10" fill="#f2f6f8" stroke="#8ba0ad"/>
+    <text x="190" y="138" text-anchor="middle" class="heading">Secure payload</text>
+    <text x="190" y="165" text-anchor="middle" class="label">S-EL2 / selected S-EL1 checks</text>
+    <rect x="51" y="184" width="278" height="36" rx="5" fill="#087b94"/>
+    <text x="190" y="208" text-anchor="middle" class="label light">Rule tests</text>
+    <rect x="51" y="229" width="278" height="36" rx="5" fill="#d6eaf0"/>
+    <text x="190" y="253" text-anchor="middle" class="label">VAL + common runtime</text>
+    <rect x="51" y="274" width="278" height="36" rx="5" fill="#e4e9ed"/>
+    <text x="190" y="298" text-anchor="middle" class="label">PAL</text>
+  </g>
+  <g>
+    <rect x="380" y="105" width="320" height="228" rx="10" fill="#f2f6f8" stroke="#8ba0ad"/>
+    <text x="540" y="138" text-anchor="middle" class="heading">Normal host payload</text>
+    <text x="540" y="165" text-anchor="middle" class="label">NS-EL2 dispatcher + worker control</text>
+    <rect x="401" y="184" width="278" height="36" rx="5" fill="#087b94"/>
+    <text x="540" y="208" text-anchor="middle" class="label light">Rule tests + aggregation</text>
+    <rect x="401" y="229" width="278" height="36" rx="5" fill="#d6eaf0"/>
+    <text x="540" y="253" text-anchor="middle" class="label">VAL + common runtime</text>
+    <rect x="401" y="274" width="278" height="36" rx="5" fill="#e4e9ed"/>
+    <text x="540" y="298" text-anchor="middle" class="label">PAL</text>
+  </g>
+  <g>
+    <rect x="730" y="105" width="320" height="228" rx="10" fill="#f2f6f8" stroke="#8ba0ad"/>
+    <text x="890" y="138" text-anchor="middle" class="heading">Realm payload</text>
+    <text x="890" y="165" text-anchor="middle" class="label">R-EL2 ACS shim, not a full RMM</text>
+    <rect x="751" y="184" width="278" height="36" rx="5" fill="#087b94"/>
+    <text x="890" y="208" text-anchor="middle" class="label light">Rule tests</text>
+    <rect x="751" y="229" width="278" height="36" rx="5" fill="#d6eaf0"/>
+    <text x="890" y="253" text-anchor="middle" class="label">VAL + common runtime</text>
+    <rect x="751" y="274" width="278" height="36" rx="5" fill="#e4e9ed"/>
+    <text x="890" y="298" text-anchor="middle" class="label">PAL</text>
+  </g>
+  <path d="M190 335V399" class="flow"/>
+  <path d="M540 335V399" class="flow"/>
+  <path d="M890 335V399" class="flow"/>
+  <text x="205" y="369" class="label">FIRME SMC</text>
+  <text x="555" y="369" class="label">FIRME SMC</text>
+  <text x="905" y="369" class="label">FIRME SMC</text>
+  <rect x="30" y="406" width="1020" height="94" rx="10" fill="#244658"/>
+  <text x="540" y="440" text-anchor="middle" class="heading light">EL3 FIRME implementation — DUT</text>
+  <text x="540" y="474" text-anchor="middle" class="label light">Architected return values, service state and externally observable effects</text>
+  <path d="M540 502V536" class="flow"/>
+  <rect x="30" y="544" width="1020" height="57" rx="10" fill="#e6f1e9" stroke="#8da797"/>
+  <text x="540" y="578" text-anchor="middle" class="label">Model / silicon: PEs, memory, GPT/MEC resources, SMMUs and PCIe/CXL endpoints</text>
+</svg>

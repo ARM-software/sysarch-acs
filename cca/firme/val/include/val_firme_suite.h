@@ -14,7 +14,9 @@
 #include "val_firme_mp_test.h"
 
 /* FIRME-ACS release string printed by the host (NS-EL2) banner. */
-#define FIRME_ACS_VERSION_STR "FIRME Alpha1 ACS v0.5 Alpha"
+#define FIRME_ACS_VERSION_STR "FIRME Alpha1 ACS v1.0.1 Alpha"
+#define FIRME_ACS_RELEASE_TAG_STR "v26.10_FIRME_1.0.1"
+#define FIRME_ACS_RELEASE_QUALITY_STR "Alpha (qualification incomplete)"
 
 typedef enum {
     FIRME_CHAPTER_BASE = 5,

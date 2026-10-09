@@ -42,6 +42,9 @@ static void nsel2_platform_init(void)
     LOG_TEST(NULL, "*******************************************************");
     LOG_TEST(NULL, "  FIRME Architecture Compliance Suite (FIRME-ACS)");
     LOG_TEST(NULL, "  %s", FIRME_ACS_VERSION_STR);
+    LOG_TEST(NULL, "  Release tag: %s", FIRME_ACS_RELEASE_TAG_STR);
+    LOG_TEST(NULL, "  Release quality: %s", FIRME_ACS_RELEASE_QUALITY_STR);
+    LOG_TEST(NULL, "  Known failures and coverage gaps: see cca/firme/README.md");
     LOG_TEST(NULL, "*******************************************************");
 
     write_vbar_el2((uint64_t)(uintptr_t)&nsel2_vectors);

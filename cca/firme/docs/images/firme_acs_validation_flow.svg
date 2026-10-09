@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="610" viewBox="0 0 1080 610" role="img" aria-labelledby="title desc">
+  <title id="title">FIRME-ACS boot-to-report flow</title>
+  <desc id="desc">Firmware loads the payloads. The host initializes and checks infrastructure, selects a registered rule, prepares its owned resources and caller worlds, invokes FIRME, checks observations, and cleans up before reporting. Gated tests and unavailable evidence are separately accounted for.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#415563"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #152d3b; }
+      .heading { font-size: 20px; font-weight: 700; }
+      .label { font-size: 17px; }
+      .small { font-size: 16px; }
+      .flow { fill: none; stroke: #415563; stroke-width: 2; marker-end: url(#arrow); }
+      .box { fill: #f2f6f8; stroke: #8ba0ad; }
+    </style>
+  </defs>
+  <rect width="1080" height="610" fill="#ffffff"/>
+  <rect x="45" y="23" width="625" height="68" rx="9" class="box"/>
+  <text x="67" y="50" class="heading">1. Firmware loads and initializes payloads</text>
+  <text x="67" y="75" class="small">Reserved PAS, entry state, stacks, vectors and mappings</text>
+  <path d="M357 92V117" class="flow"/>
+  <rect x="45" y="125" width="625" height="68" rx="9" class="box"/>
+  <text x="67" y="152" class="heading">2. Host initializes and checks infrastructure</text>
+  <text x="67" y="177" class="small">ACS version, VAL initialization and worker self-test</text>
+  <path d="M357 194V219" class="flow"/>
+  <rect x="45" y="227" width="625" height="68" rx="9" class="box"/>
+  <text x="67" y="254" class="heading">3. Select a registered rule and prepare</text>
+  <text x="67" y="279" class="small">Caller worlds, PE count, prerequisites and exclusive ownership</text>
+  <path d="M357 296V321" class="flow"/>
+  <rect x="45" y="329" width="625" height="68" rx="9" class="box"/>
+  <text x="67" y="356" class="heading">4. Invoke FIRME and check the required evidence</text>
+  <text x="67" y="381" class="small">ABI results, live state, independent effects and completion</text>
+  <path d="M357 398V423" class="flow"/>
+  <rect x="45" y="431" width="625" height="68" rx="9" class="box"/>
+  <text x="67" y="458" class="heading">5. Complete cleanup and aggregate</text>
+  <text x="67" y="483" class="small">Drain operations, restore state, confirm safe resource release</text>
+  <path d="M357 500V525" class="flow"/>
+  <rect x="45" y="533" width="625" height="56" rx="9" fill="#d6eaf0" stroke="#087b94"/>
+  <text x="357" y="568" text-anchor="middle" class="heading">6. Rule result → next rule → suite summary</text>
+  <rect x="719" y="125" width="320" height="99" rx="9" fill="#fff5e7" stroke="#b59b73"/>
+  <text x="740" y="153" class="heading">Infrastructure failure</text>
+  <text x="740" y="180" class="small">Stop before rule execution.</text>
+  <text x="740" y="204" class="small">Do not convert it to PASS / SKIP.</text>
+  <path d="M671 159H710" class="flow"/>
+  <rect x="719" y="251" width="320" height="145" rx="9" fill="#f2f6f8" stroke="#8ba0ad"/>
+  <text x="740" y="280" class="heading">Coverage accounting</text>
+  <text x="740" y="310" class="small">Gate: body is not dispatched.</text>
+  <text x="740" y="336" class="small">SKIP: prerequisite / applicability.</text>
+  <text x="740" y="362" class="small">Neither is successful coverage.</text>
+  <text x="740" y="385" class="small">Record the reason and revisit it.</text>
+  <rect x="719" y="431" width="320" height="158" rx="9" fill="#fff5e7" stroke="#b59b73"/>
+  <text x="740" y="460" class="heading">Cleanup is part of the test</text>
+  <text x="740" y="490" class="small">Unknown completion or ownership:</text>
+  <text x="740" y="516" class="small">do not reuse the resource.</text>
+  <text x="740" y="551" class="small">Preserve the failure and its</text>
+  <text x="740" y="576" class="small">diagnostic evidence.</text>
+</svg>

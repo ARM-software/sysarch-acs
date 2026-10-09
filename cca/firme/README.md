@@ -18,13 +18,14 @@ projects (CCA-related), and additional Vault suites are expected to follow the
 same hosting model.
 
 ## ACS release details
-- **Suite version (runtime banner):** FIRME Alpha1 ACS v0.5 Alpha
+- **Suite version (runtime banner):** FIRME Alpha1 ACS v1.0.1 Alpha
+- **Release target:** `v26.10_FIRME_1.0.1`
 - **DUT:** TF-A BL31 (EL3) FIRME service implementation
 - **ALP4 inventory:** 123 rules across Concepts/Base, GPT, MECID, IDE Key
   Management, and their ABI interfaces. The proposed Alpha1 DUT-validation
   target is 121 rules: 38 active and 83 with gated bodies or plans. R0023 and
-  R0041 are proposed out-of-scope for DUT validation, pending Architect
-  approval; catalog checks for them are not DUT compliance results. Active
+  R0041 have Architect-agreed exclusions from DUT validation;
+  catalog checks for them are not DUT compliance results. Active
   tests can still report SKIP when a platform prerequisite is absent. This is
   development status, not release coverage.
 - **Temporary CI gate:** R0207, R0209, and R0210 retain their strict CXL.cachemem
@@ -38,11 +39,62 @@ same hosting model.
   and [ABI interface coverage](docs/FIRME_Alpha1_ABI_Interface_Coverage.md).
 - **Execution environments:** Arm FVP (pre-silicon) and silicon (platform dependent)
 
+## Release quality and known results
+
+**Release quality: Alpha (qualification incomplete).** This is development
+software, not a fully qualified compliance release. Registered tests do not
+imply complete coverage, and a completed regression is not a passing verdict.
+The startup log reports this quality level separately from the suite version.
+
+### Recorded qualification snapshot
+
+The following results are from **14 October 2026**, for the complete-coverage
+candidate `5328f36e`, `SUITE=all`, with 121 registered tests. GCC and Clang
+reported the same per-rule results. These are historical measurements, not
+expected results for every commit, firmware revision or platform; earlier
+review commits and module-only builds can register fewer tests.
+
+| Firmware/model configuration | PASS | FAIL | SKIP |
+|---|---:|---:|---:|
+| Stock TF-A `510355478850` and reference FVP | 28 | 31 | 62 |
+| TF-A with the proposed same-GPI fix and reference FVP | 35 | 38 | 48 |
+| Locally extended TF-A/model with CXL IDE and MEC refresh backends | 50 | 30 | 41 |
+
+The experimental configuration is not the default setup and its results do
+not qualify unmodified TF-A/FVP. A fix can expose additional failures by
+allowing previously blocked tests to execute.
+
+### Failure and skip interpretation
+
+- **DUT failures:** missing mandatory Granule Management ABIs, IDE feature
+  register 1 returning `NOT_SUPPORTED`, and incorrect GPT status/cleanup
+  responses remain failures; tests must not accept incorrect results.
+- **Firmware/model limitations:** valid CXL requests are rejected by the
+  recorded stock path, and its MEC refresh callback returns success without
+  refreshing the context. Functional backends are needed to qualify effects.
+- **ACS gaps:** Realm shared-buffer adapters, L1/concurrency fixtures,
+  Selective IDE/two-ECAM observations and some Base evidence remain incomplete.
+  On stock/proposed TF-A, NS checks for R0076, R0077 and R0081 pass;
+  missing ACS Realm adapters prevent overall PASS for those rules.
+- **Dependent skips:** the stock run blocks 18 GPT entries after R0094 leaves
+  scratch memory unsafe to reuse. Those bodies do not execute and are not
+  18 independently unsupported features. Keep the original failure visible.
+- **Optional or conditional cases:** absent optional L1 support and unavailable
+  applicable observations must be identified explicitly. Neither SKIP nor
+  missing ACS setup counts as PASS; unresolved architectural observability
+  needs an explicit disposition rather than a fabricated support diagnosis.
+
+Use the per-test diagnostics and final summary for the actual run. Retain
+firmware/model revisions and configuration alongside results, and reassess
+these limitations after fixes. Do not use the historical totals as a golden
+log or a release sign-off criterion.
+
 ## FIRME spec version mapping
 
 | FIRME-ACS version | Git tag | FIRME spec version |
 |---|---|---|
-| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP4 Concepts/Base, GPT, IDE, and MECID coverage |
+| FIRME Alpha1 ACS v1.0.1 Alpha | v26.10_FIRME_1.0.1 (target) | DEN0149 FIRME 1.0 ALP4 |
+| FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | DEN0149 FIRME 1.0 ALP1 |
 
 ## How it works (high level)
 1. TF-A boots three ACS payload images: **Secure shim** (BL32), **Realm shim**
@@ -55,7 +107,7 @@ same hosting model.
    returns status and fault info back to the host for validation.
 
 ## Repository layout (ACS-style)
-- `docs/`: porting guide + scenario document.
+- `docs/`: validation methodology, porting guide and scenario document.
 - `platform/`: PAL implementations (environment + target), for example:
   `platform/pal_baremetal/targets/fvp/` (UART base, GPT window, PCIe ECAM, GIC bases).
 - `val_common/`: shared bare-metal infrastructure (vectors, fault handling, logging, SMCCC, MMU helpers).
@@ -269,6 +321,8 @@ When the file is empty, `cca/firme/tools/scripts/build_tfa_fvp.sh` can build TF-
 package SPs, ensure your Python environment provides `fdt` so TF-A can generate `sp_gen.mk`.
 
 ## Documentation
+- Validation methodology (updated RST draft):
+  [FIRME-ACS validation methodology](docs/arm_firme_architecture_compliance_suite_validation_methodology.rst).
 - IDE model/firmware prerequisites and qualification limits: [IDE validation setup](docs/IDE_Validation_Setup.md)
 - Porting: `cca/firme/docs/porting_guide.md`
 - Scenarios / rule coverage: `cca/firme/docs/FIRME_Architecture_Compliance_Suite_Scenario_Document.rst`
