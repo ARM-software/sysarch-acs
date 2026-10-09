@@ -33,6 +33,54 @@ UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;
 static UINT32 g_num_pe;
 extern INT32 gPsciConduit;
+extern UINT64 exception_return_regs[];
+extern UINT64 exception_return_regs_valid;
+extern VOID AcsRestoreExceptionReturnContext(VOID);
+
+UINT64 g_acs_exception_return_context;
+UINT64 g_acs_exception_return_target;
+UINT64 g_acs_exception_return_valid;
+
+static
+VOID
+pal_pe_restore_saved_regs(EFI_SYSTEM_CONTEXT_AARCH64 *SystemContext)
+{
+  if (exception_return_regs_valid == 0)
+      return;
+
+  exception_return_regs_valid = 0;
+  SystemContext->X0 = exception_return_regs[0];
+  SystemContext->X1 = exception_return_regs[1];
+  SystemContext->X2 = exception_return_regs[2];
+  SystemContext->X3 = exception_return_regs[3];
+  SystemContext->X4 = exception_return_regs[4];
+  SystemContext->X5 = exception_return_regs[5];
+  SystemContext->X6 = exception_return_regs[6];
+  SystemContext->X7 = exception_return_regs[7];
+  SystemContext->X8 = exception_return_regs[8];
+  SystemContext->X9 = exception_return_regs[9];
+  SystemContext->X10 = exception_return_regs[10];
+  SystemContext->X11 = exception_return_regs[11];
+  SystemContext->X12 = exception_return_regs[12];
+  SystemContext->X13 = exception_return_regs[13];
+  SystemContext->X14 = exception_return_regs[14];
+  SystemContext->X15 = exception_return_regs[15];
+  SystemContext->X16 = exception_return_regs[16];
+  SystemContext->X17 = exception_return_regs[17];
+  SystemContext->X18 = exception_return_regs[18];
+  SystemContext->X19 = exception_return_regs[19];
+  SystemContext->X20 = exception_return_regs[20];
+  SystemContext->X21 = exception_return_regs[21];
+  SystemContext->X22 = exception_return_regs[22];
+  SystemContext->X23 = exception_return_regs[23];
+  SystemContext->X24 = exception_return_regs[24];
+  SystemContext->X25 = exception_return_regs[25];
+  SystemContext->X26 = exception_return_regs[26];
+  SystemContext->X27 = exception_return_regs[27];
+  SystemContext->X28 = exception_return_regs[28];
+  SystemContext->FP = exception_return_regs[29];
+  SystemContext->LR = exception_return_regs[30];
+}
 
 /**
   Global MMU configuration structure for secondary PE initialization.
@@ -561,7 +609,16 @@ pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
 VOID
 pal_pe_update_elr(VOID *context, UINT64 offset)
 {
-  ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ELR = offset;
+  EFI_SYSTEM_CONTEXT_AARCH64 *SystemContext;
+
+  SystemContext = (EFI_SYSTEM_CONTEXT_AARCH64 *)context;
+  if (g_acs_exception_return_valid) {
+      g_acs_exception_return_target = offset;
+      g_acs_exception_return_context = (UINT64)(UINTN)SystemContext;
+      SystemContext->ELR = (UINT64)(UINTN)AcsRestoreExceptionReturnContext;
+  } else {
+      SystemContext->ELR = offset;
+  }
 }
 
 /**
@@ -575,8 +632,13 @@ pal_pe_update_elr(VOID *context, UINT64 offset)
 VOID
 pal_pe_update_sp(VOID *context, UINT64 sp)
 {
-  (void)context;
-  (void)sp;
+  EFI_SYSTEM_CONTEXT_AARCH64 *SystemContext;
+
+  SystemContext = (EFI_SYSTEM_CONTEXT_AARCH64 *)context;
+  pal_pe_restore_saved_regs(SystemContext);
+  SystemContext->SP = sp;
+  g_acs_exception_return_context = (UINT64)(UINTN)SystemContext;
+  g_acs_exception_return_valid = 1;
 }
 
 /**

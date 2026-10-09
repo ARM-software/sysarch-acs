@@ -1,5 +1,5 @@
 #/** @file
-# Copyright (c) 2016-2018, 2023-2025, Arm Limited or its affiliates. All rights reserved.
+# Copyright (c) 2016-2018, 2023-2026, Arm Limited or its affiliates. All rights reserved.
 # SPDX-License-Identifier : Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +20,15 @@
 .align 3
 
 GCC_ASM_IMPORT(gPsciConduit)
+GCC_ASM_IMPORT(g_acs_exception_return_context)
+GCC_ASM_IMPORT(g_acs_exception_return_target)
+GCC_ASM_IMPORT(g_acs_exception_return_valid)
 .equ CONDUIT_SMC,        0
 .equ CONDUIT_HVC,        1
 .equ INVALID_PARAMETER, -3
 
 GCC_ASM_EXPORT(ArmCallSmc)
+GCC_ASM_EXPORT(AcsRestoreExceptionReturnContext)
 
 ASM_PFX(ArmCallSmc):
   // Push x0 on the stack - The stack must always be quad-word aligned
@@ -70,3 +74,52 @@ finish:
   mov   x0, x9
 
   ret
+
+// UEFI restores the requested ELR, but does not restore the SP value
+// updated by ACS in EFI_SYSTEM_CONTEXT_AARCH64. Restore SP here
+// before returning to the actual ACS recovery branch.
+ASM_PFX(AcsRestoreExceptionReturnContext):
+  adrp  x16, g_acs_exception_return_valid
+  add   x16, x16, :lo12:g_acs_exception_return_valid
+  ldr   x17, [x16]
+  cbz   x17, 3f
+
+  adrp  x16, g_acs_exception_return_context
+  add   x16, x16, :lo12:g_acs_exception_return_context
+  ldr   x16, [x16]
+
+  adrp  x17, g_acs_exception_return_target
+  add   x17, x17, :lo12:g_acs_exception_return_target
+  ldr   x17, [x17]
+
+  mrs   x18, CurrentEL
+  cmp   x18, #0x8
+  b.eq  2f
+  cmp   x18, #0x4
+  b.eq  1f
+  b     3f
+
+1:
+  msr   ELR_EL1, x17
+  b     4f
+
+2:
+  msr   ELR_EL2, x17
+
+4:
+  adrp  x17, g_acs_exception_return_valid
+  add   x17, x17, :lo12:g_acs_exception_return_valid
+  str   xzr, [x17]
+
+  ldr   x17, [x16, #0xf8]
+  mov   sp, x17
+
+  ldr   x18, [x16, #8 * 18]
+  ldr   x17, [x16, #8 * 17]
+  ldr   x16, [x16, #8 * 16]
+  eret
+
+// Should not reach here.
+3:
+  brk   #0
+  b     3b
