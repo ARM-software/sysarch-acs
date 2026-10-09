@@ -281,6 +281,8 @@ its_fail:
   val_print(DEBUG, "\n       ITS Init failed: ");
   val_print(DEBUG, "LPI Interrupt related test may not pass");
   val_memory_free_aligned((void *)g_gic_its_info);
+  /* Prevent later ITS lookups from using the freed table */
+  g_gic_its_info = NULL;
 
   return ACS_STATUS_ERR;
 }
@@ -295,6 +297,9 @@ its_fail:
 uint32_t val_gic_get_its_index(uint32_t its_id)
 {
   uint32_t  index;
+
+  if (g_gic_its_info == NULL)
+    return ACS_INVALID_INDEX;
 
   for (index = 0; index < g_gic_its_info->GicNumIts; index++)
   {
@@ -362,40 +367,56 @@ static uint32_t fill_msi_x_table(uint32_t bdf, uint32_t msi_index, uint64_t msi_
 {
 
   uint32_t msi_table_bar_index;
-  uint32_t table_offset_reg, command_data;
-  uint64_t table_address;
-  uint32_t read_value;
+  uint32_t table_offset_reg = 0, command_data = 0;
+  uint64_t table_address, entry_offset;
+  uint32_t read_value = 0;
 
-  /* Enable Memory Space, Bus Master */
-  val_pcie_read_cfg(bdf, TYPE01_CR, &command_data);
-  val_pcie_write_cfg(bdf, TYPE01_CR, (command_data | (1 << CR_MSE_SHIFT) | (1 << CR_BME_SHIFT)));
-
-  /* Enable MSI-X in MSI-X Capability */
-  val_pcie_read_cfg(bdf, msi_cap_offset, &read_value);
-  val_pcie_write_cfg(bdf, msi_cap_offset, (read_value | ((uint32_t)1 << MSI_X_ENABLE_SHIFT)));
+  /* Table Size encodes the highest valid entry index. */
+  if (val_pcie_read_cfg(bdf, msi_cap_offset, &read_value) ||
+      (msi_index > ((read_value >> MSI_X_TABLE_SIZE_SHIFT) & MSI_X_TABLE_SIZE_MASK)))
+    return ACS_STATUS_ERR;
 
   /* Read MSI-X Table Address from the BAR Register */
-  val_pcie_read_cfg(bdf, msi_cap_offset + MSI_X_TOR_OFFSET, &table_offset_reg);
+  if (val_pcie_read_cfg(bdf, msi_cap_offset + MSI_X_TOR_OFFSET, &table_offset_reg))
+    return ACS_STATUS_ERR;
   msi_table_bar_index = table_offset_reg & MSI_X_TABLE_BIR_MASK;
 
   /*Masking BAR attributes*/
-  val_pcie_read_cfg(bdf, TYPE01_BAR + msi_table_bar_index*4, &read_value);
+  if (val_pcie_read_cfg(bdf, TYPE01_BAR + msi_table_bar_index*4, &read_value))
+    return ACS_STATUS_ERR;
   table_address = read_value & BAR_MASK;
 
   if (BAR_REG(read_value) == BAR_64_BIT)
   {
-        val_pcie_read_cfg(bdf, TYPE01_BAR + (msi_table_bar_index*4) + 4, &read_value);
+        if (val_pcie_read_cfg(bdf, TYPE01_BAR + (msi_table_bar_index*4) + 4, &read_value))
+          return ACS_STATUS_ERR;
         table_address = table_address | ((uint64_t)read_value << 32);
   }
-  table_address = table_address + (table_offset_reg & MSI_BIR_MASK);
+  entry_offset = (uint64_t)(table_offset_reg & MSI_BIR_MASK) +
+                   (uint64_t)msi_index * MSI_X_ENTRY_SIZE;
+  /* Check the complete entry before adding its offset to the BAR base. */
+  if (table_address > (~(uint64_t)0) - entry_offset - (MSI_X_ENTRY_SIZE - 1))
+    return ACS_STATUS_ERR;
+  table_address += entry_offset;
+
+  /* Read all required values before changing device configuration. */
+  if (val_pcie_read_cfg(bdf, TYPE01_CR, &command_data) ||
+      val_pcie_read_cfg(bdf, msi_cap_offset, &read_value))
+    return ACS_STATUS_ERR;
+
+  /* Enable Memory Space and Bus Master without clearing PCIe Status bits */
+  val_pcie_write_cfg(bdf, TYPE01_CR,
+                     (command_data & 0xFFFF) | (1 << CR_MSE_SHIFT) | (1 << CR_BME_SHIFT));
 
   /* Fill MSI Table with msi_addr, msi_data */
-  val_mmio_write(table_address + msi_index*MSI_X_ENTRY_SIZE + MSI_X_MSG_TBL_LOWER_ADDR_OFFSET,
-                                                                          (uint32_t)msi_addr);
-  val_mmio_write(table_address + msi_index*MSI_X_ENTRY_SIZE + MSI_X_MSG_TBL_HIGHER_ADDR_OFFSET,
-                                                     (uint32_t)(msi_addr >> MSI_X_ADDR_SHIFT));
-  val_mmio_write(table_address + msi_index*MSI_X_ENTRY_SIZE + MSI_X_MSG_TBL_DATA_OFFSET, msi_data);
-  val_mmio_write(table_address + msi_index*MSI_X_ENTRY_SIZE + MSI_X_MSG_TBL_MVC_OFFSET, 0x0);
+  val_mmio_write(table_address + MSI_X_MSG_TBL_LOWER_ADDR_OFFSET, (uint32_t)msi_addr);
+  val_mmio_write(table_address + MSI_X_MSG_TBL_HIGHER_ADDR_OFFSET,
+                 (uint32_t)(msi_addr >> MSI_X_ADDR_SHIFT));
+  val_mmio_write(table_address + MSI_X_MSG_TBL_DATA_OFFSET, msi_data);
+  val_mmio_write(table_address + MSI_X_MSG_TBL_MVC_OFFSET, 0x0);
+
+  /* Enable MSI-X after programming the entry. Preserve the function mask. */
+  val_pcie_write_cfg(bdf, msi_cap_offset, read_value | (1U << MSI_X_ENABLE_SHIFT));
 
   return ACS_STATUS_PASS;
 }
@@ -405,22 +426,34 @@ static uint32_t fill_msi_x_table(uint32_t bdf, uint32_t msi_index, uint64_t msi_
            1. Caller       -  val_its_clear_lpi_map
            2. Prerequisite -  val_gic_its_configure
   @param   bdf BDF of the device
-  @param   msi_index MSI Index in MSI-X table in Config space
-  @return  None
+  @param   msi_cap_offset MSI capability offset in Config space
+  @return  Status
 **/
-static void clear_msi_table(uint32_t bdf, uint32_t msi_cap_offset)
+static uint32_t clear_msi_table(uint32_t bdf, uint32_t msi_cap_offset)
 {
 
-  uint32_t read_value;
+  uint32_t read_value = 0, data_offset, data = 0;
+
+  /* Read all required values before modifying the MSI capability. */
+  if (val_pcie_read_cfg(bdf, msi_cap_offset, &read_value))
+    return ACS_STATUS_ERR;
+  /* Message Data follows one address DWORD for 32-bit MSI, two for 64-bit */
+  data_offset = (read_value & (1U << MSI_64BIT_ADDR_SHIFT)) ?
+                 MSI_MSG_TBL_DATA_OFFSET : MSI_MSG_TBL_HIGHER_ADDR_OFFSET;
+  if (val_pcie_read_cfg(bdf, msi_cap_offset + data_offset, &data))
+    return ACS_STATUS_ERR;
 
   /* Disable MSI in MSI Capability */
-  val_pcie_read_cfg(bdf, msi_cap_offset, &read_value);
-  val_pcie_write_cfg(bdf, msi_cap_offset, (read_value & ((1ul << MSI_ENABLE_SHIFT) - 1)));
+  val_pcie_write_cfg(bdf, msi_cap_offset, read_value & ~(1U << MSI_ENABLE_SHIFT));
 
   /* Clear MSI Table */
   val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_LOWER_ADDR_OFFSET, 0);
-  val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_HIGHER_ADDR_OFFSET, 0);
-  val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_DATA_OFFSET, 0);
+  if (read_value & (1U << MSI_64BIT_ADDR_SHIFT))
+    val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_HIGHER_ADDR_OFFSET, 0);
+  /* Clear the 16-bit Message Data and preserve the upper register bits */
+  val_pcie_write_cfg(bdf, msi_cap_offset + data_offset, data & 0xFFFF0000);
+
+  return ACS_STATUS_PASS;
 }
 
 /**
@@ -436,22 +469,42 @@ static uint32_t fill_msi_table(uint32_t bdf, uint64_t msi_addr, uint32_t msi_dat
                                uint32_t msi_cap_offset)
 {
 
-  uint32_t command_data;
-  uint32_t read_value;
+  uint32_t command_data = 0;
+  uint32_t read_value = 0, data_offset, data = 0;
 
-  /* Enable Memory Space, Bus Master */
-  val_pcie_read_cfg(bdf, TYPE01_CR, &command_data);
-  val_pcie_write_cfg(bdf, TYPE01_CR, (command_data | (1 << CR_MSE_SHIFT) | (1 << CR_BME_SHIFT)));
+  if (val_pcie_read_cfg(bdf, msi_cap_offset, &read_value))
+    return ACS_STATUS_ERR;
 
-  /* Enable MSI in MSI Capability */
-  val_pcie_read_cfg(bdf, msi_cap_offset, &read_value);
-  val_pcie_write_cfg(bdf, msi_cap_offset, (read_value | ((uint32_t)0x1 << MSI_ENABLE_SHIFT)));
+  data_offset = (read_value & (1U << MSI_64BIT_ADDR_SHIFT)) ?
+                 MSI_MSG_TBL_DATA_OFFSET : MSI_MSG_TBL_HIGHER_ADDR_OFFSET;
+  /* Reject an address that cannot fit in a 32-bit MSI capability */
+  if (!(read_value & (1U << MSI_64BIT_ADDR_SHIFT)) && (msi_addr >> 32))
+    return ACS_STATUS_ERR;
+
+  /* Read all required values before changing device configuration. */
+  if (val_pcie_read_cfg(bdf, TYPE01_CR, &command_data) ||
+      val_pcie_read_cfg(bdf, msi_cap_offset + data_offset, &data))
+    return ACS_STATUS_ERR;
+
+  /* Enable Memory Space and Bus Master without clearing PCIe Status bits */
+  val_pcie_write_cfg(bdf, TYPE01_CR,
+                     (command_data & 0xFFFF) | (1 << CR_MSE_SHIFT) | (1 << CR_BME_SHIFT));
+
+  /* Program one message with MSI disabled. 32-bit capabilities place message
+   * data at +8, whereas 64-bit capabilities use +12. */
+  val_pcie_write_cfg(bdf, msi_cap_offset, read_value & ~(1U << MSI_ENABLE_SHIFT));
 
   /* Fill MSI Table with msi_addr, msi_data */
   val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_LOWER_ADDR_OFFSET, (uint32_t)msi_addr);
-  val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_HIGHER_ADDR_OFFSET,
+  if (read_value & (1U << MSI_64BIT_ADDR_SHIFT))
+    val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_HIGHER_ADDR_OFFSET,
                                             (uint32_t)(msi_addr >> MSI_ADDR_SHIFT));
-  val_pcie_write_cfg(bdf, msi_cap_offset + MSI_MSG_TBL_DATA_OFFSET, msi_data);
+  /* Preserve the upper register bits when writing the 16-bit Message Data */
+  val_pcie_write_cfg(bdf, msi_cap_offset + data_offset,
+                     (data & 0xFFFF0000) | (msi_data & 0xFFFF));
+  /* Enable one MSI message after programming its address and data */
+  val_pcie_write_cfg(bdf, msi_cap_offset,
+                     (read_value & ~MSI_MME_MASK) | (1U << MSI_ENABLE_SHIFT));
 
   return ACS_STATUS_PASS;
 }
@@ -465,31 +518,33 @@ static uint32_t fill_msi_table(uint32_t bdf, uint64_t msi_addr, uint32_t msi_dat
 
   @return  status
 **/
-void val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
+uint32_t val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
                       uint32_t int_id, uint32_t msi_index)
 {
   uint32_t its_index;
   uint32_t msi_cap_offset;
 
   its_index = val_gic_get_its_index(its_id);
-  if (its_index >= g_gic_its_info->GicNumIts)
+  if (its_index == ACS_INVALID_INDEX)
   {
     val_print(ERROR, "\n       Could not find ITS ID [%x]", its_id);
-    return;
+    return ACS_STATUS_ERR;
   }
 
   if ((g_gic_its_info->GicRdBase == 0) || (g_gic_its_info->GicDBase == 0))
   {
     val_print(ERROR, "\n       GICD/GICRD Base Invalid value");
-    return;
+    return ACS_STATUS_ERR;
   }
 
-  val_its_clear_lpi_map(its_index, device_id, int_id);
-  /* Get MSI-X/MSI Capability Offset */
+  /* Disable the device's MSI before removing its ITS mapping */
   if (!(val_pcie_find_capability(bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)))
     clear_msi_x_table(bdf, msi_index, msi_cap_offset);
-  else if (!(val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &msi_cap_offset)))
-    clear_msi_table(bdf, msi_cap_offset);
+  else if (!(val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
+    if (clear_msi_table(bdf, msi_cap_offset) != ACS_STATUS_PASS)
+      return ACS_STATUS_ERR;
+  }
+  return val_its_clear_lpi_map(its_index, device_id, int_id);
 }
 
 /**
@@ -531,7 +586,7 @@ uint32_t val_gic_request_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
   status = val_its_create_lpi_map(its_index, device_id, int_id, LPI_PRIORITY1);
   if (status != ACS_STATUS_PASS) {
     val_print(ERROR, "\n       Failed to create LPI mapping for DeviceID 0x%x", device_id);
-    return status;
+    goto release_mapping;
   }
 
   msi_addr = val_its_get_translater_addr(its_index);
@@ -541,15 +596,23 @@ uint32_t val_gic_request_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
   if (!(val_pcie_find_capability(bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)))
   {
     status = fill_msi_x_table(bdf, msi_index, msi_addr, msi_data, msi_cap_offset);
-    return status;
   }
   else if (!(val_pcie_find_capability(bdf, PCIE_CAP, CID_MSI, &msi_cap_offset)))
   {
     status = fill_msi_table(bdf, msi_addr, msi_data, msi_cap_offset);
-    return status;
   }
   else
-    return ACS_STATUS_SKIP;
+    status = ACS_STATUS_SKIP;
+
+  if (status == ACS_STATUS_PASS)
+    return status;
+
+release_mapping:
+  /* Programming errors precede endpoint writes. Release the ITS mapping only
+   * after hardware removal completes; failed removal keeps its records reserved. */
+  if (val_its_clear_lpi_map(its_index, device_id, int_id) != ACS_STATUS_PASS)
+    val_print(ERROR, "\n       ITS cleanup failed for INTID 0x%x", int_id);
+  return status;
 }
 
 /**

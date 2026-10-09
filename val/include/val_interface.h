@@ -216,7 +216,7 @@ uint64_t val_gic_v2m_get_info(V2M_MSI_INFO_e type, uint32_t instance);
 void     val_gic_free_info_table(void);
 void     val_gic_cpuif_init(void);
 void     val_gic_free_irq(uint32_t irq_num, uint32_t mapped_irq_num);
-void     val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
+uint32_t val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
                           uint32_t int_id, uint32_t msi_index);
 uint32_t val_gic_get_info(GIC_INFO_e type);
 uint32_t val_gic_install_isr(uint32_t int_id, void (*isr)(void));
@@ -454,7 +454,8 @@ uint32_t val_power_enter_semantic(BSA_POWER_SEM_e semantic);
 uint32_t val_bsa_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
 
 typedef enum {
-    PER_FLAG_MSI_ENABLED = 0x2
+    PER_FLAG_MSI_ENABLED   = 0x2,
+    PER_FLAG_MSI_SUPPORTED = 0x4  /* MSI or MSI-X capability present */
 }PERIPHERAL_FLAGS_e;
 
 /* Peripheral Tests APIs */

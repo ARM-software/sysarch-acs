@@ -705,3 +705,160 @@ pal_pcie_bar_mem_write(uint32_t Bdf, uint64_t address, uint32_t data)
   pal_mmio_write(address, data);
   return 0;
 }
+
+/**
+  @brief   Read the MSI/MSI-X messages programmed for the supplied PCIe function.
+  @param   seg,     bus, dev, fn  PCIe address of the device
+  @param   mvector  Returned list, freed by the caller
+  @return  Vector count, zero if disabled/unconfigured, or a PAL error status
+
+  Message address, data and control come from hardware. VAL resolves the
+  message's ITS EventID before filling the physical interrupt ID fields.
+**/
+uint32_t
+pal_get_msi_vectors(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t fn,
+                    PERIPHERAL_VECTOR_LIST **mvector)
+{
+  PERIPHERAL_VECTOR_LIST *node, **tail;
+  uint32_t cap, header, remaining = PCIE_CAP_MAX_COUNT;
+  uint32_t msi_cap = 0, msi_control = 0, msix_cap = 0, msix_control = 0;
+  uint32_t table, bar, bir, count, index, vector_count = 0;
+  uint32_t lower = 0, upper = 0, data = 0, control, mask = 0;
+  uint32_t message_data = 0, data_offset;
+  uint32_t status = PAL_STATUS_ERROR;
+  uint64_t table_address = 0;
+  uint32_t is_msix;
+
+  if (mvector == NULL)
+    return PAL_STATUS_INVALID_PARAM;
+  *mvector = NULL;
+  tail = mvector;
+
+  /* Find MSI/MSI-X capabilities in this BDF's config space */
+  if (pal_pcie_read_cfg(seg, bus, dev, fn, TYPE01_CPR, &cap))
+    return PAL_STATUS_ERROR;
+
+  cap &= TYPE01_CPR_MASK;
+  while (cap != 0) {
+    /* Limit traversal to the number of DWORDs in the capability area */
+    if ((cap < PCIE_CAP_START) || (remaining-- == 0) ||
+        pal_pcie_read_cfg(seg, bus, dev, fn, cap, &header))
+      return PAL_STATUS_ERROR;
+    if ((header & PCIE_CIDR_MASK) == CID_MSI) {
+      msi_cap = cap;
+      msi_control = header;
+    } else if ((header & PCIE_CIDR_MASK) == CID_MSIX) {
+      msix_cap = cap;
+      msix_control = header;
+    }
+    cap = (header >> PCIE_NCPR_SHIFT) & TYPE01_CPR_MASK;
+  }
+
+  /* Read enabled MSI-X first, otherwise check for enabled MSI */
+  is_msix = (msix_cap != 0) && (msix_control & (1U << MSI_X_ENABLE_SHIFT));
+  if (is_msix) {
+    /* MSI-X Table BIR selects a memory BAR; bits [31:3] give its offset. */
+    if (pal_pcie_read_cfg(seg, bus, dev, fn, COMMAND_REG_OFFSET, &header) ||
+        !(header & (CR_MSE_MASK << CR_MSE_SHIFT)) ||
+        pal_pcie_read_cfg(seg, bus, dev, fn, msix_cap + MSI_X_TOR_OFFSET, &table))
+      return PAL_STATUS_ERROR;
+
+    bir = table & MSI_X_TABLE_BIR_MASK;
+    if ((bir >= TYPE0_MAX_BARS) ||
+        pal_pcie_read_cfg(seg, bus, dev, fn, BAR0_OFFSET + bir * BAR_32B_OFFSET, &bar) ||
+        (bar & BAR_MIT_MASK) ||
+        (((bar >> BAR_MDT_SHIFT) & BAR_MDT_MASK) == BAR_MEM_TYPE_RESERVED))
+      return PAL_STATUS_ERROR;
+
+    table_address = bar & BAR_MASK;
+    if (BAR_REG(bar) == BAR_64_BIT) {
+      /* Read the upper address DWORD for a 64-bit BAR */
+      if ((bir + 1 >= TYPE0_MAX_BARS) ||
+          pal_pcie_read_cfg(seg, bus, dev, fn, BAR0_OFFSET + (bir + 1) * BAR_32B_OFFSET,
+                            &bar))
+        return PAL_STATUS_ERROR;
+
+      table_address |= (uint64_t)bar << MSI_X_ADDR_SHIFT;
+    }
+
+    if (table_address == 0)
+      return PAL_STATUS_ERROR;
+
+    table_address += table & MSI_X_TABLE_OFFSET_MASK;
+    count = ((msix_control >> MSI_X_TABLE_SIZE_SHIFT) & MSI_X_TABLE_SIZE_MASK) + 1;
+  } else if ((msi_cap != 0) && (msi_control & (1U << MSI_ENABLE_SHIFT))) {
+    /* MME selects the enabled message count. Data is at +8 or +12. */
+    index = (msi_control >> MSI_MME_SHIFT) & MSI_MULTI_MSG_MASK;
+    if ((index > MSI_MAX_MME) ||
+        (index > ((msi_control >> MSI_MMC_SHIFT) & MSI_MULTI_MSG_MASK)))
+      return PAL_STATUS_ERROR;
+
+    count = 1U << index;
+    data_offset = (msi_control & (1U << MSI_64BIT_ADDR_SHIFT)) ?
+                  MSI_MSG_TBL_DATA_OFFSET : MSI_MSG_32BIT_DATA_OFFSET;
+    if (pal_pcie_read_cfg(seg, bus, dev, fn, msi_cap + MSI_MSG_TBL_LOWER_ADDR_OFFSET,
+                          &lower) ||
+        ((data_offset == MSI_MSG_TBL_DATA_OFFSET) &&
+         pal_pcie_read_cfg(seg, bus, dev, fn, msi_cap + MSI_MSG_TBL_HIGHER_ADDR_OFFSET,
+                           &upper)) ||
+        pal_pcie_read_cfg(seg, bus, dev, fn, msi_cap + data_offset, &message_data) ||
+        ((msi_control & (1U << MSI_PER_VECTOR_MASK_SHIFT)) &&
+         pal_pcie_read_cfg(seg, bus, dev, fn, msi_cap + data_offset + PCIE_DWORD_SIZE,
+                           &mask)))
+      return PAL_STATUS_ERROR;
+
+    message_data &= MSI_MSG_DATA_MASK;
+  } else {
+    return 0;
+  }
+
+  for (index = 0; index < count; index++) {
+    if (is_msix) {
+      lower = pal_mmio_read(table_address + index * MSI_X_ENTRY_SIZE +
+                            MSI_X_MSG_TBL_LOWER_ADDR_OFFSET);
+      upper = pal_mmio_read(table_address + index * MSI_X_ENTRY_SIZE +
+                            MSI_X_MSG_TBL_HIGHER_ADDR_OFFSET);
+      data = pal_mmio_read(table_address + index * MSI_X_ENTRY_SIZE +
+                           MSI_X_MSG_TBL_DATA_OFFSET);
+      control = pal_mmio_read(table_address + index * MSI_X_ENTRY_SIZE +
+                              MSI_X_MSG_TBL_MVC_OFFSET);
+      /* Skip entries with no programmed message */
+      if ((lower == 0) && (upper == 0) && (data == 0))
+        continue;
+      /* Retain the function mask alongside each entry's vector control. */
+      control |= msix_control & (1U << MSI_X_FUNCTION_MASK_SHIFT);
+    } else {
+      /* Select each enabled MSI message using the low Message Data bits */
+      data = (message_data & ~(count - 1)) | index;
+      control = (mask >> index) & MSI_VECTOR_MASK;
+    }
+
+    node = pal_aligned_alloc(MEM_MIN_ALIGNMENT, sizeof(*node));
+    if (node == NULL) {
+      status = PAL_STATUS_NO_RESOURCE;
+      goto query_failed;
+    }
+    node->next = NULL;
+    node->vector.vector_control = control;
+    node->vector.vector_upper_addr = upper;
+    node->vector.vector_lower_addr = lower;
+    node->vector.vector_data = data;
+    /* VAL fills the INTID after resolving the message's ITS mapping */
+    node->vector.vector_irq_base = 0;
+    node->vector.vector_n_irqs = 1;
+    node->vector.vector_mapped_irq_base = 0;
+    *tail = node;
+    tail = &node->next;
+    vector_count++;
+  }
+  return vector_count;
+
+query_failed:
+  /* Free the partial list if a vector allocation fails */
+  while (*mvector != NULL) {
+    node = *mvector;
+    *mvector = node->next;
+    pal_mem_free_aligned(node);
+  }
+  return status;
+}

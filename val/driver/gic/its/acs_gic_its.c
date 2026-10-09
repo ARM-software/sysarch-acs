@@ -21,6 +21,7 @@
 #include "acs_memory.h"
 #include "acs_pe.h"
 #include "val_sysreg_pe.h"
+#include "acs_exception.h"
 
 extern GIC_ITS_INFO    *g_gic_its_info;
 static uint32_t        *g_cwriter_ptr;
@@ -39,6 +40,7 @@ static ITS_DEVICE_TABLES *g_device_tables;
 
 typedef struct ITS_EVENT_MAPPING {
   uint32_t int_id;
+  uint32_t mapped;  /* Set after the ITS mapping commands complete */
   struct ITS_EVENT_MAPPING *next;
 } ITS_EVENT_MAPPING;
 
@@ -692,7 +694,7 @@ static uint64_t GetRDBaseFormat(uint32_t its_index)
 }
 
 
-void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id)
+uint32_t val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id)
 {
   uint64_t value;
   uint64_t RDBase;
@@ -705,18 +707,18 @@ void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_
 
   if (!g_its_setup_done || (g_gic_its_info == NULL) || (g_device_itts == NULL) ||
       (its_index >= g_gic_its_info->GicNumIts))
-    return;
+    return ACS_STATUS_ERR;
 
   if (ItsEnsureDeviceTable(its_index, device_id, 0) != ACS_STATUS_PASS)
-    return;
+    return ACS_STATUS_ERR;
 
   device = ItsFindDeviceITT(its_index, device_id);
   if (device == NULL)
-    return;
+    return ACS_STATUS_PASS;
 
   event = ItsFindEvent(device, int_id);
   if (event == NULL)
-    return;
+    return ACS_STATUS_PASS;
   last_event = (device->event_count == 1);
 
   ItsBase = g_gic_its_info->GicIts[its_index].Base;
@@ -731,8 +733,9 @@ void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_
   dsbsy();
   value = g_cwriter_ptr[its_index] * NUM_BYTES_IN_DW;
   val_mmio_write64(ItsBase + ARM_GITS_CWRITER, value);
+  /* Wait for ITS removal before releasing the event and LPI state */
   if (PollTillCommandQueueDone(its_index) != ACS_STATUS_PASS)
-    return;
+    return ACS_STATUS_ERR;
   dsbsy();
 
   ClearConfigTable(int_id);
@@ -747,6 +750,92 @@ void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_
 
   if (device->event_count == 0)
     ItsRemoveDeviceITT(its_index, device);
+
+  return ACS_STATUS_PASS;
+}
+
+/**
+  @brief Resolve a message read from PCIe hardware to a completed ITS mapping.
+**/
+uint32_t
+val_its_get_msi_intid(uint32_t its_id, uint32_t device_id,
+                      uint64_t message_address, uint32_t event_id, uint32_t *int_id)
+{
+  uint32_t index;
+  ITS_DEVICE_ITT *device;
+  ITS_EVENT_MAPPING *event;
+
+  if (!g_its_setup_done || (g_gic_its_info == NULL) || (g_device_itts == NULL) ||
+      (int_id == NULL))
+    return ACS_STATUS_ERR;
+
+  for (index = 0; index < g_gic_its_info->GicNumIts; index++) {
+    /* Match the routed ITS and the message address read from the device */
+    if ((g_gic_its_info->GicIts[index].ID != its_id) ||
+        (message_address != val_its_get_translater_addr(index)))
+      continue;
+    device = ItsFindDeviceITT(index, device_id);
+    if (device == NULL)
+      return ACS_STATUS_ERR;
+    for (event = device->events; event != NULL; event = event->next) {
+      /* WriteCmdQMAPTI uses INTID - ARM_LPI_MINID as the EventID. Only use
+       * that convention when the corresponding mapping actually exists. */
+      if (event->mapped && (event->int_id - ARM_LPI_MINID == event_id)) {
+        *int_id = event->int_id;
+        return ACS_STATUS_PASS;
+      }
+    }
+  }
+  return ACS_STATUS_ERR;
+}
+
+/**
+  @brief   Find an unused LPI
+  @param   its_index  ITS used by the endpoint
+  @param   int_id     Returned physical interrupt ID
+  @return  ACS_STATUS_PASS or ACS_STATUS_ERR
+**/
+uint32_t
+val_its_get_free_lpi(uint32_t its_index, uint32_t *int_id)
+{
+  uint32_t candidate, index, in_use;
+  uint64_t max_id, event_count, propbaser;
+  ITS_DEVICE_ITT *device;
+
+  if (!g_its_setup_done || (g_gic_its_info == NULL) || (g_device_itts == NULL) ||
+      (int_id == NULL) || (its_index >= g_gic_its_info->GicNumIts))
+    return ACS_STATUS_ERR;
+
+  /* Get the LPI and EventID limits supported by the hardware */
+  propbaser = val_mmio_read64(g_gic_its_info->GicRdBase + ARM_GICR_PROPBASER);
+  max_id = (1ULL << (ARM_GICR_PROPBASER_IDbits(propbaser) + 1)) - 1;
+  event_count = 1ULL << (g_gic_its_info->GicIts[its_index].IDBits + 1);
+
+  /* Leave the low LPI IDs used by existing tests alone. Limit the allocation
+   * to the interrupt range supported by the ACS dispatcher. */
+  for (candidate = ARM_LPI_MINID + 256; candidate < NUM_ARM_MAX_INTERRUPT; candidate++) {
+    if (((uint64_t)candidate > max_id) ||
+        ((uint64_t)(candidate - ARM_LPI_MINID) >= event_count))
+      break;
+
+    in_use = 0;
+    /* Keep the LPI unique across all ITS device mappings */
+    for (index = 0; index < g_gic_its_info->GicNumIts && !in_use; index++) {
+      for (device = g_device_itts[index]; device != NULL; device = device->next) {
+        if (ItsFindEvent(device, candidate) != NULL) {
+          in_use = 1;
+          break;
+        }
+      }
+    }
+
+    if (!in_use) {
+      *int_id = candidate;
+      return ACS_STATUS_PASS;
+    }
+  }
+
+  return ACS_STATUS_ERR;
 }
 
 uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
@@ -801,6 +890,8 @@ uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
   ItsBase = g_gic_its_info->GicIts[its_index].Base;
   ItsCommandBase = g_gic_its_info->GicIts[its_index].CommandQBase;
 
+  /* Keep the event unavailable until the ITS commands complete */
+  event->mapped = 0;
   SetConfigTable(int_id, Priority);
   EnableLPIsRD(g_gic_its_info->GicRdBase);
   EnableITS(ItsBase);
@@ -821,6 +912,8 @@ uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
     return ACS_STATUS_ERR;
   dsbsy();
 
+  /* Allow MSI readback to resolve the completed mapping */
+  event->mapped = 1;
   return ACS_STATUS_PASS;
 }
 

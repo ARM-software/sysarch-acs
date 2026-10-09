@@ -51,6 +51,33 @@ pal_peripheral_is_duplicate(PERIPHERAL_INFO_BLOCK *start,
   return 0;
 }
 
+/* Record MSI/MSI-X support before a test programs any vectors */
+static uint32_t
+pal_peripheral_msi_supported(uint32_t bdf)
+{
+  uint32_t cap, header, remaining = PCIE_CAP_MAX_COUNT;
+  uint32_t seg = PCIE_EXTRACT_BDF_SEG(bdf);
+  uint32_t bus = PCIE_EXTRACT_BDF_BUS(bdf);
+  uint32_t dev = PCIE_EXTRACT_BDF_DEV(bdf);
+  uint32_t fn = PCIE_EXTRACT_BDF_FUNC(bdf);
+
+  if (pal_pcie_read_cfg(seg, bus, dev, fn, TYPE01_CPR, &cap))
+    return 0;
+  cap &= TYPE01_CPR_MASK;
+
+  while (cap != 0) {
+    if ((cap < PCIE_CAP_START) || (remaining-- == 0) ||
+        pal_pcie_read_cfg(seg, bus, dev, fn, cap, &header))
+      return 0;
+    if (((header & PCIE_CIDR_MASK) == CID_MSI) ||
+        ((header & PCIE_CIDR_MASK) == CID_MSIX))
+      return 1;
+    cap = (header >> PCIE_NCPR_SHIFT) & TYPE01_CPR_MASK;
+  }
+
+  return 0;
+}
+
 static void
 pal_peripheral_add_all_pci(PERIPHERAL_INFO_TABLE *peripheralInfoTable,
                            PERIPHERAL_INFO_BLOCK **per_info)
@@ -159,6 +186,7 @@ pal_peripheral_create_info_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable)
   uint32_t   i = 0;
   uint64_t   uart;
   PERIPHERAL_INFO_BLOCK *per_info = NULL;
+  PERIPHERAL_INFO_BLOCK *entry;
 
   if (peripheralInfoTable == NULL) {
     pal_print_msg(ACS_PRINT_ERR,
@@ -283,6 +311,13 @@ UART_CONFIG:
 
   if (platform_pcie_cfg.num_entries != 0)
     pal_peripheral_add_all_pci(peripheralInfoTable, &per_info);
+
+  /* Expose MSI/MSI-X support through peripheral info for every PCIe entry */
+  for (entry = peripheralInfoTable->info; entry < per_info; entry++) {
+    entry->flags &= ~PER_FLAG_MSI_SUPPORTED;
+    if (entry->bdf && pal_peripheral_msi_supported(entry->bdf))
+      entry->flags |= PER_FLAG_MSI_SUPPORTED;
+  }
 
   per_info->type = 0xFF; //indicate end of table
 }

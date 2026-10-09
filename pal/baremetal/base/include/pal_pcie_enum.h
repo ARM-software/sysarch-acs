@@ -45,6 +45,7 @@
 #define TYPE0_BAR_MAX_OFF  0x24
 #define BAR_64_BIT         1
 #define BAR_32_BIT         0
+#define BAR_32B_OFFSET     4
 
 #define BAR_NON_PRE_MEM    0
 #define BAR_PRE_MEM        0x1
@@ -68,12 +69,53 @@
 #define BAR_MDT_MASK    0x3
 #define BAR_MT_MASK     0x1
 #define BAR_BASE_MASK   0xfffffff
+#define BAR_MEM_TYPE_RESERVED 0x3
 
 /* BAR register shifts */
 #define BAR_MIT_SHIFT   0
 #define BAR_MDT_SHIFT   1
 #define BAR_MT_SHIFT    3
 #define BAR_BASE_SHIFT  4
+
+/* Command register Memory Space Enable */
+#define CR_MSE_SHIFT    1
+#define CR_MSE_MASK     0x1
+
+/* Standard capability traversal is bounded by the config-space DWORDs */
+#define PCIE_DWORD_SIZE    0x04
+#define PCIE_CAP_START     0x40
+#define PCIE_CAP_END       0xFC
+#define PCIE_CAP_MAX_COUNT ((PCIE_CAP_END - PCIE_CAP_START) / PCIE_DWORD_SIZE + 1)
+
+/* MSI capability control fields and message offsets */
+#define MSI_ENABLE_SHIFT                16
+#define MSI_MMC_SHIFT                   17
+#define MSI_MME_SHIFT                   20
+#define MSI_MULTI_MSG_MASK              0x7U
+#define MSI_MAX_MME                     5U /* Up to 32 enabled messages */
+#define MSI_64BIT_ADDR_SHIFT            23
+#define MSI_PER_VECTOR_MASK_SHIFT       24
+#define MSI_MSG_TBL_LOWER_ADDR_OFFSET   0x4
+#define MSI_MSG_TBL_HIGHER_ADDR_OFFSET  0x8
+#define MSI_MSG_TBL_DATA_OFFSET         0xC
+#define MSI_MSG_32BIT_DATA_OFFSET       MSI_MSG_TBL_HIGHER_ADDR_OFFSET
+#define MSI_MSG_DATA_MASK               0xFFFFU
+#define MSI_VECTOR_MASK                 0x1U
+
+/* MSI-X capability fields and table-entry layout */
+#define MSI_X_ENABLE_SHIFT               31
+#define MSI_X_FUNCTION_MASK_SHIFT        30
+#define MSI_X_TABLE_SIZE_SHIFT           16
+#define MSI_X_TABLE_SIZE_MASK            0x7FFU
+#define MSI_X_TOR_OFFSET                 0x4
+#define MSI_X_MSG_TBL_LOWER_ADDR_OFFSET   0x0
+#define MSI_X_MSG_TBL_HIGHER_ADDR_OFFSET  0x4
+#define MSI_X_MSG_TBL_DATA_OFFSET         0x8
+#define MSI_X_MSG_TBL_MVC_OFFSET          0xC
+#define MSI_X_TABLE_BIR_MASK              0x7
+#define MSI_X_TABLE_OFFSET_MASK           0xFFFFFFF8U
+#define MSI_X_ENTRY_SIZE                  16
+#define MSI_X_ADDR_SHIFT                  32
 
 uint8_t  pal_mmio_read8(uint64_t addr);
 uint16_t pal_mmio_read16(uint64_t addr);

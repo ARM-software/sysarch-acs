@@ -22,7 +22,6 @@
 #include "platform_override_struct.h"
 #include "platform_override_fvp.h"
 #include "pal_pl011_uart.h"
-#include "acs_interface.h"
 
 /**
   Conduits for service calls (SMC vs HVC).
@@ -679,33 +678,6 @@ pal_pcie_device_driver_present(uint32_t seg, uint32_t bus, uint32_t dev, uint32_
 
   return 1;
 
-}
-
-/**
-  @brief   Create a list of MSI(X) vectors for a device
-
-  @param   bus        PCI bus address
-  @param   dev        PCI device address
-  @param   fn         PCI function number
-  @param   mvector    pointer to a MSI(X) list address
-
-  @return
-    - 0               : Success
-    - PAL_STATUS_NOT_IMPLEMENTED : Feature not implemented
-    - non-zero        : Failure (implementation-specific error code)
-**/
-uint32_t
-pal_get_msi_vectors(uint32_t Seg, uint32_t Bus, uint32_t Dev, uint32_t Fn,
-                    PERIPHERAL_VECTOR_LIST **MVector)
-{
-  (void) Seg;
-  (void) Bus;
-  (void) Dev;
-  (void) MVector;
-  (void) Fn;
-
-  pal_warn_not_implemented(__func__);
-  return PAL_STATUS_NOT_IMPLEMENTED;
 }
 
 /**
