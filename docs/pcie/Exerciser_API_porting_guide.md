@@ -284,11 +284,12 @@ Bdf - BDF of the exerciser<br/>
 - Read the initial device power state; skip devices already in D3hot because no transition can be validated.
 - Request a transition by generating a PMReq VDM.<br/>
 **pal_exerciser_set_param(Type, Value1, Value2, Bdf)**<br/>
-Type - GENERATE_PMREQ_VDM<br/>
+Type - PM_VDM_TYPE<br/>
 Value1 - PM_STATE_D3HOT<br/>
-Value2 - BDF of the upstream CXL Root Port<br/>
+Value2 - BDF of the CXL exerciser<br/>
 Bdf - BDF of the exerciser<br/>
-- Allow time for PMReq/PMRes handling, then verify that the device transitioned to D3hot and that its final state differs from its initial state.
+- The PAL must wait for PMReq/PMRes completion with a bounded timeout and return `0` only for `PM_Ack`. Return a nonzero status for timeout, `PM_Denied`, `PM_NotProcessed` or an unexpected response. For the reference register interface, completion requires both the trigger bit `[31]` and type field `[3:0]` to clear before the response field `[18:16]` is checked.
+- After PAL success, verify through PMCSR that the device transitioned to D3hot and that its final state differs from its initial state. Do not write PMCSR to force D3hot before the handshake.
 
 #### CXL MEFN VDM
 
