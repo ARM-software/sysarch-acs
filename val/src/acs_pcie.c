@@ -26,6 +26,11 @@
 #include "rule_based_execution.h"
 #endif
 
+#ifdef TARGET_BAREMETAL
+#include "acs_iovirt.h"
+#include "acs_gic_its.h"
+#endif
+
 pcie_bdf_list_t *pcie_pheripherals_bdf_list = NULL;
 PCIE_INFO_TABLE *g_pcie_info_table;
 pcie_device_bdf_table *g_pcie_bdf_table;
@@ -887,19 +892,148 @@ val_pcie_get_info(PCIE_INFO_e type, uint32_t index)
   @param   mvector  - Pointer to MSI vector's list head
 
   @return
-    - 0               : Success
-    - NOT_IMPLEMENTED : Feature not implemented
-    - non-zero        : Failure (implementation-specific error code)
+    - Positive vector count with a populated list
+    - 0 if no vectors are configured
+    - NOT_IMPLEMENTED or a PAL error status on failure
 **/
 uint32_t
 val_get_msi_vectors (uint32_t bdf, PERIPHERAL_VECTOR_LIST **mvector)
 {
+#ifdef TARGET_BAREMETAL
+  PERIPHERAL_VECTOR_LIST *node, *next;
+  uint32_t count, device_id, stream_id, its_id, int_id;
+  uint64_t message_address;
+
+  count = pal_get_msi_vectors(PCIE_EXTRACT_BDF_SEG(bdf), PCIE_EXTRACT_BDF_BUS(bdf),
+                              PCIE_EXTRACT_BDF_DEV(bdf), PCIE_EXTRACT_BDF_FUNC(bdf),
+                              mvector);
+  if ((count == 0) || (count == ACS_STATUS_PAL_NOT_IMPLEMENTED) || (count & (1U << 31)))
+    return count;
+
+  /* BM PAL returns the endpoint's programmed messages. Resolve their EventIDs
+   * through the ITS mappings; PCIe message data is not a physical INTID. */
+  if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(bdf), PCIE_EXTRACT_BDF_SEG(bdf),
+                                 &device_id, &stream_id, &its_id))
+    goto query_failed;
+  for (node = *mvector; node != NULL; node = node->next) {
+    message_address = ((uint64_t)node->vector.vector_upper_addr << 32) |
+                        node->vector.vector_lower_addr;
+    if (val_its_get_msi_intid(its_id, device_id, message_address,
+                              node->vector.vector_data, &int_id) != ACS_STATUS_PASS)
+      goto query_failed;
+    node->vector.vector_irq_base = int_id;
+    node->vector.vector_mapped_irq_base = int_id;
+  }
+  return count;
+
+query_failed:
+  /* Discard the list if any programmed message cannot be resolved */
+  for (node = *mvector; node != NULL; node = next) {
+    next = node->next;
+    val_memory_free(node);
+  }
+  *mvector = NULL;
+  return ACS_STATUS_ERR;
+#else
   return pal_get_msi_vectors (PCIE_EXTRACT_BDF_SEG (bdf),
                               PCIE_EXTRACT_BDF_BUS (bdf),
                               PCIE_EXTRACT_BDF_DEV (bdf),
                               PCIE_EXTRACT_BDF_FUNC (bdf),
                               mvector);
+#endif
 }
+
+#ifdef TARGET_BAREMETAL
+/**
+  @brief   Provision one temporary MSI/MSI-X vector for a test.
+  @param   bdf  PCIe Segment/Bus/Device/Function
+  @param   context  Test-owned list of temporary allocations
+  @return  ACS_STATUS_PASS, ACS_STATUS_SKIP if unavailable, or ACS_STATUS_ERR
+**/
+uint32_t
+val_pcie_msi_request(uint32_t bdf, PCIE_MSI_CONTEXT **context)
+{
+  PCIE_MSI_CONTEXT *mapping;
+  uint32_t stream_id, status, its_index;
+
+  if (context == NULL)
+    return ACS_STATUS_ERR;
+
+  /* Reuse the allocation when P097 revisits a device. */
+  for (mapping = *context; mapping != NULL; mapping = mapping->next) {
+    if (mapping->bdf == bdf)
+      return mapping->valid ? ACS_STATUS_PASS : ACS_STATUS_ERR;
+  }
+
+  if (val_gic_get_info(GIC_INFO_NUM_ITS) == 0)
+    return ACS_STATUS_SKIP;
+
+  /* Set up ITS tables before allocating a vector */
+  status = val_gic_its_configure();
+  if (status != ACS_STATUS_PASS)
+    return status;
+
+  mapping = val_memory_calloc(1, sizeof(*mapping));
+  if (mapping == NULL)
+    return ACS_STATUS_ERR;
+  mapping->bdf = bdf;
+
+  /* Get the DeviceID and ITS routed to this BDF */
+  if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(bdf), PCIE_EXTRACT_BDF_SEG(bdf),
+                                 &mapping->device_id, &stream_id, &mapping->its_id))
+    goto free_mapping;
+  its_index = val_gic_get_its_index(mapping->its_id);
+  /* Pick an unused LPI for this device */
+  if (val_its_get_free_lpi(its_index, &mapping->int_id) != ACS_STATUS_PASS)
+    goto free_mapping;
+
+  /* Retain partially programmed mappings too, so every exit can release them. */
+  mapping->next = *context;
+  *context = mapping;
+  /* Create the ITS mapping and program MSI/MSI-X vector 0 */
+  status = val_gic_request_msi(bdf, mapping->device_id, mapping->its_id,
+                               mapping->int_id, 0);
+  mapping->valid = (status == ACS_STATUS_PASS);
+  return status;
+
+free_mapping:
+  val_memory_free(mapping);
+  return ACS_STATUS_ERR;
+}
+
+/**
+  @brief   Release the temporary vectors created by the current PCIe test.
+  @param   context  Test-owned list; failed releases remain available for retry
+  @return  ACS_STATUS_PASS or ACS_STATUS_ERR
+**/
+uint32_t
+val_pcie_msi_free(PCIE_MSI_CONTEXT **context)
+{
+  PCIE_MSI_CONTEXT **link = context;
+  PCIE_MSI_CONTEXT *mapping;
+  uint32_t status = ACS_STATUS_PASS;
+
+  if (context == NULL)
+    return ACS_STATUS_ERR;
+
+  while (*link != NULL) {
+    mapping = *link;
+    mapping->valid = 0;
+    if (val_gic_free_msi(mapping->bdf, mapping->device_id, mapping->its_id,
+                         mapping->int_id, 0) != ACS_STATUS_PASS) {
+      /* Do not recycle an LPI until the ITS confirms the release. */
+      status = ACS_STATUS_ERR;
+      link = &mapping->next;
+      continue;
+    }
+
+    *link = mapping->next;
+    val_memory_free(mapping);
+  }
+
+  return status;
+}
+#endif
 
 /**
   @brief   This API returns legacy interrupts routing map

@@ -192,10 +192,22 @@ typedef struct {
   pcie_saved_cap_state_t tph_cap;
 } pcie_saved_state_t;
 
+/* Track MSI allocations owned by a test */
+typedef struct PCIE_MSI_CONTEXT {
+  uint32_t bdf;
+  uint32_t device_id;
+  uint32_t its_id;
+  uint32_t int_id;
+  uint32_t valid;  /* MSI/MSI-X programming completed successfully */
+  struct PCIE_MSI_CONTEXT *next;
+} PCIE_MSI_CONTEXT;
+
 void     val_pcie_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 void     val_pcie_io_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 uint32_t val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data);
 uint32_t val_get_msi_vectors(uint32_t bdf, PERIPHERAL_VECTOR_LIST **mvector);
+uint32_t val_pcie_msi_request(uint32_t bdf, PCIE_MSI_CONTEXT **context);
+uint32_t val_pcie_msi_free(PCIE_MSI_CONTEXT **context);
 uint64_t val_pcie_get_bdf_config_addr(uint32_t bdf);
 
 uint32_t val_pcie_bar_mem_read(uint32_t bdf, uint64_t address, uint32_t *data);

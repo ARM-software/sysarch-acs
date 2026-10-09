@@ -192,7 +192,9 @@ void pal_warn_not_implemented(const char *api_name);
 #define PASID_OFFSET         0x04
 #define PASID_NUM_SHIFT      8
 #define PASID_NUM_MASK       0x1f
-#define PER_FLAG_MSI_ENABLED 0x2
+
+#define PER_FLAG_MSI_ENABLED   0x2
+#define PER_FLAG_MSI_SUPPORTED 0x4  /* MSI or MSI-X capability present */
 
 /* Device bitmask definitions */
 #define RCiEP    (1 << 0b1001)

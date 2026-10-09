@@ -30,6 +30,11 @@
 
 #define LPI_BASE 8192
 
+#ifdef TARGET_BAREMETAL
+/* Hold this test's temporary MSI allocations for cleanup */
+static PCIE_MSI_CONTEXT * msi_context;
+#endif
+
 /**
     @brief   Returns MSI(X) status of the device
 
@@ -45,12 +50,17 @@ check_msi_status (uint32_t dev_index) {
 
   data = val_peripheral_get_info (ANY_FLAGS, dev_index);
 
+#ifdef TARGET_BAREMETAL
+  /* Use discovered MSI/MSI-X support before programming a temporary vector */
+  return (data & PER_FLAG_MSI_SUPPORTED) != 0;
+#else
   if ((data & PER_FLAG_MSI_ENABLED) &&
       val_peripheral_get_info (ANY_GSIV, dev_index)) {
     return 1;
   }
 
   return 0;
+#endif
 }
 
 /**
@@ -104,12 +114,26 @@ payload (void)
       dev_bdf = val_peripheral_get_info (ANY_BDF, count - 1);
       if (dev_bdf) {
         val_print (TRACE, "\n       Checking PCI device with BDF %4X", dev_bdf);
+#ifdef TARGET_BAREMETAL
+        /* Program a temporary MSI/MSI-X vector for this device. This is done by kernel in the case
+           of linux */
+        ret = val_pcie_msi_request(dev_bdf, &msi_context);
+        if (ret != ACS_STATUS_PASS) {
+          val_set_status(index, (ret == ACS_STATUS_SKIP) ? RESULT_SKIP(3) : RESULT_FAIL(2));
+          goto test_cleanup;
+        }
+#endif
         /* Read MSI(X) vectors */
         ret = val_get_msi_vectors (dev_bdf, &dev_mvec);
 
         if (ret == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-          clean_msi_list (dev_mvec);
           goto test_warn_unimplemented;
+        }
+
+        /* A query error returns a status without a vector list */
+        if (ret && (dev_mvec == NULL)) {
+          val_set_status(index, RESULT_FAIL(3));
+          goto test_cleanup;
         }
 
         if (ret) {
@@ -129,6 +153,7 @@ payload (void)
           }
 
           clean_msi_list (dev_mvec);
+          dev_mvec = NULL;
         }
       }
     }
@@ -142,10 +167,19 @@ payload (void)
   } else if (!status) {
     val_set_status (index, RESULT_PASS);
   }
-  return;
+  goto test_cleanup;
 
 test_warn_unimplemented:
   val_set_status(index, RESULT_WARNING(1));
+
+test_cleanup:
+  /* Free the readback list on both normal and early exits */
+  clean_msi_list(dev_mvec);
+#ifdef TARGET_BAREMETAL
+  /* Release the temporary MSI allocations made by this test */
+  if (val_pcie_msi_free(&msi_context) != ACS_STATUS_PASS)
+    val_set_status(index, RESULT_FAIL(4));
+#endif
 }
 
 uint32_t

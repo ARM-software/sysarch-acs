@@ -451,6 +451,9 @@
 /*MSI Capabilities */
 #define MSI_CTRL_OFFSET                 0x0
 #define MSI_ENABLE_SHIFT                16
+#define MSI_MME_SHIFT                   20
+#define MSI_MME_MASK                    (0x7U << MSI_MME_SHIFT)
+#define MSI_64BIT_ADDR_SHIFT            23
 #define MSI_ADDR_SHIFT                  32
 #define MSI_MSG_TBL_LOWER_ADDR_OFFSET   0x4
 #define MSI_MSG_TBL_HIGHER_ADDR_OFFSET  0x8
@@ -458,6 +461,9 @@
 
 /* MSI-X Capabilities */
 #define MSI_X_ENABLE_SHIFT          31
+#define MSI_X_FUNCTION_MASK_SHIFT   30
+#define MSI_X_TABLE_SIZE_SHIFT      16
+#define MSI_X_TABLE_SIZE_MASK       0x7FFU
 
 #define MSI_X_TOR_OFFSET            0x4
 

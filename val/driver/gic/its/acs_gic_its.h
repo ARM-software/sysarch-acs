@@ -197,7 +197,11 @@ uint32_t val_its_gicr_lpi_support(uint64_t rd_base);
 void EnableLPIsRD(uint64_t rd_base);
 uint32_t val_its_create_lpi_map(uint32_t its_index, uint32_t device_id,
                             uint32_t int_id, uint32_t Priority);
-void val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id);
+uint32_t val_its_clear_lpi_map(uint32_t its_index, uint32_t device_id, uint32_t int_id);
+uint32_t val_its_get_free_lpi(uint32_t its_index, uint32_t *int_id);
+uint32_t val_its_get_msi_intid(uint32_t its_id, uint32_t device_id,
+                              uint64_t message_address, uint32_t event_id,
+                              uint32_t *int_id);
 
 uint64_t val_its_get_translater_addr(uint32_t its_index);
 uint32_t val_its_get_max_lpi(void);

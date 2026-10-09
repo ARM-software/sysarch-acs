@@ -22,6 +22,11 @@
 #define TEST_RULE  "PCI_MSI_2"
 #define TEST_DESC  "Check MSI(X) vectors uniqueness       "
 
+#ifdef TARGET_BAREMETAL
+/* Hold this test's temporary MSI allocations for cleanup */
+static PCIE_MSI_CONTEXT * msi_context;
+#endif
+
 /**
     @brief   Returns MSI(X) status of the device
 
@@ -171,11 +176,24 @@ payload (void)
           continue;
         }
 
+#ifdef TARGET_BAREMETAL
+        /* Retain temporary vectors until all device comparisons finish. */
+        ret = val_pcie_msi_request(current_dev_bdf, &msi_context);
+        if (ret != ACS_STATUS_PASS) {
+          val_set_status(index, (ret == ACS_STATUS_SKIP) ? RESULT_SKIP(2) : RESULT_FAIL(2));
+          goto test_cleanup;
+        }
+#endif
         ret = val_get_msi_vectors (current_dev_bdf, &current_dev_mvec);
 
         if (ret == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-          clean_msi_list (current_dev_mvec);
           goto test_warn_unimplemented;
+        }
+
+        /* A query error returns a status without a vector list */
+        if (ret && (current_dev_mvec == NULL)) {
+          val_set_status(index, RESULT_FAIL(3));
+          goto test_cleanup;
         }
 
         if (ret) {
@@ -220,11 +238,25 @@ payload (void)
                   }
 
                   /* Read MSI(X) vectors */
+#ifdef TARGET_BAREMETAL
+                  /* Retain temporary vectors until all device comparisons finish. */
+                  ret = val_pcie_msi_request(next_dev_bdf, &msi_context);
+                  if (ret != ACS_STATUS_PASS) {
+                    val_set_status(index,
+                                   (ret == ACS_STATUS_SKIP) ? RESULT_SKIP(2) : RESULT_FAIL(2));
+                    goto test_cleanup;
+                  }
+#endif
                   ret = val_get_msi_vectors (next_dev_bdf, &next_dev_mvec);
 
                   if (ret == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-                    clean_msi_list (next_dev_mvec);
                     goto test_warn_unimplemented;
+                  }
+
+                  /* Stop the comparison if the next device's query fails */
+                  if (ret && (next_dev_mvec == NULL)) {
+                    val_set_status(index, RESULT_FAIL(3));
+                    goto test_cleanup;
                   }
 
                   if (ret) {
@@ -238,12 +270,14 @@ payload (void)
                     }
 
                     clean_msi_list (next_dev_mvec);
+                    next_dev_mvec = NULL;
                   }
                 }
 
                 tbl_index_next++;
             }
             clean_msi_list (current_dev_mvec);
+            current_dev_mvec = NULL;
         }
       }
       else {
@@ -268,10 +302,20 @@ payload (void)
   } else  if (!status) {
     val_set_status (index, RESULT_PASS);
   }
-  return;
+  goto test_cleanup;
 
 test_warn_unimplemented:
   val_set_status(index, RESULT_WARNING(01));
+
+test_cleanup:
+  /* Free both readback lists on normal and early exits */
+  clean_msi_list(current_dev_mvec);
+  clean_msi_list(next_dev_mvec);
+#ifdef TARGET_BAREMETAL
+  /* Release the temporary vectors retained for device comparisons */
+  if (val_pcie_msi_free(&msi_context) != ACS_STATUS_PASS)
+    val_set_status(index, RESULT_FAIL(4));
+#endif
 }
 
 uint32_t
