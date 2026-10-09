@@ -598,10 +598,15 @@
 #define PLATFORM_OVERRIDE_CXL0_WINDOW_SIZE           0x0  /* CFMWS Length*/
 #define PLATFORM_OVERRIDE_CXL0_WINDOW_RESTRICTIONS   0x0  /* CFMWS Window restrictions*/
 
-#define PM_D3_VDM      0x300
-#define TRIGGER_PM_VDM 0x80000000
-#define VDM_RSP_SHIFT  16
-#define VDM_RSP_MASK   7
+#define VDM_TYPE_MASK      0xFU
+#define VDM_TYPE_PM        0x1U
+#define PM_D3_VDM          0x300U
+#define TRIGGER_PM_VDM     0x80000000U
+#define VDM_RSP_SHIFT      16
+#define VDM_RSP_MASK       0x7U
+#define PM_VDM_RSP_ACK     0x1U
+/* Maximum MMIO polls; platforms should tune this for their PM service latency. */
+#define PM_VDM_MAX_POLLS   100000U
 
 /* PERIPHERAL platform config parameters */
 #define PLATFORM_OVERRIDE_PERIPHERAL_COUNT 64 //PCI peripherals + UART/USB/SATA

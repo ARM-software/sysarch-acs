@@ -462,6 +462,15 @@ vdm_trigger               31        Trigger VDM request                         
 
   * The trigger bit and type field are cleared automatically after the request is processed.
 
+  * Poll with a bounded timeout until both bit `31` and bits `[3:0]` clear, then check
+    bits `[18:16]` from that completed register read. Only `PM_Ack` (`1`) indicates
+    success; `PM_Denied` (`2`), `PM_NotProcessed` (`0`), unexpected responses and timeout
+    must return failure. The requested D-state in bits `[11:8]` is not a completion indicator.
+
+  * The RDN2 PAL bounds this wait using `PM_VDM_MAX_POLLS` MMIO reads. This is a poll
+    count, not an elapsed-time limit; platform ports should tune the budget or use a
+    platform timer to accommodate their PM service latency.
+
 
 **HOW TO USE CXL MEFn VDM:**
 
