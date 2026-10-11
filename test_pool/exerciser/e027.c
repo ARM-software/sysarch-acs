@@ -37,8 +37,9 @@
          sizeof(pcie_device_attr))
 
 static uint32_t msg_type[] = {UNCORR_AMPT_ABORT, UNCORR_UR};
-static uint32_t irq_pending;
+static volatile uint32_t irq_pending;
 static uint32_t lpi_int_id = 0x204C;
+static volatile uint32_t instance;
 
 /* Save downstream config state under the tested RP. */
 static void     *cfg_space_buf[MAX_DEVICES];
@@ -52,9 +53,17 @@ intr_handler(void)
   /* Clear the interrupt pending state */
   irq_pending = 0;
 
-  val_print(TRACE, "\n       Received MSI interrupt %x", lpi_int_id);
-  val_gic_end_of_interrupt(lpi_int_id);
+  val_print(TRACE, "\n       Received MSI interrupt %x", lpi_int_id + instance);
+  val_gic_end_of_interrupt(lpi_int_id + instance);
   return;
+}
+
+static void
+free_msi_interrupt(uint32_t bdf, uint32_t device_id, uint32_t its_id,
+                   uint32_t int_id, uint32_t msi_index)
+{
+  val_gic_free_irq(int_id, 0);
+  val_gic_free_msi(bdf, device_id, its_id, int_id, msi_index);
 }
 
 static void
@@ -173,7 +182,6 @@ payload(void)
   uint32_t e_bdf;
   uint32_t erp_bdf;
   uint32_t reg_value;
-  uint32_t instance;
   uint32_t fail_cnt;
   uint32_t test_skip = 1;
   uint32_t status;
@@ -237,15 +245,14 @@ payload(void)
           continue;
       }
 
-      /* Test will run*/
-      test_skip = 0;
-
       /* Search for MSI-X/MSI Capability */
-      if ((val_pcie_find_capability(e_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) &&
-          (val_pcie_find_capability(e_bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
-        val_print(DEBUG, "\n       No MSI/MSI-X Capability, Skipping for 0x%x", e_bdf);
+      if ((val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSIX, &msi_cap_offset)) &&
+          (val_pcie_find_capability(erp_bdf, PCIE_CAP, CID_MSI, &msi_cap_offset))) {
+        val_print(DEBUG, "\n       No MSI/MSI-X Capability, Skipping for 0x%x", erp_bdf);
         continue;
       }
+
+      test_skip = 0;
 
       /* Get DeviceID & ITS_ID for this device */
       status = val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(erp_bdf),
@@ -253,7 +260,7 @@ payload(void)
                                         &stream_id, &its_id);
 
       if (status) {
-          val_print(ERROR, "\n       iovirt_get_device failed for bdf 0x%x", e_bdf);
+          val_print(ERROR, "\n       iovirt_get_device failed for bdf 0x%x", erp_bdf);
           val_set_status(pe_index, RESULT_FAIL(01));
           return;
       }
@@ -270,6 +277,9 @@ payload(void)
 
       if (status) {
           val_print(ERROR, "\n       Intr handler registration failed: 0x%x", lpi_int_id);
+          val_gic_free_msi(erp_bdf, device_id, its_id,
+                           lpi_int_id + instance, msi_index);
+          val_gic_free_irq(lpi_int_id + instance, 0);
           val_set_status(pe_index, RESULT_FAIL(02));
           return;
       }
@@ -287,6 +297,8 @@ payload(void)
           if (save_downstream_config_space(erp_bdf))
           {
               free_config_space();
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
               return;
           }
 
@@ -327,10 +339,8 @@ payload(void)
           {};
 
           if (timeout == 0) {
-              val_gic_free_irq(irq_pending, 0);
               val_print(ERROR, "\n       Interrupt trigger failed for bdf 0x%lx", e_bdf);
               fail_cnt++;
-              continue;
           }
 
           /* RP Busy is applicable only when RP Extensions for DPC are supported. */
@@ -352,6 +362,8 @@ payload(void)
                   fail_cnt++;
                   /* Do not access the EP or clear DPC Trigger Status while RP Busy is set. */
                   free_config_space();
+                  free_msi_interrupt(erp_bdf, device_id, its_id,
+                                     lpi_int_id + instance, msi_index);
                   val_set_status(pe_index, RESULT_FAIL(fail_cnt));
                   return;
               }
@@ -385,6 +397,8 @@ payload(void)
                       val_print(ERROR,
                                "\n       Failed to time delay for BDF 0x%x ", erp_bdf);
                       free_config_space();
+                      free_msi_interrupt(erp_bdf, device_id, its_id,
+                                         lpi_int_id + instance, msi_index);
                       val_set_status(pe_index, RESULT_FAIL(02));
                       return;
                   }
@@ -398,6 +412,9 @@ payload(void)
               val_print(ERROR,
                        "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
               val_set_status(pe_index, RESULT_FAIL(02));
+              free_config_space();
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
               return ;
           }
 
@@ -421,6 +438,9 @@ payload(void)
               fail_cnt++;
           }
       }
+
+      free_msi_interrupt(erp_bdf, device_id, its_id,
+                         lpi_int_id + instance, msi_index);
   }
 
   if (test_skip)
