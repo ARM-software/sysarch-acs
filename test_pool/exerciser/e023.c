@@ -34,8 +34,9 @@
 #define ERR_UNCORR   0x3
 #define CLEAR_STATUS 0xFFFFFFFF
 
-static uint32_t irq_pending;
+static volatile uint32_t irq_pending;
 static uint32_t lpi_int_id = 0x204C;
+static volatile uint32_t instance;
 static uint32_t mask_value;
 static uint32_t msi_check;
 
@@ -46,9 +47,17 @@ intr_handler(void)
   /* Clear the interrupt pending state */
   irq_pending = 0;
 
-  val_print(TRACE, "\n       Received MSI interrupt %x       ", lpi_int_id);
-  val_gic_end_of_interrupt(lpi_int_id);
+  val_print(TRACE, "\n       Received MSI interrupt %x       ", lpi_int_id + instance);
+  val_gic_end_of_interrupt(lpi_int_id + instance);
   return;
+}
+
+static void
+free_msi_interrupt(uint32_t bdf, uint32_t device_id, uint32_t its_id,
+                   uint32_t int_id, uint32_t msi_index)
+{
+  val_gic_free_irq(int_id, 0);
+  val_gic_free_msi(bdf, device_id, its_id, int_id, msi_index);
 }
 
 /* Clear all the status bits and set the mask and severity
@@ -234,7 +243,6 @@ inject_error(uint32_t e_bdf, uint32_t instance, uint32_t aer_offset)
 
                 if (timeout == 0)
                 {
-                    val_gic_free_irq(irq_pending, 0);
                     val_print(ERROR,
                               "\n       Intr not triggered on err injection bdf 0x%x", e_bdf);
                     return 1;
@@ -273,7 +281,6 @@ void
 payload(void)
 {
 
-  uint32_t instance;
   uint32_t pe_index;
   uint32_t e_bdf;
   uint32_t erp_bdf;
@@ -372,6 +379,9 @@ payload(void)
 
       if (status) {
           val_print(ERROR, "\n       Intr handler registration failed: 0x%x", lpi_int_id);
+          val_gic_free_msi(erp_bdf, device_id, its_id,
+                           lpi_int_id + instance, msi_index);
+          val_gic_free_irq(lpi_int_id + instance, 0);
           val_set_status(pe_index, RESULT_FAIL(02));
           return;
       }
@@ -387,6 +397,9 @@ err_check:
       clear_status_bits(e_bdf, aer_offset, 0, 0);
       if (inject_error(e_bdf, instance, aer_offset))
       {
+          if (msi_check == 1)
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
           val_set_status(pe_index, RESULT_FAIL(03));
           return;
       }
@@ -396,6 +409,9 @@ err_check:
       clear_status_bits(e_bdf, aer_offset, AER_ERROR_MASK, 0);
       if (inject_error(e_bdf, instance, aer_offset))
       {
+          if (msi_check == 1)
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
           val_set_status(pe_index, RESULT_FAIL(04));
           return;
       }
@@ -405,6 +421,9 @@ err_check:
       clear_status_bits(e_bdf, aer_offset, 0, AER_UNCORR_SEVR_FATAL);
       if (inject_error(e_bdf, instance, aer_offset))
       {
+          if (msi_check == 1)
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
           val_set_status(pe_index, RESULT_FAIL(05));
           return;
       }
@@ -420,7 +439,8 @@ err_check:
       val_pcie_clear_urd(erp_bdf);
 
       if (msi_check == 1) {
-        val_gic_free_msi(erp_bdf, device_id, its_id, lpi_int_id + instance, msi_index);
+        free_msi_interrupt(erp_bdf, device_id, its_id,
+                           lpi_int_id + instance, msi_index);
       }
   }
 

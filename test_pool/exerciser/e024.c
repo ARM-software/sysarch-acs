@@ -38,8 +38,9 @@
          sizeof(pcie_device_attr))
 
 static uint32_t msg_type[] = {ERR_FATAL_NONFATAL, ERR_FATAL};
-static uint32_t irq_pending;
+static volatile uint32_t irq_pending;
 static uint32_t lpi_int_id = 0x204C;
+static volatile uint32_t instance;
 
 /* Save downstream config state under the tested RP. */
 static void     *cfg_space_buf[MAX_DEVICES];
@@ -53,9 +54,17 @@ intr_handler(void)
   /* Clear the interrupt pending state */
   irq_pending = 0;
 
-  val_print(TRACE, "\n       Received MSI interrupt %x       ", lpi_int_id);
-  val_gic_end_of_interrupt(lpi_int_id);
+  val_print(TRACE, "\n       Received MSI interrupt %x       ", lpi_int_id + instance);
+  val_gic_end_of_interrupt(lpi_int_id + instance);
   return;
+}
+
+static void
+free_msi_interrupt(uint32_t bdf, uint32_t device_id, uint32_t its_id,
+                   uint32_t int_id, uint32_t msi_index)
+{
+  val_gic_free_irq(int_id, 0);
+  val_gic_free_msi(bdf, device_id, its_id, int_id, msi_index);
 }
 
 static void
@@ -176,7 +185,6 @@ payload(void)
   uint32_t e_bdf;
   uint32_t erp_bdf;
   uint32_t reg_value;
-  uint32_t instance;
   uint32_t fail_cnt;
   uint32_t test_skip = 1;
   uint32_t status;
@@ -202,6 +210,8 @@ payload(void)
 
   while (instance-- != 0)
   {
+      msi_check = 0;
+
       if (val_exerciser_init(instance))
           continue;
 
@@ -264,6 +274,8 @@ payload(void)
 
       if (status) {
           val_print(ERROR, "\n       Intr handler registration failed: 0x%x", lpi_int_id);
+          free_msi_interrupt(erp_bdf, device_id, its_id,
+                             lpi_int_id + instance, msi_index);
           val_set_status(pe_index, RESULT_FAIL(02));
           return;
       }
@@ -272,6 +284,9 @@ err_check:
       status = val_exerciser_set_param(ERROR_INJECT_TYPE, UNCORR_CMPT_TO, 1, instance);
       if (status != ERR_UNCORR) {
           val_print(ERROR, "\n       Error Injection failed, Bdf : 0x%x", e_bdf);
+          if (msi_check == 1)
+              free_msi_interrupt(erp_bdf, device_id, its_id,
+                                 lpi_int_id + instance, msi_index);
           continue;
       }
 
@@ -286,6 +301,9 @@ err_check:
           if (save_downstream_config_space(erp_bdf))
           {
               free_config_space();
+              if (msi_check == 1)
+                  free_msi_interrupt(erp_bdf, device_id, its_id,
+                                     lpi_int_id + instance, msi_index);
               return;
           }
           val_print(TRACE, "\n       EP BDF : 0x%x", e_bdf);
@@ -361,7 +379,6 @@ err_check:
               {};
 
               if (timeout == 0) {
-                  val_gic_free_irq(irq_pending, 0);
                   val_print(ERROR, "\n       Interrupt trigger failed for bdf 0x%x", e_bdf);
                   fail_cnt++;
                   goto disable_dpc;
@@ -387,6 +404,9 @@ err_check:
                   fail_cnt++;
                   /* Do not access the EP or clear DPC Trigger Status while RP Busy is set. */
                   free_config_space();
+                  if (msi_check == 1)
+                      free_msi_interrupt(erp_bdf, device_id, its_id,
+                                         lpi_int_id + instance, msi_index);
                   val_set_status(pe_index, RESULT_FAIL(fail_cnt));
                   return;
               }
@@ -420,6 +440,9 @@ err_check:
                       val_print(ERROR,
                                "\n       Failed to time delay for BDF 0x%x ", erp_bdf);
                       free_config_space();
+                      if (msi_check == 1)
+                          free_msi_interrupt(erp_bdf, device_id, its_id,
+                                             lpi_int_id + instance, msi_index);
                       val_set_status(pe_index, RESULT_FAIL(02));
                       return;
                   }
@@ -434,6 +457,9 @@ err_check:
                        "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
               val_set_status(pe_index, RESULT_FAIL(02));
               free_config_space();
+              if (msi_check == 1)
+                  free_msi_interrupt(erp_bdf, device_id, its_id,
+                                     lpi_int_id + instance, msi_index);
               return;
           }
 
@@ -459,6 +485,10 @@ disable_dpc:
           }
 
       }
+
+      if (msi_check == 1)
+          free_msi_interrupt(erp_bdf, device_id, its_id,
+                             lpi_int_id + instance, msi_index);
   }
 
   if (test_skip)
