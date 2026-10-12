@@ -39,6 +39,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-m", TypeValue},
     {L"-mmio", TypeFlag},
     {L"-only", TypeValue},
+    {L"-p2p", TypeFlag},
     {L"-r", TypeValue},
     {L"-skip", TypeValue},
     {L"-skip-dp-nic-ms", TypeFlag},
@@ -68,6 +69,7 @@ HelpMsg (VOID)
         "                  TIMER, WATCHDOG, NIST, PCIE, MPAM, ETE, TPM, POWER_WAKEUP\n"
         "        Example: -m PE,GIC,PCIE\n"
         "-mmio   Pass this flag to enable pal_mmio_read/write prints, use with -v 1\n"
+        "-p2p    Pass this flag to indicate that PCIe Hierarchy Supports Peer-to-Peer\n"
         "-r      Run tests for passed comma-separated Rule IDs or a rules file\n"
         "        Examples: -r B_PE_01,B_PE_02,B_GIC_01\n"
         "                  -r rules.txt  (file may mix commas/newlines; lines \n"
