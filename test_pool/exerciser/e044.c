@@ -112,10 +112,15 @@ payload(void)
     }
 
     test_skip = 0;
-    val_time_delay_ms(1 * ONE_MILLISECOND);
 
     val_pcie_read_cfg(e_bdf, cap_base + PMCSR_OFFSET, &reg_value);
     val_print(DEBUG, "\n       PMCSR Reg value after PM VDM is 0x%x", reg_value);
+    if (reg_value == PCIE_UNKNOWN_RESPONSE) {
+      val_print(ERROR, "\n       PMCSR read failed for BDF 0x%x", e_bdf);
+      val_set_status(pe_index, RESULT_FAIL(0));
+      return;
+    }
+
     pm_state_after = reg_value & PMCSR_POWER_STATE_MASK;
 
     if ((pm_state_after != PM_STATE_D3HOT) || (pm_state_after == pm_state_before)) {

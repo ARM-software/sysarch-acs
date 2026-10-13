@@ -41,6 +41,9 @@ void
 pal_mmio_write(uint64_t addr, uint32_t data);
 
 uint64_t
+pal_time_delay_ms(uint64_t MicroSeconds);
+
+uint64_t
 pal_pcie_get_mcfg_ecam(uint32_t bdf);
 
 uint64_t
@@ -359,36 +362,12 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         return 1;
 
       case PM_VDM_TYPE:
-      {
-        uint32_t poll;
-
         /* Program PMReq(D3hot), then trigger the request. */
         Data = VDM_TYPE_PM | PM_D3_VDM;
         pal_mmio_write(Base + PM_VDM_CTLR, Data);
         pal_mmio_write(Base + PM_VDM_CTLR, Data | TRIGGER_PM_VDM);
-
-        /* The response is valid after both the trigger and type fields clear. */
-        for (poll = 0; poll < PM_VDM_MAX_POLLS; poll++) {
-            Data = pal_mmio_read(Base + PM_VDM_CTLR);
-            if ((Data & (TRIGGER_PM_VDM | VDM_TYPE_MASK)) == 0)
-                break;
-        }
-
-        if (poll == PM_VDM_MAX_POLLS) {
-            pal_print_msg(ACS_PRINT_ERR, "\n       PM VDM timed out for BDF 0x%x", Bdf);
-            pal_print_msg(ACS_PRINT_ERR, " (VDM control 0x%x)", Data);
-            return 1;
-        }
-
-        /* PM_Denied, PM_NotProcessed and unexpected responses are failures. */
-        if (((Data >> VDM_RSP_SHIFT) & VDM_RSP_MASK) != PM_VDM_RSP_ACK) {
-            pal_print_msg(ACS_PRINT_ERR, "\n       PM VDM was not acknowledged for BDF 0x%x", Bdf);
-            pal_print_msg(ACS_PRINT_ERR, " (VDM control 0x%x)", Data);
-            return 1;
-        }
-
+        pal_time_delay_ms(PLATFORM_OVERRIDE_TIMEOUT);
         return 0;
-      }
 
       case GENERATE_MEFN_VDM:
         return 1;
