@@ -97,31 +97,42 @@ get_resource_base_32(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func, ui
 {
   uint32_t mem_bar_np;
   uint32_t mem_bar_p;
+  uint32_t readback;
 
   /*Update the 32 bit NP-BAR start address for the next iteration*/
-  if ((bar32_np_base != g_bar32_np_start) ||
-       ((bar32_np_base == g_bar32_np_start) && (g_np_bar_size != 0)))
+  if ((bar32_np_limit >= bar32_np_base) &&
+      ((bar32_np_base != g_bar32_np_start) ||
+       ((bar32_np_base == g_bar32_np_start) && (g_np_bar_size != 0))))
   {
       if ((g_bar32_np_start << 12) != 0)
           g_bar32_np_start  = (g_bar32_np_start & MEM_BASE32_LIM_MASK) + BAR_INCREMENT;
-      if (bar32_np_limit == g_bar32_np_start)
-          bar32_np_limit = bar32_np_limit - BAR_INCREMENT;
       pal_pci_cfg_read(seg, bus, dev, func, NON_PRE_FET_OFFSET, &mem_bar_np);
-      mem_bar_np = ((bar32_np_limit & MEM_BASE32_LIM_MASK) | mem_bar_np);
+      mem_bar_np = (mem_bar_np & ~MEM_BASE32_REG_ADDR_MASK) |
+                   ((bar32_np_limit & MEM_BASE32_LIM_MASK) |
+                    REG_MASK_SHIFT(bar32_np_base));
       pal_pci_cfg_write(seg, bus, dev, func, NON_PRE_FET_OFFSET, mem_bar_np);
+      pal_pci_cfg_read(seg, bus, dev, func, NON_PRE_FET_OFFSET, &readback);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "\n       PCIe RP %x:%x:%x.%x NP_MEM window start %x end %x reg %x readback %x",
+                    seg, bus, dev, func, bar32_np_base, bar32_np_limit, mem_bar_np, readback);
    }
 
   /*Update the 32 bit P-BAR start address for the next iteration*/
-  if ((bar32_p_base != g_bar32_p_start) ||
-      ((bar32_p_base == g_bar32_p_start) && (g_p_bar_size != 0)))
+  if ((bar32_p_limit >= bar32_p_base) &&
+      ((bar32_p_base != g_bar32_p_start) ||
+       ((bar32_p_base == g_bar32_p_start) && (g_p_bar_size != 0))))
   {
       if ((g_bar32_p_start  << 12) != 0)
           g_bar32_p_start  = (g_bar32_p_start & MEM_BASE32_LIM_MASK) + BAR_INCREMENT;
-      if (bar32_p_limit == g_bar32_p_start)
-          bar32_p_limit = bar32_p_limit - BAR_INCREMENT;
       pal_pci_cfg_read(seg, bus, dev, func, PRE_FET_OFFSET, &mem_bar_p);
-      mem_bar_p = ((bar32_p_limit & MEM_BASE32_LIM_MASK) | mem_bar_p);
+      mem_bar_p = (mem_bar_p & ~MEM_BASE32_REG_ADDR_MASK) |
+                  ((bar32_p_limit & MEM_BASE32_LIM_MASK) |
+                   REG_MASK_SHIFT(bar32_p_base));
       pal_pci_cfg_write(seg, bus, dev, func, PRE_FET_OFFSET, mem_bar_p);
+      pal_pci_cfg_read(seg, bus, dev, func, PRE_FET_OFFSET, &readback);
+      pal_print_msg(ACS_PRINT_DEBUG,
+                    "\n       PCIe RP %x:%x:%x.%x P_MEM32 window start %x end %x reg %x readback %x",
+                    seg, bus, dev, func, bar32_p_base, bar32_p_limit, mem_bar_p, readback);
    }
 }
 
@@ -205,6 +216,10 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
           }
           pal_pci_cfg_write(seg, bus, dev, func, offset, g_rp_bar64_value);
           pal_pci_cfg_write(seg, bus, dev, func, offset + 4, g_rp_bar64_value >> 32);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "\n       PCIe RP %x:%x:%x.%x BAR%x start %llx end %llx size %llx",
+                        seg, bus, dev, func, offset, g_rp_bar64_value,
+                        g_rp_bar64_value + bar_size - 1, bar_size);
           offset = offset + 8;
           g_rp_bar64_value = g_rp_bar64_value + bar_size;
       }
@@ -233,6 +248,10 @@ pal_pcie_rp_program_bar(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t func)
           pal_print_msg(ACS_PRINT_INFO,
                         "\n       Value written to BAR register is %x",
                         g_rp_bar32_value);
+          pal_print_msg(ACS_PRINT_DEBUG,
+                        "\n       PCIe RP %x:%x:%x.%x BAR%x start %x end %x size %x",
+                        seg, bus, dev, func, offset, g_rp_bar32_value,
+                        (uint32_t)(g_rp_bar32_value + bar_size - 1), (uint32_t)bar_size);
           g_rp_bar32_value = g_rp_bar32_value + bar_size;
           offset = offset + 4;
       }
@@ -313,6 +332,10 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
             pal_print_msg(ACS_PRINT_INFO,
                           "\n       Value written to BAR register is %llx",
                           g_bar64_p_start);
+            pal_print_msg(ACS_PRINT_DEBUG,
+                          "\n       PCIe EP %x:%x:%x.%x BAR%x P_MEM64 start %llx end %llx size %llx",
+                          seg, bus, dev, func, offset, g_bar64_p_start,
+                          g_bar64_p_start + bar_size - 1, bar_size);
             p_bar64_size = bar_size;
             g_bar64_size = bar_size;
             g_64_bus = bus;
@@ -364,6 +387,10 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
             pal_print_msg(ACS_PRINT_INFO,
                           "\n       Value written to BAR register is %x",
                           g_bar32_p_start);
+            pal_print_msg(ACS_PRINT_DEBUG,
+                          "\n       PCIe EP %x:%x:%x.%x BAR%x P_MEM32 start %x end %x size %x",
+                          seg, bus, dev, func, offset, g_bar32_p_start,
+                          (uint32_t)(g_bar32_p_start + bar_size - 1), (uint32_t)bar_size);
             p_bar_size = bar_size;
             g_p_bar_size = bar_size;
             g_p_bus = bus;
@@ -418,6 +445,10 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
          pal_print_msg(ACS_PRINT_INFO,
                        "\n       Value written to BAR register is %x",
                        g_bar32_np_start);
+         pal_print_msg(ACS_PRINT_DEBUG,
+                       "\n       PCIe EP %x:%x:%x.%x BAR%x NP_MEM32 start %x end %x size %x",
+                       seg, bus, dev, func, offset, g_bar32_np_start,
+                       (uint32_t)(g_bar32_np_start + bar_size - 1), (uint32_t)bar_size);
          np_bar_size = bar_size;
          g_np_bar_size = bar_size;
          g_np_bus = bus;
@@ -433,8 +464,35 @@ void pal_pcie_program_bar_reg(uint32_t seg, uint32_t bus, uint32_t dev, uint32_t
     }
   }
 
-     g_bar32_p_max = g_bar32_p_start;
-     g_bar32_np_max = g_bar32_np_start;
+     if (g_p_bar_size != 0)
+     {
+         if (((uint64_t)g_bar32_p_start + g_p_bar_size - 1) > 0xFFFFFFFFULL)
+         {
+             pal_print_msg(ACS_PRINT_DEBUG,
+                           "\n       PCIe EP %x:%x:%x.%x P_MEM32 BAR end overflow start %x size %x",
+                           seg, bus, dev, func, g_bar32_p_start, g_p_bar_size);
+             g_bar32_p_max = 0xFFFFFFFFU;
+         }
+         else
+             g_bar32_p_max = g_bar32_p_start + g_p_bar_size - 1;
+     }
+     else
+         g_bar32_p_max = g_bar32_p_start;
+
+     if (g_np_bar_size != 0)
+     {
+         if (((uint64_t)g_bar32_np_start + g_np_bar_size - 1) > 0xFFFFFFFFULL)
+         {
+             pal_print_msg(ACS_PRINT_DEBUG,
+                           "\n       PCIe EP %x:%x:%x.%x NP_MEM32 BAR end overflow start %x size %x",
+                           seg, bus, dev, func, g_bar32_np_start, g_np_bar_size);
+             g_bar32_np_max = 0xFFFFFFFFU;
+         }
+         else
+             g_bar32_np_max = g_bar32_np_start + g_np_bar_size - 1;
+     }
+     else
+         g_bar32_np_max = g_bar32_np_start;
      g_bar64_p_max =  g_bar64_p_start;
 }
 
@@ -627,6 +685,16 @@ void pal_pcie_enumerate(void)
            g_bar32_np_start = platform_root_pcie_cfg.block[pcie_index].ep_npbar32_value[count];
            g_bar32_p_start  = platform_root_pcie_cfg.block[pcie_index].ep_pbar32_value[count];
            g_rp_bar32_value = platform_root_pcie_cfg.block[pcie_index].rp_bar32_value[count];
+
+           g_bar64_p_max  = g_bar64_p_start;
+           g_bar32_np_max = g_bar32_np_start;
+           g_bar32_p_max  = g_bar32_p_start;
+           g_bar64_size   = 0;
+           g_np_bar_size  = 0;
+           g_p_bar_size   = 0;
+           g_64_bus       = 0;
+           g_np_bus       = 0;
+           g_p_bus        = 0;
 
            pri_bus = platform_root_pcie_cfg.block[pcie_index].start_bus_num[count];
            sec_bus = pri_bus + 1;
