@@ -64,6 +64,7 @@ static int gpt_base_alignment_run(uint64_t base_pa,
     uint64_t feature_reg1 = 0ULL;
     uint64_t granule_size = 0ULL;
     uint64_t misaligned_pa = 0ULL;
+    uint64_t changed_count = 0ULL;
     const uint64_t granule_count = UINT64_C(1);
 
     if (!out)
@@ -111,14 +112,16 @@ static int gpt_base_alignment_run(uint64_t base_pa,
                   (unsigned long long)result.x1);
         gpt_base_alignment_record(out, GPT_BASE_ALIGNMENT_STEP_MISALIGN,
                                   &result);
+        out->status = ACS_STATUS_ERR;
         goto cleanup;
     }
 
     /* Step 3: the same request with a PGS-aligned Base must succeed. */
-    if ((val_firme_gm_gpi_set_complete(base_pa, granule_count, target_gpi,
-                                       &result) != VAL_SUCCESS) ||
-        (val_firme_status_success(result.x0, result.x1,
-                                  granule_count) == VAL_FALSE)) {
+    if (val_firme_gpt_transition_terminal(base_pa, target_gpi, &result,
+            out, GPT_BASE_ALIGNMENT_STEP_ALIGNED) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    if (val_firme_status_success(result.x0, result.x1, granule_count) == VAL_FALSE) {
         LOG_ERROR(NULL, "%s: aligned Base failed x0=%llx x1=%llx",
                   GPT_BASE_ALIGNMENT_TEST_NAME,
                   (unsigned long long)result.x0,
@@ -127,12 +130,14 @@ static int gpt_base_alignment_run(uint64_t base_pa,
                                   &result);
         goto cleanup;
     }
+    changed_count = granule_count;
+
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
-    if (val_firme_gpt_restore_ns(base_pa, out,
-                                GPT_BASE_ALIGNMENT_STEP_CLEANUP) == VAL_FALSE)
+    if (!val_firme_gpt_restore_prefix_ns(base_pa, changed_count, granule_size,
+                                        out, GPT_BASE_ALIGNMENT_STEP_CLEANUP))
         return VAL_ERROR;
 
     return val_firme_gpt_rule_result_status(out);

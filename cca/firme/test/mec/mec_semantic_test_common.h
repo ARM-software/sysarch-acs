@@ -25,6 +25,22 @@
 #define MEC_SEMANTIC_STEP_CLEANUP           UINT64_C(11)
 
 /**
+ * @brief Classify stale-read data errors without claiming integrity evidence.
+ * @param esr Syndrome captured by the same-EL stale-data read probe.
+ * @return VAL_TRUE for inconclusive data errors, VAL_FALSE for unrelated faults.
+ */
+uint32_t firme_mec_semantic_test_fault_is_inconclusive(uint64_t esr);
+
+/**
+ * @brief Validate actual refresh effects and successful owned-context cleanup.
+ * @param test_case CREATE or DESTROY refresh observation.
+ * @param out Rule result with independent memory observations.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
+ */
+int firme_mec_semantic_test_context_refresh(
+    val_firme_mec_observation_case_t test_case, firme_rule_res_t *out);
+
+/**
  *   @brief    - Record a MEC semantic-rule failure.
  *   @param    - out       : Result record.
  *   @param    - fail_step : Failing test step.

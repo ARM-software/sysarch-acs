@@ -61,6 +61,8 @@ typedef struct {
     firme_rule_fn_t run_ns;
     firme_rule_fn_t run_secure;
     firme_rule_fn_t run_realm;
+    firme_rule_fn_t run_host_secure;
+    firme_rule_fn_t run_host_realm;
 
     /* Optional host-side validation that combines evidence from all worlds. */
     firme_rule_post_fn_t post_run;

@@ -25,6 +25,7 @@ FVP_FIRME_CXL_IDE="${FVP_FIRME_CXL_IDE:-0}"
 FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH:-0}"
 FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE:-0}"
 FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM:-0}"
+FIRME_REALM_PAT_BINDING="${FIRME_REALM_PAT_BINDING:-none}"
 FVP_TIMEOUT_SECS="${FVP_TIMEOUT_SECS:-0}"
 FVP_ENABLE_TELNET="${FVP_ENABLE_TELNET:-1}"
 FVP_TELNET_PORTS="${FVP_TELNET_PORTS:-5000,5001,5002,5003}"
@@ -43,6 +44,19 @@ case "${SUITE}" in
 esac
 
 FVP_ENABLE_RME="${FVP_ENABLE_RME:-1}"
+case "${FIRME_REALM_PAT_BINDING}" in
+    none) ;;
+    delegated-rmm-el3)
+        if [[ "${FVP_ENABLE_RME}" != "1" ]]; then
+            echo "ERROR: the Realm PAT binding fixture requires RME." >&2
+            exit 1
+        fi
+        ;;
+    *)
+        echo "ERROR: invalid FIRME_REALM_PAT_BINDING." >&2
+        exit 1
+        ;;
+esac
 FVP_RME_SUPPORT_LEVEL="${FVP_RME_SUPPORT_LEVEL:-2}"
 if [[ -z "${FVP_ENABLE_SVE+x}" ]]; then
     case "${SUITE}" in
@@ -280,10 +294,17 @@ if [[ "${DO_BUILD}" == "1" ]]; then
         FVP_FIRME_MEC_REFRESH="${FVP_FIRME_MEC_REFRESH}" \
         FIRME_ENABLE_CXL_ENDPOINT_PROBE="${FIRME_ENABLE_CXL_ENDPOINT_PROBE}" \
         FIRME_ENABLE_CXL_SPDM="${FIRME_ENABLE_CXL_SPDM}" \
+        FIRME_REALM_PAT_BINDING="${FIRME_REALM_PAT_BINDING}" \
         BUILD_TFA="${BUILD_TFA:-auto}" \
         bash "${ACS_DIR}/tools/scripts/build_tfa_fvp.sh"
 else
     echo "[run] Skipping build (BUILD_MODE=${BUILD_MODE})"
+fi
+
+if ! grep -Fqx "FIRME_REALM_PAT_BINDING=${FIRME_REALM_PAT_BINDING}" \
+    "${BUILD_PLAT}/.firme_build_tfa.stamp"; then
+    echo "ERROR: rebuild payloads for the requested Realm PAT binding fixture." >&2
+    exit 1
 fi
 
 if ! grep -Fqx "FVP_FIRME_CXL_IDE=${FVP_FIRME_CXL_IDE}" \
@@ -352,6 +373,7 @@ echo "  PCIE JSON  : ${FVP_PCIE_HIERARCHY:-model default}"
 echo "  CXL backend: ${FVP_FIRME_CXL_IDE} (experimental)"
 echo "  MEC backend: ${FVP_FIRME_MEC_REFRESH} (experimental)"
 echo "  CXL SPDM   : ${FIRME_ENABLE_CXL_SPDM} (rule-level key/traffic checks)"
+echo "  Realm PAT  : ${FIRME_REALM_PAT_BINDING} (setup binding, not a rule waiver)"
 echo "  TELNET     : ${FVP_ENABLE_TELNET} (ports ${FVP_TELNET_PORTS})"
 echo "  TELNET_DIR : ${FVP_TELNET_LOG_DIR}"
 echo "  RME        : ${FVP_ENABLE_RME} (support level ${FVP_RME_SUPPORT_LEVEL})"
@@ -413,8 +435,12 @@ if [[ "${FVP_FIRME_MEC_REFRESH}" == "1" ]]; then
 fi
 
 if [[ "${FIRME_ENABLE_CXL_SPDM}" == "1" ]]; then
+    FVP_ARGS+=(-C pci.chbcr_cxl_mem_base=0x100000000)
+fi
+
+if [[ "${FIRME_ENABLE_CXL_SPDM}" == "1" || \
+    "${FIRME_REALM_PAT_BINDING}" == "delegated-rmm-el3" ]]; then
     FVP_ARGS+=(
-        -C pci.chbcr_cxl_mem_base=0x100000000
         -C cluster0.has_rndr=1
         -C cluster1.has_rndr=1
     )

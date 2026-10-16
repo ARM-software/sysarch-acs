@@ -44,7 +44,7 @@ static int val_host_doe_read_reg(const val_host_doe_endpoint_t *endpoint,
     if (!endpoint || !value)
         return VAL_ERROR;
 
-    return val_pcie_cfg_read32(endpoint->endpoint_bdf,
+    return val_pcie_cfg_read32_at(endpoint->ecam_base, endpoint->endpoint_bdf,
                                endpoint->doe_offset + offset, value);
 }
 
@@ -61,7 +61,7 @@ static int val_host_doe_write_reg(const val_host_doe_endpoint_t *endpoint,
     if (!endpoint)
         return VAL_ERROR;
 
-    return val_pcie_cfg_write32(endpoint->endpoint_bdf,
+    return val_pcie_cfg_write32_at(endpoint->ecam_base, endpoint->endpoint_bdf,
                                 endpoint->doe_offset + offset, value);
 }
 
@@ -226,78 +226,211 @@ int val_host_doe_receive(const val_host_doe_endpoint_t *endpoint,
     return VAL_SUCCESS;
 }
 
-/**
- * @brief Discover one CXL Type-2 endpoint on the selected Root Port.
- * @param endpoint Receives BDFs, DOE offset and any bus configuration to restore.
- * @return VAL_SUCCESS when a Type-2 endpoint and DOE capability are present.
- */
-int val_host_doe_prepare_endpoint(val_host_doe_endpoint_t *endpoint)
+/** @brief Choose a free bus without aliasing another function or bridge window. */
+static val_pcie_probe_status_t val_host_doe_free_bus(const pal_pcie_ecam_info_t *ecam,
+                                                    uint32_t root, uint32_t *free_bus)
+{
+    uint8_t used[256] = {0};
+    uint32_t bus;
+    uint32_t device;
+    uint32_t function;
+    uint32_t bdf;
+    uint32_t value;
+    uint32_t first;
+    uint32_t last;
+    uint32_t index;
+
+    for (bus = ecam->start_bus; bus <= ecam->end_bus; bus++) {
+        for (device = 0U; device < 32U; device++) {
+            for (function = 0U; function < 8U; function++) {
+                bdf = val_pcie_bdf_create(ecam->segment, bus, device, function);
+                if (val_pcie_cfg_read32_at(ecam->ecam_base, bdf, VAL_PCIE_CFG_VENDOR_ID,
+                                           &value) != VAL_SUCCESS)
+                    return VAL_PCIE_PROBE_ERROR;
+                if ((value & UINT16_MAX) == 0U || (value & UINT16_MAX) == UINT16_MAX)
+                    continue;
+                used[bus] = VAL_TRUE;
+                if (val_pcie_cfg_read32_at(ecam->ecam_base, bdf, VAL_PCIE_CFG_HEADER_TYPE,
+                                           &value) != VAL_SUCCESS)
+                    return VAL_PCIE_PROBE_ERROR;
+                if (((value >> 16U) & 0x7fU) != 1U)
+                    continue;
+                if (val_pcie_cfg_read32_at(ecam->ecam_base, bdf, VAL_PCIE_CFG_BUS_NUMBERS,
+                                           &value) != VAL_SUCCESS)
+                    return VAL_PCIE_PROBE_ERROR;
+                first = (value >> 8U) & UINT8_MAX;
+                last = (value >> 16U) & UINT8_MAX;
+                for (index = first; index <= last; index++)
+                    used[index] = VAL_TRUE;
+            }
+        }
+    }
+
+    for (bus = val_pcie_bdf_bus(root) + 1U; bus <= ecam->end_bus; bus++) {
+        if (!used[bus]) {
+            *free_bus = bus;
+            return VAL_PCIE_PROBE_PRESENT;
+        }
+    }
+
+    return VAL_PCIE_PROBE_ABSENT;
+}
+
+/** @brief Confirm bus writes before trusting enumeration or releasing restoration ownership. */
+static int val_host_doe_write_buses(const val_host_doe_endpoint_t *endpoint, uint32_t buses)
+{
+    uint32_t readback;
+
+    if (val_pcie_cfg_write32_at(endpoint->ecam_base, endpoint->root_bdf,
+                                VAL_PCIE_CFG_BUS_NUMBERS, buses) != VAL_SUCCESS ||
+        val_pcie_cfg_read32_at(endpoint->ecam_base, endpoint->root_bdf,
+                               VAL_PCIE_CFG_BUS_NUMBERS, &readback) != VAL_SUCCESS ||
+        readback != buses)
+        return VAL_ERROR;
+    return VAL_SUCCESS;
+}
+
+/** @brief Search every endpoint below one Root Port and retain only its owned bus changes. */
+static val_pcie_probe_status_t val_host_doe_prepare_root(const pal_pcie_ecam_info_t *ecam,
+                                                         val_host_doe_endpoint_t *endpoint)
+{
+    uint32_t buses;
+    uint32_t first;
+    uint32_t last;
+    uint32_t bus;
+    uint32_t device;
+    uint32_t function;
+    uint32_t port_type;
+    uint32_t error_offset = 0U;
+    val_pcie_probe_status_t probe;
+
+    if (val_pcie_cfg_read32_at(ecam->ecam_base, endpoint->root_bdf,
+                               VAL_PCIE_CFG_BUS_NUMBERS, &buses) != VAL_SUCCESS)
+        return VAL_PCIE_PROBE_ERROR;
+    endpoint->original_buses = buses;
+    first = (buses >> 8U) & UINT8_MAX;
+    last = (buses >> 16U) & UINT8_MAX;
+
+    if (!first && !last) {
+        probe = val_host_doe_free_bus(ecam, endpoint->root_bdf, &first);
+        if (probe != VAL_PCIE_PROBE_PRESENT)
+            return probe;
+        last = first;
+        buses = (buses & UINT32_C(0xff000000)) | val_pcie_bdf_bus(endpoint->root_bdf) |
+                (first << 8U) | (last << 16U);
+        endpoint->buses_changed = VAL_TRUE;
+        if (val_host_doe_write_buses(endpoint, buses) != VAL_SUCCESS)
+            return VAL_PCIE_PROBE_ERROR;
+    }
+
+    if ((buses & UINT8_MAX) != val_pcie_bdf_bus(endpoint->root_bdf) ||
+        first <= val_pcie_bdf_bus(endpoint->root_bdf) || first > last ||
+        first < ecam->start_bus || last > ecam->end_bus)
+        return VAL_PCIE_PROBE_ERROR;
+    for (bus = first; bus <= last; bus++) {
+        for (device = 0U; device < 32U; device++) {
+            for (function = 0U; function < 8U; function++) {
+                endpoint->endpoint_bdf = val_pcie_bdf_create(ecam->segment, bus,
+                                                             device, function);
+                probe = val_pcie_device_port_type_probe_at(ecam->ecam_base,
+                    endpoint->endpoint_bdf, &port_type, &error_offset);
+                if (probe == VAL_PCIE_PROBE_ERROR)
+                    goto failure;
+                if (probe == VAL_PCIE_PROBE_ABSENT ||
+                    (port_type != VAL_PCIE_PORT_TYPE_ENDPOINT &&
+                     port_type != VAL_PCIE_PORT_TYPE_LEGACY_ENDPOINT))
+                    continue;
+                probe = val_pcie_cxl_doe_probe_at(ecam->ecam_base, endpoint->endpoint_bdf,
+                                                  &endpoint->doe_offset, &error_offset);
+                if (probe == VAL_PCIE_PROBE_ERROR)
+                    goto failure;
+                if (probe == VAL_PCIE_PROBE_PRESENT)
+                    return probe;
+                LOG_TEST(NULL, "IDE candidate ECAM=%llx RP=%x EP=%x lacks Type-2/DOE\n",
+                         (unsigned long long)ecam->ecam_base, endpoint->root_bdf,
+                         endpoint->endpoint_bdf);
+            }
+        }
+    }
+
+    return VAL_PCIE_PROBE_ABSENT;
+
+failure:
+    LOG_ERROR(NULL, "IDE candidate ECAM=%llx RP=%x EP=%x config error offset=%x\n",
+              (unsigned long long)ecam->ecam_base, endpoint->root_bdf,
+              endpoint->endpoint_bdf, error_offset);
+    return VAL_PCIE_PROBE_ERROR;
+}
+
+/** @brief Discover usable Type-2 paths instead of stopping at the first PCIe endpoint. */
+static int val_host_doe_discover_endpoint(uint64_t ecam_base, uint32_t qualified,
+                                          val_host_doe_endpoint_t *endpoint)
 {
     pal_pcie_ecam_info_t ecam = {0};
-    uint32_t original_buses = 0U;
-    uint32_t primary = 0U;
-    uint32_t secondary = 0U;
-    uint32_t subordinate = 0U;
-    uint32_t next_bus = 0U;
-    uint32_t new_buses = 0U;
-    uint32_t device_type = VAL_PCIE_CXL_TYPE_NONE;
-    uint32_t ecam_index = 0U;
+    uint32_t allocation;
+    uint32_t bus;
+    uint32_t device;
+    uint32_t function;
+    uint32_t bdf;
+    uint32_t port_type;
+    uint32_t error_offset = 0U;
+    val_pcie_probe_status_t probe;
 
     if (!endpoint)
         return VAL_ERROR;
-
-    endpoint->root_bdf = VAL_PCIE_BDF_INVALID;
-    endpoint->endpoint_bdf = VAL_PCIE_BDF_INVALID;
-    endpoint->doe_offset = 0U;
-    endpoint->original_buses = 0U;
-    endpoint->buses_changed = VAL_FALSE;
-
-    if ((val_pcie_find_root_port(&endpoint->root_bdf) != VAL_SUCCESS) ||
-        (val_pcie_cfg_read32(endpoint->root_bdf, VAL_PCIE_CFG_BUS_NUMBERS,
-                              &original_buses) != VAL_SUCCESS))
-        return VAL_ERROR;
-
-    endpoint->original_buses = original_buses;
-    primary = original_buses & 0xffU;
-    secondary = (original_buses >> 8U) & 0xffU;
-    subordinate = (original_buses >> 16U) & 0xffU;
-
-    if ((secondary == 0U) && (subordinate == 0U)) {
-        for (ecam_index = 0U; ecam_index < pal_pcie_ecam_count(); ecam_index++) {
-            if ((pal_pcie_ecam_info(ecam_index, &ecam) == VAL_SUCCESS) &&
-                (ecam.segment == val_pcie_bdf_segment(endpoint->root_bdf)) &&
-                (primary >= ecam.start_bus) && (primary < ecam.end_bus))
-                break;
+    *endpoint = (val_host_doe_endpoint_t){.root_bdf = VAL_PCIE_BDF_INVALID,
+                                         .endpoint_bdf = VAL_PCIE_BDF_INVALID};
+    for (allocation = 0U; allocation < pal_pcie_ecam_count(); allocation++) {
+        if (pal_pcie_ecam_info(allocation, &ecam) != VAL_SUCCESS ||
+            ecam.start_bus > ecam.end_bus || ecam.end_bus > UINT8_MAX ||
+            ecam.segment > UINT8_MAX)
+            return VAL_ERROR;
+        if (qualified && ecam.ecam_base != ecam_base)
+            continue;
+        for (bus = ecam.start_bus; bus <= ecam.end_bus; bus++) {
+            for (device = 0U; device < 32U; device++) {
+                for (function = 0U; function < 8U; function++) {
+                    bdf = val_pcie_bdf_create(ecam.segment, bus, device, function);
+                    probe = val_pcie_device_port_type_probe_at(ecam.ecam_base, bdf,
+                                                               &port_type, &error_offset);
+                    if (probe == VAL_PCIE_PROBE_ERROR) {
+                        LOG_ERROR(NULL, "IDE discovery ECAM=%llx BDF=%x config error offset=%x\n",
+                                  (unsigned long long)ecam.ecam_base, bdf, error_offset);
+                        return VAL_ERROR;
+                    }
+                    if (probe != VAL_PCIE_PROBE_PRESENT ||
+                        port_type != VAL_PCIE_PORT_TYPE_ROOT_PORT)
+                        continue;
+                    endpoint->ecam_base = ecam.ecam_base;
+                    endpoint->root_bdf = bdf;
+                    probe = val_host_doe_prepare_root(&ecam, endpoint);
+                    if (probe == VAL_PCIE_PROBE_PRESENT) {
+                        LOG_TEST(NULL, "CXL Type-2 ECAM=%llx RP=%x EP=%x DOE=%x\n",
+                                 (unsigned long long)endpoint->ecam_base, endpoint->root_bdf,
+                                 endpoint->endpoint_bdf, endpoint->doe_offset);
+                        return VAL_SUCCESS;
+                    }
+                    if (val_host_doe_release_endpoint(endpoint) != VAL_SUCCESS ||
+                        probe == VAL_PCIE_PROBE_ERROR)
+                        return VAL_ERROR;
+                }
+            }
         }
-        if (ecam_index == pal_pcie_ecam_count())
-            return VAL_ERROR;
-
-        next_bus = primary + 1U;
-        new_buses = (original_buses & 0xff000000U) | primary |
-                    (next_bus << 8U) | (next_bus << 16U);
-        if (val_pcie_cfg_write32(endpoint->root_bdf, VAL_PCIE_CFG_BUS_NUMBERS,
-                                  new_buses) != VAL_SUCCESS)
-            return VAL_ERROR;
-        endpoint->buses_changed = VAL_TRUE;
     }
 
-    if ((val_pcie_find_endpoint_below(endpoint->root_bdf,
-                                       &endpoint->endpoint_bdf) != VAL_SUCCESS) ||
-        (val_pcie_cxl_device_type(endpoint->endpoint_bdf,
-                                   &device_type) != VAL_SUCCESS) ||
-        (device_type != VAL_PCIE_CXL_TYPE_2) ||
-        (val_pcie_find_capability(endpoint->endpoint_bdf,
-                                  VAL_PCIE_CAP_TYPE_EXTENDED,
-                                  VAL_PCIE_EXT_CAP_ID_DOE,
-                                  &endpoint->doe_offset) != VAL_SUCCESS)) {
-        val_host_doe_release_endpoint(endpoint);
-        return VAL_ERROR;
-    }
+    return VAL_ERROR;
+}
 
-    LOG_TEST(NULL, "CXL Type-2 endpoint BDF=%x Root Port BDF=%x DOE=%x",
-             endpoint->endpoint_bdf, endpoint->root_bdf,
-             endpoint->doe_offset);
-    return VAL_SUCCESS;
+/** @brief Discover a Type-2 DOE endpoint across all inventoried ECAM allocations. */
+int val_host_doe_prepare_endpoint(val_host_doe_endpoint_t *endpoint)
+{
+    return val_host_doe_discover_endpoint(0ULL, VAL_FALSE, endpoint);
+}
+
+/** @brief Select an endpoint only in the requested namespace without BDF fallback. */
+int val_host_doe_prepare_endpoint_at(uint64_t ecam_base, val_host_doe_endpoint_t *endpoint)
+{
+    return val_host_doe_discover_endpoint(ecam_base, VAL_TRUE, endpoint);
 }
 
 /**
@@ -311,9 +444,7 @@ int val_host_doe_release_endpoint(val_host_doe_endpoint_t *endpoint)
         return VAL_ERROR;
 
     if (endpoint->buses_changed != VAL_FALSE) {
-        if (val_pcie_cfg_write32(endpoint->root_bdf,
-                                  VAL_PCIE_CFG_BUS_NUMBERS,
-                                  endpoint->original_buses) != VAL_SUCCESS) {
+        if (val_host_doe_write_buses(endpoint, endpoint->original_buses) != VAL_SUCCESS) {
             LOG_ERROR(NULL, "CXL endpoint bus restore failed for Root Port 0x%x",
                       endpoint->root_bdf);
             return VAL_ERROR;

@@ -45,8 +45,8 @@ static uint32_t gpt_start_granule_expect_access(uint64_t addr, firme_rule_res_t 
     val_fault_info_t fault_info = {0};
     uint64_t value = 0;
 
-    val_probe_read64(addr, &value, &fault_info);
-    if (fault_info.faulted != 0U) {
+    if (val_probe_read64(addr, &value, &fault_info) != VAL_SUCCESS ||
+        fault_info.faulted != 0U) {
         LOG_ERROR(NULL, "%s: expected granule access esr=%llx far=%llx",
                   GPT_START_GRANULE_TEST_NAME,
                   (unsigned long long)fault_info.esr,
@@ -93,10 +93,12 @@ static int gpt_start_granule_transition(uint64_t base_pa, uint64_t target_gpi,
     const uint64_t granule_count = UINT64_C(1);
     int completion_status = VAL_ERROR;
 
-    completion_status = val_firme_gm_gpi_set_complete(
-        base_pa, granule_count, target_gpi, &result);
-    if ((completion_status != VAL_SUCCESS) ||
-        !val_firme_status_success(result.x0, result.x1, granule_count)) {
+    completion_status = val_firme_gpt_transition_terminal(
+        base_pa, target_gpi, &result, out, fail_step);
+    if (completion_status != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    if (!val_firme_status_success(result.x0, result.x1, granule_count)) {
         LOG_ERROR(NULL, "%s: transition failed PA=%llx GPI=%llu x0=%llx x1=%llx",
                   GPT_START_GRANULE_TEST_NAME,
                   (unsigned long long)base_pa,
@@ -127,7 +129,7 @@ static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_ru
     const uint64_t first_pa = base_pa;
     uint64_t second_pa;
     uint32_t first_access;
-    int cleanup_status = VAL_SUCCESS;
+    uint64_t changed_count = 0ULL;
 
     if (!out)
         return VAL_ERROR;
@@ -165,6 +167,7 @@ static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_ru
     if (gpt_start_granule_transition(first_pa, target_gpi, out,
                                      GPT_START_GRANULE_STEP_SET) != VAL_SUCCESS)
         goto cleanup;
+    changed_count = UINT64_C(1);
     /* Step 3: require different access policies for the first and adjacent granules. */
     if (first_access == VAL_TRUE) {
         if (!gpt_start_granule_expect_access(first_pa, out,
@@ -184,13 +187,9 @@ static int gpt_start_granule_run(uint64_t base_pa, uint64_t target_gpi, firme_ru
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
-    /* Step 4: restore both granules, even when a broken DUT changed the adjacent one. */
-    if (!val_firme_gpt_restore_ns(first_pa, out, GPT_START_GRANULE_STEP_CLEANUP))
-        cleanup_status = VAL_ERROR;
-    if (!val_firme_gpt_restore_ns(second_pa, out, GPT_START_GRANULE_STEP_CLEANUP + UINT64_C(1)))
-        cleanup_status = VAL_ERROR;
-
-    if (cleanup_status != VAL_SUCCESS)
+    /* Step 4: Restore the changed prefix; Host checks both granules before reuse. */
+    if (!val_firme_gpt_restore_prefix_ns(first_pa, changed_count,
+            PLAT_FIRME_GPT_GRANULE_SIZE, out, GPT_START_GRANULE_STEP_CLEANUP))
         return VAL_ERROR;
 
     return val_firme_gpt_rule_result_status(out);

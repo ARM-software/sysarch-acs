@@ -13,6 +13,14 @@
 
 #define RESERVED_INPUT_BITS_TEST_NAME "reserved_input_bits"
 #define RESERVED_INPUT_BITS_DIRTY_VALUE UINT64_MAX
+/* ALP4 interface-table masks are independent of the production wrapper masks. */
+#define RESERVED_INPUT_BITS_SERVICE_ID_MASK UINT64_C(0xff)
+#define RESERVED_INPUT_BITS_FEATURE_INDEX_MASK UINT64_C(0xff)
+#define RESERVED_INPUT_BITS_GPI_MASK UINT64_C(0xf)
+#define RESERVED_INPUT_BITS_MEC_MASK UINT64_C(0x0000ffff00000001)
+#define RESERVED_INPUT_BITS_IDE_FLAGS_MASK UINT64_C(0x3)
+#define RESERVED_INPUT_BITS_IDE_POLL_MASK UINT64_C(0x1)
+#define RESERVED_INPUT_BITS_KEYSET_MASK UINT64_C(0x3fffffffff)
 #define RESERVED_INPUT_BITS_STEP_SERVICE_VERSION  UINT64_C(1)
 #define RESERVED_INPUT_BITS_STEP_SERVICE_FEATURES UINT64_C(2)
 #define RESERVED_INPUT_BITS_STEP_GM_GPI_SET       UINT64_C(3)
@@ -21,6 +29,10 @@
 #define RESERVED_INPUT_BITS_STEP_IDE_GO           UINT64_C(6)
 #define RESERVED_INPUT_BITS_STEP_IDE_STOP         UINT64_C(7)
 #define RESERVED_INPUT_BITS_STEP_IDE_POLL         UINT64_C(8)
+#define RESERVED_INPUT_BITS_STEP_GM_CONTINUE      UINT64_C(9)
+#define RESERVED_INPUT_BITS_STEP_L1_CREATE        UINT64_C(10)
+#define RESERVED_INPUT_BITS_STEP_L1_DESTROY       UINT64_C(11)
+#define RESERVED_INPUT_BITS_STEP_GPT_INFO         UINT64_C(12)
 #define RESERVED_INPUT_BITS_X0_INDEX 0U
 #define RESERVED_INPUT_BITS_X1_INDEX 1U
 #define RESERVED_INPUT_BITS_X2_INDEX 2U
@@ -155,7 +167,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
         FIRME_FID_SERVICE_VERSION;
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
-        FIRME_SERVICE_ID_INPUT_MASK;
+        RESERVED_INPUT_BITS_SERVICE_ID_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_SERVICE_VERSION, out) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -170,9 +182,9 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X0_INDEX] =
         FIRME_FID_SERVICE_FEATURES;
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
-        FIRME_SERVICE_ID_INPUT_MASK;
+        RESERVED_INPUT_BITS_SERVICE_ID_MASK;
     expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
-        FIRME_FEATURE_REG_INDEX_INPUT_MASK;
+        RESERVED_INPUT_BITS_FEATURE_INDEX_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_SERVICE_FEATURES, out) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -190,7 +202,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
-        FIRME_GM_GPI_SET_ATTRIBUTES_MASK;
+        RESERVED_INPUT_BITS_GPI_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_GM_GPI_SET, out) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -205,7 +217,7 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected = (smccc_input_registers_t){0};
     expected.registers[RESERVED_INPUT_BITS_X0_INDEX] = FIRME_FID_MEC_REFRESH;
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
-        FIRME_MEC_REFRESH_PARAMS_MASK;
+        RESERVED_INPUT_BITS_MEC_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_MEC_REFRESH, out) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -222,9 +234,9 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
-        VAL_FIRME_IDE_INPUT_FLAGS_MASK;
+        RESERVED_INPUT_BITS_IDE_FLAGS_MASK;
     expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
-        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+        RESERVED_INPUT_BITS_KEYSET_MASK;
     expected.registers[RESERVED_INPUT_BITS_X4_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     expected.registers[RESERVED_INPUT_BITS_X5_INDEX] =
@@ -259,9 +271,9 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
-        VAL_FIRME_IDE_INPUT_FLAGS_MASK;
+        RESERVED_INPUT_BITS_IDE_FLAGS_MASK;
     expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
-        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+        RESERVED_INPUT_BITS_KEYSET_MASK;
     expected.registers[RESERVED_INPUT_BITS_X4_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     if (reserved_input_bits_capture_enable(
@@ -298,9 +310,9 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     expected.registers[RESERVED_INPUT_BITS_X1_INDEX] =
         RESERVED_INPUT_BITS_DIRTY_VALUE;
     expected.registers[RESERVED_INPUT_BITS_X2_INDEX] =
-        VAL_FIRME_IDE_POLL_FLAGS_MASK;
+        RESERVED_INPUT_BITS_IDE_POLL_MASK;
     expected.registers[RESERVED_INPUT_BITS_X3_INDEX] =
-        VAL_FIRME_IDE_KEYSET_ID_INPUT_MASK;
+        RESERVED_INPUT_BITS_KEYSET_MASK;
     if (reserved_input_bits_capture_enable(
             RESERVED_INPUT_BITS_STEP_IDE_POLL, out) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -310,6 +322,58 @@ static int reserved_input_bits_run(uint64_t base_pa, firme_rule_res_t *out)
     if (reserved_input_bits_check_capture(
             &expected, RESERVED_INPUT_BITS_STEP_IDE_POLL,
             out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 9: CONTINUE preserves its full-width cookie and clears unused bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] = FIRME_FID_GM_GPI_OP_CONTINUE;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_GM_CONTINUE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_gpi_op_continue(RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_GM_CONTINUE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 10: L1 CREATE preserves both addresses and clears unused bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] = FIRME_FID_GM_L1_GPT_CREATE;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X2_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_L1_CREATE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_l1_gpt_create(RESERVED_INPUT_BITS_DIRTY_VALUE,
+                              RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_L1_CREATE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 11: L1 DESTROY preserves its address and clears unused bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] = FIRME_FID_GM_L1_GPT_DESTROY;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_L1_DESTROY, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_l1_gpt_destroy(RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_L1_DESTROY, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 12: GPT_INFO preserves both range endpoints and clears unused bits. */
+    expected = (smccc_input_registers_t){0};
+    expected.registers[RESERVED_INPUT_BITS_X0_INDEX] = FIRME_FID_GM_GPT_INFO;
+    expected.registers[RESERVED_INPUT_BITS_X1_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    expected.registers[RESERVED_INPUT_BITS_X2_INDEX] = RESERVED_INPUT_BITS_DIRTY_VALUE;
+    if (reserved_input_bits_capture_enable(
+            RESERVED_INPUT_BITS_STEP_GPT_INFO, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_gpt_info(RESERVED_INPUT_BITS_DIRTY_VALUE,
+                         RESERVED_INPUT_BITS_DIRTY_VALUE, &result);
+    if (reserved_input_bits_check_capture(
+            &expected, RESERVED_INPUT_BITS_STEP_GPT_INFO, out) != VAL_SUCCESS)
         return VAL_ERROR;
 
     if (out)

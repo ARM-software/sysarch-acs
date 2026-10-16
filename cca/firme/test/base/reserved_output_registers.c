@@ -16,6 +16,7 @@
 #define RESERVED_OUTPUT_REGS_STEP_POISON_ENABLE UINT64_C(3)
 #define RESERVED_OUTPUT_REGS_STEP_VERSION_POISON UINT64_C(4)
 #define RESERVED_OUTPUT_REGS_STEP_FEATURES_POISON UINT64_C(5)
+#define RESERVED_OUTPUT_REGS_STEP_SECURITY_AUDIT UINT64_C(6)
 #define RESERVED_OUTPUT_REGS_POISON_COUNT 3U
 
 static const firme_res_t g_reserved_output_version_register_mask = {
@@ -92,7 +93,7 @@ static void reserved_output_regs_error(firme_rule_res_t *out,
 /**
  *   @brief    - Validate callers consume only architected output registers.
  *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 static int reserved_output_regs_run(firme_rule_res_t *out)
 {
@@ -109,6 +110,9 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
     int version_status = VAL_ERROR;
     int feature_status = VAL_ERROR;
     int poisoned_status = VAL_ERROR;
+
+    if (out == NULL)
+        return VAL_ERROR;
 
     reserved_output_regs_init_result(out);
 
@@ -195,8 +199,11 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
         }
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    LOG_WARN(NULL, "%s: sampled Base callers ignore unused outputs; remaining callers "
+             "and callee non-disclosure still require qualification\n",
+             RESERVED_OUTPUT_REGS_TEST_NAME);
+    out->status = (uint64_t)ACS_STATUS_SKIP;
+    out->fail_step = RESERVED_OUTPUT_REGS_STEP_SECURITY_AUDIT;
 
     return VAL_SUCCESS;
 }
@@ -205,7 +212,7 @@ static int reserved_output_regs_run(firme_rule_res_t *out)
  *   @brief    - Reserved output register rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_registers_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -217,7 +224,7 @@ int firme_base_reserved_output_registers_run_ns(uint64_t base_pa, firme_rule_res
  *   @brief    - Reserved output register rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_registers_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -229,7 +236,7 @@ int firme_base_reserved_output_registers_run_secure(uint64_t base_pa, firme_rule
  *   @brief    - Reserved output register rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_registers_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

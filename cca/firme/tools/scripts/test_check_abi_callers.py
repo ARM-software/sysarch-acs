@@ -344,10 +344,10 @@ int main(void)
     assert(result.status == ACS_STATUS_SKIP && g_cleanup_count == 5U);
     g_cleanup_status = VAL_ERROR;
     assert(val_firme_abi_test_execute(&request, &result) == VAL_ERROR);
-    assert(result.status == ACS_STATUS_FAIL && g_cleanup_count == 6U);
+    assert(result.status == ACS_STATUS_ERR && g_cleanup_count == 6U);
     g_prepare_status = VAL_SUCCESS;
     assert(val_firme_abi_test_execute(&request, &result) == VAL_ERROR);
-    assert(result.status == ACS_STATUS_FAIL && g_cleanup_count == 7U);
+    assert(result.status == ACS_STATUS_ERR && g_cleanup_count == 7U);
     assert(val_firme_abi_test_execute(NULL, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     assert(val_firme_abi_test_execute(&request, NULL) == VAL_ERROR);
@@ -382,6 +382,7 @@ static uint64_t g_maximum_pages = 7U;
 static uint32_t g_unwritten;
 static uint32_t g_oversized;
 static uint32_t g_above_maximum_calls;
+static uint32_t g_rejected_boundary;
 
 /** @brief Keep the legacy evidence fixtures separate from real PAT driver tests. */
 void val_smccc_smc_call_frame(const smccc_call_frame_t *input, smccc_call_frame_t *output)
@@ -483,6 +484,11 @@ int val_firme_shared_buffer_probe(firme_acs_world_t world,
     }
     if (g_oversized == VAL_TRUE)
         evidence->page_count = UINT64_MAX;
+    if (((g_rejected_boundary == 1U) &&
+         (test_case == VAL_FIRME_SHARED_BUFFER_CASE_MINIMUM)) ||
+        ((g_rejected_boundary == 2U) &&
+         (test_case == VAL_FIRME_SHARED_BUFFER_CASE_MAXIMUM)))
+        evidence->abi_status = FIRME_INVALID_PARAMETERS;
     return VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE;
 }
 
@@ -529,7 +535,14 @@ int main(void)
     assert(result.status == ACS_STATUS_PASS);
     g_maximum_pages = FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK;
     assert(firme_base_shared_buffer_size_bounds_run_ns(0, &result) == VAL_SUCCESS);
-    assert(result.status == ACS_STATUS_SKIP && g_above_maximum_calls == 1U);
+    assert(result.status == ACS_STATUS_PASS && g_above_maximum_calls == 1U);
+    g_rejected_boundary = 1U;
+    assert(firme_base_shared_buffer_size_bounds_run_ns(0, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && g_above_maximum_calls == 1U);
+    g_rejected_boundary = 2U;
+    assert(firme_base_shared_buffer_size_bounds_run_ns(0, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && g_above_maximum_calls == 1U);
+    g_rejected_boundary = 0U;
     g_oversized = VAL_TRUE;
     assert(firme_base_shared_buffer_alignment_run_ns(0, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_ERR);
@@ -829,7 +842,7 @@ int main(void)
         check_result(status_codes[index], VAL_ERROR, ACS_STATUS_FAIL);
         g_state_return = VAL_SUCCESS;
         check_result(smc64[index], VAL_SUCCESS, ACS_STATUS_PASS);
-        check_result(status_codes[index], VAL_SUCCESS, ACS_STATUS_PASS);
+        check_result(status_codes[index], VAL_SUCCESS, ACS_STATUS_SKIP);
         g_base_version = FIRME_SUCCESS;
         check_result(status_codes[index], VAL_ERROR, ACS_STATUS_FAIL);
         g_base_version = UINT64_C(0x10000);
@@ -949,7 +962,7 @@ static uint32_t g_mapping_ready = VAL_TRUE;
 uint32_t pal_firme_shared_buffer_ns_mapping_ready(uint64_t base, uint64_t size)
 {
     assert(base % PAL_FIRME_PAT_ALIGNMENT == 0ULL);
-    assert(size == PAL_FIRME_PAT_BUFFER_SIZE);
+    assert(size != 0ULL && size <= PAL_FIRME_PAT_BUFFER_SIZE);
     return g_mapping_ready;
 }
 #endif
@@ -1007,6 +1020,9 @@ int main(void)
     val_firme_shared_buffer_lease_t second = {0};
     val_firme_shared_buffer_lease_t stale = {0};
 
+    val_firme_shared_buffer_evidence_t invocation = {0};
+    val_firme_shared_buffer_evidence_t observation = {0};
+
     assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, NULL) ==
            VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
     assert(val_firme_shared_buffer_acquire_ns_pat(0ULL, 4096ULL, &first) ==
@@ -1027,6 +1043,26 @@ int main(void)
     assert(first.base_pa == (uint64_t)(uintptr_t)first.base_va && first.capacity == 8192ULL);
     assert(first.challenge_size == 32U && first.challenge != first.base_va);
     assert(first.owner_token != 0ULL);
+    invocation.base_pa = first.base_pa;
+    invocation.page_count = 0ULL;
+    assert(val_firme_shared_buffer_observe_ns_pat(&first, &invocation, &observation) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
+    assert(observation.caller_attributes == VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
+    assert(observation.valid_fields == (VAL_FIRME_SHARED_BUFFER_EVIDENCE_BASE |
+           VAL_FIRME_SHARED_BUFFER_EVIDENCE_PAGE_COUNT |
+           VAL_FIRME_SHARED_BUFFER_EVIDENCE_CALLER_ATTRS));
+    invocation.page_count = 2ULL;
+    assert(val_firme_shared_buffer_observe_ns_pat(&first, &invocation, &observation) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
+    invocation.page_count = 0ULL;
+    g_mapping_ready = VAL_FALSE;
+    assert(val_firme_shared_buffer_observe_ns_pat(&first, &invocation, &observation) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
+    g_mapping_ready = VAL_TRUE;
+    stale = first;
+    stale.owner_token++;
+    assert(val_firme_shared_buffer_observe_ns_pat(&stale, &invocation, &observation) ==
+           VAL_FIRME_SHARED_BUFFER_PROBE_ERROR);
     assert(val_firme_shared_buffer_acquire_ns_pat(4096ULL, 4096ULL, &second) ==
            VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE);
     assert(val_firme_shared_buffer_release_ns_pat(&second, VAL_FALSE) == VAL_ERROR);
@@ -1112,6 +1148,12 @@ class CallerChecksTests(unittest.TestCase):
                     "platform/pal_baremetal/targets/fvp/src/pal_firme_shared_buffer.c",
                 ])
                 self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_realm_pat_boot_lease(self):
+        """Keep the boot shared page exclusively owned through terminal completion."""
+        source = Path(__file__).with_name("check_realm_pat.c").read_text()
+        result = self.run_native(source, ["val/realm/val_realm_shared_buffer.c"])
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_pat_poisoning_catches_decoder(self):
         """Reject a production decoder mutated to consume unused SUCCESS X2."""

@@ -5,6 +5,7 @@
  *
  */
 
+#include "pal_platform.h"
 #include "val_firme_gpt.h"
 #include "val_log.h"
 
@@ -95,9 +96,8 @@ static uint32_t gpt_success_nonzero_prepare_ns(uint64_t base_pa,
     int64_t status = 0;
     const uint64_t granule_count = UINT64_C(1);
 
-    if (val_firme_gm_gpi_set_complete(base_pa, granule_count,
-                                      FIRME_GPI_NONSECURE,
-                                      &result) != VAL_SUCCESS) {
+    if (val_firme_gpt_transition_terminal(base_pa, FIRME_GPI_NONSECURE,
+            &result, out, fail_step) != VAL_SUCCESS) {
         LOG_ERROR(NULL, "%s: NS setup did not complete",
                   GPT_SUCCESS_NONZERO_TEST_NAME);
         gpt_success_nonzero_record(out, fail_step, &result);
@@ -105,7 +105,7 @@ static uint32_t gpt_success_nonzero_prepare_ns(uint64_t base_pa,
     }
 
     status = val_firme_as_i64(result.x0);
-    if ((status == (int64_t)FIRME_SUCCESS) && (result.x1 == 0ULL)) {
+    if ((status == (int64_t)FIRME_SUCCESS) && (result.x1 != granule_count)) {
         LOG_ERROR(NULL, "%s: NS setup SUCCESS reported zero progress",
                   GPT_SUCCESS_NONZERO_TEST_NAME);
         gpt_success_nonzero_record(out, fail_step, &result);
@@ -138,9 +138,9 @@ static uint32_t gpt_success_nonzero_invoke(uint64_t base_pa,
                                            uint64_t fail_step)
 {
     firme_res_t result = {0};
-    const uint64_t granule_count = UINT64_C(1);
-
-    val_firme_gm_gpi_set_do(base_pa, granule_count, target_gpi, &result);
+    if (val_firme_gpt_transition_terminal(base_pa, target_gpi, &result,
+                                         out, fail_step) != VAL_SUCCESS)
+        return VAL_FALSE;
     if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_SUCCESS) ||
         (result.x1 == 0ULL)) {
         LOG_ERROR(NULL, "%s: expected SUCCESS with non-zero count x0=%llx x1=%llx",
@@ -167,6 +167,7 @@ static int gpt_success_nonzero_run(uint64_t base_pa,
 {
     uint32_t main_passed = VAL_FALSE;
     uint32_t cleanup_passed = VAL_TRUE;
+    uint64_t changed_count = 0ULL;
 
     if (!out)
         return VAL_ERROR;
@@ -195,12 +196,12 @@ static int gpt_success_nonzero_run(uint64_t base_pa,
         goto cleanup;
 
     main_passed = VAL_TRUE;
+    changed_count = UINT64_C(1);
 
 cleanup:
-    /* Step 3: restore NS and validate non-zero progress if cleanup succeeds. */
-    if (gpt_success_nonzero_prepare_ns(
-            base_pa, out, GPT_SUCCESS_NONZERO_STEP_CLEANUP) == VAL_FALSE)
-        cleanup_passed = VAL_FALSE;
+    /* Step 3: Restore changed storage; Host independently confirms the final NS state. */
+    cleanup_passed = val_firme_gpt_restore_prefix_ns(base_pa, changed_count,
+        PLAT_FIRME_GPT_GRANULE_SIZE, out, GPT_SUCCESS_NONZERO_STEP_CLEANUP);
 
     if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
         out->status = (uint64_t)ACS_STATUS_PASS;

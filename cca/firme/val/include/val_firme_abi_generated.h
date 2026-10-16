@@ -19,6 +19,11 @@ int val_firme_abi_generated_execute(
     val_firme_abi_test_plan_id_t plan_id, firme_acs_world_t world,
     uint64_t base_pa, firme_rule_res_t *out);
 
+/** Run a remote ABI with fixtures retained by the NS coordinator. */
+int val_firme_abi_generated_remote_execute(
+    val_firme_abi_test_plan_id_t plan_id, firme_acs_world_t world,
+    uint64_t base_pa, firme_rule_res_t *out);
+
 int firme_abi_r0344_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0344_run_secure(uint64_t base_pa,
@@ -49,11 +54,19 @@ int firme_abi_r0348_run_secure(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0348_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0348_run_host_secure(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0348_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0349_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0349_run_secure(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0349_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0349_run_host_secure(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0349_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0350_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
@@ -61,19 +74,35 @@ int firme_abi_r0350_run_secure(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0350_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0350_run_host_secure(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0350_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0351_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0351_run_secure(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0351_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0351_run_host_secure(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0351_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0352_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0352_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0353_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0353_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0354_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0354_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0355_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0355_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0356_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
@@ -91,33 +120,49 @@ int firme_abi_r0358_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0358_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0358_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0359_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0359_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0359_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0360_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0360_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0360_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0361_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0361_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0361_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0362_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0362_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0362_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0363_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0363_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0363_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0364_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0364_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
+int firme_abi_r0364_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
 int firme_abi_r0365_run_ns(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0365_run_realm(uint64_t base_pa,
+                         firme_rule_res_t *out);
+int firme_abi_r0365_run_host_realm(uint64_t base_pa,
                          firme_rule_res_t *out);
 int firme_abi_r0366_run_realm(uint64_t base_pa,
                          firme_rule_res_t *out);

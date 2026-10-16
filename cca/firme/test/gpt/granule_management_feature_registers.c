@@ -8,12 +8,14 @@
 #include "val_firme_abi.h"
 #include "val_firme_gpt.h"
 #include "val_firme_rules.h"
+#include "val_firme_service.h"
 #include "val_log.h"
 
 #define GM_FEATURE_REGISTERS_TEST_NAME "granule_management_feature_registers"
 
 #define GM_FEATURE_REGISTERS_STEP_VERSION       UINT64_C(1)
 #define GM_FEATURE_REGISTERS_STEP_REG0_STATUS   UINT64_C(2)
+#define GM_FEATURE_REGISTERS_STEP_REG0_BITS     UINT64_C(3)
 #define GM_FEATURE_REGISTERS_STEP_REG1_STATUS   UINT64_C(4)
 #define GM_FEATURE_REGISTERS_STEP_REG1_PGS      UINT64_C(6)
 #define GM_FEATURE_REGISTERS_STEP_NEXT_REG      UINT64_C(7)
@@ -21,6 +23,7 @@
 #define GM_FEATURE_REGISTERS_STEP_REG1_PPS      UINT64_C(9)
 
 #define GM_FEATURE_REGISTERS_REG_COUNT          UINT64_C(2)
+#define GM_FEATURE_REGISTERS_INDEX_MAX          UINT64_C(0xff)
 
 /**
  *   @brief    - Initialize a rule result for GM feature-register checks.
@@ -61,13 +64,18 @@ static void gm_feature_registers_fail(firme_rule_res_t *out, uint64_t fail_step,
 
 /**
  *   @brief    - Validate GM service feature-register indices, sizes, and encodings.
+ *   @param    - world : Caller security state.
  *   @param    - out : Optional result record.
  *   @return   - VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
  **/
-static int gm_feature_registers_run(firme_rule_res_t *out)
+static int gm_feature_registers_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
     firme_res_t res = {0};
     uint64_t feature_reg1 = 0ULL;
+    uint64_t mandatory_bits;
+    uint64_t supported_bits;
+    uint64_t allocated_bits;
+    uint64_t register_index;
     int64_t status = 0;
 
     if (!out)
@@ -97,6 +105,21 @@ static int gm_feature_registers_run(firme_rule_res_t *out)
                                   res.x0, res.x1);
         return VAL_ERROR;
     }
+
+    /* Step 3: Check defined ABI bits without constraining unused outputs. */
+    mandatory_bits = val_firme_service_mandatory_abi_mask(
+        world, FIRME_SERVICE_ID_GRANULE_MGMT);
+    supported_bits = val_firme_service_supported_abi_mask(
+        world, FIRME_SERVICE_ID_GRANULE_MGMT);
+    allocated_bits = val_firme_service_allocated_abi_mask(
+        FIRME_SERVICE_ID_GRANULE_MGMT);
+    if (((res.x1 & mandatory_bits) != mandatory_bits) ||
+        ((res.x1 & allocated_bits & ~supported_bits) != 0ULL)) {
+        gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_REG0_BITS,
+                                 res.x1, mandatory_bits);
+        return VAL_ERROR;
+    }
+
     /* Step 4: Feature register 1 must be implemented at index 1. */
     val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
                                FIRME_GM_FEATURE_REG1_INDEX, &res);
@@ -127,13 +150,16 @@ static int gm_feature_registers_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    /* Step 7: The first unallocated GM feature-register index must be absent. */
-    val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
-                               GM_FEATURE_REGISTERS_REG_COUNT, &res);
-    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_NOT_SUPPORTED) {
-        gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_NEXT_REG,
-                                  res.x0, res.x1);
-        return VAL_ERROR;
+    /* Step 7: Every unallocated 8-bit register index must be unsupported. */
+    for (register_index = GM_FEATURE_REGISTERS_REG_COUNT;
+         register_index <= GM_FEATURE_REGISTERS_INDEX_MAX; register_index++) {
+        val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
+                                   register_index, &res);
+        if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_NOT_SUPPORTED) {
+            gm_feature_registers_fail(out, GM_FEATURE_REGISTERS_STEP_NEXT_REG,
+                                     res.x0, register_index);
+            return VAL_ERROR;
+        }
     }
 
     if (out)
@@ -152,7 +178,7 @@ int firme_gpt_granule_management_feature_registers_run_ns(uint64_t base_pa,
                                                           firme_rule_res_t *out)
 {
     (void)base_pa;
-    return gm_feature_registers_run(out);
+    return gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, out);
 }
 
 /**
@@ -165,7 +191,7 @@ int firme_gpt_granule_management_feature_registers_run_secure(uint64_t base_pa,
                                                               firme_rule_res_t *out)
 {
     (void)base_pa;
-    return gm_feature_registers_run(out);
+    return gm_feature_registers_run(FIRME_ACS_WORLD_SECURE, out);
 }
 
 /**
@@ -178,5 +204,5 @@ int firme_gpt_granule_management_feature_registers_run_realm(uint64_t base_pa,
                                                              firme_rule_res_t *out)
 {
     (void)base_pa;
-    return gm_feature_registers_run(out);
+    return gm_feature_registers_run(FIRME_ACS_WORLD_REALM, out);
 }

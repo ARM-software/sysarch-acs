@@ -15,6 +15,7 @@
 #define FEATURE_REGISTER_INDEX_STEP_REG0_STATUS UINT64_C(1)
 #define FEATURE_REGISTER_INDEX_STEP_REG1_STATUS UINT64_C(2)
 #define FEATURE_REGISTER_INDEX_STEP_MAX_STATUS  UINT64_C(3)
+#define FEATURE_REGISTER_INDEX_STEP_WIDTH_OBSERVATION UINT64_C(4)
 
 /**
  *   @brief    - Initialize a feature-register index result record.
@@ -52,11 +53,14 @@ static void feature_register_index_fail(firme_rule_res_t *out, uint64_t fail_ste
 /**
  *   @brief    - Validate feature register index boundary behavior.
  *   @param    - out : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 static int feature_register_index_run(firme_rule_res_t *out)
 {
     firme_res_t res = {0};
+
+    if (out == NULL)
+        return VAL_ERROR;
 
     feature_register_index_init_result(out);
 
@@ -90,8 +94,11 @@ static int feature_register_index_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    LOG_WARN(NULL, "%s: allocation boundaries checked; legal inputs cannot establish "
+             "the eight-bit field declaration independently of allocation behavior\n",
+             FEATURE_REGISTER_INDEX_TEST_NAME);
+    out->status = (uint64_t)ACS_STATUS_SKIP;
+    out->fail_step = FEATURE_REGISTER_INDEX_STEP_WIDTH_OBSERVATION;
 
     return VAL_SUCCESS;
 }
@@ -100,7 +107,7 @@ static int feature_register_index_run(firme_rule_res_t *out)
  *   @brief    - Feature register index rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_index_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -112,7 +119,7 @@ int firme_base_feature_register_index_run_ns(uint64_t base_pa, firme_rule_res_t 
  *   @brief    - Feature register index rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_index_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -124,7 +131,7 @@ int firme_base_feature_register_index_run_secure(uint64_t base_pa, firme_rule_re
  *   @brief    - Feature register index rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_feature_register_index_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

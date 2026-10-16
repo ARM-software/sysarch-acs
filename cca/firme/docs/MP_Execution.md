@@ -162,7 +162,8 @@ model environment variables. `FIRME_MP_SELF_TEST=OFF` (wrapper) or
 ## Follow-up integration
 
 Use this worker lifecycle for GPT continuation/observation scenarios only when
-the required ABI and deterministic setup are available. Their registry gates
-remain unchanged. Firmware-table ingestion, interrupt-driven preemption,
+the required ABI and deterministic setup are available. The rules are registered;
+missing mandatory ABIs fail, while unavailable independent observations remain
+explicit coverage gaps. Firmware-table ingestion, interrupt-driven preemption,
 SMMU stream/DMA programming and parallelization of serial test scratch state
 remain separate work; none is inferred from a successful worker self-test.

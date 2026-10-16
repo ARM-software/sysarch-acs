@@ -41,6 +41,27 @@ static int shared_buffer_pas_gpi_run(
         (out->status != (uint64_t)ACS_STATUS_FAIL))
         return result;
 
+    if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
+                           (uint64_t)evidence.abi_status, 0ULL);
+        return VAL_ERROR;
+    }
+
+    if (((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_EVIDENCE_PAS) != 0U) &&
+        (evidence.pas_world != world)) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_PAS,
+                           (uint64_t)evidence.pas_world, (uint64_t)world);
+        return VAL_ERROR;
+    }
+
+    expected_gpi = val_firme_shared_buffer_expected_gpi(world);
+    if (((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_EVIDENCE_GPI) != 0U) &&
+        ((expected_gpi == 0U) || (evidence.gpi != expected_gpi))) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_GPI,
+                           (uint64_t)evidence.gpi, (uint64_t)expected_gpi);
+        return VAL_ERROR;
+    }
+
     if ((evidence.valid_fields & required_fields) != required_fields) {
         if ((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_OBSERVATION_UNAVAILABLE) != 0U) {
             LOG_WARN(NULL, "shared_buffer: independent PAS/GPT evidence unavailable");
@@ -51,25 +72,6 @@ static int shared_buffer_pas_gpi_run(
         out->status = (uint64_t)ACS_STATUS_ERR;
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EVIDENCE,
                            evidence.valid_fields, required_fields);
-        return VAL_ERROR;
-    }
-
-    if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
-                           (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_ERROR;
-    }
-
-    if (evidence.pas_world != world) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_PAS,
-                           (uint64_t)evidence.pas_world, (uint64_t)world);
-        return VAL_ERROR;
-    }
-
-    expected_gpi = val_firme_shared_buffer_expected_gpi(world);
-    if ((expected_gpi == 0U) || (evidence.gpi != expected_gpi)) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_GPI,
-                           (uint64_t)evidence.gpi, (uint64_t)expected_gpi);
         return VAL_ERROR;
     }
 

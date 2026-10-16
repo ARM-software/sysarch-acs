@@ -71,9 +71,9 @@ static const val_firme_service_desc_t g_val_firme_service_desc[] = {
         .allowed_worlds = VAL_FIRME_SERVICE_WORLD_NS | VAL_FIRME_SERVICE_WORLD_REALM,
         .allocated_abi_mask = FIRME_ATTEST_FEATURE_REG0_ALL_ABI_BITS,
         .mandatory_ns_mask = FIRME_ATTEST_FEATURE_REG0_PAT_GET_BIT,
-        .mandatory_realm_mask = FIRME_ATTEST_FEATURE_REG0_PAT_GET_BIT |
-                                FIRME_ATTEST_FEATURE_REG0_RAK_GET_BIT,
-        .optional_realm_mask = FIRME_ATTEST_FEATURE_REG0_RAT_SIGN_BIT |
+        .mandatory_realm_mask = FIRME_ATTEST_FEATURE_REG0_PAT_GET_BIT,
+        .optional_realm_mask = FIRME_ATTEST_FEATURE_REG0_RAK_GET_BIT |
+                               FIRME_ATTEST_FEATURE_REG0_RAT_SIGN_BIT |
                                FIRME_ATTEST_FEATURE_REG0_EXT_CLAIMS_STAGE_BIT |
                                FIRME_ATTEST_FEATURE_REG0_EXT_CLAIMS_FINAL_BIT |
                                FIRME_ATTEST_FEATURE_REG0_EXT_CLAIMS_CLEAR_BIT,
@@ -102,6 +102,12 @@ int val_firme_service_get_version(uint32_t service_id, uint32_t *implemented,
 
     if (implemented)
         *implemented = VAL_FALSE;
+
+    if (version_res)
+        *version_res = (firme_res_t){0};
+
+    if (service_id > FIRME_SERVICE_ID_8BIT_MAX)
+        return VAL_ERROR;
 
     val_firme_service_version((uint64_t)service_id, &local_res);
     if (version_res)
@@ -190,6 +196,15 @@ int val_firme_service_abi_is_advertised(uint32_t service_id, uint64_t abi_mask,
 
     if (advertised)
         *advertised = VAL_FALSE;
+
+    if (feature_reg0)
+        *feature_reg0 = 0ULL;
+
+    if (features_res)
+        *features_res = (firme_res_t){0};
+
+    if (abi_mask == 0ULL)
+        return VAL_ERROR;
 
     if (val_firme_service_get_feature_reg0(service_id, &service_advertised,
                                            &local_feature_reg0, features_res) != VAL_SUCCESS)

@@ -133,7 +133,7 @@ class GptConfigurationTests(unittest.TestCase):
             gpc2, gdi = PROFILES[profile]
             (firmware / ".firme_build_tfa.stamp").write_text(
                 "FVP_FIRME_MEC_REFRESH=0\nFVP_FIRME_CXL_IDE=0\n"
-                ""
+                "FIRME_REALM_PAT_BINDING=none\n"
                 f"ENABLE_FEAT_RME_GDI={1 - gdi if stale else gdi}\n",
                 encoding="utf-8",
             )

@@ -63,12 +63,15 @@ static uint32_t pal_pcie_bdf_function(uint32_t bdf)
 
 /**
  *   @brief    - Translate a packed BDF and register offset to an ECAM address.
+ *   @param    - ecam_base : Explicit namespace when qualified is nonzero.
+ *   @param    - qualified : Require the selected ECAM rather than BDF-only lookup.
  *   @param    - bdf     : PAL packed BDF value.
  *   @param    - offset  : PCI configuration register offset.
  *   @param    - address : Returned ECAM MMIO address.
  *   @return   - VAL_SUCCESS on success, VAL_ERROR otherwise.
  **/
-static int pal_pcie_cfg_address(uint32_t bdf, uint32_t offset, uint64_t *address)
+static int pal_pcie_cfg_address(uint64_t ecam_base, uint32_t qualified,
+                                 uint32_t bdf, uint32_t offset, uint64_t *address)
 {
     pal_pcie_ecam_info_t info = {0};
     uint64_t cfg_offset = 0ULL;
@@ -77,18 +80,23 @@ static int pal_pcie_cfg_address(uint32_t bdf, uint32_t offset, uint64_t *address
     uint32_t device = pal_pcie_bdf_device(bdf);
     uint32_t function = pal_pcie_bdf_function(bdf);
     uint32_t index = 0U;
+    uint32_t found = VAL_FALSE;
+    uint64_t selected = 0ULL;
 
     if (!address)
         return VAL_ERROR;
 
     *address = 0ULL;
-    if (((offset & PAL_PCIE_CFG_ALIGN_MASK) != 0U) ||
+    if ((offset > 0xffcU) || ((offset & PAL_PCIE_CFG_ALIGN_MASK) != 0U) ||
         (device >= PLAT_FIRME_PCIE_MAX_DEV) ||
         (function >= PLAT_FIRME_PCIE_MAX_FUNC))
         return VAL_ERROR;
 
     for (index = 0U; index < pal_pcie_ecam_count(); index++) {
         if (pal_pcie_ecam_info(index, &info) != VAL_SUCCESS)
+            return VAL_ERROR;
+
+        if (qualified && info.ecam_base != ecam_base)
             continue;
 
         if ((segment != info.segment) || (bus < info.start_bus) ||
@@ -100,14 +108,19 @@ static int pal_pcie_cfg_address(uint32_t bdf, uint32_t offset, uint64_t *address
                      ((uint64_t)function << PAL_PCIE_CFG_FUNC_SHIFT) |
                      (uint64_t)offset;
 
-        if ((cfg_offset + sizeof(uint32_t)) > info.ecam_size)
+        if (found || info.start_bus > info.end_bus || info.end_bus > 255U ||
+            (cfg_offset + sizeof(uint32_t)) > info.ecam_size ||
+            info.ecam_base > UINT64_MAX - cfg_offset - (sizeof(uint32_t) - 1U))
             return VAL_ERROR;
 
-        *address = info.ecam_base + cfg_offset;
-        return VAL_SUCCESS;
+        selected = info.ecam_base + cfg_offset;
+        found = VAL_TRUE;
     }
 
-    return VAL_ERROR;
+    if (!found)
+        return VAL_ERROR;
+    *address = selected;
+    return VAL_SUCCESS;
 }
 
 /**
@@ -235,7 +248,7 @@ int pal_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value)
         return VAL_ERROR;
 
     *value = 0xffffffffU;
-    if (pal_pcie_cfg_address(bdf, offset, &address) != VAL_SUCCESS)
+    if (pal_pcie_cfg_address(0ULL, VAL_FALSE, bdf, offset, &address) != VAL_SUCCESS)
         return VAL_ERROR;
 
     return val_mmio_read32_checked(address, value);
@@ -252,8 +265,33 @@ int pal_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value)
 {
     uint64_t address = 0ULL;
 
-    if (pal_pcie_cfg_address(bdf, offset, &address) != VAL_SUCCESS)
+    if (pal_pcie_cfg_address(0ULL, VAL_FALSE, bdf, offset, &address) != VAL_SUCCESS)
         return VAL_ERROR;
 
+    return val_mmio_write32_checked(address, value);
+}
+
+/** @brief Read only the requested, inventoried ECAM namespace; never fall back. */
+int pal_pcie_cfg_read32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                           uint32_t *value)
+{
+    uint64_t address = 0ULL;
+
+    if (!value)
+        return VAL_ERROR;
+    *value = UINT32_MAX;
+    if (pal_pcie_cfg_address(ecam_base, VAL_TRUE, bdf, offset, &address) != VAL_SUCCESS)
+        return VAL_ERROR;
+    return val_mmio_read32_checked(address, value);
+}
+
+/** @brief Write only the requested, inventoried ECAM namespace; never fall back. */
+int pal_pcie_cfg_write32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                            uint32_t value)
+{
+    uint64_t address = 0ULL;
+
+    if (pal_pcie_cfg_address(ecam_base, VAL_TRUE, bdf, offset, &address) != VAL_SUCCESS)
+        return VAL_ERROR;
     return val_mmio_write32_checked(address, value);
 }

@@ -39,11 +39,16 @@ static uint64_t g_words[TEST_WORDS];
 static uint32_t g_generations[TEST_WORDS];
 static uint32_t g_dirty[4096 / TEST_LINE_SIZE];
 static uint32_t g_creates;
+static uint32_t g_generation;
+static uint32_t g_destroy_noop;
 static uint32_t g_writes;
 static uint32_t g_fail_write_at;
 static uint32_t g_bad_baseline;
 static uint32_t g_fault_baseline;
 static uint32_t g_fault_stale;
+static uint64_t g_stale_fault_esr;
+static uint32_t g_stale_fault_count;
+static uint32_t g_stale_fault_creates;
 static uint32_t g_bad_round_trip;
 static uint32_t g_no_refresh;
 static uint32_t g_mapped;
@@ -126,11 +131,14 @@ void val_smccc_smc_call(uint64_t fid, uint64_t arg1, uint64_t arg2, uint64_t arg
             result->x0 = (uint32_t)FIRME_INVALID_PARAMETERS;
         } else if ((arg1 & FIRME_MEC_REFRESH_REASON_MASK) == FIRME_MEC_REFRESH_REASON_CREATE) {
             g_creates++;
+            g_generation++;
         } else {
             g_destroy_calls++;
             for (line_index = 0U; line_index < 4096 / TEST_LINE_SIZE; line_index++)
                 g_destroy_dirty |= g_dirty[line_index];
             result->x0 = (uint32_t)g_destroy_status;
+            if (g_destroy_status == FIRME_SUCCESS && !g_destroy_noop)
+                g_generation++;
         }
     }
     result->x0 |= g_poison & UINT64_C(0xffffffff00000000);
@@ -339,7 +347,7 @@ int val_probe_write64(uint64_t address, uint64_t value, val_fault_info_t *fault)
         return VAL_ERROR;
     }
     g_words[offset / 8U] = value;
-    g_generations[offset / 8U] = g_creates;
+    g_generations[offset / 8U] = g_generation;
     g_dirty[offset / TEST_LINE_SIZE] = VAL_TRUE;
     return VAL_SUCCESS;
 }
@@ -351,10 +359,16 @@ int val_probe_read64(uint64_t address, uint64_t *value, val_fault_info_t *fault)
     uint32_t stale;
 
     assert(g_mapped && offset < 4096);
-    stale = g_generations[offset / 8U] != g_creates;
+    stale = g_generations[offset / 8U] != g_generation;
     *fault = (val_fault_info_t){0};
-    if ((g_fault_baseline && g_creates == 1U) || (g_fault_stale && stale)) {
+    if (g_fault_baseline && g_creates == 1U) {
         *fault = (val_fault_info_t){.faulted = VAL_TRUE, .esr = TEST_ABORT};
+        return VAL_ERROR;
+    }
+    if (g_fault_stale && stale) {
+        g_stale_fault_count++;
+        g_stale_fault_creates = g_creates;
+        *fault = (val_fault_info_t){.faulted = VAL_TRUE, .esr = g_stale_fault_esr};
         return VAL_ERROR;
     }
     *value = g_words[offset / 8U];
@@ -382,11 +396,16 @@ static void reset_model(void)
     memset(g_generations, 0, sizeof(g_generations));
     memset(g_dirty, 0, sizeof(g_dirty));
     g_creates = 0U;
+    g_generation = 0U;
+    g_destroy_noop = VAL_FALSE;
     g_writes = 0U;
     g_fail_write_at = 0U;
     g_bad_baseline = VAL_FALSE;
     g_fault_baseline = VAL_FALSE;
     g_fault_stale = VAL_FALSE;
+    g_stale_fault_esr = TEST_ABORT;
+    g_stale_fault_count = 0U;
+    g_stale_fault_creates = 0U;
     g_bad_round_trip = VAL_FALSE;
     g_no_refresh = VAL_FALSE;
     g_mapped = VAL_FALSE;
@@ -401,11 +420,17 @@ static void reset_model(void)
 }
 
 /** @brief Require cache eviction, retirement, unmapping, and register restoration. */
-static void check_restored(void)
+static void check_restored_count(uint32_t destroy_count)
 {
-    assert(!g_mapped && !g_destroy_dirty && g_destroy_calls == 1U);
+    assert(!g_mapped && !g_destroy_dirty && g_destroy_calls == destroy_count);
     assert(g_tcr2 == UINT64_C(0x40) && g_sctlr2 == UINT64_C(0x80));
     assert(g_mecid == UINT64_C(0x20));
+}
+
+/** @brief Require one retirement after a single-context scenario. */
+static void check_restored(void)
+{
+    check_restored_count(1U);
 }
 
 /** @brief Keep ABI test return codes consistent with the recorded rule outcome. */
@@ -428,18 +453,63 @@ static void check_refresh_returns(void)
     assert(firme_mec_refresh_abi_run_secure(0U, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS);
     assert(firme_mec_refresh_abi_run_realm(0U, &result) == VAL_ERROR);
-    assert(result.status == ACS_STATUS_FAIL && result.fail_step == 6U);
-    g_refresh_status = FIRME_SUCCESS;
+    assert(result.status == ACS_STATUS_FAIL && result.fail_step == 8U);
+    reset_model();
     g_destroy_status = FIRME_DENIED;
     assert(firme_mec_refresh_abi_run_realm(0U, &result) == VAL_ERROR);
-    assert(result.status == ACS_STATUS_FAIL && result.fail_step == 7U);
-    g_destroy_status = FIRME_SUCCESS;
+    assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_CLEANUP);
+    reset_model();
     assert(firme_mec_refresh_abi_run_realm(0U, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS);
+    check_restored_count(3U);
+    reset_model();
+    g_destroy_noop = VAL_TRUE;
+    assert(firme_mec_refresh_abi_run_realm(0U, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_STALE_READ);
+    check_restored_count(3U);
+    reset_model();
+    g_no_refresh = VAL_TRUE;
+    assert(firme_mec_refresh_abi_run_realm(0U, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_STALE_READ);
+    check_restored();
 }
 
-/** @brief Require failures to dominate unclassified stale-read faults. */
-static void check_context_faults(void)
+/** @brief Observe DESTROY faults before re-enabling and require complete restoration. */
+static void check_destroy_faults(void)
+{
+    firme_rule_res_t result;
+
+    /* Step 1: An unclassified integrity-like abort is incomplete evidence, not PASS. */
+    reset_model();
+    g_fault_stale = VAL_TRUE;
+    assert(firme_mec_semantic_test_context_refresh(
+               VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY, &result) == VAL_SUCCESS);
+    assert(result.status == ACS_STATUS_SKIP);
+    assert(result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
+    assert(result.last_x1 == TEST_ABORT);
+    assert(g_stale_fault_count == VAL_FIRME_MEC_OBSERVATION_MAX_SAMPLES);
+    assert(g_stale_fault_creates == 1U && g_creates == 2U);
+    check_restored_count(2U);
+
+    /* Step 2: A translation abort must fail, even after re-enable and successful cleanup. */
+    reset_model();
+    g_fault_stale = VAL_TRUE;
+    g_stale_fault_esr = (UINT64_C(0x25) << 26) | UINT64_C(0x04);
+    assert(firme_mec_semantic_test_context_refresh(
+               VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL);
+    assert(result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
+    assert(result.last_x0 == g_stale_fault_esr);
+    assert(g_stale_fault_count == VAL_FIRME_MEC_OBSERVATION_MAX_SAMPLES);
+    assert(g_stale_fault_creates == 1U && g_creates == 2U);
+    check_restored_count(2U);
+}
+
+/**
+ * @brief Require failures to dominate unclassified stale-read faults.
+ * @param run_rule Context-refresh or ciphertext-decorrelation production rule.
+ */
+static void check_semantic_faults(int (*run_rule)(uint64_t, firme_rule_res_t *))
 {
     const uint64_t inconclusive[] = {
         TEST_ABORT, (UINT64_C(0x25) << 26) | UINT64_C(0x18),
@@ -469,50 +539,59 @@ static void check_context_faults(void)
     for (index = 0U; index < sizeof(inconclusive) / sizeof(inconclusive[0]); index++) {
         baseline.stale_read_fault_esr[0] = inconclusive[index];
         g_evidence = baseline;
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_SUCCESS);
+        assert(run_rule(0U, &result) == VAL_SUCCESS);
         assert(result.status == ACS_STATUS_SKIP);
         assert(result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
         assert(result.last_x0 == UINT32_C(1) && result.last_x1 == inconclusive[index]);
 
         g_evidence.cleanup_status = FIRME_DENIED;
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_CLEANUP);
         g_evidence = baseline;
         g_evidence.round_trip[1] = ~g_evidence.plaintext;
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_ROUND_TRIP);
         g_evidence = baseline;
         g_evidence.round_trip_completed_mask &= ~UINT32_C(2);
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_ROUND_TRIP);
         g_evidence = baseline;
         g_evidence.stale_read[1] = g_evidence.plaintext;
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_STALE_READ);
         g_evidence = baseline;
         g_evidence.stale_read_completed_mask &= ~UINT32_C(2);
         g_evidence.stale_read_fault_mask |= UINT32_C(2);
         g_evidence.stale_read_fault_esr[1] = (UINT64_C(0x25) << 26) | UINT64_C(0x04);
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
     }
 
     for (index = 0U; index < sizeof(unrelated_status) / sizeof(unrelated_status[0]); index++) {
         g_evidence = baseline;
         g_evidence.stale_read_fault_esr[0] = (UINT64_C(0x25) << 26) | unrelated_status[index];
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
     }
     for (index = 0U; index < sizeof(unrelated_classes) / sizeof(unrelated_classes[0]); index++) {
         g_evidence = baseline;
         g_evidence.stale_read_fault_esr[0] = (uint64_t)unrelated_classes[index] << 26;
-        assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
+        assert(run_rule(0U, &result) == VAL_ERROR);
         assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
     }
     reset_model();
     g_fault_stale = VAL_TRUE;
-    assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_SUCCESS);
+    assert(run_rule(0U, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_SKIP);
+    check_restored();
+
+    reset_model();
+    g_fault_stale = VAL_TRUE;
+    g_stale_fault_esr = (UINT64_C(0x25) << 26) | UINT64_C(0x04);
+    assert(run_rule(0U, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL);
+    assert(result.fail_step == MEC_SEMANTIC_STEP_INTEGRITY_ABORT);
+    assert(result.last_x0 == g_stale_fault_esr && result.last_x1 == 0U);
     check_restored();
 }
 
@@ -606,6 +685,7 @@ int main(void)
     assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_ERR);
     g_evidence.stale_read_completed_mask &= ~UINT32_C(1);
+    g_evidence.stale_read_fault_esr[0] = TEST_ABORT;
     g_evidence.stale_read[1] = g_evidence.plaintext;
     assert(firme_mec_ciphertext_decorrelation_run_realm(0U, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL && result.fail_step == MEC_SEMANTIC_STEP_STALE_READ);
@@ -613,7 +693,9 @@ int main(void)
     assert(firme_mec_context_refresh_run_realm(0U, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_ERR);
     check_refresh_returns();
-    check_context_faults();
+    check_destroy_faults();
+    check_semantic_faults(firme_mec_context_refresh_run_realm);
+    check_semantic_faults(firme_mec_ciphertext_decorrelation_run_realm);
     check_common_width();
     puts("PASS: MEC unused outputs, all-PE/SMMU width, baseline, cleanup and evidence checks");
     return VAL_SUCCESS;

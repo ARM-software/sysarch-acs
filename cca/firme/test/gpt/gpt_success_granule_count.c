@@ -17,6 +17,7 @@
 #define GPT_SUCCESS_COUNT_STEP_BOUNDARY  UINT64_C(40)
 #define GPT_SUCCESS_COUNT_STEP_CLEANUP   UINT64_C(50)
 #define GPT_SUCCESS_COUNT_GRANULES       UINT64_C(2)
+#define GPT_SUCCESS_COUNT_MAX_CALLS       VAL_FIRME_GPT_TRACE_MAX_PHASES
 
 /**
  *   @brief    - Initialise an R0113 result record.
@@ -67,12 +68,13 @@ static uint32_t gpt_success_count_expect_access(uint64_t address,
     val_fault_info_t fault_info = {0};
     uint64_t value = 0ULL;
     uint32_t matched = VAL_FALSE;
+    int probe_result;
 
-    val_probe_read64(address, &value, &fault_info);
+    probe_result = val_probe_read64(address, &value, &fault_info);
     if (expect_access == VAL_TRUE)
-        matched = (uint32_t)(fault_info.faulted == 0ULL);
+        matched = (uint32_t)(probe_result == VAL_SUCCESS && fault_info.faulted == 0ULL);
     else
-        matched = (uint32_t)((fault_info.faulted != 0ULL) &&
+        matched = (uint32_t)((probe_result == VAL_ERROR) && (fault_info.faulted != 0ULL) &&
                              val_fault_is_gpf(fault_info.esr));
 
     if (matched == VAL_FALSE) {
@@ -108,13 +110,13 @@ static uint32_t gpt_success_count_prepare_ns(uint64_t address,
     int64_t status = 0;
     const uint64_t granule_count = UINT64_C(1);
 
-    if (val_firme_gm_gpi_set_complete(address, granule_count,
-                                      FIRME_GPI_NONSECURE,
-                                      &result) != VAL_SUCCESS) {
+    if (val_firme_gpt_transition_terminal(address, FIRME_GPI_NONSECURE,
+            &result, out, fail_step) != VAL_SUCCESS) {
         LOG_ERROR(NULL, "%s: NS setup did not complete PA=%llx",
                   GPT_SUCCESS_COUNT_TEST_NAME,
                   (unsigned long long)address);
         gpt_success_count_record(out, fail_step, &result);
+        out->status = (uint64_t)ACS_STATUS_ERR;
         return VAL_FALSE;
     }
 
@@ -160,8 +162,15 @@ static int gpt_success_count_run(uint64_t base_pa,
     uint64_t total = 0ULL;
     uint64_t progress = 0ULL;
     uint64_t index = 0ULL;
+    uint64_t cookie = 0ULL;
+    int64_t status = 0;
     uint32_t main_passed = VAL_FALSE;
     uint32_t cleanup_passed = VAL_TRUE;
+    uint32_t prefix_passed = VAL_TRUE;
+    uint32_t pending = VAL_FALSE;
+    uint32_t use_continue = VAL_FALSE;
+    uint32_t safe_to_restore = VAL_TRUE;
+    uint32_t attempt = 0U;
 
     if (!out)
         return VAL_ERROR;
@@ -186,7 +195,7 @@ static int gpt_success_count_run(uint64_t base_pa,
     granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
     if ((granule_size == 0ULL) ||
         ((base_pa % granule_size) != 0ULL) ||
-        (base_pa > (UINT64_MAX - granule_size))) {
+        (GPT_SUCCESS_COUNT_GRANULES > (UINT64_MAX - base_pa) / granule_size)) {
         LOG_ERROR(NULL, "%s: invalid test window base=%llx PGS=%llx",
                   GPT_SUCCESS_COUNT_TEST_NAME,
                   (unsigned long long)base_pa,
@@ -208,43 +217,88 @@ static int gpt_success_count_run(uint64_t base_pa,
         VAL_FALSE)
         goto cleanup;
 
-    /*
-     * Step 3: inspect each raw SUCCESS response. A partial count is valid,
-     * but it must identify exactly the contiguous transitioned prefix.
-     */
+    /* Step 3: validate each reported prefix while completing retained work. */
     current_pa = base_pa;
-    while (remaining != 0ULL) {
-        val_firme_gm_gpi_set_do(current_pa, remaining, target_gpi, &result);
-        if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_SUCCESS) ||
-            (result.x1 == 0ULL) || (result.x1 > remaining)) {
+    for (attempt = 0U; remaining != 0ULL && attempt < GPT_SUCCESS_COUNT_MAX_CALLS;
+         attempt++) {
+        if (use_continue)
+            val_firme_gm_gpi_op_continue(cookie, &result);
+        else
+            val_firme_gm_gpi_set_do(current_pa, remaining, target_gpi, &result);
+
+        status = val_firme_as_i64(result.x0);
+        if (status == (int64_t)FIRME_BUSY) {
+            if (use_continue)
+                cookie = result.x2;
+            continue;
+        }
+
+        if (!use_continue && (status == FIRME_INVALID_PARAMETERS ||
+                              status == FIRME_NOT_SUPPORTED)) {
+            gpt_success_count_record(out, GPT_SUCCESS_COUNT_STEP_RESULT, &result);
+            goto cleanup;
+        }
+
+        if (val_firme_gpt_operation_count_valid(status, result.x1,
+                                                 remaining) != VAL_TRUE) {
             LOG_ERROR(NULL,
-                      "%s: invalid progress remaining=%llu x0=%llx x1=%llx",
+                      "%s: invalid progress remaining=%llu x0=%llx x1=%llx\n",
                       GPT_SUCCESS_COUNT_TEST_NAME,
                       (unsigned long long)remaining,
                       (unsigned long long)result.x0,
                       (unsigned long long)result.x1);
             gpt_success_count_record(out, GPT_SUCCESS_COUNT_STEP_RESULT,
                                      &result);
+            safe_to_restore = VAL_FALSE;
             goto cleanup;
         }
 
+        pending = status == (int64_t)FIRME_INCOMPLETE ? VAL_TRUE : VAL_FALSE;
+        use_continue = pending;
+        if (pending)
+            cookie = result.x2;
         progress = result.x1;
-        for (index = 0ULL; index < progress; index++) {
-            if (gpt_success_count_expect_access(
-                    current_pa + (index * granule_size), VAL_TRUE, out,
-                    GPT_SUCCESS_COUNT_STEP_PREFIX + total + index) == VAL_FALSE)
-                goto cleanup;
+        if (status != (int64_t)FIRME_SUCCESS &&
+            status != (int64_t)FIRME_INCOMPLETE) {
+            LOG_ERROR(NULL, "%s: transition stopped x0=%llx x1=%llx\n",
+                      GPT_SUCCESS_COUNT_TEST_NAME,
+                      (unsigned long long)result.x0,
+                      (unsigned long long)result.x1);
+            gpt_success_count_record(out, GPT_SUCCESS_COUNT_STEP_RESULT,
+                                     &result);
+            total += progress;
+            goto cleanup;
         }
 
-        if ((progress < remaining) &&
-            (gpt_success_count_expect_access(
-                 current_pa + (progress * granule_size), VAL_FALSE, out,
-                 GPT_SUCCESS_COUNT_STEP_BOUNDARY + total) == VAL_FALSE))
-            goto cleanup;
+        if (prefix_passed == VAL_TRUE) {
+            for (index = 0ULL; index < progress; index++) {
+                if (gpt_success_count_expect_access(
+                        current_pa + (index * granule_size), VAL_TRUE, out,
+                        GPT_SUCCESS_COUNT_STEP_PREFIX + total + index) == VAL_FALSE) {
+                    prefix_passed = VAL_FALSE;
+                    break;
+                }
+            }
+
+            if (prefix_passed == VAL_TRUE && progress < remaining &&
+                gpt_success_count_expect_access(
+                    current_pa + (progress * granule_size), VAL_FALSE, out,
+                    GPT_SUCCESS_COUNT_STEP_BOUNDARY + total) == VAL_FALSE)
+                prefix_passed = VAL_FALSE;
+        }
 
         current_pa += progress * granule_size;
         remaining -= progress;
         total += progress;
+    }
+
+    if (remaining != 0ULL) {
+        LOG_ERROR(NULL, "%s: operation did not complete after %u calls\n",
+                  GPT_SUCCESS_COUNT_TEST_NAME, GPT_SUCCESS_COUNT_MAX_CALLS);
+        gpt_success_count_record(out, GPT_SUCCESS_COUNT_STEP_RESULT, &result);
+        if (pending)
+            safe_to_restore = VAL_FALSE;
+        goto cleanup;
     }
 
     if (total != GPT_SUCCESS_COUNT_GRANULES) {
@@ -260,17 +314,19 @@ static int gpt_success_count_run(uint64_t base_pa,
         goto cleanup;
     }
 
-    main_passed = VAL_TRUE;
+    main_passed = prefix_passed;
 
 cleanup:
-    /* Step 4: restore both granules to NS even after a partial failure. */
-    if (gpt_success_count_prepare_ns(base_pa, out,
-                                     GPT_SUCCESS_COUNT_STEP_CLEANUP) == VAL_FALSE)
-        cleanup_passed = VAL_FALSE;
-    if (gpt_success_count_prepare_ns(base_pa + granule_size, out,
-                                     GPT_SUCCESS_COUNT_STEP_CLEANUP + UINT64_C(1)) ==
-        VAL_FALSE)
-        cleanup_passed = VAL_FALSE;
+    if (safe_to_restore != VAL_TRUE || out->status == (uint64_t)ACS_STATUS_ERR) {
+        LOG_ERROR(NULL, "%s: retained or unknown operation prevents safe cleanup\n",
+                  GPT_SUCCESS_COUNT_TEST_NAME);
+        out->status = (uint64_t)ACS_STATUS_ERR;
+        return VAL_ERROR;
+    }
+
+    /* Step 4: Restore the reported changed prefix; Host verifies the entire range. */
+    cleanup_passed = val_firme_gpt_restore_prefix_ns(base_pa, total,
+        granule_size, out, GPT_SUCCESS_COUNT_STEP_CLEANUP);
 
     if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
         out->status = (uint64_t)ACS_STATUS_PASS;

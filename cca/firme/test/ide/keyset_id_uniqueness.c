@@ -30,5 +30,20 @@ int firme_ide_keyset_id_uniqueness_run_ns(uint64_t base_pa,
                                           firme_rule_res_t *out)
 {
     (void)base_pa;
-    return val_firme_ide_namespace_run(PAL_FIRME_IDE_NAMESPACE_BY_KEYSET, out);
+    /* Step 1: Discover, program and independently observe two real NS keysets. */
+    return val_firme_ide_namespace_host_run(FIRME_ACS_WORLD_NSEL2, out);
+}
+
+/**
+ * @brief Retain the endpoint session in NS while Realm invokes the FIRME ABIs.
+ * @param base_pa Unused platform test address.
+ * @param out Rule result including observation and cleanup failures.
+ * @return VAL_SUCCESS on PASS/SKIP, otherwise VAL_ERROR.
+ */
+int firme_ide_keyset_id_uniqueness_run_host_realm(uint64_t base_pa,
+                                                 firme_rule_res_t *out)
+{
+    (void)base_pa;
+    /* Step 1: Discover, program and independently observe two real Realm keysets. */
+    return val_firme_ide_namespace_host_run(FIRME_ACS_WORLD_REALM, out);
 }

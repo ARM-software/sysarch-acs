@@ -190,9 +190,17 @@ int main(void)
                                               NULL, &replacement) == VAL_ERROR);
 
     assert(firme_base_reserved_output_registers_run_ns(0, &rule_result) == VAL_SUCCESS);
-    assert(rule_result.status == ACS_STATUS_PASS);
+    assert(rule_result.status == ACS_STATUS_SKIP);
     assert(firme_base_reserved_output_bits_run_ns(0, &rule_result) == VAL_SUCCESS);
-    assert(rule_result.status == ACS_STATUS_PASS);
+    assert(rule_result.status == ACS_STATUS_SKIP);
+    assert(firme_base_reserved_output_registers_run_ns(0, NULL) == VAL_ERROR);
+    assert(firme_base_reserved_output_bits_run_ns(0, NULL) == VAL_ERROR);
+
+    g_version = (uint32_t)FIRME_INVALID_PARAMETERS;
+    assert(firme_base_reserved_output_registers_run_ns(0, &rule_result) == VAL_ERROR);
+    assert(rule_result.status == ACS_STATUS_FAIL && rule_result.fail_step != 0U);
+    assert(firme_base_reserved_output_bits_run_ns(0, &rule_result) == VAL_ERROR);
+    assert(rule_result.status == ACS_STATUS_FAIL && rule_result.fail_step != 0U);
     puts("PASS: wrapper frames and poisoned-output discovery checks");
     return VAL_SUCCESS;
 }

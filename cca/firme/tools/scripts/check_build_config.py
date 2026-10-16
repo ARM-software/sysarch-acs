@@ -77,7 +77,7 @@ def check_refresh_config():
 
         firmware_stamp = Path(root) / "fvp/debug/.firme_build_tfa.stamp"
         firmware_stamp.parent.mkdir(parents=True)
-        firmware_stamp.write_text("FVP_FIRME_CXL_IDE=0\n",
+        firmware_stamp.write_text("FVP_FIRME_CXL_IDE=0\nFIRME_REALM_PAT_BINDING=none\n",
                                   encoding="utf-8")
         run_cases = [
             ({"FVP_FIRME_MEC_REFRESH": "invalid"}, "must be 0 or 1"),
@@ -110,7 +110,7 @@ def check_refresh_config():
             firmware_stamp.write_text(f"FVP_FIRME_MEC_REFRESH={built}\n"
                                       "FVP_FIRME_CXL_IDE=0\n"
                                       "ENABLE_FEAT_RME_GDI=1\n"
-                                      "",
+                                      "FIRME_REALM_PAT_BINDING=none\n",
                                       encoding="utf-8")
             for requested in ("0", "1"):
                 environment.update({"PLAT": "fvp", "FVP_ENABLE_MEC": "1",

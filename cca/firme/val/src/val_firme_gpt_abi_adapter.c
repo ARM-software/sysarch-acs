@@ -14,6 +14,7 @@
 #define GPT_ADAPTER_LOCKED 0U
 #define GPT_ADAPTER_ARMED 1U
 #define GPT_ADAPTER_RECORDED 2U
+#define GPT_ADAPTER_POSITIVE 3U
 #define GPT_ADAPTER_WORLDS 3U
 
 static val_firme_gpt_fixture_t g_gpt_adapter_fixture[GPT_ADAPTER_WORLDS];
@@ -38,8 +39,12 @@ static int gpt_adapter_prepare(val_firme_abi_test_context_t *context)
     uint32_t unlocked = VAL_FALSE;
 
     if (!context || !context->abi || !context->test_case ||
-        (uint32_t)context->world >= GPT_ADAPTER_WORLDS ||
-        context->test_case->mutation != VAL_FIRME_MUTATION_NONE)
+        (uint32_t)context->world >= GPT_ADAPTER_WORLDS)
+        return VAL_ERROR;
+    if (context->test_case->mutation != VAL_FIRME_MUTATION_NONE &&
+        (context->abi->id != VAL_FIRME_ABI_ID_GM_GPI_SET ||
+         (context->test_case->mutation != VAL_FIRME_MUTATION_GM_UNALIGNED_BASE &&
+          context->test_case->mutation != VAL_FIRME_MUTATION_GM_ZERO_COUNT)))
         return VAL_ERROR;
     if (!__atomic_compare_exchange_n(&g_gpt_adapter_lock[context->world],
             &unlocked, VAL_TRUE, 0, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
@@ -49,11 +54,15 @@ static int gpt_adapter_prepare(val_firme_abi_test_context_t *context)
     kind = (context->abi->id == VAL_FIRME_ABI_ID_GM_GPI_SET ||
             context->abi->id == VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE) ?
             PAL_FIRME_GPT_MEMORY_TRANSITION : PAL_FIRME_GPT_MEMORY_L1_NON_SELF;
-    status = val_firme_gpt_fixture_begin(fixture, context->world, kind);
+    status = val_firme_gpt_fixture_begin_abi(fixture, context, kind);
     if (status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE)
         return VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
     if (status != PAL_FIRME_GPT_SCENARIO_READY)
         return VAL_ERROR;
+    if (context->test_case->mutation == VAL_FIRME_MUTATION_GM_UNALIGNED_BASE &&
+        fixture->memory.range_size <= fixture->granule_size)
+        return VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
+
     if (context->abi->id == VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE) {
         status = val_firme_gpt_fixture_retain(fixture);
         if (status == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE)
@@ -91,6 +100,46 @@ static int gpt_adapter_build(val_firme_abi_test_context_t *context)
     return VAL_SUCCESS;
 }
 
+/** @brief Corrupt one allocated input without leaving the reserved memory extent. */
+static int gpt_adapter_mutate(val_firme_abi_test_context_t *context)
+{
+    val_firme_gpt_fixture_t *fixture = gpt_adapter_fixture(context);
+
+    if (!fixture || !context->test_case || fixture->poisoned ||
+        fixture->kind != PAL_FIRME_GPT_MEMORY_TRANSITION)
+        return VAL_ERROR;
+    if (context->test_case->mutation == VAL_FIRME_MUTATION_GM_UNALIGNED_BASE) {
+        if (fixture->granule_size <= 1ULL ||
+            fixture->memory.range_size <= fixture->granule_size)
+            return VAL_ERROR;
+        context->input.registers[1] = fixture->memory.range_base + 1ULL;
+        context->input.registers[2] = 1ULL;
+        return VAL_SUCCESS;
+    }
+    if (context->test_case->mutation == VAL_FIRME_MUTATION_GM_ZERO_COUNT) {
+        context->input.registers[2] = 0ULL;
+        return VAL_SUCCESS;
+    }
+    return VAL_ERROR;
+}
+
+/** @brief Observe every reserved granule after a rejected input mutation. */
+static uint32_t gpt_adapter_no_effect(val_firme_abi_test_context_t *context)
+{
+    val_firme_gpt_fixture_t *fixture = gpt_adapter_fixture(context);
+    uint64_t checked = 0ULL;
+
+    if (!fixture || fixture->poisoned ||
+        fixture->kind != PAL_FIRME_GPT_MEMORY_TRANSITION ||
+        fixture->memory.initial_gpi > UINT64_C(0xf))
+        return VAL_FALSE;
+    return (pal_firme_gpt_l1_gpi_range_check(fixture->memory.range_base,
+                fixture->memory.range_size, fixture->granule_size, 0ULL, 0ULL,
+                UINT32_C(1) << fixture->memory.initial_gpi, &checked) ==
+                    PAL_FIRME_GPT_SCENARIO_READY && checked == fixture->count) ?
+           VAL_TRUE : VAL_FALSE;
+}
+
 /** @brief Save the actual response before any failure can bypass cleanup. */
 static int gpt_adapter_record(val_firme_abi_test_context_t *context)
 {
@@ -108,6 +157,14 @@ static int gpt_adapter_record(val_firme_abi_test_context_t *context)
     result.x1 = context->output.registers[1];
     result.x2 = context->output.registers[2];
     result.x3 = context->output.registers[3];
+    if (context->test_case->mutation != VAL_FIRME_MUTATION_NONE) {
+        fixture->last_status = val_firme_status_to_i64(result.x0);
+        if (fixture->last_status == (int64_t)FIRME_INVALID_PARAMETERS &&
+            gpt_adapter_no_effect(context) == VAL_TRUE)
+            return VAL_SUCCESS;
+        fixture->poisoned = VAL_TRUE;
+        return VAL_ERROR;
+    }
     if (fixture->kind == PAL_FIRME_GPT_MEMORY_TRANSITION)
         record_status = val_firme_gpt_fixture_gpi_record(fixture, &result);
     else
@@ -123,12 +180,18 @@ static int gpt_adapter_record(val_firme_abi_test_context_t *context)
 static uint32_t gpt_adapter_validate(val_firme_abi_test_context_t *context)
 {
     val_firme_gpt_fixture_t *fixture = gpt_adapter_fixture(context);
+    uint32_t accepted;
 
     if (!fixture || gpt_adapter_record(context) != VAL_SUCCESS)
         return VAL_FALSE;
-    return (fixture->last_status == (int64_t)FIRME_SUCCESS ||
-            fixture->last_status == (int64_t)FIRME_BUSY ||
-            fixture->last_status == (int64_t)FIRME_INCOMPLETE) ? VAL_TRUE : VAL_FALSE;
+    if (context->test_case->mutation != VAL_FIRME_MUTATION_NONE)
+        return gpt_adapter_no_effect(context);
+    accepted = (fixture->last_status == (int64_t)FIRME_SUCCESS ||
+                fixture->last_status == (int64_t)FIRME_BUSY ||
+                fixture->last_status == (int64_t)FIRME_INCOMPLETE) ? VAL_TRUE : VAL_FALSE;
+    if (accepted == VAL_TRUE)
+        context->scratch[GPT_ADAPTER_POSITIVE] = VAL_TRUE;
+    return accepted;
 }
 
 /** @brief Record every issued response, then restore only known operation state. */
@@ -136,35 +199,60 @@ static int gpt_adapter_cleanup(val_firme_abi_test_context_t *context)
 {
     val_firme_gpt_fixture_t *fixture = gpt_adapter_fixture(context);
     int record_status = VAL_SUCCESS;
+    int finish_status = VAL_SUCCESS;
     int cleanup_status;
 
     if (!context)
         return VAL_ERROR;
     if (!fixture)
         return VAL_SUCCESS;
+    if (context->transport_uncertain) {
+        fixture->poisoned = VAL_TRUE;
+        fixture->abi_context.invoke_frame = NULL;
+        fixture->abi_context.invoke_cookie = NULL;
+        return VAL_ERROR;
+    }
+
     if (context->call_issued == VAL_TRUE &&
         !context->scratch[GPT_ADAPTER_RECORDED]) {
         if (!context->scratch[GPT_ADAPTER_ARMED]) {
             fixture->poisoned = VAL_TRUE;
+            fixture->abi_context.invoke_frame = NULL;
+            fixture->abi_context.invoke_cookie = NULL;
             return VAL_ERROR;
         }
         record_status = gpt_adapter_record(context);
         if (record_status != VAL_SUCCESS)
             fixture->poisoned = VAL_TRUE;
     }
+    if (context->scratch[GPT_ADAPTER_POSITIVE]) {
+        if (fixture->kind == PAL_FIRME_GPT_MEMORY_TRANSITION)
+            finish_status = val_firme_gpt_fixture_complete_transition(fixture);
+        else if (fixture->last_status != (int64_t)FIRME_SUCCESS)
+            finish_status = val_firme_gpt_fixture_l1_complete(fixture,
+                context->abi->id == VAL_FIRME_ABI_ID_GM_L1_GPT_DESTROY ? VAL_TRUE : VAL_FALSE);
+    }
     cleanup_status = val_firme_gpt_fixture_cleanup(fixture);
     if (cleanup_status == VAL_SUCCESS) {
         context->scratch[GPT_ADAPTER_LOCKED] = VAL_FALSE;
         __atomic_store_n(&g_gpt_adapter_lock[context->world], VAL_FALSE, __ATOMIC_RELEASE);
+    } else {
+        fixture->poisoned = VAL_TRUE;
+        fixture->abi_context.invoke_frame = NULL;
+        fixture->abi_context.invoke_cookie = NULL;
     }
-    return (cleanup_status == VAL_SUCCESS && record_status == VAL_SUCCESS) ?
+
+    return (cleanup_status == VAL_SUCCESS && record_status == VAL_SUCCESS &&
+            finish_status == VAL_SUCCESS) ?
            VAL_SUCCESS : VAL_ERROR;
 }
 
 static const val_firme_abi_test_ops_t g_gpt_adapter_ops = {
     .prepare_state = gpt_adapter_prepare,
     .build_valid_input = gpt_adapter_build,
+    .apply_mutation = gpt_adapter_mutate,
     .validate_output = gpt_adapter_validate,
+    .validate_effect = gpt_adapter_no_effect,
     .cleanup = gpt_adapter_cleanup,
 };
 

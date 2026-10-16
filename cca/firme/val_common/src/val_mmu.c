@@ -52,6 +52,27 @@
 /* MAIR encodings. */
 #define MAIR_ATTR_DEVICE_nGnRE 0x04UL
 #define MAIR_ATTR_NORMAL_WBWA  0xFFUL
+#define DESC_NS (UINT64_C(1) << 5)
+#define VAL_NS_PROBE_ALIAS (UINT64_C(1) << 38)
+#define VAL_NS_PROBE_TCR_RES1 ((UINT64_C(1) << 31) | (UINT64_C(1) << 23))
+#define VAL_NS_PROBE_TCR_NC (UINT64_C(25) | (UINT64_C(3) << 12))
+
+typedef struct {
+    uint64_t root[L1_ENTRIES];
+    uint64_t image_l2[L2_ENTRIES];
+    uint64_t image_l3[L3_ENTRIES];
+    uint64_t alias_l2[L2_ENTRIES];
+    uint64_t alias_l3[L3_ENTRIES];
+} val_ns_probe_tables_t;
+
+static _Alignas(PAGE_SIZE) val_ns_probe_tables_t g_ns_probe_tables[PAL_PE_COUNT];
+static uint32_t g_ns_probe_active[PAL_PE_COUNT];
+
+int val_mmu_ns_read_scope_el2(uint64_t root, uint64_t tcr, uint64_t address,
+                              uint64_t *value, val_fault_info_t *fault);
+int val_mmu_native_read_scope_el2(uint64_t root, uint64_t tcr, uint64_t address,
+                                  uint64_t *value, val_fault_info_t *fault,
+                                  uint64_t expected_root);
 
 _Alignas(PAGE_SIZE) uint64_t g_val_mmu_l1[L1_ENTRIES];
 static _Alignas(PAGE_SIZE) uint64_t g_alias_l2[L2_ENTRIES];
@@ -379,5 +400,176 @@ int val_mmu_unmap_alternate_mecid_page_el2(uint64_t va)
 
     g_alias_va = 0ULL;
     g_alias_active = 0U;
+    return VAL_SUCCESS;
+}
+
+/** @brief Report whether this PE is inside the temporary Secure NS-PAS mapping. */
+uint32_t val_mmu_ns_probe_active(void)
+{
+    uint32_t pe_index = val_pe_index();
+
+    return (pe_index < PAL_PE_COUNT) ? g_ns_probe_active[pe_index] : VAL_FALSE;
+}
+
+/**
+ * @brief Build private tables mapping only the Secure image and one NS data page.
+ * @return VAL_SUCCESS for a representable, non-overlapping mapping.
+ */
+static int val_mmu_ns_probe_build(val_ns_probe_tables_t *tables,
+                                  uint64_t image_start, uint64_t image_end,
+                                  uint64_t pa)
+{
+    uint64_t page;
+    uint64_t descriptor;
+    uint32_t index;
+    uint32_t image_root;
+    uint32_t image_l2;
+
+    if (!tables || !image_start || image_start >= image_end ||
+        (image_start & (PAGE_SIZE - 1U)) ||
+        (image_end > VAL_NS_PROBE_ALIAS) ||
+        ((image_start >> 21) != ((image_end - 1U) >> 21)) ||
+        (pa >> 48) || (pa & (sizeof(uint64_t) - 1U)))
+        return VAL_ERROR;
+
+    image_root = (uint32_t)(image_start >> 30);
+    image_l2 = (uint32_t)((image_start >> 21) & UINT64_C(0x1ff));
+    for (index = 0U; index < L1_ENTRIES; index++) {
+        tables->root[index] = 0ULL;
+        tables->image_l2[index] = 0ULL;
+        tables->image_l3[index] = 0ULL;
+        tables->alias_l2[index] = 0ULL;
+        tables->alias_l3[index] = 0ULL;
+    }
+
+    descriptor = DESC_TYPE_PAGE | DESC_AF | DESC_SH_IS | DESC_AP_RW;
+    for (page = image_start; page < image_end; page += PAGE_SIZE)
+        tables->image_l3[(page >> 12) & UINT64_C(0x1ff)] = page | descriptor;
+
+    tables->image_l2[image_l2] = make_table_desc(tables->image_l3);
+    tables->root[image_root] = make_table_desc(tables->image_l2);
+    tables->alias_l3[0] = (pa & DESC_ADDRESS_MASK) | descriptor | DESC_NS |
+                         DESC_PXN | DESC_UXN;
+    tables->alias_l2[0] = make_table_desc(tables->alias_l3);
+    tables->root[VAL_NS_PROBE_ALIAS >> 30] = make_table_desc(tables->alias_l2);
+    return VAL_SUCCESS;
+}
+
+/** @brief Probe with a private image map when the caller's MMU and cache are disabled. */
+static int val_mmu_probe_uncached_el2(uint64_t pa, uint64_t image_start,
+                                      uint64_t image_end, uint64_t *value,
+                                      val_fault_info_t *fault, uint32_t nonsecure)
+{
+    uint32_t pe_index = val_pe_index();
+    uint64_t physical_range;
+    uint64_t tcr;
+    uintptr_t table_base;
+    val_ns_probe_tables_t *tables;
+    int probe_status;
+
+    if (!value || !fault || pe_index >= PAL_PE_COUNT)
+        return VAL_ERROR;
+    *value = 0ULL;
+    *fault = (val_fault_info_t){0};
+    if (g_ns_probe_active[pe_index] || read_currentel() != UINT64_C(8) ||
+        (read_sctlr_el2() & UINT64_C(5)))
+        return VAL_ERROR;
+
+    tables = &g_ns_probe_tables[pe_index];
+    table_base = (uintptr_t)tables;
+    if (image_end <= image_start || image_end - image_start < sizeof(*tables) ||
+        table_base < image_start || table_base > image_end - sizeof(*tables) ||
+        (uintptr_t)value < image_start || (uintptr_t)value > image_end - sizeof(*value) ||
+        (uintptr_t)fault < image_start || (uintptr_t)fault > image_end - sizeof(*fault))
+        return VAL_ERROR;
+
+    physical_range = val_read_id_aa64mmfr0_el1() & UINT64_C(0xf);
+    if (physical_range > UINT64_C(6))
+        return VAL_ERROR;
+    if (physical_range > UINT64_C(5))
+        physical_range = UINT64_C(5);
+    if (val_mmu_ns_probe_build(tables, image_start, image_end, pa) != VAL_SUCCESS)
+        return VAL_ERROR;
+    if (!nonsecure)
+        tables->alias_l3[0] &= ~DESC_NS;
+
+    tcr = VAL_NS_PROBE_TCR_NC | VAL_NS_PROBE_TCR_RES1 |
+          (physical_range << VAL_TCR_PS_SHIFT);
+    g_ns_probe_active[pe_index] = VAL_TRUE;
+    dsb_sy();
+    probe_status = val_mmu_ns_read_scope_el2(table_base, tcr,
+        VAL_NS_PROBE_ALIAS | (pa & (PAGE_SIZE - 1U)), value, fault);
+    g_ns_probe_active[pe_index] = VAL_FALSE;
+    if (probe_status != VAL_SUCCESS && !fault->faulted)
+        return VAL_ERROR;
+
+    return VAL_SUCCESS;
+}
+
+/** @brief Perform a scoped S-EL2 NS-output load without changing shared boot tables. */
+int val_mmu_probe_ns_read64_el2(uint64_t pa, uint64_t image_start,
+                               uint64_t image_end, uint64_t *value,
+                               val_fault_info_t *fault)
+{
+    return val_mmu_probe_uncached_el2(pa, image_start, image_end, value,
+                                     fault, VAL_TRUE);
+}
+
+/**
+ * @brief Map one native-PAS page privately, retaining active identity mappings and caches.
+ * @return VAL_SUCCESS for load/fault evidence, VAL_ERROR if safe setup is unavailable.
+ */
+int val_mmu_probe_native_read64_el2(uint64_t pa, uint64_t image_start,
+                                    uint64_t image_end, uint64_t *value,
+                                    val_fault_info_t *fault)
+{
+    uint32_t pe_index = val_pe_index();
+    uint32_t index;
+    uint64_t physical_range;
+    uint64_t tcr;
+    val_ns_probe_tables_t *tables;
+    int probe_status;
+
+    if (!value || !fault || pe_index >= PAL_PE_COUNT ||
+        read_currentel() != UINT64_C(8) || g_ns_probe_active[pe_index] ||
+        (pa >> 48) || (pa & (sizeof(uint64_t) - 1U)))
+        return VAL_ERROR;
+    *value = 0ULL;
+    *fault = (val_fault_info_t){0};
+    if (!(read_sctlr_el2() & UINT64_C(1)))
+        return val_mmu_probe_uncached_el2(pa, image_start, image_end, value,
+                                         fault, VAL_FALSE);
+
+    tcr = val_read_tcr_el2();
+    if ((tcr & UINT64_C(0x3f)) != UINT64_C(25) ||
+        (tcr & (UINT64_C(3) << 14)) || g_alias_active ||
+        g_val_mmu_l1[VAL_NS_PROBE_ALIAS >> 30])
+        return VAL_ERROR;
+    physical_range = val_read_id_aa64mmfr0_el1() & UINT64_C(0xf);
+    if (physical_range > UINT64_C(6))
+        return VAL_ERROR;
+    if (physical_range > UINT64_C(5))
+        physical_range = UINT64_C(5);
+    tables = &g_ns_probe_tables[pe_index];
+    for (index = 0U; index < L1_ENTRIES; index++) {
+        tables->root[index] = g_val_mmu_l1[index];
+        tables->alias_l2[index] = 0ULL;
+        tables->alias_l3[index] = 0ULL;
+    }
+
+    tables->alias_l3[0] = (pa & DESC_ADDRESS_MASK) | DESC_TYPE_PAGE | DESC_AF |
+                         DESC_SH_IS | DESC_AP_RW | DESC_ATTRINDX(7) | DESC_PXN | DESC_UXN;
+    tables->alias_l2[0] = make_table_desc(tables->alias_l3);
+    tables->root[VAL_NS_PROBE_ALIAS >> 30] = make_table_desc(tables->alias_l2);
+    val_cache_clean_poc((uintptr_t)tables, sizeof(*tables));
+    tcr = (tcr & ~VAL_TCR_PS_MASK) | (physical_range << VAL_TCR_PS_SHIFT);
+    g_ns_probe_active[pe_index] = VAL_TRUE;
+    probe_status = val_mmu_native_read_scope_el2((uint64_t)(uintptr_t)tables, tcr,
+        VAL_NS_PROBE_ALIAS | (pa & (PAGE_SIZE - 1U)), value, fault,
+        (uint64_t)(uintptr_t)g_val_mmu_l1);
+    g_ns_probe_active[pe_index] = VAL_FALSE;
+    if (probe_status != VAL_SUCCESS && !fault->faulted)
+        return VAL_ERROR;
+
     return VAL_SUCCESS;
 }

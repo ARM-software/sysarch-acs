@@ -14,16 +14,16 @@
 /**
  *   @brief    - Report worlds supported by the PAT partial-retrieval adapter.
  *   @param    - world : FIRME caller world.
- *   @return   - VAL_TRUE for NS; actual service/resources are checked by the probe.
+ *   @return   - VAL_TRUE for NS/Realm; actual resources are checked by the probe.
  **/
 __attribute__((weak)) uint32_t
 val_firme_partial_retrieval_probe_available(firme_acs_world_t world)
 {
-    return world == FIRME_ACS_WORLD_NSEL2 ? VAL_TRUE : VAL_FALSE;
+    return val_firme_shared_buffer_probe_available(world);
 }
 
 /**
- *   @brief    - Observe an NS PAT intermediate/no-chunk completion and drain it.
+ *   @brief    - Observe a PAT intermediate/no-chunk completion and drain it.
  *   @param    - world     : FIRME caller world.
  *   @param    - test_case : Retrieval scenario to exercise.
  *   @param    - evidence  : Returned ABI and size evidence.
@@ -43,7 +43,7 @@ __attribute__((weak)) int val_firme_partial_retrieval_probe(
     if (evidence == 0)
         return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_ERROR;
     *evidence = (val_firme_partial_retrieval_evidence_t){0};
-    if ((world != FIRME_ACS_WORLD_NSEL2) ||
+    if ((val_firme_shared_buffer_probe_available(world) != VAL_TRUE) ||
         (test_case == VAL_FIRME_PARTIAL_RETRIEVAL_LAST_CHUNK))
         return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE;
     if ((test_case != VAL_FIRME_PARTIAL_RETRIEVAL_INTERMEDIATE_CHUNK) &&
@@ -60,6 +60,8 @@ __attribute__((weak)) int val_firme_partial_retrieval_probe(
         return evidence->valid_fields != 0U ? VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_AVAILABLE :
                    VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE;
     case VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE:
+        evidence->prerequisite_reason = buffer.prerequisite_reason;
+        evidence->prerequisite_detail = buffer.prerequisite_detail;
         return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE;
     case VAL_FIRME_SHARED_BUFFER_PROBE_FAILED:
         return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_FAILED;

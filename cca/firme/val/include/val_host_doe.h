@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 typedef struct {
+    uint64_t ecam_base;
     uint32_t root_bdf;
     uint32_t endpoint_bdf;
     uint32_t doe_offset;
@@ -19,6 +20,8 @@ typedef struct {
 } val_host_doe_endpoint_t;
 
 int val_host_doe_prepare_endpoint(val_host_doe_endpoint_t *endpoint);
+int val_host_doe_prepare_endpoint_at(uint64_t ecam_base,
+                                     val_host_doe_endpoint_t *endpoint);
 int val_host_doe_release_endpoint(val_host_doe_endpoint_t *endpoint);
 int val_host_doe_discover_spdm(const val_host_doe_endpoint_t *endpoint);
 int val_host_doe_send(const val_host_doe_endpoint_t *endpoint,

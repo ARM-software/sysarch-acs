@@ -16,6 +16,7 @@
 #include "val_firme_abi.h"
 #include "val_firme_ide.h"
 #include "val_log.h"
+#include "pal_pcie.h"
 
 #define IDE_ABI_ECAM        0U
 #define IDE_ABI_BAD_ECAM    1U
@@ -38,8 +39,49 @@ static uint32_t g_ide_abi_retained_valid;
 static uint64_t g_ide_abi_handle;
 static uint32_t g_ide_abi_owner_pe;
 static uint32_t g_ide_abi_owned;
+static uint32_t g_ide_abi_rejection_uncertain;
 
 static int val_firme_ide_abi_cleanup(val_firme_abi_test_context_t *context);
+
+/** @brief Route setup, polling and cleanup to the same caller as the tested ABI. */
+static int val_firme_ide_abi_remote_call(val_firme_abi_test_context_t *context,
+                                         uint64_t fid, uint64_t flags,
+                                         uint64_t keyset, firme_res_t *response)
+{
+    smccc_call_frame_t input = {0};
+    smccc_call_frame_t output = {0};
+    uint32_t issued = VAL_FALSE;
+    uint32_t attempt;
+    uint32_t key_index;
+    int64_t status;
+
+    input.registers[0] = fid;
+    input.registers[1] = context->scratch[IDE_ABI_ECAM];
+    input.registers[2] = flags;
+    input.registers[3] = keyset;
+    if (fid == FIRME_FID_IDE_KEYSET_PROG) {
+        for (key_index = 0U; key_index < IDE_ABI_KEY_COUNT; key_index++)
+            input.registers[4U + key_index] = context->scratch[IDE_ABI_KEY_FIRST + key_index];
+        input.registers[8] = context->scratch[IDE_ABI_HANDLE];
+    } else if (fid != FIRME_FID_IDE_KEYSET_POLL) {
+        input.registers[4] = context->scratch[IDE_ABI_HANDLE];
+    }
+
+    for (attempt = 0U; attempt < VAL_FIRME_IDE_RETRY_LIMIT; attempt++) {
+        if (val_firme_abi_call(context, &input, &output, &issued) != VAL_SUCCESS)
+            return VAL_ERROR;
+        response->x0 = output.registers[0];
+        response->x1 = output.registers[1];
+        response->x2 = output.registers[2];
+        status = val_firme_status_to_i64(response->x0);
+        if (status != FIRME_BUSY &&
+            (fid != FIRME_FID_IDE_KEYSET_POLL || status != FIRME_INCOMPLETE))
+            return VAL_SUCCESS;
+        val_mp_relax();
+    }
+
+    return VAL_SUCCESS;
+}
 
 /** @brief Allocate a non-reused handle before issuing a new operation. */
 static int val_firme_ide_abi_new_handle(val_firme_abi_test_context_t *context)
@@ -251,9 +293,15 @@ static int val_firme_ide_abi_poll_complete(
 
     keyset_id = (any_pending == VAL_TRUE) ? 0ULL :
                 context->scratch[IDE_ABI_KEYSET];
-    val_firme_ide_keyset_poll_do_retry(
-        context->scratch[IDE_ABI_ECAM],
-        val_firme_ide_poll_flags(any_pending), keyset_id, &response);
+    if (context->invoke_frame) {
+        if (val_firme_ide_abi_remote_call(context, FIRME_FID_IDE_KEYSET_POLL,
+                val_firme_ide_poll_flags(any_pending), keyset_id, &response) != VAL_SUCCESS)
+            return VAL_ERROR;
+    } else {
+        val_firme_ide_keyset_poll_do_retry(
+            context->scratch[IDE_ABI_ECAM],
+            val_firme_ide_poll_flags(any_pending), keyset_id, &response);
+    }
 
     if ((val_firme_status_to_i64(response.x0) != (int64_t)FIRME_SUCCESS) ||
         (response.x1 != context->scratch[IDE_ABI_HANDLE]) ||
@@ -302,7 +350,14 @@ static int val_firme_ide_abi_program_setup(
     arguments.keyqw1 = context->scratch[IDE_ABI_KEY_FIRST + 1U];
     arguments.keyqw2 = context->scratch[IDE_ABI_KEY_FIRST + 2U];
     arguments.keyqw3 = context->scratch[IDE_ABI_KEY_FIRST + 3U];
-    val_firme_ide_keyset_prog_do_retry(&arguments, &response);
+    if (context->invoke_frame) {
+        if (val_firme_ide_abi_remote_call(context, FIRME_FID_IDE_KEYSET_PROG,
+                val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
+                context->scratch[IDE_ABI_KEYSET], &response) != VAL_SUCCESS)
+            return VAL_ERROR;
+    } else {
+        val_firme_ide_keyset_prog_do_retry(&arguments, &response);
+    }
     status = val_firme_status_to_i64(response.x0);
     val_firme_ide_abi_track(context, PAL_FIRME_IDE_ABI_PROG, status);
 
@@ -340,11 +395,18 @@ static int val_firme_ide_abi_go_setup(
 
     if (val_firme_ide_abi_new_handle(context) != VAL_SUCCESS)
         return VAL_ERROR;
-    val_firme_ide_keyset_go_do_retry(
-        context->scratch[IDE_ABI_ECAM],
-        val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
-        context->scratch[IDE_ABI_KEYSET],
-        context->scratch[IDE_ABI_HANDLE], &response);
+    if (context->invoke_frame) {
+        if (val_firme_ide_abi_remote_call(context, FIRME_FID_IDE_KEYSET_GO,
+                val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
+                context->scratch[IDE_ABI_KEYSET], &response) != VAL_SUCCESS)
+            return VAL_ERROR;
+    } else {
+        val_firme_ide_keyset_go_do_retry(
+            context->scratch[IDE_ABI_ECAM],
+            val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
+            context->scratch[IDE_ABI_KEYSET],
+            context->scratch[IDE_ABI_HANDLE], &response);
+    }
     status = val_firme_status_to_i64(response.x0);
 
     val_firme_ide_abi_track(context, PAL_FIRME_IDE_ABI_GO, status);
@@ -360,6 +422,49 @@ static int val_firme_ide_abi_go_setup(
 
     context->scratch[IDE_ABI_ACTIVE] = VAL_TRUE;
     return VAL_SUCCESS;
+}
+
+/**
+ * @brief Exercise invalid-ECAM rejection even when functional fixtures are unavailable.
+ * @param context Case whose positive/no-effect coverage remains explicitly incomplete.
+ * @return SCENARIO_UNAVAILABLE after correct rejection, VAL_ERROR for a real failure.
+ */
+static int val_firme_ide_abi_rejection_probe(val_firme_abi_test_context_t *context)
+{
+    pal_pcie_ecam_info_t ecam = {0};
+    uint32_t index;
+    int64_t status;
+
+    if (context->test_case->mutation != VAL_FIRME_MUTATION_IDE_INVALID_ECAM)
+        return VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
+    for (index = 0U; index < pal_pcie_ecam_count(); index++) {
+        if (pal_pcie_ecam_info(index, &ecam) != VAL_SUCCESS || ecam.ecam_base == UINT64_MAX)
+            return VAL_ERROR;
+    }
+
+    context->input = (smccc_call_frame_t){0};
+    context->input.registers[0] = context->abi->fid;
+    context->input.registers[1] = UINT64_MAX;
+    if (val_firme_abi_call(context, &context->input, &context->output,
+                           &context->call_issued) != VAL_SUCCESS) {
+        g_ide_abi_rejection_uncertain = context->call_issued;
+        return VAL_ERROR;
+    }
+
+    context->output_valid = VAL_TRUE;
+    status = val_firme_status_to_i64(context->output.registers[0]);
+    if (status != FIRME_INVALID_PARAMETERS) {
+        g_ide_abi_rejection_uncertain = status != FIRME_NOT_SUPPORTED &&
+                                        status != FIRME_DENIED && status != FIRME_BUSY;
+        LOG_ERROR(NULL, "%s: invalid ECAM returned x0=%llx; uncertain=%u\n",
+                  context->plan->name, (unsigned long long)context->output.registers[0],
+                  g_ide_abi_rejection_uncertain);
+        return VAL_ERROR;
+    }
+
+    LOG_TEST(NULL, "%s: invalid ECAM rejection checked; positive and no-effect "
+             "coverage still requires an owned observable path\n", context->plan->name);
+    return VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
 }
 
 /**
@@ -379,6 +484,12 @@ static int val_firme_ide_abi_prepare(
     if (!context || !context->abi || !context->test_case)
         return VAL_ERROR;
 
+    if (g_ide_abi_rejection_uncertain) {
+        LOG_ERROR(NULL, "%s: invalid-ECAM request left uncertain DUT state; reset required\n",
+                  context->plan->name);
+        return VAL_ERROR;
+    }
+
     if (g_ide_abi_retained_valid &&
         val_firme_ide_abi_cleanup(&g_ide_abi_retained) != VAL_SUCCESS)
         return VAL_ERROR;
@@ -396,7 +507,7 @@ static int val_firme_ide_abi_prepare(
     if (platform_status == PAL_FIRME_IDE_ABI_UNAVAILABLE) {
         LOG_WARN(NULL, "%s: IDE Root Port/endpoint scenario unavailable",
                  context->plan->name);
-        return VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
+        return val_firme_ide_abi_rejection_probe(context);
     }
     if (platform_status != PAL_FIRME_IDE_ABI_READY)
         return VAL_ERROR;
@@ -405,6 +516,17 @@ static int val_firme_ide_abi_prepare(
     g_ide_abi_owned = VAL_TRUE;
     if (val_firme_ide_abi_store_scenario(context, &scenario) != VAL_SUCCESS)
         return VAL_ERROR;
+
+    /* Step 1: A rejected PROG must preserve a distinct working key, not just stay blocked. */
+    if (operation == PAL_FIRME_IDE_ABI_PROG &&
+        (condition == PAL_FIRME_IDE_ABI_INVALID_ECAM ||
+         condition == PAL_FIRME_IDE_ABI_INVALID_TYPE)) {
+        context->scratch[IDE_ABI_KEY_FIRST] ^= PAL_FIRME_IDE_ABI_BASELINE_KEY_XOR;
+        setup_status = val_firme_ide_abi_program_setup(context, VAL_FALSE);
+        context->scratch[IDE_ABI_KEY_FIRST] ^= PAL_FIRME_IDE_ABI_BASELINE_KEY_XOR;
+        if (setup_status != VAL_SUCCESS || val_firme_ide_abi_go_setup(context) != VAL_SUCCESS)
+            return VAL_ERROR;
+    }
 
     if (operation == PAL_FIRME_IDE_ABI_GO ||
         operation == PAL_FIRME_IDE_ABI_STOP) {
@@ -545,7 +667,11 @@ static int val_firme_ide_abi_retry_main(
             return VAL_SUCCESS;
 
         val_mp_relax();
-        val_smccc_smc_call_frame(&context->input, &context->output);
+        context->output_valid = VAL_FALSE;
+        if (val_firme_abi_call(context, &context->input, &context->output,
+                               &context->call_issued) != VAL_SUCCESS)
+            return VAL_ERROR;
+        context->output_valid = VAL_TRUE;
     }
 
     status = val_firme_status_to_i64(context->output.registers[0]);
@@ -640,6 +766,13 @@ static uint32_t val_firme_ide_abi_validate(
         context->scratch[IDE_ABI_PROGRAMMED] = VAL_FALSE;
     }
 
+    /* Observe PROG and its POLL completion using the key just supplied, not a replay. */
+    if ((operation == PAL_FIRME_IDE_ABI_PROG || operation == PAL_FIRME_IDE_ABI_POLL) &&
+        context->scratch[IDE_ABI_PROGRAMMED] == VAL_TRUE &&
+        context->scratch[IDE_ABI_ACTIVE] != VAL_TRUE &&
+        val_firme_ide_abi_go_setup(context) != VAL_SUCCESS)
+        return VAL_FALSE;
+
     return val_firme_ide_abi_effect(context);
 }
 
@@ -656,11 +789,18 @@ static int val_firme_ide_abi_stop_cleanup(
 
     if (val_firme_ide_abi_new_handle(context) != VAL_SUCCESS)
         return VAL_ERROR;
-    val_firme_ide_keyset_stop_do_retry(
-        context->scratch[IDE_ABI_ECAM],
-        val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
-        context->scratch[IDE_ABI_KEYSET],
-        context->scratch[IDE_ABI_HANDLE], &response);
+    if (context->invoke_frame) {
+        if (val_firme_ide_abi_remote_call(context, FIRME_FID_IDE_KEYSET_STOP,
+                val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
+                context->scratch[IDE_ABI_KEYSET], &response) != VAL_SUCCESS)
+            return VAL_ERROR;
+    } else {
+        val_firme_ide_keyset_stop_do_retry(
+            context->scratch[IDE_ABI_ECAM],
+            val_firme_ide_flags((uint32_t)context->scratch[IDE_ABI_TYPE]),
+            context->scratch[IDE_ABI_KEYSET],
+            context->scratch[IDE_ABI_HANDLE], &response);
+    }
     status = val_firme_status_to_i64(response.x0);
 
     val_firme_ide_abi_track(context, PAL_FIRME_IDE_ABI_STOP, status);
@@ -700,6 +840,9 @@ static int val_firme_ide_abi_cleanup(
         return VAL_SUCCESS;
     if (!g_ide_abi_owned || g_ide_abi_owner_pe != val_pe_index())
         return VAL_ERROR;
+
+    if (context->transport_uncertain)
+        return val_firme_ide_abi_retain(context);
 
     if ((val_firme_ide_abi_operation(context->abi->id, &operation) !=
          VAL_SUCCESS) ||

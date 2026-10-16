@@ -17,6 +17,7 @@
 #include "val_firme_test.h"
 #include "pal_platform.h"
 #include "val_host_mp.h"
+#include "val_host_gpt.h"
 #include "val_common/val_status.h"
 
 #if FIRME_ENABLE_CXL_ENDPOINT_PROBE && !FIRME_ENABLE_CXL_SPDM
@@ -108,6 +109,12 @@ void nsel2_main(void)
 
     nsel2_platform_init();
     val_host_mp_init();
+    if (val_host_gpt_init() != VAL_SUCCESS) {
+        LOG_ERROR(NULL, "GPT fixture registration failed; stopping before rule execution");
+        for (;;)
+            val_wfe();
+    }
+
 #if FIRME_MP_SELF_TEST
     if (val_host_mp_self_test() != VAL_SUCCESS) {
         LOG_ERROR(NULL, "MP infrastructure FAIL; stopping before rule execution");

@@ -79,6 +79,370 @@
         .run_realm = firme_abi_r0347_run_realm,
     },
 #endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0348,
+        .rule_str = "R0348",
+        .suite = "firme",
+        .test_name = "gm_gpi_set_inputs",
+        .desc = "Validate GM_GPI_SET base, count and target-GPI input allocation.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0348 from ns world",
+        .check_secure = "R0348 from secure world",
+        .check_realm = "R0348 from realm world",
+        .run_ns = firme_abi_r0348_run_ns,
+        .run_secure = firme_abi_r0348_run_secure,
+        .run_realm = firme_abi_r0348_run_realm,
+        .run_host_secure = firme_abi_r0348_run_host_secure,
+        .run_host_realm = firme_abi_r0348_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0349,
+        .rule_str = "R0349",
+        .suite = "firme",
+        .test_name = "gm_gpi_set_outputs",
+        .desc = "Validate GM_GPI_SET status, count and continuation-cookie outputs.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0349 from ns world",
+        .check_secure = "R0349 from secure world",
+        .check_realm = "R0349 from realm world",
+        .run_ns = firme_abi_r0349_run_ns,
+        .run_secure = firme_abi_r0349_run_secure,
+        .run_realm = firme_abi_r0349_run_realm,
+        .run_host_secure = firme_abi_r0349_run_host_secure,
+        .run_host_realm = firme_abi_r0349_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0350,
+        .rule_str = "R0350",
+        .suite = "firme",
+        .test_name = "gm_gpi_op_continue_inputs",
+        .desc = "Validate GM_GPI_OP_CONTINUE function ID and cookie input allocation.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0350 from ns world",
+        .check_secure = "R0350 from secure world",
+        .check_realm = "R0350 from realm world",
+        .run_ns = firme_abi_r0350_run_ns,
+        .run_secure = firme_abi_r0350_run_secure,
+        .run_realm = firme_abi_r0350_run_realm,
+        .run_host_secure = firme_abi_r0350_run_host_secure,
+        .run_host_realm = firme_abi_r0350_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0351,
+        .rule_str = "R0351",
+        .suite = "firme",
+        .test_name = "gm_gpi_op_continue_outputs",
+        .desc = "Validate GM_GPI_OP_CONTINUE status, count and cookie outputs.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0351 from ns world",
+        .check_secure = "R0351 from secure world",
+        .check_realm = "R0351 from realm world",
+        .run_ns = firme_abi_r0351_run_ns,
+        .run_secure = firme_abi_r0351_run_secure,
+        .run_realm = firme_abi_r0351_run_realm,
+        .run_host_secure = firme_abi_r0351_run_host_secure,
+        .run_host_realm = firme_abi_r0351_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0352,
+        .rule_str = "R0352",
+        .suite = "firme",
+        .test_name = "gm_l1_gpt_create_inputs",
+        .desc = "Validate GM_L1_GPT_CREATE protected-range and L1 object inputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = 0,
+        .check_secure = 0,
+        .check_realm = "R0352 from realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0352_run_realm,
+        .run_host_realm = firme_abi_r0352_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0353,
+        .rule_str = "R0353",
+        .suite = "firme",
+        .test_name = "gm_l1_gpt_create_outputs",
+        .desc = "Validate GM_L1_GPT_CREATE status outputs across terminal and progress paths.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = 0,
+        .check_secure = 0,
+        .check_realm = "R0353 from realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0353_run_realm,
+        .run_host_realm = firme_abi_r0353_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0354,
+        .rule_str = "R0354",
+        .suite = "firme",
+        .test_name = "gm_l1_gpt_destroy_inputs",
+        .desc = "Validate GM_L1_GPT_DESTROY protected-range input allocation.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = 0,
+        .check_secure = 0,
+        .check_realm = "R0354 from realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0354_run_realm,
+        .run_host_realm = firme_abi_r0354_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0355,
+        .rule_str = "R0355",
+        .suite = "firme",
+        .test_name = "gm_l1_gpt_destroy_outputs",
+        .desc = "Validate GM_L1_GPT_DESTROY status and returned L1 object base.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = 0,
+        .check_secure = 0,
+        .check_realm = "R0355 from realm world",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0355_run_realm,
+        .run_host_realm = firme_abi_r0355_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0356,
+        .rule_str = "R0356",
+        .suite = "firme",
+        .test_name = "gm_gpt_info_inputs",
+        .desc = "Validate GM_GPT_INFO inclusive base and exclusive top inputs.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0356 from ns world",
+        .check_secure = "R0356 from secure world",
+        .check_realm = "R0356 from realm world",
+        .run_ns = firme_abi_r0356_run_ns,
+        .run_secure = firme_abi_r0356_run_secure,
+        .run_realm = firme_abi_r0356_run_realm,
+    },
+#endif
+#if FIRME_ENABLE_GPT
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0357,
+        .rule_str = "R0357",
+        .suite = "firme",
+        .test_name = "gm_gpt_info_outputs",
+        .desc = "Validate GM_GPT_INFO status, returned top and protected-range state.",
+        .required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_SECURE |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0U,
+        .check_ns = "R0357 from ns world",
+        .check_secure = "R0357 from secure world",
+        .check_realm = "R0357 from realm world",
+        .run_ns = firme_abi_r0357_run_ns,
+        .run_secure = firme_abi_r0357_run_secure,
+        .run_realm = firme_abi_r0357_run_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0358,
+        .rule_str = "R0358",
+        .suite = "firme",
+        .test_name = "ide_keyset_prog_inputs",
+        .desc = "Validate IDE_KEYSET_PROG ECAM, stream, key and handle inputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0358 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0358 from realm world",
+        .run_ns = firme_abi_r0358_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0358_run_realm,
+        .run_host_realm = firme_abi_r0358_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0359,
+        .rule_str = "R0359",
+        .suite = "firme",
+        .test_name = "ide_keyset_prog_outputs",
+        .desc = "Validate IDE_KEYSET_PROG terminal and asynchronous status outputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0359 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0359 from realm world",
+        .run_ns = firme_abi_r0359_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0359_run_realm,
+        .run_host_realm = firme_abi_r0359_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0360,
+        .rule_str = "R0360",
+        .suite = "firme",
+        .test_name = "ide_keyset_go_inputs",
+        .desc = "Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0360 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0360 from realm world",
+        .run_ns = firme_abi_r0360_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0360_run_realm,
+        .run_host_realm = firme_abi_r0360_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0361,
+        .rule_str = "R0361",
+        .suite = "firme",
+        .test_name = "ide_keyset_go_outputs",
+        .desc = "Validate IDE_KEYSET_GO terminal and asynchronous status outputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0361 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0361 from realm world",
+        .run_ns = firme_abi_r0361_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0361_run_realm,
+        .run_host_realm = firme_abi_r0361_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0362,
+        .rule_str = "R0362",
+        .suite = "firme",
+        .test_name = "ide_keyset_stop_inputs",
+        .desc = "Validate IDE_KEYSET_STOP ECAM, stream, keyset and handle inputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0362 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0362 from realm world",
+        .run_ns = firme_abi_r0362_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0362_run_realm,
+        .run_host_realm = firme_abi_r0362_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0363,
+        .rule_str = "R0363",
+        .suite = "firme",
+        .test_name = "ide_keyset_stop_outputs",
+        .desc = "Validate IDE_KEYSET_STOP terminal and asynchronous status outputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0363 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0363 from realm world",
+        .run_ns = firme_abi_r0363_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0363_run_realm,
+        .run_host_realm = firme_abi_r0363_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0364,
+        .rule_str = "R0364",
+        .suite = "firme",
+        .test_name = "ide_keyset_poll_inputs",
+        .desc = "Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0364 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0364 from realm world",
+        .run_ns = firme_abi_r0364_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0364_run_realm,
+        .run_host_realm = firme_abi_r0364_run_host_realm,
+    },
+#endif
+#if FIRME_ENABLE_IDE
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0365,
+        .rule_str = "R0365",
+        .suite = "firme",
+        .test_name = "ide_keyset_poll_outputs",
+        .desc = "Validate IDE_KEYSET_POLL status, handle and keyset outputs.",
+        .required_worlds_mask = 0U,
+        .optional_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_NS |
+                                VAL_FIRME_ABI_WORLD_MASK_REALM,
+        .check_ns = "R0365 from ns world",
+        .check_secure = 0,
+        .check_realm = "R0365 from realm world",
+        .run_ns = firme_abi_r0365_run_ns,
+        .run_secure = 0,
+        .run_realm = firme_abi_r0365_run_realm,
+        .run_host_realm = firme_abi_r0365_run_host_realm,
+    },
+#endif
 #if FIRME_ENABLE_MEC
     {
         .chapter = FIRME_CHAPTER_MEC,

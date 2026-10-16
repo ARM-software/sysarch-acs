@@ -12,27 +12,29 @@ outside this generator scope for this release.
 | R0345 | `FIRME_SERVICE_VERSION` | output | Active | ns, secure, realm | Validate SERVICE_VERSION version and NOT_SUPPORTED result encodings. |
 | R0346 | `FIRME_SERVICE_FEATURES` | input | Active | ns, secure, realm | Validate SERVICE_FEATURES service and feature-register input selection. |
 | R0347 | `FIRME_SERVICE_FEATURES` | output | Active | ns, secure, realm | Validate SERVICE_FEATURES status and feature-register result encodings. |
-| R0348 | `FIRME_GM_GPI_SET` | input | Gated | ns, secure, realm | Needs a state-aware transition adapter with deterministic setup and rollback. |
-| R0349 | `FIRME_GM_GPI_SET` | output | Gated | ns, secure, realm | Needs controlled terminal and progress paths plus transition cleanup. |
-| R0350 | `FIRME_GM_GPI_OP_CONTINUE` | input | Gated | ns, secure, realm | Needs a reproducible incomplete GM operation that returns a valid cookie. |
-| R0351 | `FIRME_GM_GPI_OP_CONTINUE` | output | Gated | ns, secure, realm | Needs deterministic terminal, incomplete and busy continuation paths. |
-| R0352 | `FIRME_GM_L1_GPT_CREATE` | input | Gated | realm | Needs platform protected-range discovery and L1 GPT object setup. |
-| R0353 | `FIRME_GM_L1_GPT_CREATE` | output | Gated | realm | Needs create, continuation, negative-path and cleanup orchestration. |
-| R0354 | `FIRME_GM_L1_GPT_DESTROY` | input | Gated | realm | Needs a successfully created L1 GPT object as deterministic pre-state. |
-| R0355 | `FIRME_GM_L1_GPT_DESTROY` | output | Gated | realm | Needs create/destroy lifecycle setup, output correlation and cleanup. |
-| R0356 | `FIRME_GM_GPT_INFO` | input | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
-| R0357 | `FIRME_GM_GPT_INFO` | output | Gated | ns, secure, realm | Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO. |
-| R0358 | `FIRME_IDE_KEYSET_PROG` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a real IDE path and deterministic status/effect evidence. |
-| R0359 | `FIRME_IDE_KEYSET_PROG` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies Root Port evidence, progress control and rollback. |
-| R0360 | `FIRME_IDE_KEYSET_GO` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a real programmed Root Port/endpoint path and cleanup. |
-| R0361 | `FIRME_IDE_KEYSET_GO` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies controlled Root Port state and rollback. |
-| R0362 | `FIRME_IDE_KEYSET_STOP` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a running IDE stream and safe cleanup. |
-| R0363 | `FIRME_IDE_KEYSET_STOP` | output | Gated | ns, realm | Adapter implemented; gated until PAL supplies controlled running/stopped Root Port states. |
-| R0364 | `FIRME_IDE_KEYSET_POLL` | input | Gated | ns, realm | Adapter implemented; gated until PAL supplies a pending IDE operation and real endpoint context. |
-| R0365 | `FIRME_IDE_KEYSET_POLL` | output | Gated | ns, realm | Adapter implemented; gated until PAL controls pending, completed and aborted IDE operations. |
+| R0348 | `FIRME_GM_GPI_SET` | input | Active | ns, secure, realm | Validate GM_GPI_SET base, count and target-GPI input allocation. |
+| R0349 | `FIRME_GM_GPI_SET` | output | Active | ns, secure, realm | Validate GM_GPI_SET status, count and continuation-cookie outputs. |
+| R0350 | `FIRME_GM_GPI_OP_CONTINUE` | input | Active | ns, secure, realm | Validate GM_GPI_OP_CONTINUE function ID and cookie input allocation. |
+| R0351 | `FIRME_GM_GPI_OP_CONTINUE` | output | Active | ns, secure, realm | Validate GM_GPI_OP_CONTINUE status, count and cookie outputs. |
+| R0352 | `FIRME_GM_L1_GPT_CREATE` | input | Active | realm | Validate GM_L1_GPT_CREATE protected-range and L1 object inputs. |
+| R0353 | `FIRME_GM_L1_GPT_CREATE` | output | Active | realm | Validate GM_L1_GPT_CREATE status outputs across terminal and progress paths. |
+| R0354 | `FIRME_GM_L1_GPT_DESTROY` | input | Active | realm | Validate GM_L1_GPT_DESTROY protected-range input allocation. |
+| R0355 | `FIRME_GM_L1_GPT_DESTROY` | output | Active | realm | Validate GM_L1_GPT_DESTROY status and returned L1 object base. |
+| R0356 | `FIRME_GM_GPT_INFO` | input | Active | ns, secure, realm | Validate GM_GPT_INFO inclusive base and exclusive top inputs. |
+| R0357 | `FIRME_GM_GPT_INFO` | output | Active | ns, secure, realm | Validate GM_GPT_INFO status, returned top and protected-range state. |
+| R0358 | `FIRME_IDE_KEYSET_PROG` | input | Active | ns, realm | Validate IDE_KEYSET_PROG ECAM, stream, key and handle inputs. |
+| R0359 | `FIRME_IDE_KEYSET_PROG` | output | Active | ns, realm | Validate IDE_KEYSET_PROG terminal and asynchronous status outputs. |
+| R0360 | `FIRME_IDE_KEYSET_GO` | input | Active | ns, realm | Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs. |
+| R0361 | `FIRME_IDE_KEYSET_GO` | output | Active | ns, realm | Validate IDE_KEYSET_GO terminal and asynchronous status outputs. |
+| R0362 | `FIRME_IDE_KEYSET_STOP` | input | Active | ns, realm | Validate IDE_KEYSET_STOP ECAM, stream, keyset and handle inputs. |
+| R0363 | `FIRME_IDE_KEYSET_STOP` | output | Active | ns, realm | Validate IDE_KEYSET_STOP terminal and asynchronous status outputs. |
+| R0364 | `FIRME_IDE_KEYSET_POLL` | input | Active | ns, realm | Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs. |
+| R0365 | `FIRME_IDE_KEYSET_POLL` | output | Active | ns, realm | Validate IDE_KEYSET_POLL status, handle and keyset outputs. |
 | R0366 | `FIRME_MEC_REFRESH` | input | Active | realm | Validate MEC_REFRESH reason and MECID input encoding. |
 | R0367 | `FIRME_MEC_REFRESH` | output | Active | realm | Validate MEC_REFRESH terminal status output after BUSY retries. |
 
-Every plan has a generated one-rule test entry point. Gated plans are
-not added to the runtime registry until their adapters and platform
-prerequisites support the stated rule coverage.
+Every active plan is registered and executes its applicable cases. Missing
+owned memory, a retained operation or an observable endpoint path produces
+SKIP, not PASS. The runner still executes later cases and preserves any
+failure. Missing mandatory ABIs and incorrect DUT results produce FAIL.
+A registered rule is not a claim that every listed status was observed.

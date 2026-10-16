@@ -78,10 +78,10 @@ static int shared_buffer_size_bounds_run(
     }
 
     if (limits.maximum_page_count == FIRME_BASE_MAX_SH_BUF_PG_CNT_MASK) {
-        LOG_WARN(NULL, "shared_buffer_size_bounds: above-maximum Page count is not "
-                 "representable without setting SBZ bits");
-        out->status = (uint64_t)ACS_STATUS_SKIP;
-        out->fail_step = SHARED_BUFFER_STEP_ABOVE_MAXIMUM;
+        LOG_INFO(NULL, "shared_buffer_size_bounds: minimum/maximum checks passed; "
+                 "above-maximum Page count is unencodable (not applicable)");
+        out->status = (uint64_t)ACS_STATUS_PASS;
+        out->fail_step = 0ULL;
         return VAL_SUCCESS;
     }
 

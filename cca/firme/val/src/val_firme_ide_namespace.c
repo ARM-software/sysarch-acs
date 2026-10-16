@@ -50,6 +50,27 @@ static ide_namespace_owner_t g_ide_namespace_owner;
 static uint64_t g_ide_namespace_handle;
 
 /**
+ * @brief Report missing host observation without claiming status-only coverage.
+ * @param world Target FIRME instance, not the world executing the host observer.
+ * @param out Explicit skip when no linked host SPDM backend is available.
+ * @return VAL_SUCCESS for unavailable evidence, VAL_ERROR for invalid arguments.
+ */
+__attribute__((weak)) int val_firme_ide_namespace_host_run(firme_acs_world_t world,
+                                                          firme_rule_res_t *out)
+{
+    if (!out)
+        return VAL_ERROR;
+    *out = (firme_rule_res_t){.status = ACS_STATUS_FAIL};
+    if (world != FIRME_ACS_WORLD_NSEL2 && world != FIRME_ACS_WORLD_REALM)
+        return VAL_ERROR;
+
+    LOG_WARN(NULL, "R0212: world=%u has no paired keyset-identity observer\n",
+             (unsigned int)world);
+    out->status = ACS_STATUS_SKIP;
+    return VAL_SUCCESS;
+}
+
+/**
  * @brief Record a failed IDE namespace check and the last DUT response.
  * @param out Rule result.
  * @param step Failing check number.
@@ -341,6 +362,8 @@ int val_firme_ide_namespace_run(pal_firme_ide_namespace_kind_t kind,
     /* Step 3: Reserve two real Root Port and endpoint paths. */
     platform_status = pal_firme_ide_namespace_prepare(kind, scenario);
     if (platform_status == PAL_FIRME_IDE_NAMESPACE_UNAVAILABLE) {
+        LOG_WARN(NULL, "IDE namespace: independent two-path observer unavailable kind=%u\n",
+                 (unsigned int)kind);
         out->status = (uint64_t)ACS_STATUS_SKIP;
         return VAL_SUCCESS;
     }

@@ -21,6 +21,7 @@ typedef enum {
     VAL_PCIE_IDE_CONFIG_ERROR,
     VAL_PCIE_IDE_REALM_REQUIRED,
     VAL_PCIE_IDE_NO_STREAM_ID,
+    VAL_PCIE_IDE_OWNER_BUSY,
 } val_pcie_ide_reason_t;
 
 typedef struct {
@@ -39,6 +40,8 @@ typedef struct {
     uint32_t stream_id;
     uint32_t acquired;
     uint32_t reason;
+    uint32_t error_bdf;
+    uint32_t error_offset;
     uint32_t original_buses;
     uint32_t buses_changed;
 } val_pcie_ide_stream_t;

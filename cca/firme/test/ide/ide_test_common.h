@@ -9,6 +9,7 @@
 
 #include "val_firme_ide.h"
 #include "val_firme_rules.h"
+#include "val_firme_ide_observation.h"
 #include "val_log.h"
 #include "val_pcie.h"
 #include "val_pcie_ide.h"
@@ -22,6 +23,24 @@ typedef struct {
     uint32_t pending;
     uint32_t quarantined;
 } firme_ide_test_state_t;
+
+/** @brief Observe the completed Selective request while its exact stream remains owned. */
+static inline int firme_ide_test_observe(const firme_ide_test_state_t *state,
+                                         uint64_t operation, uint64_t handle,
+                                         const val_firme_ide_prog_args_t *program,
+                                         firme_rule_res_t *out)
+{
+    val_firme_ide_observation_t selection = {0};
+
+    selection.stream = &state->stream;
+    selection.keyset_id = state->keyset_id;
+    selection.handle = handle;
+    selection.key[0] = program->keyqw0;
+    selection.key[1] = program->keyqw1;
+    selection.key[2] = program->keyqw2;
+    selection.key[3] = program->keyqw3;
+    return val_firme_ide_check_effect(operation, FIRME_ACS_WORLD_REALM, &selection, out);
+}
 
 /**
  * @brief Discover and configure the Selective pair from the Realm caller.
@@ -39,10 +58,21 @@ static inline uint32_t firme_ide_test_prepare(firme_ide_test_state_t *state,
     if (result != ACS_STATUS_PASS) {
         out->status = result;
         out->fail_step = state->stream.reason;
-        out->last_x0 = state->stream.path.root_port_bdf;
-        out->last_x1 = state->stream.path.endpoint_bdf;
-        LOG_WARN(NULL, "Selective IDE setup %s: no usable ACS-owned pair or access error\n",
-                 result == ACS_STATUS_SKIP ? "unavailable" : "failed");
+        if (result == ACS_STATUS_FAIL) {
+            out->last_x0 = state->stream.error_bdf;
+            out->last_x1 = state->stream.error_offset;
+            if (state->stream.reason == VAL_PCIE_IDE_OWNER_BUSY) {
+                LOG_ERROR(NULL, "Selective IDE setup failed: ACS stream already owned\n");
+            } else {
+                LOG_ERROR(NULL, "Selective IDE setup failed: BDF=%llx offset=%llx\n",
+                          (unsigned long long)out->last_x0,
+                          (unsigned long long)out->last_x1);
+            }
+        } else {
+            out->last_x0 = state->stream.path.root_port_bdf;
+            out->last_x1 = state->stream.path.endpoint_bdf;
+            LOG_WARN(NULL, "Selective IDE setup unavailable: no usable ACS-owned pair\n");
+        }
         return VAL_FALSE;
     }
     fields.segment = state->stream.path.segment;
@@ -95,13 +125,25 @@ static inline void firme_ide_test_unexpected_accept(firme_ide_test_state_t *stat
 static inline int firme_ide_test_polled(firme_ide_test_state_t *state,
                                        const firme_res_t *res)
 {
-    int64_t status = val_firme_status_to_i64(res->x0);
+    int64_t status;
 
-    if (status != FIRME_BUSY && status != FIRME_INCOMPLETE)
-        state->pending = VAL_FALSE;
-    if (status != FIRME_SUCCESS || res->x1 != state->pending_handle)
+    if (!state || !res || state->pending != VAL_TRUE)
         return VAL_ERROR;
-    return VAL_SUCCESS;
+
+    status = val_firme_status_to_i64(res->x0);
+    if (status == FIRME_SUCCESS && res->x1 == state->pending_handle) {
+        state->pending = VAL_FALSE;
+        return VAL_SUCCESS;
+    }
+    if (status == FIRME_SUCCESS) {
+        LOG_ERROR(NULL, "IDE completion handle mismatch: expected=%llx received=%llx\n",
+                  (unsigned long long)state->pending_handle,
+                  (unsigned long long)res->x1);
+        state->quarantined = VAL_TRUE;
+    } else if (status != FIRME_BUSY && status != FIRME_INCOMPLETE) {
+        state->quarantined = VAL_TRUE;
+    }
+    return VAL_ERROR;
 }
 
 /**
@@ -155,7 +197,8 @@ static inline int firme_ide_test_cleanup(firme_ide_test_state_t *state,
         val_pcie_ide_stream_release(&state->stream) != VAL_SUCCESS)
         goto fail;
 
-    return out->status == ACS_STATUS_FAIL ? VAL_ERROR : VAL_SUCCESS;
+    return out->status == ACS_STATUS_PASS || out->status == ACS_STATUS_SKIP ?
+           VAL_SUCCESS : VAL_ERROR;
 
 fail:
     LOG_ERROR(NULL, "IDE test cleanup failed: keyset=%llx x0=%llx x1=%llx",

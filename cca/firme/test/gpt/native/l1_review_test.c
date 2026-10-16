@@ -13,10 +13,14 @@
 #define pal_firme_gpt_l1_scenario_prepare native_unused_l1_prepare
 #define pal_firme_gpt_l1_scenario_cleanup native_unused_l1_cleanup
 #define pal_firme_gpt_l1_gpi_range_check native_unused_l1_check
+#define pal_firme_gpt_l1_monitor_begin native_unused_l1_monitor_begin
+#define pal_firme_gpt_l1_monitor_end native_unused_l1_monitor_end
 #include "../../../platform/pal_baremetal/targets/fvp/src/pal_firme_gpt.c"
 #undef pal_firme_gpt_l1_scenario_prepare
 #undef pal_firme_gpt_l1_scenario_cleanup
 #undef pal_firme_gpt_l1_gpi_range_check
+#undef pal_firme_gpt_l1_monitor_begin
+#undef pal_firme_gpt_l1_monitor_end
 
 #define REVIEW_RANGE_BASE UINT64_C(0x40000000)
 #define REVIEW_RANGE_SIZE UINT64_C(0x40000000)
@@ -34,6 +38,15 @@ static int64_t g_l1_sequence[4];
 static uint64_t g_l1_checked_base;
 static uint64_t g_l1_checked_size;
 static uint64_t g_l1_excluded_size;
+static uint32_t g_l1_scrub;
+static uint32_t g_l1_short_non_self;
+static uint32_t g_l1_monitor_begins;
+static uint32_t g_l1_monitor_ends;
+static uint64_t g_l1_object_base;
+static pal_firme_gpt_l1_evidence_t g_l1_evidence;
+static pal_firme_gpt_scenario_status_t g_l1_monitor_begin_status;
+static pal_firme_gpt_scenario_status_t g_l1_monitor_end_status;
+static pal_firme_gpt_scenario_status_t g_l1_cleanup_status;
 
 /** @brief This fixture supplies PAL scenarios and must not acquire an owned lease. */
 pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
@@ -103,6 +116,11 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_scenario_prepare(
         .object_initial_gpi = FIRME_GPI_NONSECURE, .denied_granule_index = 0ULL,
         .denied_granule_gpi = FIRME_GPI_ROOT,
         .layout = PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING};
+    if (condition == PAL_FIRME_GPT_L1_CONDITION_SCRUB_NON_SELF) {
+        scenario->object_base += REVIEW_RANGE_SIZE;
+        scenario->layout = PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING;
+    }
+    g_l1_object_base = scenario->object_base;
     return PAL_FIRME_GPT_SCENARIO_READY;
 }
 
@@ -113,7 +131,45 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_scenario_cleanup(
     const pal_firme_gpt_l1_scenario_t *scenario)
 {
     g_l1_cleanup++;
-    return PAL_FIRME_GPT_SCENARIO_READY;
+    return g_l1_cleanup_status;
+}
+
+/** @brief Require original object geometry in both independently monitored layouts. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_monitor_begin(
+    uint32_t world, pal_firme_gpt_l1_operation_t operation,
+    pal_firme_gpt_l1_condition_t condition,
+    const pal_firme_gpt_l1_scenario_t *scenario)
+{
+    assert(g_l1_scrub && world == FIRME_ACS_WORLD_REALM);
+    assert(operation == PAL_FIRME_GPT_L1_DESTROY);
+    assert(scenario->object_size == REVIEW_OBJECT_SIZE);
+    assert(scenario->granule_size == REVIEW_GRANULE);
+    if (condition == PAL_FIRME_GPT_L1_CONDITION_SCRUB_SELF) {
+        assert(scenario->object_base == REVIEW_OBJECT_BASE);
+        assert(scenario->layout == PAL_FIRME_GPT_L1_LAYOUT_SELF_DESCRIBING);
+    } else {
+        assert(condition == PAL_FIRME_GPT_L1_CONDITION_SCRUB_NON_SELF);
+        assert(scenario->object_base == REVIEW_OBJECT_BASE + REVIEW_RANGE_SIZE);
+        assert(scenario->layout == PAL_FIRME_GPT_L1_LAYOUT_NON_SELF_DESCRIBING);
+    }
+    g_l1_monitor_begins++;
+    return g_l1_monitor_begin_status;
+}
+
+/** @brief Supply controlled scrub evidence, independent of the ABI return status. */
+pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_monitor_end(
+    uint32_t world, pal_firme_gpt_l1_operation_t operation,
+    pal_firme_gpt_l1_condition_t condition,
+    const pal_firme_gpt_l1_scenario_t *scenario,
+    pal_firme_gpt_l1_evidence_t *evidence)
+{
+    assert(g_l1_scrub && world == FIRME_ACS_WORLD_REALM);
+    assert(operation == PAL_FIRME_GPT_L1_DESTROY);
+    *evidence = g_l1_evidence;
+    if (g_l1_short_non_self && condition == PAL_FIRME_GPT_L1_CONDITION_SCRUB_NON_SELF)
+        evidence->scrubbed_size = REVIEW_OBJECT_SIZE;
+    g_l1_monitor_ends++;
+    return g_l1_monitor_end_status;
 }
 
 /** @brief Require complete granule observation and optionally corrupt rollback. */
@@ -148,10 +204,12 @@ void val_firme_gm_l1_gpt_create(uint64_t base, uint64_t object, firme_res_t *res
     *result = (firme_res_t){.x0 = (uint64_t)status};
 }
 
-/** @brief Fail if a CREATE rollback accidentally dispatches DESTROY. */
+/** @brief Complete only explicit scrub scenarios, never an accidental CREATE rollback. */
 void val_firme_gm_l1_gpt_destroy(uint64_t base, firme_res_t *result)
 {
-    assert(VAL_FALSE);
+    assert(g_l1_scrub && base == REVIEW_RANGE_BASE);
+    g_l1_calls++;
+    *result = (firme_res_t){.x0 = FIRME_SUCCESS, .x2 = g_l1_object_base};
 }
 
 /** @brief Reset fixture evidence before a new rule invocation. */
@@ -164,6 +222,87 @@ static void l1_review_reset(void)
     g_l1_resume = VAL_FALSE;
     g_l1_sequence_count = 1U;
     g_l1_sequence[0] = FIRME_DENIED;
+    g_l1_scrub = VAL_FALSE;
+    g_l1_short_non_self = VAL_FALSE;
+    g_l1_monitor_begins = g_l1_monitor_ends = 0U;
+    g_l1_monitor_begin_status = PAL_FIRME_GPT_SCENARIO_READY;
+    g_l1_monitor_end_status = PAL_FIRME_GPT_SCENARIO_READY;
+    g_l1_cleanup_status = PAL_FIRME_GPT_SCENARIO_READY;
+    g_l1_evidence = (pal_firme_gpt_l1_evidence_t){
+        .scrubbed_size = REVIEW_GRANULE,
+        .scrub_value_independent = VAL_TRUE,
+        .scrub_completed_before_nonsecure = VAL_TRUE};
+}
+
+/** @brief Require full-granule scrub evidence and preserve cleanup uncertainty as ERR. */
+static void l1_review_scrub_test(void)
+{
+    firme_rule_res_t result;
+    uint32_t non_self;
+
+    /* Step 1: Both layouts must accept a complete 64-KiB envelope around an 8-KiB object. */
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_SUCCESS);
+    assert(result.status == ACS_STATUS_PASS && g_l1_calls == 2U && g_l1_cleanup == 2U);
+    assert(g_l1_monitor_begins == 2U && g_l1_monitor_ends == 2U);
+
+    /* Step 2: Object-only coverage must fail in either layout and still clean up. */
+    for (non_self = VAL_FALSE; non_self <= VAL_TRUE; non_self++) {
+        l1_review_reset();
+        g_l1_scrub = VAL_TRUE;
+        if (non_self)
+            g_l1_short_non_self = VAL_TRUE;
+        else
+            g_l1_evidence.scrubbed_size = REVIEW_OBJECT_SIZE;
+        assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+            REVIEW_RANGE_BASE, &result) == VAL_ERROR);
+        assert(result.status == ACS_STATUS_FAIL && g_l1_cleanup == 1U + non_self);
+        assert(result.fail_step == VAL_FIRME_GPT_L1_STEP_MONITOR);
+        assert(result.last_x0 == REVIEW_OBJECT_SIZE && result.last_x1 == REVIEW_GRANULE);
+    }
+
+    /* Step 3: Size alone is not evidence of independent values or scrub-before-release. */
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    g_l1_evidence.scrub_value_independent = VAL_FALSE;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && g_l1_cleanup == 1U);
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    g_l1_evidence.scrub_completed_before_nonsecure = VAL_FALSE;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && g_l1_cleanup == 1U);
+
+    /* Step 4: Missing monitors SKIP, but broken monitors remain infrastructure errors. */
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    g_l1_monitor_begin_status = PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_SUCCESS);
+    assert(result.status == ACS_STATUS_SKIP && !g_l1_calls && g_l1_cleanup == 1U);
+    assert(g_l1_monitor_begins == 1U && !g_l1_monitor_ends);
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    g_l1_monitor_end_status = PAL_FIRME_GPT_SCENARIO_ERROR;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_ERR && g_l1_cleanup == 1U);
+    assert(result.fail_step == VAL_FIRME_GPT_L1_STEP_MONITOR);
+
+    /* Step 5: Uncertain cleanup overrides verdict, not the original failure details. */
+    l1_review_reset();
+    g_l1_scrub = VAL_TRUE;
+    g_l1_evidence.scrubbed_size = REVIEW_OBJECT_SIZE;
+    g_l1_cleanup_status = PAL_FIRME_GPT_SCENARIO_ERROR;
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0180, FIRME_ACS_WORLD_REALM,
+        REVIEW_RANGE_BASE, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_ERR && g_l1_cleanup == 1U);
+    assert(result.fail_step == VAL_FIRME_GPT_L1_STEP_MONITOR);
+    assert(result.last_x0 == REVIEW_OBJECT_SIZE && result.last_x1 == REVIEW_GRANULE);
 }
 
 /** @brief Exercise sub-granule objects, exclusions and terminal rollback checks. */
@@ -230,6 +369,7 @@ int main(void)
     assert(val_firme_gpt_l1_create_denied_rule(FIRME_ACS_WORLD_REALM,
         REVIEW_RANGE_BASE, &result) == VAL_FIRME_GPT_L1_FLOW_FAIL);
     assert(g_l1_calls == VAL_FIRME_GPT_L1_MAX_CALLS && g_l1_cleanup == 1U);
+    l1_review_scrub_test();
     puts("L1 review regression: PASS");
     return VAL_SUCCESS;
 }

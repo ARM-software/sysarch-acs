@@ -35,6 +35,7 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
     uint64_t current_gpi = FIRME_GPI_NONSECURE;
     uint64_t target_gpi;
     uint64_t step;
+    int transition_status;
     size_t transition_index;
 
     if (!out)
@@ -69,7 +70,15 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
              transition_index < sizeof(unallocated_targets) / sizeof(unallocated_targets[0]);
              transition_index++) {
             target_gpi = unallocated_targets[transition_index];
-            val_firme_gm_gpi_set_complete(base_pa, UINT64_C(1), target_gpi, &result);
+            transition_status = val_firme_gpt_transition_terminal(
+                base_pa, target_gpi, &result, out, transition_index + UINT64_C(1));
+            if (transition_status != VAL_SUCCESS) {
+                val_firme_gpt_rule_result_fail(out, transition_index + UINT64_C(1),
+                                               result.x0, result.x1);
+                out->status = ACS_STATUS_ERR;
+                return VAL_ERROR;
+            }
+
             if (!val_firme_status_invalid_parameters(result.x0)) {
                 LOG_ERROR(NULL, "%s: unallocated target=%llx expected INVALID_PARAMETERS "
                           "x0=%llx x1=%llx", GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -98,7 +107,14 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
          transition_index++) {
         target_gpi = transition_targets[transition_index];
         step = GPT_TRANS_FEAT_GDI_TRANSITION_STEP + transition_index;
-        val_firme_gm_gpi_set_complete(base_pa, UINT64_C(1), target_gpi, &result);
+        transition_status = val_firme_gpt_transition_terminal(
+            base_pa, target_gpi, &result, out, step);
+        if (transition_status != VAL_SUCCESS) {
+            val_firme_gpt_rule_result_fail(out, step, result.x0, result.x1);
+            out->status = ACS_STATUS_ERR;
+            return VAL_ERROR;
+        }
+
         if (!val_firme_status_success(result.x0, result.x1, UINT64_C(1))) {
             LOG_ERROR(NULL, "%s: GPI %llx->%llx expected SUCCESS/count=1 x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GDI_TEST_NAME,
@@ -123,7 +139,16 @@ int firme_gpt_transition_feat_gdi_run_ns(uint64_t base_pa, firme_rule_res_t *out
     out->status = ACS_STATUS_PASS;
 
 cleanup:
-    /* Step 5: scrub NSO to PoC before release; PAS transitions do not promise data retention. */
+    /* Step 5: Independently confirm unchanged NS storage after terminal responses. */
+    if (current_gpi == FIRME_GPI_NONSECURE) {
+        if (!val_firme_gpt_confirm_ns_restored(base_pa, out,
+                                              GPT_TRANS_FEAT_GDI_CLEANUP_STEP))
+            return VAL_ERROR;
+
+        return val_firme_gpt_rule_result_status(out);
+    }
+
+    /* Step 6: Scrub NSO before release and independently confirm final NS restoration. */
     if ((current_gpi == FIRME_GPI_NSO) &&
         !val_firme_gpt_scrub_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP))
         return VAL_ERROR;
@@ -131,7 +156,8 @@ cleanup:
     if (!val_firme_gpt_restore_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP))
         return VAL_ERROR;
 
-    if (!val_firme_gpt_scrub_ns(base_pa, out, GPT_TRANS_FEAT_GDI_CLEANUP_STEP + UINT64_C(1)))
+    if (!val_firme_gpt_confirm_ns_restored(base_pa, out,
+                                          GPT_TRANS_FEAT_GDI_CLEANUP_STEP + UINT64_C(1)))
         return VAL_ERROR;
 
     return val_firme_gpt_rule_result_status(out);

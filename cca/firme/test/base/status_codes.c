@@ -17,6 +17,7 @@
 #define STATUS_CODES_STEP_UNALLOCATED_VERSION UINT64_C(5)
 #define STATUS_CODES_STEP_UNALLOCATED_FEATURE UINT64_C(6)
 #define STATUS_CODES_STEP_ADVERTISED_ABI      UINT64_C(7)
+#define STATUS_CODES_STEP_PATH_COVERAGE       UINT64_C(8)
 
 /**
  *   @brief    - Initialize a FIRME status-code result record.
@@ -65,9 +66,9 @@ static uint32_t status_codes_is_valid_observed_status(int64_t status)
 }
 
 /**
- *   @brief    - Validate FIRME status-code definitions and observed ABI status values.
+ *   @brief    - Validate observed ABI statuses without claiming unexercised paths.
  *   @param    - out : Required result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS for incomplete coverage, otherwise VAL_ERROR.
  **/
 static int status_codes_run(firme_rule_res_t *out)
 {
@@ -148,8 +149,10 @@ static int status_codes_run(firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    LOG_WARN(NULL, "%s: observed status checks passed; complete service-specific "
+             "status-path coverage is not available\n", STATUS_CODES_TEST_NAME);
+    out->status = (uint64_t)ACS_STATUS_SKIP;
+    out->fail_step = STATUS_CODES_STEP_PATH_COVERAGE;
 
     return VAL_SUCCESS;
 }
@@ -158,7 +161,7 @@ static int status_codes_run(firme_rule_res_t *out)
  *   @brief    - FIRME status-code rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Required result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -170,7 +173,7 @@ int firme_base_status_codes_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - FIRME status-code rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Required result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -182,7 +185,7 @@ int firme_base_status_codes_run_secure(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - FIRME status-code rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Required result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_status_codes_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

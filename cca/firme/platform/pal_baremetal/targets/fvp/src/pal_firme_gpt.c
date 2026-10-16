@@ -183,7 +183,7 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_concurrent_info_cleanup(
  * @param condition Architectural condition to establish.
  * @param default_base Default suite test address.
  * @param scenario Returned platform scenario.
- * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE until the DUT supports L1 GPTs.
+ * @return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE without an owned, independently observed setup.
  */
 pal_firme_gpt_scenario_status_t pal_firme_gpt_l1_scenario_prepare(
     uint32_t world, pal_firme_gpt_l1_operation_t operation,

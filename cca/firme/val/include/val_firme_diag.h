@@ -11,6 +11,8 @@
 
 #include "val_common/val_status.h"
 
+#define FIRME_DIAG_READ_NS_PAS UINT64_C(3)
+
 typedef struct {
     uint64_t x0;
     uint64_t x1;

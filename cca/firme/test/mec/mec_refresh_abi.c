@@ -8,6 +8,7 @@
 #include "val_firme_mec.h"
 #include "val_firme_rules.h"
 #include "val_log.h"
+#include "mec_semantic_test_common.h"
 
 #define MEC_REFRESH_ABI_TEST_NAME "mec_refresh_abi"
 
@@ -16,8 +17,6 @@
 #define MEC_REFRESH_ABI_STEP_UNSUPPORTED     UINT64_C(3)
 #define MEC_REFRESH_ABI_STEP_WIDTH_DISCOVERY UINT64_C(4)
 #define MEC_REFRESH_ABI_STEP_WIDTH_RANGE     UINT64_C(5)
-#define MEC_REFRESH_ABI_STEP_CREATE          UINT64_C(6)
-#define MEC_REFRESH_ABI_STEP_DESTROY         UINT64_C(7)
 #define MEC_REFRESH_ABI_STEP_INVALID_MECID   UINT64_C(8)
 
 /**
@@ -139,8 +138,9 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t res = {0};
     firme_res_t width_res = {0};
+    firme_rule_res_t creation_result;
+    int observation_result;
     uint32_t width = 0U;
-    uint64_t valid_mecid = UINT64_C(1);
     uint64_t invalid_mecid = 0ULL;
     uint64_t params = 0ULL;
 
@@ -177,23 +177,7 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
         return VAL_ERROR;
     }
 
-    /* Step 3: Valid Realm-creation refresh request must complete successfully. */
-    params = val_firme_mec_params(valid_mecid, FIRME_MEC_REFRESH_REASON_CREATE);
-    val_firme_mec_refresh_do_retry(params, &res);
-    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
-        mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_CREATE, res.x0, params);
-        return VAL_ERROR;
-    }
-
-    /* Step 4: Valid Realm-destruction refresh request must complete successfully. */
-    params = val_firme_mec_params(valid_mecid, FIRME_MEC_REFRESH_REASON_DESTROY);
-    val_firme_mec_refresh_do_retry(params, &res);
-    if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
-        mec_refresh_abi_fail(out, MEC_REFRESH_ABI_STEP_DESTROY, res.x0, params);
-        return VAL_ERROR;
-    }
-
-    /* Step 5: MECID outside the common width must be rejected when encodable. */
+    /* Step 3: Reject an out-of-width MECID when the invalid value is encodable. */
     if (width < VAL_FIRME_MECID_WIDTH_MAX) {
         invalid_mecid = UINT64_C(1) << width;
         params = val_firme_mec_params(invalid_mecid, FIRME_MEC_REFRESH_REASON_CREATE);
@@ -205,10 +189,18 @@ int firme_mec_refresh_abi_run_realm(uint64_t base_pa, firme_rule_res_t *out)
         }
     }
 
-    /* Step 6: No additional malformed MEC params encoding is defined for v1.0. */
+    /* Step 4: Require actual CREATE effects on the exclusively owned MECID. */
+    observation_result = firme_mec_semantic_test_context_refresh(
+        VAL_FIRME_MEC_OBSERVE_CONTEXT_REFRESH, out);
+    if (observation_result != VAL_SUCCESS)
+        return VAL_ERROR;
+    creation_result = *out;
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
-
-    return VAL_SUCCESS;
+    /* Step 5: Check DESTROY independently; re-enable only for the fresh round trip. */
+    observation_result = firme_mec_semantic_test_context_refresh(
+        VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY, out);
+    if (observation_result == VAL_SUCCESS && out->status == (uint64_t)ACS_STATUS_PASS &&
+        creation_result.status == (uint64_t)ACS_STATUS_SKIP)
+        *out = creation_result;
+    return observation_result;
 }

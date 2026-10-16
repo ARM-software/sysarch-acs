@@ -199,7 +199,9 @@ static int val_firme_gpt_l1_complete(val_firme_gpt_l1_flow_t flow,
 
     if ((flow == VAL_FIRME_GPT_L1_FLOW_ERROR) ||
         (flow == VAL_FIRME_GPT_L1_FLOW_FAIL)) {
-        out->status = (uint64_t)ACS_STATUS_FAIL;
+        /* Step 1: Keep uncertain cleanup distinct from a completed assertion failure. */
+        out->status = (flow == VAL_FIRME_GPT_L1_FLOW_ERROR) ?
+                      (uint64_t)ACS_STATUS_ERR : (uint64_t)ACS_STATUS_FAIL;
         return VAL_ERROR;
     }
 
@@ -1355,7 +1357,7 @@ cleanup:
 }
 
 /**
- * @brief Validate that DESTROY scrubs every object byte before NS release.
+ * @brief Validate that DESTROY scrubs every occupied granule before NS release.
  * @param world Caller world.
  * @param base_pa Default test address.
  * @param out Rule result.
@@ -1375,6 +1377,8 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_scrub_rule(
     val_firme_gpt_l1_flow_t flow;
     val_firme_gpt_l1_flow_t cleanup_flow;
     size_t condition_index;
+    uint64_t object_granule_base;
+    uint64_t object_granule_size;
 
     if (world != FIRME_ACS_WORLD_REALM)
         return val_firme_gpt_l1_disallowed_world(
@@ -1389,6 +1393,18 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_scrub_rule(
         if (flow != VAL_FIRME_GPT_L1_FLOW_PASS)
             return flow;
 
+        /* Step 1: Derive the full occupied envelope without changing the object geometry. */
+        if (pal_firme_gpt_granule_envelope(
+                scenario.object_base, scenario.object_size, scenario.granule_size,
+                &object_granule_base, &object_granule_size) != PAL_FIRME_GPT_SCENARIO_READY) {
+            val_firme_gpt_l1_fail(FIRME_RULE_R0180, out,
+                                  VAL_FIRME_GPT_L1_STEP_PREPARE,
+                                  scenario.object_base, scenario.object_size);
+            flow = VAL_FIRME_GPT_L1_FLOW_ERROR;
+            goto cleanup;
+        }
+
+        /* Step 2: Require independent full-envelope scrubbing before Non-secure release. */
         monitor_status = pal_firme_gpt_l1_monitor_begin(
             (uint32_t)world, PAL_FIRME_GPT_L1_DESTROY,
             conditions[condition_index], &scenario);
@@ -1410,19 +1426,21 @@ static val_firme_gpt_l1_flow_t val_firme_gpt_l1_scrub_rule(
                 conditions[condition_index], &scenario, &evidence);
             if ((flow == VAL_FIRME_GPT_L1_FLOW_PASS) &&
                 ((monitor_status != PAL_FIRME_GPT_SCENARIO_READY) ||
-                 (evidence.scrubbed_size != scenario.object_size) ||
+                 (evidence.scrubbed_size != object_granule_size) ||
                  (evidence.scrub_value_independent != VAL_TRUE) ||
                  (evidence.scrub_completed_before_nonsecure != VAL_TRUE))) {
                 val_firme_gpt_l1_fail(
                     FIRME_RULE_R0180, out,
                     VAL_FIRME_GPT_L1_STEP_MONITOR,
-                    evidence.scrubbed_size, scenario.object_size);
+                    evidence.scrubbed_size, object_granule_size);
                 flow = (monitor_status == PAL_FIRME_GPT_SCENARIO_READY) ?
                        VAL_FIRME_GPT_L1_FLOW_FAIL :
                        VAL_FIRME_GPT_L1_FLOW_ERROR;
             }
         }
 
+cleanup:
+        /* Step 3: Always clean up the prepared scenario, retaining uncertain state as ERR. */
         cleanup_flow = val_firme_gpt_l1_cleanup(
             FIRME_RULE_R0180, world, PAL_FIRME_GPT_L1_DESTROY,
             conditions[condition_index], &scenario, out);

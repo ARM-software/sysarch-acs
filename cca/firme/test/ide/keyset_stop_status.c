@@ -21,8 +21,10 @@
 #define IDE_KEYSET_STOP_STEP_PROGRAM      UINT64_C(5)
 #define IDE_KEYSET_STOP_STEP_OPERATION    UINT64_C(6)
 #define IDE_KEYSET_STOP_STEP_POLL         UINT64_C(7)
+#define IDE_KEYSET_STOP_STEP_GO           UINT64_C(8)
 #define IDE_KEYSET_STOP_HANDLE_PROG       UINT64_C(0x49444553544f5001)
 #define IDE_KEYSET_STOP_HANDLE_OP         UINT64_C(0x49444553544f5002)
+#define IDE_KEYSET_STOP_HANDLE_GO         UINT64_C(0x49444553544f5003)
 
 /**
  *   @brief    - Initialize a rule result for IDE KEYSET_STOP status.
@@ -106,6 +108,7 @@ static uint32_t ide_keyset_stop_check_available(uint64_t abi_bit, firme_rule_res
  *   @param    - base_pa : Unused for IDE tests.
  *   @param    - out     : Required result record.
  *   @return   - VAL_SUCCESS for PASS/SKIP, VAL_ERROR for a failed check.
+ *   @note     - Tested STOP follows completed GO, which does not prove active traffic.
  **/
 int firme_ide_keyset_stop_status_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -168,7 +171,16 @@ int firme_ide_keyset_stop_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
         goto cleanup;
     }
 
-    /* Step 5: Valid STOP must complete or enter non-blocking completion. */
+    /* Step 5: Complete GO before STOP; GO success alone does not prove active traffic. */
+    val_firme_ide_keyset_go_do_retry(ecam_address, flags, keyset_id,
+                                      IDE_KEYSET_STOP_HANDLE_GO, &res);
+    firme_ide_test_track(&state, &res, IDE_KEYSET_STOP_HANDLE_GO);
+    if (firme_ide_test_complete(&state, &res) != VAL_SUCCESS) {
+        ide_keyset_stop_fail(out, IDE_KEYSET_STOP_STEP_GO, res.x0, res.x1);
+        goto cleanup;
+    }
+
+    /* Step 6: After completed GO, STOP must complete or enter non-blocking completion. */
     val_firme_ide_keyset_stop_do_retry(ecam_address, flags, keyset_id,
                                          IDE_KEYSET_STOP_HANDLE_OP, &res);
     firme_ide_test_track(&state, &res, IDE_KEYSET_STOP_HANDLE_OP);
@@ -189,12 +201,16 @@ int firme_ide_keyset_stop_status_run_realm(uint64_t base_pa, firme_rule_res_t *o
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
+    /* Step 7: Observe this STOP before the selected stream is released. */
+    firme_ide_test_observe(&state, VAL_IDE_LINK_STOP, IDE_KEYSET_STOP_HANDLE_OP,
+                            &prog_args, out);
+
 cleanup:
     return firme_ide_test_cleanup(&state, out);
 }
 
 /**
- * @brief Require observable STOP effects after the Realm ABI status checks.
+ * @brief Preserve the Realm result, including effects observed before cleanup.
  * @param res_ns Unused Normal-world result.
  * @param res_secure Unused Secure-world result.
  * @param res_realm Realm result already combined by the dispatcher.
@@ -209,6 +225,6 @@ int firme_ide_keyset_stop_post(const firme_acs_call_res_t *res_ns,
     (void)res_ns;
     (void)res_secure;
     (void)res_realm;
-    return val_firme_ide_check_effect(VAL_IDE_LINK_STOP, FIRME_ACS_WORLD_REALM,
-                                      overall);
+    return overall && (overall->x0 == ACS_STATUS_PASS || overall->x0 == ACS_STATUS_SKIP) ?
+           VAL_SUCCESS : VAL_ERROR;
 }

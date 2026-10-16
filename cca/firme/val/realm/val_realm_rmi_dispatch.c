@@ -6,6 +6,7 @@
  */
 
 #include "val_firme_diag.h"
+#include "val_firme_gpt_probe.h"
 #include "val_firme_rules.h"
 #include "val_firme_dispatch.h"
 #include "val_firme_rmmd.h"
@@ -13,6 +14,7 @@
 #include "val_common/val_fault.h"
 #include "val_firme_test.h"
 #include "val_firme_ide_link.h"
+#include "val_firme_abi_frame.h"
 #include "val_firme_mp_test.h"
 #include "val_common/val_mp.h"
 
@@ -169,6 +171,11 @@ void rel2_handle_smc(smc_args_t *args)
 
     if (cmd == (uint64_t)FIRME_ACS_CMD_PING) {
         out0 = 0x504f4e47ULL; /* 'PONG' */
+    } else if (cmd == FIRME_ACS_CMD_GPT_PROBE) {
+        val_firme_gpt_probe_command(a0, &mp_response);
+        status = mp_response.x0;
+        out0 = mp_response.x1;
+        out1 = mp_response.x2;
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_DIAG) {
         firme_diag_out_t out = { 0 };
 
@@ -180,6 +187,11 @@ void rel2_handle_smc(smc_args_t *args)
         status = link_response.x0;
         out0 = link_response.x1;
         out1 = link_response.x2;
+    } else if (cmd == FIRME_ACS_CMD_ABI_FRAME) {
+        val_firme_abi_frame_command(FIRME_ACS_WORLD_REALM, a0, a1, a2, a3, &mp_response);
+        status = mp_response.x0;
+        out0 = mp_response.x1;
+        out1 = mp_response.x2;
     } else if ((cmd == FIRME_ACS_CMD_RUN_TEST_PAYLOAD) ||
                (cmd == FIRME_ACS_CMD_GET_TEST_RESULT)) {
         val_firme_test_payload_command(FIRME_ACS_WORLD_REALM, (firme_acs_cmd_t)cmd,

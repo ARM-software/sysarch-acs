@@ -18,6 +18,10 @@ static uint32_t g_cleanup_called;
 static uint32_t g_observed_issued;
 static uint32_t g_smc_count;
 static int64_t g_response = FIRME_SUCCESS;
+static int g_remote_status = VAL_SUCCESS;
+static uint32_t g_remote_issued = VAL_TRUE;
+static uint32_t g_remote_calls;
+static uint32_t g_remote_features;
 
 /** @brief Suppress expected diagnostics from malformed native cases. */
 uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *format, ...)
@@ -63,10 +67,47 @@ static int native_cleanup(val_firme_abi_test_context_t *context)
     return g_cleanup_status;
 }
 
+/** @brief Inject remote execution and lost responses without executing a local SMC. */
+static int native_remote(const smccc_call_frame_t *input, smccc_call_frame_t *output,
+                           uint32_t *issued, void *cookie)
+{
+    assert(cookie == &g_remote_calls);
+    g_remote_calls++;
+    *issued = g_remote_issued;
+    output->registers[17] = UINT64_MAX;
+    if (input->registers[0] == FIRME_FID_SERVICE_VERSION)
+        output->registers[0] = UINT64_C(0x10000);
+    else {
+        assert(input->registers[0] == FIRME_FID_SERVICE_FEATURES);
+        output->registers[0] = FIRME_SUCCESS;
+        output->registers[1] = g_remote_features;
+    }
+
+    return g_remote_status;
+}
+
+/** @brief Reject accidental local discovery in remote-only fixture tests. */
+int val_firme_service_get_version(uint32_t service, uint32_t *implemented,
+                                  firme_res_t *result)
+{
+    assert(0 && "discovery must use the selected remote transport");
+    return VAL_ERROR;
+}
+
+/** @brief Reject a local feature query for a Realm plan. */
+int val_firme_service_abi_is_advertised(uint32_t service, uint64_t mask,
+                                        uint32_t *advertised, uint64_t *feature,
+                                        firme_res_t *result)
+{
+    assert(0 && "features must use the selected remote transport");
+    return VAL_ERROR;
+}
+
 /** @brief Check rejected setup, returned errors, retries and cleanup failures. */
 int main(void)
 {
     val_firme_abi_descriptor_t descriptor = {
+        .id = VAL_FIRME_ABI_ID_SERVICE_FEATURES,
         .name = "native_abi", .fid = FIRME_FID_SERVICE_FEATURES,
         .input_bit_masks = {UINT64_MAX},
         .execution_model = VAL_FIRME_ABI_EXEC_SYNCHRONOUS,
@@ -111,15 +152,54 @@ int main(void)
     g_prepare_status = VAL_SUCCESS;
     g_cleanup_status = VAL_ERROR;
     assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
-    assert(result.status == ACS_STATUS_FAIL && g_observed_issued);
+    assert(result.status == ACS_STATUS_ERR && g_observed_issued);
+
+    g_prepare_status = VAL_FIRME_ABI_SCENARIO_UNAVAILABLE;
+    assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_ERR && !g_observed_issued);
 
     g_cleanup_status = VAL_SUCCESS;
+    g_prepare_status = VAL_SUCCESS;
     descriptor.execution_model = VAL_FIRME_ABI_EXEC_RETRYABLE;
     g_response = FIRME_BUSY;
     g_smc_count = 0U;
     assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
     assert(g_observed_issued && g_smc_count == VAL_FIRME_ABI_RETRY_LIMIT);
-    assert(g_cleanup_called == 7U);
+    assert(g_cleanup_called == 8U);
+    descriptor.execution_model = VAL_FIRME_ABI_EXEC_SYNCHRONOUS;
+    context.invoke_frame = native_remote;
+    context.invoke_cookie = &g_remote_calls;
+    g_smc_count = 0U;
+    assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_SUCCESS);
+    assert(g_remote_calls == 1U && g_smc_count == 0U && context.output_valid);
+    assert(context.output.registers[17] == UINT64_MAX);
+
+    g_remote_status = VAL_ERROR;
+    g_remote_issued = VAL_FALSE;
+    assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
+    assert(!context.output_valid && !context.transport_uncertain && !g_observed_issued);
+    assert(context.output.registers[17] == 0ULL);
+
+    g_remote_issued = VAL_TRUE;
+    assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
+    assert(context.transport_uncertain && g_observed_issued && !context.output_valid);
+    assert(g_remote_calls == 3U);
+    g_remote_status = VAL_SUCCESS;
+    assert(val_firme_abi_execute_case(&context, &operations, &result) == VAL_ERROR);
+    assert(g_remote_calls == 3U && g_smc_count == 0U);
+
+    context.transport_uncertain = VAL_FALSE;
+    context.world = FIRME_ACS_WORLD_REALM;
+    plan.require_advertised = VAL_TRUE;
+    plan.required_worlds_mask = VAL_FIRME_ABI_WORLD_MASK_REALM;
+    descriptor.feature_bit = UINT64_C(1);
+    g_remote_features = 1U;
+    assert(val_firme_abi_check_advertisement(&context, &result) == VAL_TRUE);
+    assert(g_remote_calls == 5U && g_smc_count == 0U);
+    g_remote_features = 0U;
+    assert(val_firme_abi_check_advertisement(&context, &result) == VAL_FALSE);
+    g_remote_status = VAL_ERROR;
+    assert(val_firme_abi_check_advertisement(&context, &result) == VAL_ERROR);
     puts("generated ABI invocation/cleanup native checks: PASS");
     return VAL_SUCCESS;
 }

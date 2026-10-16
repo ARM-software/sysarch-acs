@@ -40,6 +40,30 @@ static int shared_buffer_mapping_attributes_run(
         (out->status != (uint64_t)ACS_STATUS_FAIL))
         return result;
 
+    if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
+                           (uint64_t)evidence.abi_status, 0ULL);
+        return VAL_ERROR;
+    }
+
+    if (((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_EVIDENCE_CALLER_ATTRS) != 0U) &&
+        ((evidence.caller_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
+         VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS)) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_CALLER_ATTRIBUTES,
+                           evidence.caller_attributes,
+                           VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
+        return VAL_ERROR;
+    }
+
+    if (((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_EVIDENCE_EL3_ATTRS) != 0U) &&
+        ((evidence.el3_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
+         VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS)) {
+        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EL3_ATTRIBUTES,
+                           evidence.el3_attributes,
+                           VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
+        return VAL_ERROR;
+    }
+
     if ((evidence.valid_fields & required_fields) != required_fields) {
         if ((evidence.valid_fields & VAL_FIRME_SHARED_BUFFER_OBSERVATION_UNAVAILABLE) != 0U) {
             LOG_WARN(NULL, "shared_buffer: independent caller/EL3 mapping evidence unavailable");
@@ -50,28 +74,6 @@ static int shared_buffer_mapping_attributes_run(
         out->status = (uint64_t)ACS_STATUS_ERR;
         firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EVIDENCE,
                            evidence.valid_fields, required_fields);
-        return VAL_ERROR;
-    }
-
-    if (val_firme_shared_buffer_status_accepted(evidence.abi_status) == VAL_FALSE) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_STATUS,
-                           (uint64_t)evidence.abi_status, 0ULL);
-        return VAL_ERROR;
-    }
-
-    if ((evidence.caller_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
-        VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_CALLER_ATTRIBUTES,
-                           evidence.caller_attributes,
-                           VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
-        return VAL_ERROR;
-    }
-
-    if ((evidence.el3_attributes & VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) !=
-        VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS) {
-        firme_shared_buffer_test_fail(out, SHARED_BUFFER_STEP_EL3_ATTRIBUTES,
-                           evidence.el3_attributes,
-                           VAL_FIRME_SHARED_BUFFER_REQUIRED_ATTRS);
         return VAL_ERROR;
     }
 

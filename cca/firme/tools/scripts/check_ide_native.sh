@@ -32,7 +32,9 @@ fi
     "$firme_dir/val/src/val_pcie.c" "${link_flags[@]}" \
     -o "$build_dir/pcie_bounds_test"
 "$compiler" "${flags[@]}" "$unit_dir/ide_completion_test.c" \
+    "$firme_dir/val/src/val_firme_abi_test.c" \
     "$firme_dir/val/src/val_firme_ide.c" \
+    "$firme_dir/val/src/val_firme_ide_observation.c" \
     "$firme_dir/platform/pal_baremetal/targets/fvp/src/pal_firme_ide_abi.c" \
     "${link_flags[@]}" -o "$build_dir/ide_completion_test"
 "$compiler" "${flags[@]}" "$unit_dir/ide_unavailable_test.c" \

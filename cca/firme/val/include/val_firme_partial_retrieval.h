@@ -34,6 +34,8 @@ typedef struct {
     uint32_t service_id;
     uint32_t valid_fields;
     uint64_t abi_fid;
+    uint64_t prerequisite_reason;
+    uint64_t prerequisite_detail;
 } val_firme_partial_retrieval_evidence_t;
 
 /**
@@ -45,7 +47,7 @@ uint32_t val_firme_partial_retrieval_probe_available(firme_acs_world_t world);
 
 /**
  *   @brief    - Exercise a controlled partial-retrieval service scenario.
- *             - NS PAT supplies only observed intermediate/no-chunk patterns.
+ *             - NS/Realm PAT supplies only observed intermediate/no-chunk patterns.
  *               Table 8.26 makes Remaining unused on SUCCESS, so this adapter
  *               cannot provide the two output parameters required by R0080.
  *   @param    - world     : FIRME caller world.

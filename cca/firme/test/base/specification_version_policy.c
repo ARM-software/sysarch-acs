@@ -95,12 +95,16 @@ static uint32_t specification_policy_release_valid(
     uint32_t index = 0U;
     uint32_t next_index = 0U;
 
-    if ((release == 0) ||
+    if ((release == 0) || (release->service_count == 0U) ||
+        (release->major_version > FIRME_VERSION_MAJOR_MASK) ||
+        (release->minor_version > FIRME_VERSION_MINOR_MASK) ||
         (release->service_count > VAL_FIRME_SPEC_POLICY_MAX_SERVICES))
         return VAL_FALSE;
 
     for (index = 0U; index < release->service_count; index++) {
-        if (release->services[index].service_id >= FIRME_SERVICE_ID_MAX)
+        if ((release->services[index].service_id >= FIRME_SERVICE_ID_MAX) ||
+            (release->services[index].major_version > FIRME_VERSION_MAJOR_MASK) ||
+            (release->services[index].minor_version > FIRME_VERSION_MINOR_MASK))
             return VAL_FALSE;
 
         for (next_index = index + 1U;
@@ -134,6 +138,8 @@ static int specification_version_policy_run(firme_rule_res_t *out)
     specification_policy_init_result(out);
     probe_result = val_firme_spec_policy_probe(&evidence);
     if (probe_result == VAL_FIRME_SPEC_POLICY_PROBE_UNAVAILABLE) {
+        LOG_WARN(NULL, "%s: reviewed consecutive-release policy metadata unavailable\n",
+                 SPEC_POLICY_TEST_NAME);
         out->status = (uint64_t)ACS_STATUS_SKIP;
         out->fail_step = SPEC_POLICY_STEP_PROBE;
         return VAL_SUCCESS;

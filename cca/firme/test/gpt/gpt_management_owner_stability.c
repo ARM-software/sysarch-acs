@@ -71,6 +71,7 @@ static int gpt_management_owner_run(uint64_t base_pa,
     firme_res_t transition = {0};
     uint64_t owner_before;
     uint32_t main_passed = VAL_FALSE;
+    uint64_t changed_count = 0ULL;
 
     if (!out)
         return VAL_ERROR;
@@ -114,11 +115,12 @@ static int gpt_management_owner_run(uint64_t base_pa,
     owner_before = before.x2 & FIRME_GPT_PAR_STATE_OWNER_MASK;
 
     /* Step 5: perform a GPI transition that must not alter range ownership. */
-    if ((val_firme_gm_gpi_set_complete(
-             base_pa, UINT64_C(1), target_gpi,
-             &transition) != VAL_SUCCESS) ||
-        (val_firme_status_success(
-             transition.x0, transition.x1, UINT64_C(1)) == VAL_FALSE)) {
+    if (val_firme_gpt_transition_terminal(base_pa, target_gpi, &transition,
+            out, GPT_MANAGEMENT_OWNER_STEP_TRANSITION) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    if (val_firme_status_success(
+             transition.x0, transition.x1, UINT64_C(1)) == VAL_FALSE) {
         LOG_ERROR(NULL, "%s: transition failed x0=%llx x1=%llx",
                   GPT_MANAGEMENT_OWNER_TEST_NAME,
                   (unsigned long long)transition.x0,
@@ -127,6 +129,8 @@ static int gpt_management_owner_run(uint64_t base_pa,
             out, GPT_MANAGEMENT_OWNER_STEP_TRANSITION, &transition);
         goto cleanup;
     }
+
+    changed_count = UINT64_C(1);
 
     /* Step 6: ownership must remain unchanged while the new GPI is active. */
     if (gpt_management_owner_query(
@@ -146,9 +150,9 @@ static int gpt_management_owner_run(uint64_t base_pa,
     main_passed = VAL_TRUE;
 
 cleanup:
-    /* Step 7: always restore the transitioned granule to Non-secure. */
-    if (val_firme_gpt_restore_ns(base_pa, out,
-                                GPT_MANAGEMENT_OWNER_STEP_CLEANUP) == VAL_FALSE)
+    /* Step 7: Restore only transitioned storage; Host proves exact NS before reuse. */
+    if (!val_firme_gpt_restore_prefix_ns(base_pa, changed_count, window.granule_size,
+                                        out, GPT_MANAGEMENT_OWNER_STEP_CLEANUP))
         return VAL_ERROR;
 
     if (main_passed == VAL_FALSE)

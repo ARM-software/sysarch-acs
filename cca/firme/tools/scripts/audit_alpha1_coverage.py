@@ -19,7 +19,7 @@ import textwrap
 
 
 EXPECTED_ALP4_RULE_COUNT = 123
-PROPOSED_EXCLUSIONS = {"R0023", "R0041"}
+APPROVED_EXCLUSIONS = {"R0023", "R0041"}
 RULE_ENUM_PATTERN = re.compile(r"^\s*FIRME_RULE_(R\d{4})\s*=", re.MULTILINE)
 REGISTRY_PATTERN = re.compile(r"\.rule_id\s*=\s*FIRME_RULE_(R\d{4})")
 SCENARIO_ROW_PATTERN = re.compile(r"^  \* -[ \t]*$", re.MULTILINE)
@@ -84,16 +84,16 @@ def read_scenario_rules(root: Path) -> tuple[set[str], set[str]]:
     content = read_text(document)
     if ".. list-table::" not in content:
         raise AuditError("scenario document has no rule table")
-    if ("Proposed out-of-scope rules" not in content or
+    if ("Scope and exclusions" not in content or
             "Testcase checklist" not in content):
-        raise AuditError("scenario document has no proposed exclusion section")
+        raise AuditError("scenario document has no exclusion section")
 
-    exclusion_section = content.split("Proposed out-of-scope rules", 1)[1]
+    exclusion_section = content.split("Scope and exclusions", 1)[1]
     exclusion_section = exclusion_section.split("Testcase checklist", 1)[0]
     exclusions = unique_rules(
-        "proposed exclusions", EXCLUSION_PATTERN.findall(exclusion_section)
+        "approved exclusions", EXCLUSION_PATTERN.findall(exclusion_section)
     )
-    check_same_rules("proposed exclusions", exclusions, PROPOSED_EXCLUSIONS)
+    check_same_rules("approved exclusions", exclusions, APPROVED_EXCLUSIONS)
 
     rows = SCENARIO_ROW_PATTERN.split(content.split(".. list-table::", 1)[1])
     rules = []
@@ -159,8 +159,8 @@ def audit_inventory(root: Path) -> tuple[set[str], set[str]]:
         raise AuditError(
             f"expected {EXPECTED_ALP4_RULE_COUNT} ALP4 rules, found {len(declared)}"
         )
-    if not PROPOSED_EXCLUSIONS <= declared:
-        raise AuditError("proposed exclusions are absent from the catalog")
+    if not APPROVED_EXCLUSIONS <= declared:
+        raise AuditError("approved exclusions are absent from the catalog")
 
     handwritten, exclusions = read_scenario_rules(root)
     generated = read_generated_states(root)
@@ -179,7 +179,7 @@ def audit_inventory(root: Path) -> tuple[set[str], set[str]]:
             f"registry has unscoped rules: {format_rules(active - declared)}"
         )
     if active & exclusions:
-        raise AuditError("proposed exclusions must not enter the runtime registry")
+        raise AuditError("approved exclusions must not enter the runtime registry")
 
     for rule, state in generated.items():
         expected_state = "Active" if rule in active else "Gated"
@@ -190,11 +190,11 @@ def audit_inventory(root: Path) -> tuple[set[str], set[str]]:
 
     gated = declared - active - exclusions
     print(
-        f"ALP4 inventory: {len(declared)} rules; proposed Alpha1 DUT target: "
+        f"ALP4 inventory: {len(declared)} rules; Alpha1 rule-check target: "
         f"{len(declared - exclusions)} ({len(active)} active, {len(gated)} gated); "
-        f"{len(exclusions)} proposed exclusions pending Architect approval"
+        f"{len(exclusions)} Architect-approved exclusions"
     )
-    print(f"Proposed exclusions: {format_rules(exclusions)}")
+    print(f"Approved exclusions: {format_rules(exclusions)}")
     print(f"Gated rules: {format_rules(gated)}")
     return active, gated
 
@@ -271,7 +271,7 @@ def main() -> int:
             print("Inventory is consistent; release readiness was not evaluated")
             return 0
         return 0 if audit_runtime(
-            args.uart_log, active, gated, PROPOSED_EXCLUSIONS
+            args.uart_log, active, gated, set()
         ) else 1
     except (AuditError, OSError) as error:
         print(f"FIRME Alpha1 audit error: {error}", file=sys.stderr)

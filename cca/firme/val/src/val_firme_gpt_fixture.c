@@ -7,10 +7,71 @@
 
 #include "val_firme_gpt_fixture.h"
 
+#include <stddef.h>
+
 #include "val_common/val_status.h"
+#include "val_log.h"
 
 #define GPT_FIXTURE_MAX_CALLS 32U
 #define GPT_FIXTURE_GPI_ANY UINT64_C(0xf)
+
+/** @brief Route every setup, operation and cleanup SMC through the selected caller. */
+static int gpt_fixture_call(val_firme_gpt_fixture_t *fixture, uint64_t fid,
+                            uint64_t argument0, uint64_t argument1,
+                            uint64_t argument2, firme_res_t *result)
+{
+    smccc_call_frame_t input = {0};
+    smccc_call_frame_t output = {0};
+    uint32_t issued = VAL_FALSE;
+
+    if (!fixture || !result)
+        return VAL_ERROR;
+
+    *result = (firme_res_t){0};
+    if (fixture->has_abi_context) {
+        input.registers[0] = fid;
+        input.registers[1] = argument0;
+        input.registers[2] = argument1;
+        input.registers[3] = argument2;
+        if (val_firme_abi_call(&fixture->abi_context, &input, &output, &issued) != VAL_SUCCESS) {
+            if (issued)
+                fixture->poisoned = VAL_TRUE;
+
+            return VAL_ERROR;
+        }
+
+        result->x0 = output.registers[0];
+        result->x1 = output.registers[1];
+        result->x2 = output.registers[2];
+        result->x3 = output.registers[3];
+        return VAL_SUCCESS;
+    }
+
+    switch (fid) {
+    case FIRME_FID_SERVICE_FEATURES:
+        val_firme_service_features(argument0, argument1, result);
+        break;
+    case FIRME_FID_GM_GPT_INFO:
+        val_firme_gm_gpt_info(argument0, argument1, result);
+        break;
+    case FIRME_FID_GM_GPI_SET:
+        val_firme_gm_gpi_set(argument0, argument1, argument2, result);
+        break;
+    case FIRME_FID_GM_GPI_OP_CONTINUE:
+        val_firme_gm_gpi_op_continue(argument0, result);
+        break;
+    case FIRME_FID_GM_L1_GPT_CREATE:
+        val_firme_gm_l1_gpt_create(argument0, argument1, result);
+        break;
+    case FIRME_FID_GM_L1_GPT_DESTROY:
+        val_firme_gm_l1_gpt_destroy(argument0, result);
+        break;
+    default:
+        return VAL_ERROR;
+    }
+
+    return VAL_SUCCESS;
+}
 
 /** @brief Require complete independent GPI observation of an owned extent. */
 static int gpt_fixture_observe(const val_firme_gpt_fixture_t *fixture,
@@ -27,19 +88,22 @@ static int gpt_fixture_observe(const val_firme_gpt_fixture_t *fixture,
 }
 
 /** @brief Require the exact observed state of one protected address range. */
-static int gpt_fixture_par(const val_firme_gpt_fixture_t *fixture,
+static int gpt_fixture_par(val_firme_gpt_fixture_t *fixture,
                            uint64_t base, uint64_t expected_state)
 {
     firme_res_t result = {0};
 
-    val_firme_gm_gpt_info(base, base + fixture->range_size, &result);
+    if (gpt_fixture_call(fixture, FIRME_FID_GM_GPT_INFO, base,
+                          base + fixture->range_size, 0ULL, &result) != VAL_SUCCESS)
+        return VAL_ERROR;
+
     return (val_firme_status_to_i64(result.x0) == (int64_t)FIRME_SUCCESS &&
             result.x1 == base + fixture->range_size &&
             result.x2 == expected_state) ? VAL_SUCCESS : VAL_ERROR;
 }
 
 /** @brief Observe every occupied granule without conflating object bytes and ownership. */
-static int gpt_fixture_l1_observe(const val_firme_gpt_fixture_t *fixture)
+static int gpt_fixture_l1_observe(val_firme_gpt_fixture_t *fixture)
 {
     uint64_t checked = 0ULL;
     uint64_t exclude_base = 0ULL;
@@ -118,9 +182,9 @@ static int gpt_fixture_geometry(val_firme_gpt_fixture_t *fixture, uint64_t pps)
 }
 
 /** @brief Discover geometry and validate independently reserved pre-state. */
-pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
+static pal_firme_gpt_scenario_status_t gpt_fixture_begin(
     val_firme_gpt_fixture_t *fixture, firme_acs_world_t world,
-    pal_firme_gpt_memory_kind_t kind)
+    pal_firme_gpt_memory_kind_t kind, val_firme_abi_test_context_t *context)
 {
     firme_res_t result = {0};
     pal_firme_gpt_scenario_status_t status;
@@ -135,23 +199,48 @@ pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
     *fixture = (val_firme_gpt_fixture_t){0};
     fixture->world = world;
     fixture->kind = kind;
-    if ((kind != PAL_FIRME_GPT_MEMORY_TRANSITION && world != FIRME_ACS_WORLD_REALM) ||
-        (kind == PAL_FIRME_GPT_MEMORY_TRANSITION && world == FIRME_ACS_WORLD_NSEL2))
+    if (context) {
+        fixture->abi_context = *context;
+        fixture->has_abi_context = VAL_TRUE;
+    }
+
+    if (kind != PAL_FIRME_GPT_MEMORY_TRANSITION && world != FIRME_ACS_WORLD_REALM)
         return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
     required_bits = FIRME_GM_FEATURE_REG0_GPI_SET_BIT |
                     FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT;
+    if (kind == PAL_FIRME_GPT_MEMORY_TRANSITION && context && context->abi &&
+        context->abi->id == VAL_FIRME_ABI_ID_GM_GPI_SET)
+        required_bits = FIRME_GM_FEATURE_REG0_GPI_SET_BIT;
     if (kind != PAL_FIRME_GPT_MEMORY_TRANSITION)
         required_bits = FIRME_GM_FEATURE_REG0_L1_CREATE_BIT |
                         FIRME_GM_FEATURE_REG0_L1_DESTROY_BIT |
                         FIRME_GM_FEATURE_REG0_GPT_INFO_BIT;
-    val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
-                               FIRME_GM_FEATURE_REG0_INDEX, &result);
+    if (gpt_fixture_call(fixture, FIRME_FID_SERVICE_FEATURES,
+            FIRME_SERVICE_ID_GRANULE_MGMT, FIRME_GM_FEATURE_REG0_INDEX,
+            0ULL, &result) != VAL_SUCCESS)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+
+    fixture->last_status = val_firme_status_to_i64(result.x0);
     if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_SUCCESS)
         return PAL_FIRME_GPT_SCENARIO_ERROR;
-    if ((result.x1 & required_bits) != required_bits)
-        return PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
-    val_firme_service_features(FIRME_SERVICE_ID_GRANULE_MGMT,
-                               FIRME_GM_FEATURE_REG1_INDEX, &result);
+    fixture->continue_advertised =
+        (result.x1 & FIRME_GM_FEATURE_REG0_OP_CONTINUE_BIT) ? VAL_TRUE : VAL_FALSE;
+    if ((result.x1 & required_bits) != required_bits) {
+        LOG_WARN(NULL, "GPT fixture: world=%u feature reg0=%llx missing ABI bits=%llx",
+                 (unsigned int)world, (unsigned long long)result.x1,
+                 (unsigned long long)(required_bits & ~result.x1));
+        return (kind == PAL_FIRME_GPT_MEMORY_TRANSITION ||
+                (result.x1 & (FIRME_GM_FEATURE_REG0_L1_CREATE_BIT |
+                              FIRME_GM_FEATURE_REG0_L1_DESTROY_BIT))) ?
+               PAL_FIRME_GPT_SCENARIO_ERROR : PAL_FIRME_GPT_SCENARIO_UNAVAILABLE;
+    }
+
+    if (gpt_fixture_call(fixture, FIRME_FID_SERVICE_FEATURES,
+            FIRME_SERVICE_ID_GRANULE_MGMT, FIRME_GM_FEATURE_REG1_INDEX,
+            0ULL, &result) != VAL_SUCCESS)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+
+    fixture->last_status = val_firme_status_to_i64(result.x0);
     if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_SUCCESS)
         return PAL_FIRME_GPT_SCENARIO_ERROR;
     feature = result.x1;
@@ -162,7 +251,9 @@ pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
         return PAL_FIRME_GPT_SCENARIO_ERROR;
     fixture->object_size = fixture->range_size / fixture->granule_size / 2ULL;
     fixture->target_gpi = world == FIRME_ACS_WORLD_REALM ?
-                          FIRME_GPI_REALM : FIRME_GPI_SECURE;
+                          FIRME_GPI_REALM :
+                          (world == FIRME_ACS_WORLD_SECURE ? FIRME_GPI_SECURE :
+                                                           FIRME_GPI_NONSECURE);
     status = pal_firme_gpt_memory_acquire(world, kind, fixture->granule_size,
         fixture->range_size, fixture->object_size, &fixture->memory);
     if (status != PAL_FIRME_GPT_SCENARIO_READY) {
@@ -186,12 +277,49 @@ pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
     return PAL_FIRME_GPT_SCENARIO_READY;
 }
 
+/** @brief Acquire an in-world fixture for a handwritten GPT lifecycle test. */
+pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
+    val_firme_gpt_fixture_t *fixture, firme_acs_world_t world,
+    pal_firme_gpt_memory_kind_t kind)
+{
+    return gpt_fixture_begin(fixture, world, kind, NULL);
+}
+
+/** @brief Keep generated setup and cleanup in the same caller as the tested ABI. */
+pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin_abi(
+    val_firme_gpt_fixture_t *fixture, val_firme_abi_test_context_t *context,
+    pal_firme_gpt_memory_kind_t kind)
+{
+    if (!context)
+        return PAL_FIRME_GPT_SCENARIO_ERROR;
+
+    return gpt_fixture_begin(fixture, context->world, kind, context);
+}
+
+/** @brief Prove each completed granule and untouched suffix independently of status. */
+static int gpt_fixture_progress_observe(val_firme_gpt_fixture_t *fixture)
+{
+    if ((fixture->completed && gpt_fixture_observe(fixture,
+            fixture->memory.range_base, fixture->completed * fixture->granule_size,
+            fixture->target_gpi) != VAL_SUCCESS) ||
+        (!fixture->restoring && fixture->completed < fixture->count &&
+         gpt_fixture_observe(fixture,
+            fixture->memory.range_base + fixture->completed * fixture->granule_size,
+            (fixture->count - fixture->completed) * fixture->granule_size,
+            FIRME_GPI_NONSECURE) != VAL_SUCCESS)) {
+        fixture->poisoned = VAL_TRUE;
+        return VAL_ERROR;
+    }
+    return VAL_SUCCESS;
+}
+
 /** @brief Record only architecturally valid progress and retained cookies. */
 int val_firme_gpt_fixture_gpi_record(val_firme_gpt_fixture_t *fixture,
                                       const firme_res_t *result)
 {
     uint64_t remaining;
     int64_t status;
+    uint32_t rejected_start;
 
     if (!fixture || !result || !fixture->memory.token || fixture->poisoned ||
         fixture->kind != PAL_FIRME_GPT_MEMORY_TRANSITION ||
@@ -200,44 +328,70 @@ int val_firme_gpt_fixture_gpi_record(val_firme_gpt_fixture_t *fixture,
     remaining = fixture->count - fixture->completed;
     status = val_firme_status_to_i64(result->x0);
     fixture->last_status = status;
-    if (val_firme_gpt_operation_count_valid(status, result->x1, remaining) != VAL_TRUE) {
+    rejected_start = !fixture->pending &&
+        (status == (int64_t)FIRME_INVALID_PARAMETERS ||
+         status == (int64_t)FIRME_NOT_SUPPORTED);
+    if (!rejected_start &&
+        val_firme_gpt_operation_count_valid(status, result->x1, remaining) != VAL_TRUE) {
         fixture->poisoned = VAL_TRUE;
+        LOG_ERROR(NULL, "GPT fixture: invalid progress x0=%llx count=%llx "
+                  "remaining=%llu cookie=%llx\n", (unsigned long long)result->x0,
+                  (unsigned long long)result->x1, (unsigned long long)remaining,
+                  (unsigned long long)result->x2);
         return VAL_ERROR;
     }
     if (status == (int64_t)FIRME_BUSY) {
+        /* Step 1: BUSY consumes no count and only replaces an already-retained cookie. */
         if (fixture->pending)
             fixture->cookie = result->x2;
-        return VAL_SUCCESS;
+    } else {
+        /* Step 2: Record terminal progress or the newly retained operation. */
+        if (!rejected_start)
+            fixture->completed += result->x1;
+
+        fixture->pending = status == (int64_t)FIRME_INCOMPLETE ? VAL_TRUE : VAL_FALSE;
+        fixture->cookie = fixture->pending ? result->x2 : 0ULL;
+        if (fixture->pending && !fixture->continue_advertised) {
+            fixture->poisoned = VAL_TRUE;
+            LOG_ERROR(NULL, "GPT fixture: INCOMPLETE without advertised OP_CONTINUE; "
+                      "retaining lease=%llx cookie=%llx\n",
+                      (unsigned long long)fixture->memory.token,
+                      (unsigned long long)fixture->cookie);
+            return VAL_ERROR;
+        }
     }
-    fixture->completed += result->x1;
-    fixture->pending = status == (int64_t)FIRME_INCOMPLETE ? VAL_TRUE : VAL_FALSE;
-    fixture->cookie = fixture->pending ? result->x2 : 0ULL;
-    if ((fixture->completed && gpt_fixture_observe(fixture,
-            fixture->memory.range_base, fixture->completed * fixture->granule_size,
-            fixture->target_gpi) != VAL_SUCCESS) ||
-        (!fixture->restoring && fixture->completed < fixture->count && gpt_fixture_observe(fixture,
-            fixture->memory.range_base + fixture->completed * fixture->granule_size,
-            (fixture->count - fixture->completed) * fixture->granule_size,
-            FIRME_GPI_NONSECURE) != VAL_SUCCESS))
-        return VAL_ERROR;
-    return VAL_SUCCESS;
+
+    /* Step 3: Observe the known prefix and untouched suffix even when BUSY claims no progress. */
+    return gpt_fixture_progress_observe(fixture);
 }
 
 /** @brief Issue the exact remaining prefix or current retained cookie. */
 int val_firme_gpt_fixture_gpi_step(val_firme_gpt_fixture_t *fixture,
                                     firme_res_t *result)
 {
+    int call_status;
+
     if (!fixture || !result || !fixture->memory.token || fixture->poisoned ||
         fixture->kind != PAL_FIRME_GPT_MEMORY_TRANSITION ||
         fixture->completed >= fixture->count)
         return VAL_ERROR;
+    if (fixture->pending && !fixture->continue_advertised) {
+        fixture->poisoned = VAL_TRUE;
+        return VAL_ERROR;
+    }
     if (fixture->pending)
-        val_firme_gm_gpi_op_continue(fixture->cookie, result);
+        call_status = gpt_fixture_call(fixture, FIRME_FID_GM_GPI_OP_CONTINUE,
+            fixture->cookie, 0ULL, 0ULL, result);
     else
-        val_firme_gm_gpi_set(fixture->memory.range_base +
+        call_status = gpt_fixture_call(fixture, FIRME_FID_GM_GPI_SET,
+            fixture->memory.range_base +
             fixture->completed * fixture->granule_size,
             fixture->count - fixture->completed,
             FIRME_GPI_ATTR_TARGET(fixture->target_gpi), result);
+
+    if (call_status != VAL_SUCCESS)
+        return VAL_ERROR;
+
     return val_firme_gpt_fixture_gpi_record(fixture, result);
 }
 
@@ -278,15 +432,24 @@ int val_firme_gpt_fixture_conflict(val_firme_gpt_fixture_t *fixture)
         fixture->completed >= fixture->count)
         return VAL_ERROR;
     for (attempt = 0U; attempt < GPT_FIXTURE_MAX_CALLS; attempt++) {
-        val_firme_gm_gpi_set(fixture->memory.range_base +
+        if (gpt_fixture_call(fixture, FIRME_FID_GM_GPI_SET,
+            fixture->memory.range_base +
             fixture->completed * fixture->granule_size, 1ULL,
-            FIRME_GPI_ATTR_TARGET(fixture->target_gpi), &result);
+            FIRME_GPI_ATTR_TARGET(fixture->target_gpi), &result) != VAL_SUCCESS)
+            return VAL_ERROR;
+
         status = val_firme_status_to_i64(result.x0);
+        if (gpt_fixture_progress_observe(fixture) != VAL_SUCCESS)
+            return VAL_ERROR;
+
         if (status == (int64_t)FIRME_BUSY)
             continue;
         if (status == (int64_t)FIRME_OP_CONFLICT && result.x1 == 0ULL)
             return VAL_SUCCESS;
         fixture->poisoned = VAL_TRUE;
+        LOG_ERROR(NULL, "GPT fixture: conflicting request x0=%llx count=%llx; "
+                  "retaining original cookie=%llx\n", (unsigned long long)result.x0,
+                  (unsigned long long)result.x1, (unsigned long long)fixture->cookie);
         return VAL_ERROR;
     }
     return VAL_ERROR;
@@ -309,6 +472,15 @@ static int gpt_fixture_drain(val_firme_gpt_fixture_t *fixture)
             return VAL_ERROR;
     }
     return fixture->completed == fixture->count ? VAL_SUCCESS : VAL_ERROR;
+}
+
+/** @brief Preserve the tested transition result separately from restoration. */
+int val_firme_gpt_fixture_complete_transition(val_firme_gpt_fixture_t *fixture)
+{
+    if (!fixture || !fixture->memory.token || fixture->poisoned || fixture->restoring ||
+        fixture->kind != PAL_FIRME_GPT_MEMORY_TRANSITION)
+        return VAL_ERROR;
+    return gpt_fixture_drain(fixture);
 }
 
 /** @brief Preserve L1 pending operation identity and correlate returned storage. */
@@ -347,6 +519,7 @@ int val_firme_gpt_fixture_l1_complete(val_firme_gpt_fixture_t *fixture,
 {
     firme_res_t result = {0};
     uint32_t attempt;
+    int call_status;
 
     if (!fixture || destroy > VAL_TRUE || !fixture->memory.token || fixture->poisoned ||
         fixture->kind == PAL_FIRME_GPT_MEMORY_TRANSITION ||
@@ -354,10 +527,16 @@ int val_firme_gpt_fixture_l1_complete(val_firme_gpt_fixture_t *fixture,
         return VAL_ERROR;
     for (attempt = 0U; attempt < GPT_FIXTURE_MAX_CALLS; attempt++) {
         if (destroy)
-            val_firme_gm_l1_gpt_destroy(fixture->memory.range_base, &result);
+            call_status = gpt_fixture_call(fixture, FIRME_FID_GM_L1_GPT_DESTROY,
+                fixture->memory.range_base, 0ULL, 0ULL, &result);
         else
-            val_firme_gm_l1_gpt_create(fixture->memory.range_base,
-                fixture->pending ? 0ULL : fixture->memory.object_base, &result);
+            call_status = gpt_fixture_call(fixture, FIRME_FID_GM_L1_GPT_CREATE,
+                fixture->memory.range_base,
+                fixture->pending ? 0ULL : fixture->memory.object_base, 0ULL, &result);
+
+        if (call_status != VAL_SUCCESS)
+            return VAL_ERROR;
+
         if (val_firme_gpt_fixture_l1_record(fixture, destroy, &result) != VAL_SUCCESS)
             return VAL_ERROR;
         if (fixture->last_status == (int64_t)FIRME_SUCCESS)
@@ -369,6 +548,8 @@ int val_firme_gpt_fixture_l1_complete(val_firme_gpt_fixture_t *fixture,
 /** @brief Restore state before release; uncertainty deliberately retains ownership. */
 int val_firme_gpt_fixture_cleanup(val_firme_gpt_fixture_t *fixture)
 {
+    firme_rule_res_t scrub = {.status = ACS_STATUS_PASS};
+    uint64_t index;
     int drain_status;
 
     if (!fixture)
@@ -384,8 +565,25 @@ int val_firme_gpt_fixture_cleanup(val_firme_gpt_fixture_t *fixture)
                 return VAL_ERROR;
         }
         if (!fixture->restoring) {
+            if (fixture->target_gpi == FIRME_GPI_NSO) {
+                for (index = 0ULL; index < fixture->completed; index++) {
+                    if (!val_firme_gpt_scrub_ns(fixture->memory.range_base +
+                            index * fixture->granule_size, &scrub, index + 1ULL))
+                        return VAL_ERROR;
+                }
+            }
+            if (fixture->target_gpi == FIRME_GPI_NONSECURE || !fixture->completed) {
+                if (gpt_fixture_observe(fixture, fixture->memory.range_base,
+                        fixture->memory.range_size, FIRME_GPI_NONSECURE) != VAL_SUCCESS)
+                    return VAL_ERROR;
+
+                fixture->completed = fixture->count;
+            } else {
+                fixture->count = fixture->completed;
+                fixture->completed = 0ULL;
+            }
+
             fixture->target_gpi = FIRME_GPI_NONSECURE;
-            fixture->completed = 0ULL;
             fixture->cookie = 0ULL;
             fixture->restoring = VAL_TRUE;
         }

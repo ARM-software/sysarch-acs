@@ -11,6 +11,16 @@
 
 #include "val_pcie_ide.h"
 #include "pal_pcie.h"
+#include "val_log.h"
+
+/** @brief Suppress per-candidate diagnostics in the native inventory fixture. */
+uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *format, ...)
+{
+    (void)verbosity;
+    (void)tag;
+    (void)format;
+    return VAL_SUCCESS;
+}
 
 #define TEST_ROOT 0x100U
 #define TEST_ENDPOINT 0x10000U
@@ -22,6 +32,8 @@
 static uint32_t g_config[2][1024];
 static uint32_t g_writes;
 static uint32_t g_reject_offset;
+static uint32_t g_reject_read_bdf;
+static uint32_t g_reject_read_offset;
 
 /** @brief Expose platform address inventory, not preselected IDE stream IDs. */
 uint32_t pal_pcie_ecam_count(void)
@@ -43,6 +55,8 @@ int pal_pcie_ecam_info(uint32_t index, pal_pcie_ecam_info_t *info)
 int pal_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value)
 {
     if (!value || offset >= 4096U)
+        return VAL_ERROR;
+    if (bdf == g_reject_read_bdf && offset == g_reject_read_offset)
         return VAL_ERROR;
     if ((bdf != TEST_ROOT && bdf != TEST_ENDPOINT) ||
         (bdf == TEST_ENDPOINT && !(g_config[0][0x18U / 4U] & 0xff00U))) {
@@ -90,6 +104,8 @@ static val_pcie_ide_path_t test_path(void)
     g_config[1][(TEST_IDE + 4U) / 4U] = 2U;
     g_writes = 0U;
     g_reject_offset = UINT32_MAX;
+    g_reject_read_bdf = VAL_PCIE_BDF_INVALID;
+    g_reject_read_offset = UINT32_MAX;
     return path;
 }
 
@@ -108,6 +124,57 @@ int main(void)
     assert(stream.path.root_port_id == 8U && stream.path.endpoint_id == 0x100U);
     assert(val_pcie_ide_stream_release(&stream) == VAL_SUCCESS);
 
+    path = test_path();
+    g_reject_read_bdf = TEST_ROOT;
+    g_reject_read_offset = 0x40U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_FAIL);
+    assert(stream.reason == VAL_PCIE_IDE_CONFIG_ERROR);
+    assert(stream.error_bdf == TEST_ROOT && stream.error_offset == 0x40U);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_reject_read_bdf = TEST_ENDPOINT;
+    g_reject_read_offset = 0x40U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_FAIL);
+    assert(stream.reason == VAL_PCIE_IDE_CONFIG_ERROR);
+    assert(stream.error_bdf == TEST_ENDPOINT && stream.error_offset == 0x40U);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_config[0][0x40U / 4U] = 0x404001U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_FAIL);
+    assert(stream.reason == VAL_PCIE_IDE_CONFIG_ERROR);
+    assert(stream.error_bdf == TEST_ROOT && stream.error_offset == 0x40U);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_reject_read_bdf = TEST_ROOT;
+    g_reject_read_offset = 0x100U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_FAIL);
+    assert(stream.reason == VAL_PCIE_IDE_CONFIG_ERROR);
+    assert(stream.error_bdf == TEST_ROOT && stream.error_offset == 0x100U);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_reject_read_bdf = TEST_ENDPOINT;
+    g_reject_read_offset = 0x100U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_FAIL);
+    assert(stream.reason == VAL_PCIE_IDE_CONFIG_ERROR);
+    assert(stream.error_bdf == TEST_ENDPOINT && stream.error_offset == 0x100U);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_config[1][0x100U / 4U] = 0U;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_SKIP);
+    assert(g_writes == 0U && !stream.acquired);
+
+    path = test_path();
+    g_config[0][0x18U / 4U] = 0U;
+    g_config[1][0] = UINT32_MAX;
+    assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_SKIP);
+    assert(!stream.acquired && g_config[0][0x18U / 4U] == 0U);
+    path = test_path();
+
     g_config[0][0x18U / 4U] = 0U;
     assert(val_pcie_ide_stream_discover(VAL_TRUE, &stream) == ACS_STATUS_PASS);
     assert(stream.buses_changed && g_config[0][0x18U / 4U] == 0x10100U);
@@ -121,6 +188,7 @@ int main(void)
     assert(val_pcie_ide_stream_release(&stream) == VAL_ERROR);
     assert(stream.acquired && stream.buses_changed);
     assert(val_pcie_ide_stream_discover(VAL_TRUE, &second) == ACS_STATUS_FAIL);
+    assert(second.reason == VAL_PCIE_IDE_OWNER_BUSY && !second.acquired);
     g_reject_offset = UINT32_MAX;
     assert(val_pcie_ide_stream_release(&stream) == VAL_SUCCESS);
     assert(g_config[0][0x18U / 4U] == 0U);
@@ -134,6 +202,7 @@ int main(void)
         assert(g_config[0][(TEST_BLOCK + 16U) / 4U] == 0x10001U);
         assert(g_config[1][(TEST_BLOCK + 16U) / 4U] == 0x801U);
         assert(val_pcie_ide_stream_acquire(&path, VAL_TRUE, &second) == ACS_STATUS_FAIL);
+        assert(second.reason == VAL_PCIE_IDE_OWNER_BUSY && !second.acquired);
         assert(val_pcie_ide_stream_release(&stream) == VAL_SUCCESS);
         assert(g_config[0][TEST_LOCK / 4U] == 0U);
         assert(g_config[0][(TEST_BLOCK + 4U) / 4U] == 0U);

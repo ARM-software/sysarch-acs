@@ -29,6 +29,12 @@ static libspdm_return_t g_session_status;
 static uint32_t g_test_pe = 3U;
 static libspdm_return_t g_handshake_status;
 static uint32_t g_handshake_calls;
+static uint32_t g_root_go_calls;
+static uint32_t g_root_go_fail;
+static uint32_t g_namespace_stop_calls;
+static uint32_t g_namespace_restore_calls;
+static int g_namespace_stop_status;
+static int g_namespace_restore_status;
 
 /** @brief Supply certificate discovery solely to reach the mocked handshake boundary. */
 libspdm_return_t libspdm_get_digest(void *spdm_context, const uint32_t *session_id,
@@ -101,6 +107,9 @@ void val_firme_ide_link_command(uint64_t operation, uint64_t keyset_id,
         g_root_releases++;
     } else {
         assert(operation == VAL_IDE_LINK_GO);
+        g_root_go_calls++;
+        if (g_root_go_fail)
+            out->x0 = ACS_STATUS_FAIL;
     }
 }
 
@@ -166,8 +175,9 @@ void libspdm_deinit_context(void *spdm_context)
 }
 
 /** @brief Model a prepared observation aperture. */
-int pal_cxl_traffic_prepare(uint32_t root_bdf, uint32_t endpoint_bdf)
+int pal_cxl_traffic_prepare_at(uint64_t ecam_base, uint32_t root_bdf, uint32_t endpoint_bdf)
 {
+    (void)ecam_base;
     (void)root_bdf;
     (void)endpoint_bdf;
     return VAL_SUCCESS;
@@ -186,6 +196,25 @@ int pal_cxl_traffic_release(void)
 {
     g_traffic_releases++;
     return g_traffic_status;
+}
+
+/** @brief Inject isolated RX-stop evidence failures at the real host integration boundary. */
+int val_firme_ide_namespace_rx_stopped(val_firme_ide_namespace_probe_t *probe)
+{
+    assert(probe && !probe->valid && g_root_stops[VAL_HOST_IDE_ROOT_RX] == 1U);
+    assert(g_root_stops[VAL_HOST_IDE_ROOT_TX] == 0U && g_root_go_calls == 0U);
+    g_namespace_stop_calls++;
+    probe->valid = g_namespace_stop_status == VAL_SUCCESS;
+    return g_namespace_stop_status;
+}
+
+/** @brief Require host RX restart before consuming the retained TX-only witness. */
+int val_firme_ide_namespace_rx_restored(val_firme_ide_namespace_probe_t *probe)
+{
+    assert(probe && probe->valid && g_root_go_calls == 1U);
+    assert(g_root_stops[VAL_HOST_IDE_ROOT_TX] == 0U);
+    g_namespace_restore_calls++;
+    return g_namespace_restore_status;
 }
 
 /** @brief Model retryable bus-configuration restoration. */
@@ -238,6 +267,12 @@ static void test_transaction_init(val_host_spdm_transaction_t *transaction)
     g_doe_status = VAL_SUCCESS;
     g_handshake_status = LIBSPDM_STATUS_SUCCESS;
     g_handshake_calls = 0U;
+    g_root_go_calls = 0U;
+    g_root_go_fail = VAL_FALSE;
+    g_namespace_stop_calls = 0U;
+    g_namespace_restore_calls = 0U;
+    g_namespace_stop_status = VAL_SUCCESS;
+    g_namespace_restore_status = VAL_SUCCESS;
 }
 
 /** @brief Destroy mock-only quarantined allocations between independent tests. */
@@ -411,6 +446,69 @@ static void test_generated_observer(void)
            PAL_FIRME_IDE_ABI_READY);
     assert(pal_firme_ide_abi_cleanup(FIRME_ACS_WORLD_NSEL2, PAL_FIRME_IDE_ABI_STOP,
         PAL_FIRME_IDE_ABI_VALID, &scenario) == PAL_FIRME_IDE_ABI_READY);
+
+    test_transaction_init(transaction);
+    transaction->world = FIRME_ACS_WORLD_REALM;
+    transaction->abi_owned = VAL_TRUE;
+    transaction->abi_operation = PAL_FIRME_IDE_ABI_GO;
+    transaction->abi_token = scenario.token;
+    transaction->link[0].root_open = VAL_FALSE;
+    assert(pal_firme_ide_abi_ready(FIRME_ACS_WORLD_REALM, PAL_FIRME_IDE_ABI_GO,
+        PAL_FIRME_IDE_ABI_VALID, &scenario) == PAL_FIRME_IDE_ABI_READY);
+    assert(pal_firme_ide_abi_observe(FIRME_ACS_WORLD_NSEL2, PAL_FIRME_IDE_ABI_GO,
+        PAL_FIRME_IDE_ABI_VALID, &scenario) == PAL_FIRME_IDE_ABI_ERROR);
+    assert(pal_firme_ide_abi_observe(FIRME_ACS_WORLD_REALM, PAL_FIRME_IDE_ABI_GO,
+        PAL_FIRME_IDE_ABI_VALID, &scenario) == PAL_FIRME_IDE_ABI_READY);
+    assert(pal_firme_ide_abi_quiesce(FIRME_ACS_WORLD_REALM, &scenario) ==
+           PAL_FIRME_IDE_ABI_READY);
+    assert(pal_firme_ide_abi_cleanup(FIRME_ACS_WORLD_REALM, PAL_FIRME_IDE_ABI_GO,
+        PAL_FIRME_IDE_ABI_VALID, &scenario) == PAL_FIRME_IDE_ABI_READY);
+}
+
+/** @brief Require positive traffic effects and unchanged traffic after rejected inputs. */
+static void test_generated_operation_observers(void)
+{
+    val_host_spdm_transaction_t *transaction = &g_val_host_spdm_transaction;
+    pal_firme_ide_abi_scenario_t scenario = {.token = 11ULL,
+        .ide_type = VAL_FIRME_IDE_TYPE_CXL_CACHEMEM};
+    pal_firme_ide_abi_operation_t operation;
+    pal_firme_ide_abi_condition_t condition;
+    uint32_t negative;
+    uint32_t before_blocked;
+    uint32_t after_blocked;
+
+    for (operation = PAL_FIRME_IDE_ABI_PROG; operation <= PAL_FIRME_IDE_ABI_POLL;
+         operation++) {
+        for (negative = VAL_FALSE; negative <= VAL_TRUE; negative++) {
+            condition = negative ? PAL_FIRME_IDE_ABI_INVALID_TYPE : PAL_FIRME_IDE_ABI_VALID;
+            if (negative && operation == PAL_FIRME_IDE_ABI_POLL)
+                condition = PAL_FIRME_IDE_ABI_NO_PENDING;
+            test_transaction_init(transaction);
+            transaction->abi_owned = VAL_TRUE;
+            transaction->abi_operation = operation;
+            transaction->abi_condition = condition;
+            transaction->abi_token = scenario.token;
+            transaction->link[0].root_open = VAL_FALSE;
+            before_blocked = operation != PAL_FIRME_IDE_ABI_STOP ? VAL_TRUE : VAL_FALSE;
+            if (negative && operation == PAL_FIRME_IDE_ABI_PROG)
+                before_blocked = VAL_FALSE;
+            after_blocked = negative ? before_blocked : !before_blocked;
+            assert(pal_firme_ide_abi_ready(FIRME_ACS_WORLD_NSEL2, operation,
+                condition, &scenario) == PAL_FIRME_IDE_ABI_READY);
+            assert(g_expect_blocked == before_blocked && g_go_calls == 1U);
+            assert(pal_firme_ide_abi_observe(FIRME_ACS_WORLD_NSEL2, operation,
+                condition, &scenario) == PAL_FIRME_IDE_ABI_READY);
+            assert(g_expect_blocked == after_blocked && g_go_calls == 1U);
+            g_traffic_status = VAL_ERROR;
+            assert(pal_firme_ide_abi_observe(FIRME_ACS_WORLD_NSEL2, operation,
+                condition, &scenario) == PAL_FIRME_IDE_ABI_ERROR);
+            g_traffic_status = VAL_SUCCESS;
+            assert(pal_firme_ide_abi_quiesce(FIRME_ACS_WORLD_NSEL2, &scenario) ==
+                   PAL_FIRME_IDE_ABI_READY);
+            assert(pal_firme_ide_abi_cleanup(FIRME_ACS_WORLD_NSEL2, operation,
+                condition, &scenario) == PAL_FIRME_IDE_ABI_READY);
+        }
+    }
 }
 
 /**
@@ -429,6 +527,62 @@ libspdm_return_t libspdm_get_data(void *spdm_context,
         return LIBSPDM_STATUS_INVALID_PARAMETER;
     memcpy(data, &spdm_context, sizeof(spdm_context));
     return LIBSPDM_STATUS_SUCCESS;
+}
+
+/** @brief Check real host namespace sequencing, distinct keys and failure ownership. */
+static void test_namespace_observer(void)
+{
+    val_host_spdm_transaction_t transaction;
+    firme_rule_res_t result;
+    uint32_t mode;
+    uint32_t world_index;
+
+    for (world_index = 0U; world_index < 2U; world_index++) {
+        for (mode = 0U; mode < 8U; mode++) {
+            test_transaction_init(&transaction);
+            transaction.world = world_index ? FIRME_ACS_WORLD_REALM : FIRME_ACS_WORLD_NSEL2;
+            transaction.link[0].root_programmed = VAL_TRUE;
+            transaction.link[1].root_programmed = VAL_TRUE;
+            transaction.link[1].key[0] = 1ULL;
+            result = (firme_rule_res_t){.status = ACS_STATUS_FAIL};
+            if (mode == 1U)
+                g_root_fail_mask = 1U;
+            else if (mode == 2U)
+                g_namespace_stop_status = VAL_ERROR;
+            else if (mode == 3U)
+                g_root_go_fail = VAL_TRUE;
+            else if (mode == 4U)
+                g_namespace_restore_status = VAL_ERROR;
+            else if (mode == 5U)
+                transaction.link[1].key[0] = 0ULL;
+            else if (mode == 6U)
+                transaction.link[1].keyset_id = transaction.link[0].keyset_id;
+            else if (mode == 7U)
+                transaction.link[1].endpoint_stopped = VAL_TRUE;
+
+            assert(val_host_spdm_namespace_observe(&transaction, &result) ==
+                   (mode == 0U ? VAL_SUCCESS : VAL_ERROR));
+            if (mode == 0U) {
+                assert(g_namespace_stop_calls == 1U && g_namespace_restore_calls == 1U);
+                assert(!transaction.link[0].root_stopped && transaction.open);
+            } else if (mode == 1U || mode >= 5U) {
+                assert(g_namespace_stop_calls == 0U && g_namespace_restore_calls == 0U);
+            } else if (mode == 2U) {
+                assert(transaction.link[0].root_stopped && g_root_go_calls == 0U);
+            } else if (mode == 3U) {
+                assert(!transaction.link[0].root_stopped && g_namespace_restore_calls == 0U);
+            }
+
+            g_root_fail_mask = 0U;
+            g_traffic_status = VAL_ERROR;
+            assert(val_host_spdm_cleanup(&transaction) == VAL_ERROR);
+            assert(transaction.open && transaction.quarantined);
+            assert(g_session_closes == 0U && g_root_releases == 0U);
+            test_transaction_dispose(&transaction);
+        }
+    }
+    assert(val_host_spdm_namespace_observe(NULL, &result) == VAL_ERROR);
+    assert(val_host_spdm_namespace_observe(&transaction, NULL) == VAL_ERROR);
 }
 
 /**
@@ -472,6 +626,8 @@ int main(void)
     test_cleanup_lifetime();
     test_handshake_lifetime();
     test_generated_observer();
-    puts("SPDM buffers, cleanup lifetime and generated observer: PASS");
+    test_generated_operation_observers();
+    test_namespace_observer();
+    puts("SPDM buffers, cleanup lifetime, generated and namespace observers: PASS");
     return VAL_SUCCESS;
 }

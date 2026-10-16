@@ -21,6 +21,7 @@ static uint32_t g_review_info_calls;
 static uint32_t g_review_cleanup_calls;
 static uint32_t g_review_restore_calls;
 static uint32_t g_review_restore_fails;
+static uint32_t g_review_owner_mode;
 
 /** @brief Suppress expected error diagnostics in negative native cases. */
 uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *fmt, ...)
@@ -120,7 +121,25 @@ pal_firme_gpt_scenario_status_t pal_firme_gpt_scenario_cleanup(
 void val_firme_gm_gpi_set_do(uint64_t base, uint64_t count,
     uint64_t target, firme_res_t *result)
 {
+    if (g_review_owner_mode != 0U) {
+        *result = (firme_res_t){.x0 = FIRME_SUCCESS,
+            .x1 = g_review_owner_mode == 1U ? REVIEW_COUNT : count};
+        if (target == FIRME_GPI_NONSECURE) {
+            g_review_restore_calls++;
+            result->x0 = g_review_restore_fails ? (uint64_t)FIRME_DENIED : FIRME_SUCCESS;
+            result->x1 = g_review_restore_fails ? 0ULL : count;
+        }
+
+        return;
+    }
+
     *result = (firme_res_t){.x0 = (uint64_t)FIRME_NOT_FOUND, .x1 = g_review_count};
+}
+
+/** @brief No scripted review response is permitted to create retained work. */
+void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *result)
+{
+    assert(VAL_FALSE);
 }
 
 /** @brief Model accessible prefix granules and GPFs for the remainder. */
@@ -177,11 +196,17 @@ int main(void)
 
     for (g_review_restore_fails = VAL_FALSE; g_review_restore_fails <= VAL_TRUE;
          g_review_restore_fails++) {
+        g_review_owner_mode = 1U;
         g_review_restore_calls = 0U;
         gpt_management_owner_run(REVIEW_BASE, FIRME_GPI_REALM, &result);
-        assert(result.status == ACS_STATUS_FAIL);
+        assert(result.status == ACS_STATUS_ERR);
         assert(result.fail_step == GPT_MANAGEMENT_OWNER_STEP_TRANSITION);
         assert(result.last_x0 == FIRME_SUCCESS && result.last_x1 == REVIEW_COUNT);
+        assert(g_review_restore_calls == 0U);
+
+        g_review_owner_mode = 2U;
+        gpt_management_owner_run(REVIEW_BASE, FIRME_GPI_REALM, &result);
+        assert(result.status == (g_review_restore_fails ? ACS_STATUS_FAIL : ACS_STATUS_PASS));
         assert(g_review_restore_calls == 1U);
     }
 

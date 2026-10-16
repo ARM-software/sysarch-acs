@@ -60,7 +60,7 @@ class FvpRunnerTests(unittest.TestCase):
             (firmware / "fip.bin").write_bytes(b"FIP fixture")
             (firmware / ".firme_build_tfa.stamp").write_text(
                 "FVP_FIRME_MEC_REFRESH=0\nENABLE_FEAT_RME_GDI=0\n"
-                "FVP_FIRME_CXL_IDE=0\n", encoding="utf-8")
+                "FVP_FIRME_CXL_IDE=0\nFIRME_REALM_PAT_BINDING=none\n", encoding="utf-8")
             model = root / "model"
             model.write_text(MODEL, encoding="utf-8")
             model.chmod(0o700)
@@ -144,6 +144,14 @@ class FvpRunnerTests(unittest.TestCase):
                                                telnet=telnet)
                     self.assertNotEqual(result.returncode, 0)
                     self.assertIn("did not complete FIRME test execution", result.stderr)
+
+    def test_binding_configuration(self):
+        """Never describe prebuilt payloads as using a different attestation fixture."""
+        result, log = self.run_model(
+            SUMMARY + COMPLETE, overrides={"FIRME_REALM_PAT_BINDING": "delegated-rmm-el3"})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("rebuild payloads", result.stderr)
+        self.assertEqual(log, "")
 
     def test_completed_with_blocked_gpt(self):
         """Completed accounting retains a cleanup failure and explicit blocked SKIPs."""

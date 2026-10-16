@@ -37,6 +37,12 @@
 #define VAL_PCIE_PORT_TYPE_ROOT_PORT              0x4U
 #define VAL_PCIE_PORT_TYPE_RC_INTEGRATED_ENDPOINT 0x9U
 
+typedef enum {
+    VAL_PCIE_PROBE_ABSENT,
+    VAL_PCIE_PROBE_PRESENT,
+    VAL_PCIE_PROBE_ERROR,
+} val_pcie_probe_status_t;
+
 typedef struct {
     uint64_t ecam_base;
     uint32_t segment;
@@ -71,10 +77,26 @@ uint32_t val_pcie_default_direction(void);
 uint32_t val_pcie_default_key_set(void);
 int val_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value);
 int val_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value);
+int val_pcie_cfg_read32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                           uint32_t *value);
+int val_pcie_cfg_write32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                            uint32_t value);
+val_pcie_probe_status_t val_pcie_device_port_type_probe_at(uint64_t ecam_base,
+                                                          uint32_t bdf,
+                                                          uint32_t *port_type,
+                                                          uint32_t *error_offset);
+val_pcie_probe_status_t val_pcie_cxl_doe_probe_at(uint64_t ecam_base, uint32_t bdf,
+                                                uint32_t *doe_offset,
+                                                uint32_t *error_offset);
 int val_pcie_function_present(uint32_t bdf);
+val_pcie_probe_status_t val_pcie_function_probe(uint32_t bdf,
+                                                uint32_t *error_offset);
 int val_pcie_find_capability(uint32_t bdf, uint32_t cap_type, uint32_t cap_id,
                              uint32_t *cap_offset);
 int val_pcie_device_port_type(uint32_t bdf, uint32_t *port_type);
+val_pcie_probe_status_t val_pcie_device_port_type_probe(uint32_t bdf,
+                                                        uint32_t *port_type,
+                                                        uint32_t *error_offset);
 int val_pcie_find_root_port(uint32_t *bdf);
 int val_pcie_find_endpoint(uint32_t *bdf);
 int val_pcie_find_endpoint_below(uint32_t root_bdf, uint32_t *bdf);

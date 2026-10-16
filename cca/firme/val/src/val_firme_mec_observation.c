@@ -32,7 +32,8 @@ __attribute__((weak)) int val_firme_mec_observation_probe(
     uint32_t index = 0U;
 
     if ((test_case != VAL_FIRME_MEC_OBSERVE_CONTEXT_REFRESH) &&
-        (test_case != VAL_FIRME_MEC_OBSERVE_CIPHERTEXT_DECORRELATION))
+        (test_case != VAL_FIRME_MEC_OBSERVE_CIPHERTEXT_DECORRELATION) &&
+        (test_case != VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY))
         return VAL_FIRME_MEC_OBSERVATION_PROBE_ERROR;
 
     if (evidence != 0) {

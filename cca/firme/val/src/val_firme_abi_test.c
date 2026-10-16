@@ -35,6 +35,56 @@ static void val_firme_abi_frame_clear(smccc_call_frame_t *frame)
         frame->registers[register_index] = 0ULL;
 }
 
+/** @brief Preserve transport failures separately from architectural return values. */
+int val_firme_abi_call(val_firme_abi_test_context_t *context,
+                       const smccc_call_frame_t *input, smccc_call_frame_t *output,
+                       uint32_t *issued)
+{
+    int result;
+
+    if (!context || !input || !output || !issued)
+        return VAL_ERROR;
+
+    *issued = VAL_FALSE;
+    val_firme_abi_frame_clear(output);
+    if (context->transport_uncertain)
+        return VAL_ERROR;
+
+    if (!context->invoke_frame) {
+        *issued = VAL_TRUE;
+        val_smccc_smc_call_frame(input, output);
+        return VAL_SUCCESS;
+    }
+
+    result = context->invoke_frame(input, output, issued, context->invoke_cookie);
+    if (result == VAL_SUCCESS && *issued == VAL_TRUE)
+        return VAL_SUCCESS;
+
+    if (*issued != VAL_FALSE)
+        context->transport_uncertain = VAL_TRUE;
+    val_firme_abi_frame_clear(output);
+    return VAL_ERROR;
+}
+
+/** @brief Query discovery through the same transport as the tested invocation. */
+static int val_firme_abi_remote_discover(val_firme_abi_test_context_t *context,
+                                          uint32_t features, firme_res_t *response)
+{
+    smccc_call_frame_t input = {0};
+    smccc_call_frame_t output = {0};
+    uint32_t issued = VAL_FALSE;
+
+    input.registers[0] = features ? FIRME_FID_SERVICE_FEATURES : FIRME_FID_SERVICE_VERSION;
+    input.registers[1] = context->abi->service_id;
+    input.registers[2] = FIRME_BASE_FEATURE_REG0_INDEX;
+    if (val_firme_abi_call(context, &input, &output, &issued) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    response->x0 = output.registers[0];
+    response->x1 = output.registers[1];
+    return VAL_SUCCESS;
+}
+
 /**
  * @brief Clear per-case service-adapter scratch storage.
  * @param context Generated-plan execution context.
@@ -118,7 +168,7 @@ static int val_firme_abi_world_index(firme_acs_world_t world,
  *         FAIL/SKIP result, or VAL_ERROR for a framework query failure.
  */
 static int val_firme_abi_check_advertisement(
-    const val_firme_abi_test_context_t *context, firme_rule_res_t *out)
+    val_firme_abi_test_context_t *context, firme_rule_res_t *out)
 {
     firme_res_t features_res = {0};
     firme_res_t version_res = {0};
@@ -129,6 +179,7 @@ static int val_firme_abi_check_advertisement(
     uint32_t world_mask;
     val_firme_abi_world_policy_t policy;
     int query_status;
+    int64_t version_status;
 
     if (context->plan->require_advertised == 0U)
         return VAL_TRUE;
@@ -140,8 +191,18 @@ static int val_firme_abi_check_advertisement(
     }
 
     world_mask = UINT32_C(1) << world_index;
-    query_status = val_firme_service_get_version(
-        context->abi->service_id, &implemented, &version_res);
+    if (context->invoke_frame) {
+        query_status = val_firme_abi_remote_discover(context, VAL_FALSE, &version_res);
+        if (query_status == VAL_SUCCESS) {
+            version_status = val_firme_status_to_i64(version_res.x0);
+            implemented = version_status > 0 ? VAL_TRUE : VAL_FALSE;
+            if (version_status <= 0 && version_status != FIRME_NOT_SUPPORTED)
+                query_status = VAL_ERROR;
+        }
+    } else {
+        query_status = val_firme_service_get_version(
+            context->abi->service_id, &implemented, &version_res);
+    }
     if (query_status != VAL_SUCCESS) {
         LOG_ERROR(NULL,
                   "%s: invalid %s service version result x0=%llx",
@@ -173,9 +234,21 @@ static int val_firme_abi_check_advertisement(
     if (context->abi->id == VAL_FIRME_ABI_ID_SERVICE_VERSION)
         return VAL_TRUE;
 
-    query_status = val_firme_service_abi_is_advertised(
-        context->abi->service_id, context->abi->feature_bit, &advertised,
-        &feature_reg0, &features_res);
+    if (context->invoke_frame) {
+        query_status = val_firme_abi_remote_discover(context, VAL_TRUE, &features_res);
+        if (query_status == VAL_SUCCESS &&
+            val_firme_status_to_i64(features_res.x0) != FIRME_SUCCESS)
+            query_status = VAL_ERROR;
+        if (query_status == VAL_SUCCESS) {
+            feature_reg0 = features_res.x1;
+            advertised = (feature_reg0 & context->abi->feature_bit) ==
+                         context->abi->feature_bit ? VAL_TRUE : VAL_FALSE;
+        }
+    } else {
+        query_status = val_firme_service_abi_is_advertised(
+            context->abi->service_id, context->abi->feature_bit, &advertised,
+            &feature_reg0, &features_res);
+    }
     if (query_status != VAL_SUCCESS) {
         LOG_ERROR(NULL,
                   "%s: failed to query %s advertisement x0=%llx x1=%llx",
@@ -213,25 +286,29 @@ static int val_firme_abi_check_advertisement(
 /**
  * @brief Invoke an ABI and apply its generic retry execution model.
  * @param context Generated-plan execution context.
- * @return None.
+ * @return VAL_SUCCESS for valid outputs, otherwise VAL_ERROR.
  */
-static void val_firme_abi_invoke(val_firme_abi_test_context_t *context)
+static int val_firme_abi_invoke(val_firme_abi_test_context_t *context)
 {
     uint32_t attempt;
     int64_t status;
 
     for (attempt = 0U; attempt < VAL_FIRME_ABI_RETRY_LIMIT; attempt++) {
-        context->call_issued = VAL_TRUE;
-        val_smccc_smc_call_frame(&context->input, &context->output);
+        context->output_valid = VAL_FALSE;
+        if (val_firme_abi_call(context, &context->input, &context->output,
+                               &context->call_issued) != VAL_SUCCESS)
+            return VAL_ERROR;
+        context->output_valid = VAL_TRUE;
         if (context->abi->execution_model !=
             VAL_FIRME_ABI_EXEC_RETRYABLE)
-            return;
+            return VAL_SUCCESS;
 
         status = val_firme_status_to_i64(
             context->output.registers[0]);
         if (status != (int64_t)FIRME_BUSY)
-            return;
+            return VAL_SUCCESS;
     }
+    return VAL_SUCCESS;
 }
 
 /**
@@ -356,6 +433,7 @@ static int val_firme_abi_execute_case(
     val_firme_abi_frame_clear(&context->output);
     val_firme_abi_scratch_clear(context);
     context->call_issued = VAL_FALSE;
+    context->output_valid = VAL_FALSE;
     context->input.registers[0] = context->abi->fid;
 
     if (ops->prepare_state)
@@ -367,8 +445,11 @@ static int val_firme_abi_execute_case(
         if (cleanup_status != VAL_SUCCESS) {
             val_firme_abi_result_fail(
                 out, context->test_case->diagnostic_step, context);
+            out->status = (uint64_t)ACS_STATUS_ERR;
             return VAL_ERROR;
         }
+        LOG_WARN(NULL, "%s: case=%s prerequisite unavailable",
+                 context->plan->name, context->test_case->name);
         out->status = (uint64_t)ACS_STATUS_SKIP;
         out->fail_step = context->test_case->diagnostic_step;
         return VAL_SUCCESS;
@@ -393,8 +474,10 @@ static int val_firme_abi_execute_case(
         adapter_status = VAL_ERROR;
 
     if (adapter_status == VAL_SUCCESS) {
-        val_firme_abi_invoke(context);
-        case_pass = val_firme_abi_validate_expectation(context);
+        adapter_status = val_firme_abi_invoke(context);
+        case_pass = VAL_FALSE;
+        if (adapter_status == VAL_SUCCESS)
+            case_pass = val_firme_abi_validate_expectation(context);
 
         if ((case_pass == VAL_TRUE) && ops->validate_output)
             case_pass = ops->validate_output(context);
@@ -424,6 +507,9 @@ static int val_firme_abi_execute_case(
         } else {
             out->status = (uint64_t)ACS_STATUS_FAIL;
         }
+        if ((cleanup_status != VAL_SUCCESS) || context->transport_uncertain)
+            out->status = (uint64_t)ACS_STATUS_ERR;
+
         return VAL_ERROR;
     }
 
@@ -448,13 +534,15 @@ static int val_firme_abi_execute_case(
 int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
                                firme_rule_res_t *out)
 {
-    val_firme_abi_test_context_t context;
+    val_firme_abi_test_context_t context = {0};
     const val_firme_abi_test_plan_t *plan;
     const val_firme_abi_descriptor_t *abi;
     uint32_t case_index;
     uint32_t plan_worlds;
     uint32_t world_mask;
     uint32_t world_index;
+    uint32_t skipped_case = VAL_FALSE;
+    uint64_t skipped_step = 0ULL;
     int advertisement_status;
     int case_status;
 
@@ -500,6 +588,8 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
     context.world = request->world;
     context.base_pa = request->base_pa;
     context.adapter_context = request->adapter_context;
+    context.invoke_frame = request->invoke_frame;
+    context.invoke_cookie = request->invoke_cookie;
     context.call_issued = VAL_FALSE;
     val_firme_abi_frame_clear(&context.input);
     val_firme_abi_frame_clear(&context.output);
@@ -517,16 +607,22 @@ int val_firme_abi_test_execute(const val_firme_abi_test_request_t *request,
     out->status = (uint64_t)ACS_STATUS_PASS;
 
     for (case_index = 0U; case_index < plan->case_count; case_index++) {
+        out->status = (uint64_t)ACS_STATUS_PASS;
+        out->fail_step = 0ULL;
         context.test_case = &plan->cases[case_index];
         case_status =
             val_firme_abi_execute_case(&context, request->ops, out);
         if (case_status != VAL_SUCCESS)
             return VAL_ERROR;
 
-        if (out->status == (uint64_t)ACS_STATUS_SKIP)
-            return VAL_SUCCESS;
+        if (out->status == (uint64_t)ACS_STATUS_SKIP) {
+            skipped_case = VAL_TRUE;
+            if (skipped_step == 0ULL)
+                skipped_step = out->fail_step;
+        }
     }
 
-    out->status = (uint64_t)ACS_STATUS_PASS;
+    out->status = (uint64_t)(skipped_case ? ACS_STATUS_SKIP : ACS_STATUS_PASS);
+    out->fail_step = skipped_step;
     return VAL_SUCCESS;
 }

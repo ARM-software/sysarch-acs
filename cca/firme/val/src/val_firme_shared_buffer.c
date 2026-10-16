@@ -22,12 +22,46 @@
 /**
  *   @brief    - Report worlds with an implemented shared-buffer adapter.
  *   @param    - world : FIRME caller world.
- *   @return   - VAL_TRUE for NS; service and resource availability are probed later.
+ *   @return   - VAL_TRUE for NS/Realm; service and resources are probed later.
  **/
 __attribute__((weak)) uint32_t
 val_firme_shared_buffer_probe_available(firme_acs_world_t world)
 {
-    return world == FIRME_ACS_WORLD_NSEL2 ? VAL_TRUE : VAL_FALSE;
+    return (world == FIRME_ACS_WORLD_NSEL2 || world == FIRME_ACS_WORLD_REALM) ?
+               VAL_TRUE : VAL_FALSE;
+}
+
+/** @brief Require a firmware-established Realm buffer; never guess its address. */
+__attribute__((weak)) int val_firme_shared_buffer_acquire_realm_pat(
+    uint64_t capacity, uint64_t alignment, val_firme_shared_buffer_lease_t *lease)
+{
+    (void)capacity;
+    (void)alignment;
+    if (!lease)
+        return VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
+    *lease = (val_firme_shared_buffer_lease_t){0};
+    return VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE;
+}
+
+/** @brief Fail closed when a Realm lease provider has no release implementation. */
+__attribute__((weak)) int val_firme_shared_buffer_release_realm_pat(
+    const val_firme_shared_buffer_lease_t *lease, uint32_t pending)
+{
+    (void)lease;
+    (void)pending;
+    return VAL_ERROR;
+}
+
+/** @brief Do not infer Realm mapping or GPI from successful ABI completion. */
+__attribute__((weak)) int val_firme_shared_buffer_observe_realm_pat(
+    const val_firme_shared_buffer_lease_t *lease,
+    const val_firme_shared_buffer_evidence_t *invocation,
+    val_firme_shared_buffer_evidence_t *observation)
+{
+    if (!lease || !invocation || !observation)
+        return VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
+    *observation = (val_firme_shared_buffer_evidence_t){0};
+    return VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE;
 }
 
 /**
@@ -133,7 +167,7 @@ int val_firme_shared_buffer_get_limits(uint64_t *minimum_size_bytes,
 }
 
 /**
- *   @brief    - Exercise the NS PAT_GET shared-buffer adapter.
+ *   @brief    - Exercise a PAT_GET shared-buffer adapter.
  *   @param    - world              : FIRME caller world.
  *   @param    - test_case          : Shared-buffer case to exercise.
  *   @param    - minimum_size_bytes : Base-advertised minimum size.
@@ -176,17 +210,19 @@ static uint32_t shared_buffer_pat_status_valid(int64_t status)
 }
 
 /**
- * @brief Invoke NS PAT_GET with all unused input registers/bits zero.
+ * @brief Invoke PAT_GET with all unused input registers/bits zero.
  * @param base_pa Backed buffer physical address.
  * @param write_offset Offset at which output is written within the buffer.
  * @param page_count Representable count-minus-one encoding.
- * @param challenge_size Nonzero to start, zero to continue an owned retrieval.
+ * @param challenge_size NS initiation challenge or optional Realm challenge size.
+ * @param binding_size Realm workload binding size; nonzero starts Realm retrieval.
  * @param response Decoded defined outputs only, per ALP4 Table 8.26.
  * @return void.
  */
 static void shared_buffer_pat_call(uint64_t base_pa, uint64_t write_offset,
                                     uint64_t page_count,
                                     uint32_t challenge_size,
+                                    uint32_t binding_size,
                                     val_firme_partial_retrieval_evidence_t *response)
 {
     smccc_call_frame_t input = {0};
@@ -197,6 +233,7 @@ static void shared_buffer_pat_call(uint64_t base_pa, uint64_t write_offset,
     input.registers[2] = write_offset;
     input.registers[3] = page_count;
     input.registers[4] = challenge_size;
+    input.registers[5] = binding_size;
     dsb_sy();
     val_smccc_smc_call_frame(&input, &output);
     *response = (val_firme_partial_retrieval_evidence_t){0};
@@ -241,11 +278,13 @@ static uint32_t shared_buffer_pat_response_valid(
 
 /**
  * @brief Merge only independent observations tied to the exact invocation range.
+ * @param world Caller instance owning the lease.
  * @param lease Active resource lease.
  * @param evidence First invocation evidence to augment.
  * @return VAL_SUCCESS for observations or their explicit absence, else VAL_ERROR.
  */
-static int shared_buffer_pat_observe(const val_firme_shared_buffer_lease_t *lease,
+static int shared_buffer_pat_observe(firme_acs_world_t world,
+                                      const val_firme_shared_buffer_lease_t *lease,
                                       val_firme_shared_buffer_evidence_t *evidence)
 {
     val_firme_shared_buffer_evidence_t observation = {0};
@@ -257,12 +296,16 @@ static int shared_buffer_pat_observe(const val_firme_shared_buffer_lease_t *leas
                                   VAL_FIRME_SHARED_BUFFER_EVIDENCE_GPI;
     int result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
 
-    result = val_firme_shared_buffer_observe_ns_pat(lease, evidence, &observation);
+    result = world == FIRME_ACS_WORLD_REALM ?
+        val_firme_shared_buffer_observe_realm_pat(lease, evidence, &observation) :
+        val_firme_shared_buffer_observe_ns_pat(lease, evidence, &observation);
     if (result == VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE) {
         evidence->valid_fields |= VAL_FIRME_SHARED_BUFFER_OBSERVATION_UNAVAILABLE;
-        return VAL_SUCCESS;
+        if ((observation.valid_fields & observation_fields) == 0U)
+            return VAL_SUCCESS;
     }
-    if ((result != VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE) ||
+    if (((result != VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE) &&
+         (result != VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE)) ||
         ((observation.valid_fields & range_fields) != range_fields) ||
         (observation.base_pa != evidence->base_pa) ||
         (observation.page_count != evidence->page_count))
@@ -277,7 +320,7 @@ static int shared_buffer_pat_observe(const val_firme_shared_buffer_lease_t *leas
 
 /**
  * @brief Exercise backed PAT buffer inputs and drain or quarantine owned state.
- * @param world NS caller world.
+ * @param world NS or Realm caller world.
  * @param test_case Shared-buffer input case.
  * @param minimum_size_bytes Base minimum size and alignment.
  * @param maximum_page_count Base maximum encoded page count.
@@ -307,6 +350,7 @@ int val_firme_shared_buffer_pat_run(
     uint32_t invocation = 0U;
     uint32_t index = 0U;
     uint32_t challenge_size = 0U;
+    uint32_t binding_size = 0U;
     int result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
 
     if (evidence == 0)
@@ -314,7 +358,7 @@ int val_firme_shared_buffer_pat_run(
     *evidence = (val_firme_shared_buffer_evidence_t){0};
     if (chunk != 0)
         *chunk = (val_firme_partial_retrieval_evidence_t){0};
-    if (world != FIRME_ACS_WORLD_NSEL2)
+    if (world != FIRME_ACS_WORLD_NSEL2 && world != FIRME_ACS_WORLD_REALM)
         return VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE;
     if (((minimum_size_bytes != VAL_FIRME_SHARED_BUFFER_MIN_4KB) &&
          (minimum_size_bytes != VAL_FIRME_SHARED_BUFFER_MIN_16KB) &&
@@ -347,15 +391,22 @@ int val_firme_shared_buffer_pat_run(
         return VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
     LOG_DEBUG(NULL, "PAT_GET advertised=%u discovery x0=%llx x1=%llx",
               advertised, (unsigned long long)features.x0, (unsigned long long)features.x1);
-    if (advertised != VAL_TRUE)
+    if (advertised != VAL_TRUE) {
+        evidence->prerequisite_reason = VAL_FIRME_PAT_NO_SERVICE;
+        evidence->prerequisite_detail = FIRME_SERVICE_ID_ATTESTATION;
         return VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE;
+    }
     size_bytes = (page_count + 1ULL) * minimum_size_bytes;
     required_capacity = size_bytes + displacement;
-    result = val_firme_shared_buffer_acquire_ns_pat(
-        required_capacity, minimum_size_bytes, &lease);
-    if (result != VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE)
+    result = world == FIRME_ACS_WORLD_REALM ?
+        val_firme_shared_buffer_acquire_realm_pat(required_capacity, minimum_size_bytes, &lease) :
+        val_firme_shared_buffer_acquire_ns_pat(required_capacity, minimum_size_bytes, &lease);
+    if (result != VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE) {
+        evidence->prerequisite_reason = lease.prerequisite_reason;
+        evidence->prerequisite_detail = lease.prerequisite_detail;
         return result == VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE ? result :
                    VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
+    }
     result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
     if ((lease.base_va == 0) || (lease.challenge == 0) || (lease.challenge_size == 0U) ||
         (lease.challenge_size > minimum_size_bytes) ||
@@ -368,6 +419,19 @@ int val_firme_shared_buffer_pat_run(
         (((uintptr_t)lease.challenge < (uintptr_t)lease.base_va + required_capacity) &&
          ((uintptr_t)lease.challenge + lease.challenge_size > (uintptr_t)lease.base_va)))
         goto release;
+    if (world == FIRME_ACS_WORLD_REALM) {
+        binding_size = lease.workload_binding_size;
+        if ((lease.challenge_size > VAL_FIRME_PAT_WORKLOAD_BINDING_OFFSET) ||
+            (lease.workload_binding == 0) || (binding_size == 0U) ||
+            (binding_size > minimum_size_bytes - VAL_FIRME_PAT_WORKLOAD_BINDING_OFFSET) ||
+            ((uintptr_t)lease.workload_binding > UINTPTR_MAX - binding_size) ||
+            (((uintptr_t)lease.workload_binding < (uintptr_t)lease.base_va + required_capacity) &&
+             ((uintptr_t)lease.workload_binding + binding_size > (uintptr_t)lease.base_va)))
+            goto release;
+        for (index = 0U; index < binding_size; index++)
+            lease.base_va[displacement + VAL_FIRME_PAT_WORKLOAD_BINDING_OFFSET + index] =
+                lease.workload_binding[index];
+    }
     for (index = 0U; index < lease.challenge_size; index++)
         lease.base_va[displacement + index] = lease.challenge[index];
     call_base = lease.base_pa + displacement;
@@ -382,28 +446,46 @@ int val_firme_shared_buffer_pat_run(
                              VAL_FIRME_SHARED_BUFFER_EVIDENCE_SERVICE;
     result = VAL_FIRME_SHARED_BUFFER_PROBE_AVAILABLE;
     for (invocation = 0U; invocation < VAL_FIRME_PAT_MAX_INVOCATIONS; invocation++) {
-        shared_buffer_pat_call(call_base, write_offset, page_count, challenge_size, &response);
+        shared_buffer_pat_call(call_base, write_offset, page_count, challenge_size,
+                               binding_size, &response);
         LOG_DEBUG(NULL, "PAT_GET base=%llx offset=%llx pages=%llu challenge=%u status=%lld "
                         "written=%llu remaining=%llu fields=%x",
                   (unsigned long long)call_base, (unsigned long long)write_offset,
                   (unsigned long long)page_count, challenge_size,
                   (long long)response.abi_status, (unsigned long long)response.written_size,
                   (unsigned long long)response.remaining_size, response.valid_fields);
+        if (shared_buffer_pat_status_valid(response.abi_status) != VAL_TRUE) {
+            /* Unknown completion cannot authorize continuation or release of the lease. */
+            evidence->abi_status = response.abi_status;
+            evidence->valid_fields |= VAL_FIRME_SHARED_BUFFER_EVIDENCE_STATUS;
+            if (chunk != 0)
+                *chunk = response;
+            pending = VAL_TRUE;
+            result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
+            break;
+        }
+
         if ((response.abi_status == (int64_t)FIRME_SUCCESS) ||
             (response.abi_status == (int64_t)FIRME_ABORTED))
             pending = VAL_FALSE;
-        else if ((response.abi_status == (int64_t)FIRME_INCOMPLETE) ||
-                 (shared_buffer_pat_status_valid(response.abi_status) != VAL_TRUE))
+        else if (response.abi_status == (int64_t)FIRME_INCOMPLETE)
             pending = VAL_TRUE;
         if (invocation == 0U) {
             evidence->abi_status = response.abi_status;
             evidence->valid_fields |= VAL_FIRME_SHARED_BUFFER_EVIDENCE_STATUS;
-            if (shared_buffer_pat_observe(&lease, evidence) != VAL_SUCCESS)
+            if (shared_buffer_pat_observe(world, &lease, evidence) != VAL_SUCCESS)
                 result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
         }
         if (shared_buffer_pat_response_valid(&response, size_bytes - write_offset) != VAL_TRUE) {
             if (result != VAL_FIRME_SHARED_BUFFER_PROBE_ERROR)
                 result = VAL_FIRME_SHARED_BUFFER_PROBE_FAILED;
+            if (chunk != 0)
+                *chunk = response;
+        } else if (((chunk != 0) || (invocation != 0U)) &&
+                   (val_firme_shared_buffer_status_accepted(response.abi_status) != VAL_TRUE)) {
+            if (result != VAL_FIRME_SHARED_BUFFER_PROBE_ERROR)
+                result = VAL_FIRME_SHARED_BUFFER_PROBE_FAILED;
+            evidence->abi_status = response.abi_status;
             if (chunk != 0)
                 *chunk = response;
         } else if ((chunk != 0) && (chunk->valid_fields == 0U) &&
@@ -420,10 +502,13 @@ int val_firme_shared_buffer_pat_run(
         page_count = 0ULL;
         size_bytes = minimum_size_bytes;
         challenge_size = 0U;
+        binding_size = 0U;
         write_offset = 0ULL;
     }
 release:
-    if (val_firme_shared_buffer_release_ns_pat(&lease, pending) != VAL_SUCCESS)
+    if ((world == FIRME_ACS_WORLD_REALM ?
+            val_firme_shared_buffer_release_realm_pat(&lease, pending) :
+            val_firme_shared_buffer_release_ns_pat(&lease, pending)) != VAL_SUCCESS)
         result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;
     if (pending == VAL_TRUE)
         result = VAL_FIRME_SHARED_BUFFER_PROBE_ERROR;

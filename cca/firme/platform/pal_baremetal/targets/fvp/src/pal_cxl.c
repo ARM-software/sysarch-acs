@@ -32,6 +32,7 @@
 #define PAL_CXL_PROBE_PATTERN UINT64_C(0x43584c50524f5445)
 
 typedef struct {
+    uint64_t ecam_base;
     uint32_t root_bdf;
     uint32_t endpoint_bdf;
     uint32_t command;
@@ -40,8 +41,10 @@ typedef struct {
     uint32_t dvsec;
     uint32_t control;
     uint32_t active;
+    uint32_t releasing;
     uint32_t mapped;
     uint32_t decoders_saved;
+    uint64_t lease;
     uint64_t endpoint_hdm;
     uint32_t host_registers[PAL_CXL_HDM_REG_COUNT];
     uint32_t endpoint_registers[PAL_CXL_HDM_REG_COUNT];
@@ -49,6 +52,7 @@ typedef struct {
 
 static pal_cxl_fixture_t g_pal_cxl;
 static uint64_t g_pal_cxl_probe_sequence;
+static uint64_t g_pal_cxl_lease;
 static const uint32_t g_pal_cxl_hdm_offsets[PAL_CXL_HDM_REG_COUNT] = {
     0x04U, 0x10U, 0x14U, 0x18U, 0x1cU, 0x20U, 0x24U, 0x28U
 };
@@ -81,11 +85,13 @@ static uint32_t pal_cxl_device_dvsec(uint32_t bdf)
 
     for (count = 0U; count < 256U && offset >= 0x100U && offset <= 0xff0U; count++) {
         if ((offset & 3U) ||
-            val_pcie_cfg_read32(bdf, offset, &header) != VAL_SUCCESS)
+            val_pcie_cfg_read32_at(g_pal_cxl.ecam_base, bdf, offset, &header) != VAL_SUCCESS)
             return 0U;
         if ((header & 0xffffU) == VAL_PCIE_EXT_CAP_ID_DVSEC) {
-            if (val_pcie_cfg_read32(bdf, offset + 4U, &vendor) != VAL_SUCCESS ||
-                val_pcie_cfg_read32(bdf, offset + 8U, &identifier) != VAL_SUCCESS)
+            if (val_pcie_cfg_read32_at(g_pal_cxl.ecam_base, bdf, offset + 4U,
+                                       &vendor) != VAL_SUCCESS ||
+                val_pcie_cfg_read32_at(g_pal_cxl.ecam_base, bdf, offset + 8U,
+                                       &identifier) != VAL_SUCCESS)
                 return 0U;
             if ((vendor & 0xffffU) == PAL_CXL_DVSEC_VENDOR &&
                 (identifier & 0xffffU) == 0U)
@@ -96,13 +102,28 @@ static uint32_t pal_cxl_device_dvsec(uint32_t bdf)
     return 0U;
 }
 
+/** @brief Retain BDF-only callers only when both functions resolve unambiguously. */
+int pal_cxl_traffic_prepare(uint32_t root_bdf, uint32_t endpoint_bdf)
+{
+    uint64_t root_ecam;
+    uint64_t endpoint_ecam;
+
+    if (val_pcie_ecam_base_for_bdf(root_bdf, &root_ecam) != VAL_SUCCESS ||
+        val_pcie_ecam_base_for_bdf(endpoint_bdf, &endpoint_ecam) != VAL_SUCCESS ||
+        root_ecam != endpoint_ecam)
+        return VAL_ERROR;
+    return pal_cxl_traffic_prepare_at(root_ecam, root_bdf, endpoint_bdf);
+}
+
 /**
  * @brief Configure a test-owned CXL.mem aperture; never borrow DRAM or firmware RAM.
+ * @param ecam_base Actual ECAM namespace of both functions.
  * @param root_bdf Root Port already programmed through FIRME.
  * @param endpoint_bdf Its directly attached Type-2 endpoint.
  * @return VAL_SUCCESS only for the experimental model with unused decoders/BAR.
  */
-int pal_cxl_traffic_prepare(uint32_t root_bdf, uint32_t endpoint_bdf)
+int pal_cxl_traffic_prepare_at(uint64_t ecam_base, uint32_t root_bdf,
+                                uint32_t endpoint_bdf)
 {
     uint32_t header;
     uint32_t count;
@@ -111,37 +132,39 @@ int pal_cxl_traffic_prepare(uint32_t root_bdf, uint32_t endpoint_bdf)
     uint32_t root_bar;
     uint64_t host_hdm = PAL_CXL_CHBCR + 0x1010U;
 
-    if (g_pal_cxl.active)
+    if (g_pal_cxl.active || g_pal_cxl_lease == UINT64_MAX)
         return VAL_ERROR;
     memset(&g_pal_cxl, 0, sizeof(g_pal_cxl));
+    g_pal_cxl.ecam_base = ecam_base;
     g_pal_cxl.root_bdf = root_bdf;
     g_pal_cxl.endpoint_bdf = endpoint_bdf;
-    if (val_pcie_cfg_read32(root_bdf, 0x10U, &root_bar) != VAL_SUCCESS ||
+    if (val_pcie_cfg_read32_at(ecam_base, root_bdf, 0x10U, &root_bar) != VAL_SUCCESS ||
         (root_bar & 0xfffffff0U) != PAL_CXL_ROOT_BAR ||
         pal_cxl_read32(PAL_CXL_KM_BASE) != PAL_CXL_SIGNATURE ||
         pal_cxl_read32(PAL_CXL_KM_BASE + 0x18U) != 1U)
         return VAL_ERROR;
-    if (val_pcie_cfg_read32(endpoint_bdf, PAL_CXL_CFG_COMMAND,
+    if (val_pcie_cfg_read32_at(ecam_base, endpoint_bdf, PAL_CXL_CFG_COMMAND,
                              &g_pal_cxl.command) != VAL_SUCCESS ||
-        val_pcie_cfg_read32(endpoint_bdf, PAL_CXL_CFG_BAR4,
+        val_pcie_cfg_read32_at(ecam_base, endpoint_bdf, PAL_CXL_CFG_BAR4,
                              &g_pal_cxl.bar) != VAL_SUCCESS ||
-        val_pcie_cfg_read32(root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
+        val_pcie_cfg_read32_at(ecam_base, root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
                              &g_pal_cxl.window) != VAL_SUCCESS)
         return VAL_ERROR;
     if ((g_pal_cxl.bar & 0xfffffff0U) != 0U || (g_pal_cxl.bar & 7U) != 0U ||
         (g_pal_cxl.command & PAL_CXL_MEMORY_COMMAND) != 0U)
         return VAL_ERROR;
     g_pal_cxl.dvsec = pal_cxl_device_dvsec(endpoint_bdf);
-    if (!g_pal_cxl.dvsec || val_pcie_cfg_read32(endpoint_bdf,
+    if (!g_pal_cxl.dvsec || val_pcie_cfg_read32_at(ecam_base, endpoint_bdf,
         g_pal_cxl.dvsec + 0x0cU, &g_pal_cxl.control) != VAL_SUCCESS)
         return VAL_ERROR;
 
     g_pal_cxl.active = VAL_TRUE;
-    if (val_pcie_cfg_write32(root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
+    g_pal_cxl.lease = ++g_pal_cxl_lease;
+    if (val_pcie_cfg_write32_at(ecam_base, root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
                              UINT32_C(0x50005000)) != VAL_SUCCESS ||
-        val_pcie_cfg_write32(endpoint_bdf, PAL_CXL_CFG_BAR4,
+        val_pcie_cfg_write32_at(ecam_base, endpoint_bdf, PAL_CXL_CFG_BAR4,
                              PAL_CXL_ENDPOINT_BAR) != VAL_SUCCESS ||
-        val_pcie_cfg_write32(endpoint_bdf, PAL_CXL_CFG_COMMAND,
+        val_pcie_cfg_write32_at(ecam_base, endpoint_bdf, PAL_CXL_CFG_COMMAND,
             (g_pal_cxl.command & 0xffffU) | PAL_CXL_MEMORY_COMMAND) != VAL_SUCCESS)
         return VAL_ERROR;
     header = pal_cxl_read32(PAL_CXL_COMPONENT_BASE);
@@ -185,9 +208,35 @@ int pal_cxl_traffic_prepare(uint32_t root_bdf, uint32_t endpoint_bdf)
     pal_cxl_write32(g_pal_cxl.endpoint_hdm + 0x28U, 0U);
     pal_cxl_write32(g_pal_cxl.endpoint_hdm + 0x20U, 0x200U);
     pal_cxl_write32(g_pal_cxl.endpoint_hdm + 0x04U, 2U);
-    if (val_pcie_cfg_write32(endpoint_bdf, g_pal_cxl.dvsec + 0x0cU,
+    if (val_pcie_cfg_write32_at(ecam_base, endpoint_bdf, g_pal_cxl.dvsec + 0x0cU,
         (g_pal_cxl.control & 0xffffU) | 4U) != VAL_SUCCESS)
         return VAL_ERROR;
+    return VAL_SUCCESS;
+}
+
+/**
+ * @brief Read counters and memory coordinates only for the currently owned aperture.
+ * @param snapshot Current reservation identity and completed cipher operations.
+ * @return VAL_ERROR without an active mapped reservation or on an MMIO fault.
+ */
+int pal_cxl_traffic_snapshot(pal_cxl_traffic_snapshot_t *snapshot)
+{
+    if (!snapshot)
+        return VAL_ERROR;
+    *snapshot = (pal_cxl_traffic_snapshot_t){0};
+    if (!g_pal_cxl.active || g_pal_cxl.releasing || !g_pal_cxl.mapped ||
+        !g_pal_cxl.decoders_saved ||
+        !g_pal_cxl.lease)
+        return VAL_ERROR;
+    if (val_mmio_read32_checked(PAL_CXL_KM_BASE + 0x20U,
+                                 &snapshot->rx_completed) != VAL_SUCCESS ||
+        val_mmio_read32_checked(PAL_CXL_KM_BASE + 0x24U,
+                                 &snapshot->tx_completed) != VAL_SUCCESS ||
+        val_mmio_read32_checked(PAL_CXL_KM_BASE + 0x28U,
+                                 &snapshot->failures) != VAL_SUCCESS)
+        return VAL_ERROR;
+    snapshot->address = PAL_CXL_MEMORY;
+    snapshot->lease = g_pal_cxl.lease;
     return VAL_SUCCESS;
 }
 
@@ -206,7 +255,7 @@ int pal_cxl_traffic_check(uint32_t expect_blocked)
     uint64_t pattern;
     int read_status;
 
-    if (!g_pal_cxl.mapped)
+    if (!g_pal_cxl.active || g_pal_cxl.releasing || !g_pal_cxl.mapped)
         return VAL_ERROR;
     rx_count = pal_cxl_read32(PAL_CXL_KM_BASE + 0x20U);
     tx_count = pal_cxl_read32(PAL_CXL_KM_BASE + 0x24U);
@@ -239,38 +288,78 @@ int pal_cxl_traffic_check(uint32_t expect_blocked)
     return VAL_SUCCESS;
 }
 
-/** @brief Restore only fixture-owned registers/mappings, including partial setup. */
+/** @brief Verify decoder restoration before relinquishing its MMIO access path. */
+static int pal_cxl_restore_decoder(uint64_t address, uint32_t value)
+{
+    uint32_t read_back;
+
+    if (val_mmio_write32_checked(address, value) != VAL_SUCCESS ||
+        val_mmio_read32_checked(address, &read_back) != VAL_SUCCESS ||
+        read_back != value) {
+        LOG_ERROR(NULL, "CXL decoder restore failed address=%llx expected=%x",
+                  (unsigned long long)address, value);
+        return VAL_ERROR;
+    }
+    return VAL_SUCCESS;
+}
+
+/** @brief Verify configuration restoration without writing upper-half status bits. */
+static int pal_cxl_restore_config(uint32_t bdf, uint32_t offset, uint32_t value,
+                                  uint32_t mask)
+{
+    uint32_t read_back;
+
+    if (val_pcie_cfg_write32_at(g_pal_cxl.ecam_base, bdf, offset,
+                               value & mask) != VAL_SUCCESS ||
+        val_pcie_cfg_read32_at(g_pal_cxl.ecam_base, bdf, offset,
+                              &read_back) != VAL_SUCCESS ||
+        (read_back & mask) != (value & mask)) {
+        LOG_ERROR(NULL, "CXL config restore failed BDF=%x offset=%x expected=%x",
+                  bdf, offset, value & mask);
+        return VAL_ERROR;
+    }
+    return VAL_SUCCESS;
+}
+
+/** @brief Retain ownership and original values until all cleanup stages succeed. */
 int pal_cxl_traffic_release(void)
 {
     uint32_t index;
-    int result = VAL_SUCCESS;
 
     if (!g_pal_cxl.active)
         return VAL_SUCCESS;
+    g_pal_cxl.releasing = VAL_TRUE;
     if (g_pal_cxl.decoders_saved) {
-        pal_cxl_write32(PAL_CXL_CHBCR + 0x1014U, 0U);
-        pal_cxl_write32(g_pal_cxl.endpoint_hdm + 0x04U, 0U);
+        if (pal_cxl_restore_decoder(PAL_CXL_CHBCR + 0x1014U, 0U) != VAL_SUCCESS ||
+            pal_cxl_restore_decoder(g_pal_cxl.endpoint_hdm + 0x04U, 0U) != VAL_SUCCESS)
+            return VAL_ERROR;
         for (index = PAL_CXL_HDM_REG_COUNT; index > 0U; index--) {
-            pal_cxl_write32(PAL_CXL_CHBCR + 0x1010U + g_pal_cxl_hdm_offsets[index - 1U],
-                            g_pal_cxl.host_registers[index - 1U]);
-            pal_cxl_write32(g_pal_cxl.endpoint_hdm + g_pal_cxl_hdm_offsets[index - 1U],
-                            g_pal_cxl.endpoint_registers[index - 1U]);
+            if (pal_cxl_restore_decoder(
+                    PAL_CXL_CHBCR + 0x1010U + g_pal_cxl_hdm_offsets[index - 1U],
+                    g_pal_cxl.host_registers[index - 1U]) != VAL_SUCCESS ||
+                pal_cxl_restore_decoder(
+                    g_pal_cxl.endpoint_hdm + g_pal_cxl_hdm_offsets[index - 1U],
+                    g_pal_cxl.endpoint_registers[index - 1U]) != VAL_SUCCESS)
+                return VAL_ERROR;
         }
+        g_pal_cxl.decoders_saved = VAL_FALSE;
     }
-    if (g_pal_cxl.mapped && val_mmu_unmap_device_block_el2(PAL_CXL_MEMORY) != VAL_SUCCESS)
-        result = VAL_ERROR;
-    if (val_pcie_cfg_write32(g_pal_cxl.endpoint_bdf, g_pal_cxl.dvsec + 0x0cU,
-                             g_pal_cxl.control & 0xffffU) != VAL_SUCCESS)
-        result = VAL_ERROR;
-    if (val_pcie_cfg_write32(g_pal_cxl.endpoint_bdf, PAL_CXL_CFG_COMMAND,
-                             g_pal_cxl.command & 0xffffU) != VAL_SUCCESS)
-        result = VAL_ERROR;
-    if (val_pcie_cfg_write32(g_pal_cxl.endpoint_bdf, PAL_CXL_CFG_BAR4,
-                             g_pal_cxl.bar) != VAL_SUCCESS)
-        result = VAL_ERROR;
-    if (val_pcie_cfg_write32(g_pal_cxl.root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
-                             g_pal_cxl.window) != VAL_SUCCESS)
-        result = VAL_ERROR;
+    if (g_pal_cxl.mapped) {
+        if (val_mmu_unmap_device_block_el2(PAL_CXL_MEMORY) != VAL_SUCCESS) {
+            LOG_ERROR(NULL, "CXL aperture unmap failed; ownership retained");
+            return VAL_ERROR;
+        }
+        g_pal_cxl.mapped = VAL_FALSE;
+    }
+    if (pal_cxl_restore_config(g_pal_cxl.endpoint_bdf, g_pal_cxl.dvsec + 0x0cU,
+                                g_pal_cxl.control, 0xffffU) != VAL_SUCCESS ||
+        pal_cxl_restore_config(g_pal_cxl.endpoint_bdf, PAL_CXL_CFG_COMMAND,
+                                g_pal_cxl.command, 0xffffU) != VAL_SUCCESS ||
+        pal_cxl_restore_config(g_pal_cxl.endpoint_bdf, PAL_CXL_CFG_BAR4,
+                                g_pal_cxl.bar, UINT32_MAX) != VAL_SUCCESS ||
+        pal_cxl_restore_config(g_pal_cxl.root_bdf, PAL_CXL_CFG_MEMORY_WINDOW,
+                                g_pal_cxl.window, UINT32_MAX) != VAL_SUCCESS)
+        return VAL_ERROR;
     memset(&g_pal_cxl, 0, sizeof(g_pal_cxl));
-    return result;
+    return VAL_SUCCESS;
 }

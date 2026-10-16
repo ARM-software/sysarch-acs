@@ -17,9 +17,12 @@
 #include "pal_platform.h"
 #include "val_log.h"
 #include "val_firme_diag.h"
+#include "val_firme_gpt_probe.h"
+#include "pal_firme_gpt_memory.h"
 #include "val_firme_rules.h"
 #include "val_firme_mp_test.h"
 #include "val_firme_dispatch.h"
+#include "val_firme_abi_frame.h"
 #include "val_firme_test.h"
 #include "val_platform.h"
 
@@ -60,6 +63,9 @@ uint32_t g_spmc_cold_boot = 1;
 
 static uint32_t g_direct_req_log_budget = 8;
 static uint32_t g_probe_fault_log_budget = 8;
+
+extern uint8_t __text_start__[];
+extern uint8_t __stack_end__[];
 
 static void dispatch_cmd(uint64_t cmd, uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3,
                          uint64_t *status, uint64_t *out0, uint64_t *out1, uint64_t *out2,
@@ -256,6 +262,8 @@ void secure_sync_handler(uint64_t esr, uint64_t elr, uint64_t far)
     spmc_ensure_log_init();
     (void)elr;
     if (val_fault_handle_sync(esr, far) != 0) {
+        if (val_mmu_ns_probe_active())
+            return;
         if (g_probe_fault_log_budget != 0u) {
             g_probe_fault_log_budget--;
             LOG_DEBUG(NULL, "probe fault handled esr=%llx far=%llx",
@@ -339,6 +347,30 @@ static void ffa_direct_resp32(smc_args_t *args, uint16_t src, uint16_t dst,
 }
 
 /**
+ * @brief Read a leased GPT granule using Secure state and an NS output descriptor.
+ * @return PASS for access/fault evidence, ERR for unsafe addresses or setup errors.
+ */
+static uint64_t val_secure_gpt_ns_probe(uint64_t address, firme_diag_out_t *out)
+{
+    val_fault_info_t fault = {0};
+    uint64_t value = 0ULL;
+
+    if (!out || !pal_firme_gpt_memory_probe_allowed(address))
+        return ACS_STATUS_ERR;
+
+    if (val_mmu_probe_ns_read64_el2(address,
+        (uint64_t)(uintptr_t)__text_start__, (uint64_t)(uintptr_t)__stack_end__,
+        &value, &fault) != VAL_SUCCESS)
+        return ACS_STATUS_ERR;
+
+    out->x0 = fault.faulted;
+    out->x1 = fault.faulted ? fault.esr : value;
+    out->x2 = fault.far;
+    out->x3 = fault.faulted ? 0ULL : value;
+    return ACS_STATUS_PASS;
+}
+
+/**
  *   @brief    - Dispatch a FIRME command and return status/output words.
  *   @param    - cmd    : FIRME ACS command selector.
  *   @param    - a0     : Command argument 0.
@@ -362,6 +394,12 @@ static void dispatch_cmd(uint64_t cmd, uint64_t a0, uint64_t a1, uint64_t a2, ui
 
     if (cmd == (uint64_t)FIRME_ACS_CMD_PING) {
         o0 = 0x504f4e47ULL; /* 'PONG' */
+    } else if (cmd == FIRME_ACS_CMD_GPT_PROBE) {
+        val_firme_gpt_probe_command(a0, &mp_response);
+        st = mp_response.x0;
+        o0 = mp_response.x1;
+        o1 = mp_response.x2;
+        o2 = mp_response.x3;
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_DIAG_SEL1) {
         run_cmd_in_el1((uint64_t)FIRME_ACS_CMD_RUN_DIAG,
                        a0, a1, a2, a3,
@@ -372,11 +410,19 @@ static void dispatch_cmd(uint64_t cmd, uint64_t a0, uint64_t a1, uint64_t a2, ui
                        &st, &o0, &o1, &o2, &o3);
     } else if (cmd == (uint64_t)FIRME_ACS_CMD_RUN_DIAG) {
         firme_diag_out_t out = { 0 };
-        st = (uint64_t)val_firme_diag_run(a0, a1, a2, a3, 0, &out);
+        if (a0 == FIRME_DIAG_READ_NS_PAS)
+            st = val_secure_gpt_ns_probe(a1, &out);
+        else
+            st = (uint64_t)val_firme_diag_run(a0, a1, a2, a3, 0, &out);
         o0 = out.x0;
         o1 = out.x1;
         o2 = out.x2;
         o3 = out.x3;
+    } else if (cmd == FIRME_ACS_CMD_ABI_FRAME) {
+        val_firme_abi_frame_command(FIRME_ACS_WORLD_SECURE, a0, a1, a2, a3, &mp_response);
+        st = mp_response.x0;
+        o0 = mp_response.x1;
+        o1 = mp_response.x2;
     } else if ((cmd == FIRME_ACS_CMD_RUN_TEST_PAYLOAD) ||
                (cmd == FIRME_ACS_CMD_GET_TEST_RESULT)) {
         val_firme_test_payload_command(FIRME_ACS_WORLD_SECURE, (firme_acs_cmd_t)cmd,

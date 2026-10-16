@@ -69,7 +69,11 @@ int main(void)
     firme_rule_res_t result = {0};
 
     test_reset();
-    assert(gm_feature_registers_run(&result) == VAL_SUCCESS);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_SUCCESS);
+    assert(result.status == ACS_STATUS_PASS);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_SECURE, &result) == VAL_SUCCESS);
+    assert(result.status == ACS_STATUS_PASS);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_REALM, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS);
     assert(gm_abi_compliance_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_PASS);
@@ -94,27 +98,27 @@ int main(void)
 
     test_reset();
     g_reg1 |= FIRME_GM_FEATURE_REG1_PGS_MASK;
-    assert(gm_feature_registers_run(&result) == VAL_ERROR);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     test_reset();
     g_feature_status = FIRME_INVALID_PARAMETERS;
-    assert(gm_feature_registers_run(&result) == VAL_ERROR);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     assert(gm_abi_compliance_run(FIRME_ACS_WORLD_REALM, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
 
     test_reset();
     g_version = FIRME_NOT_SUPPORTED;
-    assert(gm_feature_registers_run(&result) == VAL_SUCCESS);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_SKIP);
     assert(gm_abi_compliance_run(FIRME_ACS_WORLD_REALM, &result) == VAL_SUCCESS);
     assert(result.status == ACS_STATUS_SKIP);
     g_version = FIRME_INVALID_PARAMETERS;
-    assert(gm_feature_registers_run(&result) == VAL_ERROR);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
     assert(gm_abi_compliance_run(FIRME_ACS_WORLD_REALM, &result) == VAL_ERROR);
     assert(result.status == ACS_STATUS_FAIL);
-    assert(gm_feature_registers_run(NULL) == VAL_ERROR);
+    assert(gm_feature_registers_run(FIRME_ACS_WORLD_NSEL2, NULL) == VAL_ERROR);
     assert(gm_abi_compliance_run(FIRME_ACS_WORLD_REALM, NULL) == VAL_ERROR);
     puts("GM discovery rules: PASS");
     return VAL_SUCCESS;

@@ -9,13 +9,14 @@
 #include "val_firme_mec.h"
 #include "val_firme_rules.h"
 #include "val_log.h"
+#include "pal_platform.h"
 
 #define MEC_ABI_COMPLIANCE_TEST_NAME "mec_abi_compliance"
 #define MEC_ABI_COMPLIANCE_STEP_VERSION UINT64_C(1)
 #define MEC_ABI_COMPLIANCE_STEP_FEATURE UINT64_C(2)
 #define MEC_ABI_COMPLIANCE_STEP_CALL UINT64_C(3)
 #define MEC_ABI_COMPLIANCE_STEP_CLEANUP UINT64_C(4)
-#define MEC_ABI_COMPLIANCE_TEST_MECID UINT64_C(1)
+#define MEC_ABI_COMPLIANCE_TEST_MECID PLAT_FIRME_MEC_TEST_MECID
 
 /**
  * @brief Record a failing MEC ABI compliance check.

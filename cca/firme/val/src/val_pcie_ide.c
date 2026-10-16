@@ -7,6 +7,7 @@
 
 #include "val_pcie_ide.h"
 #include "pal_pcie.h"
+#include "val_log.h"
 
 #include <stddef.h>
 
@@ -81,9 +82,11 @@ static int val_pcie_ide_write(const val_pcie_ide_port_t *port,
  * @brief Locate RMEDA without mistaking an unrelated DVSEC for Arm controls.
  * @param bdf Root Port function.
  * @param offset Returned lock-register offset, zero when RMEDA is absent.
+ * @param error_offset Failed configuration offset when inspection fails.
  * @return VAL_ERROR on a malformed capability chain or inaccessible register.
  */
-static int val_pcie_ide_rmeda(uint32_t bdf, uint32_t *offset)
+static int val_pcie_ide_rmeda(uint32_t bdf, uint32_t *offset,
+                              uint32_t *error_offset)
 {
     uint32_t visited[32] = {0};
     uint32_t current = IDE_EXT_CAP_START;
@@ -94,6 +97,7 @@ static int val_pcie_ide_rmeda(uint32_t bdf, uint32_t *offset)
 
     *offset = 0U;
     while (current != 0U) {
+        *error_offset = current;
         if (visited[current / 128U] & (1U << ((current / 4U) % 32U)))
             return VAL_ERROR;
         visited[current / 128U] |= 1U << ((current / 4U) % 32U);
@@ -153,12 +157,50 @@ static int val_pcie_ide_boundary(uint32_t bdf, uint32_t capability, uint32_t *en
 }
 
 /**
+ * @brief Distinguish a missing IDE extended capability from a broken read.
+ * @param bdf Present PCIe function to inspect.
+ * @param capability Returned IDE capability offset.
+ * @param error_offset Last inspected configuration offset on failure.
+ * @return PASS when IDE is found, SKIP when absent, FAIL on malformed reads.
+ */
+static uint32_t val_pcie_ide_capability(uint32_t bdf, uint32_t *capability,
+                                        uint32_t *error_offset)
+{
+    uint32_t visited[32] = {0};
+    uint32_t current = IDE_EXT_CAP_START;
+    uint32_t header = 0U;
+
+    *capability = 0U;
+    while (current != 0U) {
+        *error_offset = current;
+        if (current < IDE_EXT_CAP_START || current >= IDE_CONFIG_END ||
+            (current & 3U) ||
+            (visited[current / 128U] & (1U << ((current / 4U) % 32U))))
+            return ACS_STATUS_FAIL;
+        visited[current / 128U] |= 1U << ((current / 4U) % 32U);
+        if (val_pcie_cfg_read32(bdf, current, &header) != VAL_SUCCESS ||
+            header == UINT32_MAX)
+            return ACS_STATUS_FAIL;
+        if (header == 0U)
+            return current == IDE_EXT_CAP_START ? ACS_STATUS_SKIP : ACS_STATUS_FAIL;
+        if ((header & IDE_EXT_CAP_ID_MASK) == VAL_PCIE_EXT_CAP_ID_IDE) {
+            *capability = current;
+            return ACS_STATUS_PASS;
+        }
+        current = header >> IDE_EXT_CAP_NEXT_SHIFT;
+    }
+    return ACS_STATUS_SKIP;
+}
+
+/**
  * @brief Select an unconfigured block and collect IDs already used on a port.
  * @param port Selection destination with its BDF initialized.
  * @param used_ids Shared map covering both partner ports.
+ * @param error_offset Failed configuration offset, when inspection fails.
  * @return PASS for a usable block, SKIP for unavailable resources, FAIL on errors.
  */
-static uint32_t val_pcie_ide_select(val_pcie_ide_port_t *port, uint8_t *used_ids)
+static uint32_t val_pcie_ide_select(val_pcie_ide_port_t *port, uint8_t *used_ids,
+                                    uint32_t *error_offset)
 {
     uint32_t capability = 0U;
     uint32_t header = 0U;
@@ -178,9 +220,11 @@ static uint32_t val_pcie_ide_select(val_pcie_ide_port_t *port, uint8_t *used_ids
     uint32_t configured = 0U;
     uint32_t link_count = 0U;
 
-    if (val_pcie_find_capability(port->bdf, VAL_PCIE_CAP_TYPE_EXTENDED,
-                                  VAL_PCIE_EXT_CAP_ID_IDE, &capability) != VAL_SUCCESS)
-        return ACS_STATUS_SKIP;
+    uint32_t probe_result = val_pcie_ide_capability(port->bdf, &capability,
+                                                     error_offset);
+
+    if (probe_result != ACS_STATUS_PASS)
+        return probe_result;
     if (capability > IDE_CONFIG_END - IDE_CAP_HEADER_SIZE ||
         val_pcie_ide_read(port->bdf, capability, &header) != VAL_SUCCESS ||
         val_pcie_ide_read(port->bdf, capability + 4U, &capabilities) != VAL_SUCCESS)
@@ -348,8 +392,11 @@ static uint32_t val_pcie_ide_configure(const val_pcie_ide_path_t *path,
     stream->ports[VAL_PCIE_IDE_ROOT].bdf = path->root_port_bdf;
     stream->ports[VAL_PCIE_IDE_ENDPOINT].bdf = path->endpoint_bdf;
     if (val_pcie_ide_rmeda(path->root_port_bdf,
-                          &stream->ports[VAL_PCIE_IDE_ROOT].lock_register) != VAL_SUCCESS)
+                          &stream->ports[VAL_PCIE_IDE_ROOT].lock_register,
+                          &stream->error_offset) != VAL_SUCCESS) {
+        stream->error_bdf = path->root_port_bdf;
         goto fail;
+    }
     if (stream->ports[VAL_PCIE_IDE_ROOT].lock_register && !realm_caller) {
         stream->reason = VAL_PCIE_IDE_REALM_REQUIRED;
         result = ACS_STATUS_SKIP;
@@ -358,9 +405,15 @@ static uint32_t val_pcie_ide_configure(const val_pcie_ide_path_t *path,
     for (index = 0U; index < VAL_PCIE_IDE_PORT_COUNT; index++) {
         stream->reason = index == VAL_PCIE_IDE_ROOT ?
                          VAL_PCIE_IDE_ROOT_UNAVAILABLE : VAL_PCIE_IDE_ENDPOINT_UNAVAILABLE;
-        result = val_pcie_ide_select(&stream->ports[index], used_ids);
-        if (result != ACS_STATUS_PASS)
+        result = val_pcie_ide_select(&stream->ports[index], used_ids,
+                                     &stream->error_offset);
+        if (result != ACS_STATUS_PASS) {
+            if (result == ACS_STATUS_FAIL) {
+                stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+                stream->error_bdf = stream->ports[index].bdf;
+            }
             goto fail;
+        }
     }
     for (index = 1U; index < IDE_STREAM_COUNT; index++) {
         if (!used_ids[index]) {
@@ -416,12 +469,19 @@ uint32_t val_pcie_ide_stream_acquire(const val_pcie_ide_path_t *path,
     uint32_t expected = VAL_FALSE;
     uint32_t result = ACS_STATUS_FAIL;
 
-    if (!path || !stream ||
-        !__atomic_compare_exchange_n(&g_ide_stream_owned, &expected, VAL_TRUE,
-                                      VAL_FALSE, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+    if (!path || !stream)
         return ACS_STATUS_FAIL;
+    if (!__atomic_compare_exchange_n(&g_ide_stream_owned, &expected, VAL_TRUE,
+                                     VAL_FALSE, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED)) {
+        *stream = (val_pcie_ide_stream_t){.reason = VAL_PCIE_IDE_OWNER_BUSY};
+        return ACS_STATUS_FAIL;
+    }
     *stream = (val_pcie_ide_stream_t){0};
     result = val_pcie_ide_configure(path, realm_caller, stream);
+    if (result == ACS_STATUS_PASS && !stream->acquired) {
+        stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+        result = ACS_STATUS_FAIL;
+    }
     if (result != ACS_STATUS_PASS && !stream->acquired)
         __atomic_store_n(&g_ide_stream_owned, VAL_FALSE, __ATOMIC_RELEASE);
     return result;
@@ -431,11 +491,17 @@ uint32_t val_pcie_ide_stream_acquire(const val_pcie_ide_path_t *path,
  * @brief Find a bus not occupied by a function or any configured bridge window.
  * @param info Platform ECAM allocation.
  * @param root Root Port to enumerate.
- * @return Free bus above the Root Port bus, or zero when none is available.
+ * @param free_bus Returned bus above the Root Port, if available.
+ * @param error_bdf Function whose configuration access failed.
+ * @param error_offset Failed configuration offset.
+ * @return PASS for a free bus, SKIP if none exists, FAIL on read error.
  */
-static uint32_t val_pcie_ide_free_bus(const pal_pcie_ecam_info_t *info, uint32_t root)
+static uint32_t val_pcie_ide_free_bus(const pal_pcie_ecam_info_t *info, uint32_t root,
+                                      uint32_t *free_bus, uint32_t *error_bdf,
+                                      uint32_t *error_offset)
 {
     uint8_t used[256] = {0};
+    val_pcie_probe_status_t probe;
     uint32_t bus = 0U;
     uint32_t device = 0U;
     uint32_t function = 0U;
@@ -446,19 +512,31 @@ static uint32_t val_pcie_ide_free_bus(const pal_pcie_ecam_info_t *info, uint32_t
     uint32_t last = 0U;
     uint32_t index = 0U;
 
+    *free_bus = 0U;
     for (bus = info->start_bus; bus <= info->end_bus; bus++) {
         for (device = 0U; device < 32U; device++) {
             for (function = 0U; function < 8U; function++) {
                 bdf = val_pcie_bdf_create(info->segment, bus, device, function);
-                if (val_pcie_function_present(bdf) != VAL_SUCCESS)
+                probe = val_pcie_function_probe(bdf, error_offset);
+                if (probe == VAL_PCIE_PROBE_ERROR) {
+                    *error_bdf = bdf;
+                    return ACS_STATUS_FAIL;
+                }
+                if (probe == VAL_PCIE_PROBE_ABSENT)
                     continue;
                 used[bus] = VAL_TRUE;
-                if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_HEADER_TYPE, &header) != VAL_SUCCESS)
-                    return 0U;
+                if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_HEADER_TYPE, &header) != VAL_SUCCESS) {
+                    *error_bdf = bdf;
+                    *error_offset = VAL_PCIE_CFG_HEADER_TYPE;
+                    return ACS_STATUS_FAIL;
+                }
                 if (((header >> 16U) & 0x7fU) != 1U)
                     continue;
-                if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_BUS_NUMBERS, &buses) != VAL_SUCCESS)
-                    return 0U;
+                if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_BUS_NUMBERS, &buses) != VAL_SUCCESS) {
+                    *error_bdf = bdf;
+                    *error_offset = VAL_PCIE_CFG_BUS_NUMBERS;
+                    return ACS_STATUS_FAIL;
+                }
                 first = (buses >> 8U) & 0xffU;
                 last = (buses >> 16U) & 0xffU;
                 for (index = first; index <= last; index++)
@@ -467,10 +545,12 @@ static uint32_t val_pcie_ide_free_bus(const pal_pcie_ecam_info_t *info, uint32_t
         }
     }
     for (bus = val_pcie_bdf_bus(root) + 1U; bus <= info->end_bus; bus++) {
-        if (!used[bus])
-            return bus;
+        if (!used[bus]) {
+            *free_bus = bus;
+            return ACS_STATUS_PASS;
+        }
     }
-    return 0U;
+    return ACS_STATUS_SKIP;
 }
 
 /**
@@ -496,21 +576,33 @@ static uint32_t val_pcie_ide_find_endpoint(uint32_t root, const pal_pcie_ecam_in
     uint32_t function = 0U;
     uint32_t port_type = 0U;
     uint32_t result = ACS_STATUS_SKIP;
+    uint32_t free_bus_result = ACS_STATUS_SKIP;
     uint32_t original_buses = 0U;
     uint32_t buses_changed = VAL_FALSE;
+    uint32_t error_offset = 0U;
+    val_pcie_probe_status_t probe;
     val_pcie_ide_port_t root_port = {.bdf = root};
 
     stream->path = path;
     stream->reason = VAL_PCIE_IDE_NO_ENDPOINT;
-    if (val_pcie_cfg_read32(root, VAL_PCIE_CFG_BUS_NUMBERS, &buses) != VAL_SUCCESS)
+    if (val_pcie_cfg_read32(root, VAL_PCIE_CFG_BUS_NUMBERS, &buses) != VAL_SUCCESS) {
+        stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+        stream->error_bdf = root;
+        stream->error_offset = VAL_PCIE_CFG_BUS_NUMBERS;
         return ACS_STATUS_FAIL;
+    }
     first = (buses >> 8U) & 0xffU;
     last = (buses >> 16U) & 0xffU;
     original_buses = buses;
     if (!first && !last) {
-        first = val_pcie_ide_free_bus(info, root);
-        if (!first)
-            return ACS_STATUS_SKIP;
+        free_bus_result = val_pcie_ide_free_bus(info, root, &first,
+                                                &stream->error_bdf,
+                                                &stream->error_offset);
+        if (free_bus_result != ACS_STATUS_PASS) {
+            if (free_bus_result == ACS_STATUS_FAIL)
+                stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+            return free_bus_result;
+        }
         last = first;
         buses_changed = VAL_TRUE;
         buses = (buses & 0xff000000U) | val_pcie_bdf_bus(root) |
@@ -526,13 +618,26 @@ static uint32_t val_pcie_ide_find_endpoint(uint32_t root, const pal_pcie_ecam_in
         for (device = 0U; device < 32U; device++) {
             for (function = 0U; function < 8U; function++) {
                 path.endpoint_bdf = val_pcie_bdf_create(info->segment, bus, device, function);
-                if (val_pcie_device_port_type(path.endpoint_bdf, &port_type) != VAL_SUCCESS ||
+                probe = val_pcie_device_port_type_probe(path.endpoint_bdf, &port_type,
+                                                         &error_offset);
+                if (probe == VAL_PCIE_PROBE_ERROR) {
+                    stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+                    stream->error_bdf = path.endpoint_bdf;
+                    stream->error_offset = error_offset;
+                    result = ACS_STATUS_FAIL;
+                    goto restore_bus;
+                }
+                if (probe != VAL_PCIE_PROBE_PRESENT ||
                     (port_type != VAL_PCIE_PORT_TYPE_ENDPOINT &&
                      port_type != VAL_PCIE_PORT_TYPE_LEGACY_ENDPOINT))
                     continue;
                 path.endpoint_id = val_pcie_requester_id_from_bdf(path.endpoint_bdf);
                 path.endpoint_present = VAL_TRUE;
                 result = val_pcie_ide_configure(&path, realm_caller, stream);
+                LOG_TEST(NULL, "Selective IDE candidate ECAM=%llx RP=%x EP=%x "
+                         "result=%u reason=%u stream=%u\n",
+                         (unsigned long long)path.ecam_base, path.root_port_bdf,
+                         path.endpoint_bdf, result, stream->reason, stream->stream_id);
                 if (result != ACS_STATUS_SKIP)
                     goto restore_bus;
             }
@@ -573,11 +678,16 @@ uint32_t val_pcie_ide_stream_discover(uint32_t realm_caller,
     uint32_t port_type = 0U;
     uint32_t result = ACS_STATUS_SKIP;
     uint32_t expected = VAL_FALSE;
+    uint32_t error_offset = 0U;
+    val_pcie_probe_status_t probe;
 
-    if (!stream ||
-        !__atomic_compare_exchange_n(&g_ide_stream_owned, &expected, VAL_TRUE,
-                                      VAL_FALSE, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+    if (!stream)
         return ACS_STATUS_FAIL;
+    if (!__atomic_compare_exchange_n(&g_ide_stream_owned, &expected, VAL_TRUE,
+                                     VAL_FALSE, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED)) {
+        *stream = (val_pcie_ide_stream_t){.reason = VAL_PCIE_IDE_OWNER_BUSY};
+        return ACS_STATUS_FAIL;
+    }
     *stream = (val_pcie_ide_stream_t){.reason = VAL_PCIE_IDE_NO_ROOT};
     for (allocation = 0U; allocation < pal_pcie_ecam_count(); allocation++) {
         if (pal_pcie_ecam_info(allocation, &info) != VAL_SUCCESS ||
@@ -589,7 +699,16 @@ uint32_t val_pcie_ide_stream_discover(uint32_t realm_caller,
             for (device = 0U; device < 32U; device++) {
                 for (function = 0U; function < 8U; function++) {
                     bdf = val_pcie_bdf_create(info.segment, bus, device, function);
-                    if (val_pcie_device_port_type(bdf, &port_type) != VAL_SUCCESS ||
+                    probe = val_pcie_device_port_type_probe(bdf, &port_type,
+                                                             &error_offset);
+                    if (probe == VAL_PCIE_PROBE_ERROR) {
+                        stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+                        stream->error_bdf = bdf;
+                        stream->error_offset = error_offset;
+                        result = ACS_STATUS_FAIL;
+                        goto done;
+                    }
+                    if (probe != VAL_PCIE_PROBE_PRESENT ||
                         port_type != VAL_PCIE_PORT_TYPE_ROOT_PORT)
                         continue;
                     result = val_pcie_ide_find_endpoint(bdf, &info, realm_caller, stream);
@@ -600,6 +719,10 @@ uint32_t val_pcie_ide_stream_discover(uint32_t realm_caller,
         }
     }
 done:
+    if (result == ACS_STATUS_PASS && !stream->acquired) {
+        stream->reason = VAL_PCIE_IDE_CONFIG_ERROR;
+        result = ACS_STATUS_FAIL;
+    }
     if (result != ACS_STATUS_PASS && !stream->acquired)
         __atomic_store_n(&g_ide_stream_owned, VAL_FALSE, __ATOMIC_RELEASE);
     return result;

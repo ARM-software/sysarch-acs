@@ -32,3 +32,7 @@ uint32_t pal_pcie_ecam_count(void);
 int pal_pcie_ecam_info(uint32_t index, pal_pcie_ecam_info_t *info);
 int pal_pcie_cfg_read32(uint32_t bdf, uint32_t offset, uint32_t *value);
 int pal_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value);
+int pal_pcie_cfg_read32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                           uint32_t *value);
+int pal_pcie_cfg_write32_at(uint64_t ecam_base, uint32_t bdf, uint32_t offset,
+                            uint32_t value);

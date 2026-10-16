@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "firme_spdm_trust_anchor.h"
 #include "industry_standard/spdm.h"
@@ -29,6 +30,8 @@
 #include "val_common/val_mp.h"
 #include "val_firme_ide.h"
 #include "val_firme_ide_link.h"
+#include "val_firme_ide_namespace.h"
+#include "val_firme_ide_namespace_probe.h"
 #include "val_log.h"
 #include "val_pcie.h"
 #include "pal_cxl.h"
@@ -42,6 +45,9 @@
 #define VAL_HOST_SPDM_STREAM_ID 0U
 #define VAL_HOST_SPDM_ACK_RESERVED_BITS 0x0cU
 #define VAL_HOST_SPDM_DIRECTIONS 2U
+#define VAL_HOST_IDE_NAMESPACE_OBSERVATION UINT64_C(0x100)
+#define VAL_HOST_IDE_ROOT_RX 0U
+#define VAL_HOST_IDE_ROOT_TX 1U
 
 typedef enum {
     VAL_HOST_IDE_STEP_DISCOVERY = 1,
@@ -98,6 +104,7 @@ typedef struct {
     uint32_t abi_owned;
     uint32_t abi_root_stopped;
     pal_firme_ide_abi_operation_t abi_operation;
+    pal_firme_ide_abi_condition_t abi_condition;
     uint64_t abi_token;
     uint64_t ecam_address;
 } val_host_spdm_transaction_t;
@@ -833,6 +840,65 @@ static int val_host_spdm_pair_state(val_host_spdm_context_t *owner,
 }
 
 /**
+ * @brief Prove distinct direction IDs retain independent keys and enable state.
+ * @param transaction Owned, active pair in one discovered ECAM namespace.
+ * @param out First failing observation stage; cleanup is performed by the caller.
+ * @return VAL_SUCCESS only when isolated TX data survives an RX STOP/GO cycle.
+ */
+static int val_host_spdm_namespace_observe(val_host_spdm_transaction_t *transaction,
+                                           firme_rule_res_t *out)
+{
+    val_firme_ide_namespace_probe_t probe = {0};
+    val_host_spdm_link_direction_t *receive;
+    val_host_spdm_link_direction_t *transmit;
+
+    if (!transaction || !out)
+        return VAL_ERROR;
+    receive = &transaction->link[VAL_HOST_IDE_ROOT_RX];
+    transmit = &transaction->link[VAL_HOST_IDE_ROOT_TX];
+    out->fail_step = VAL_HOST_IDE_STEP_PROG;
+    if (!transaction->open || !transaction->session_started || !transaction->traffic_owned ||
+        !receive->root_programmed || !transmit->root_programmed ||
+        !receive->endpoint_programmed || !transmit->endpoint_programmed ||
+        receive->root_stopped || transmit->root_stopped ||
+        receive->endpoint_stopped || transmit->endpoint_stopped ||
+        (receive->keyset_id ^ transmit->keyset_id) !=
+            (UINT64_C(1) << VAL_FIRME_IDE_KEYSET_DIRECTION_SHIFT) ||
+        memcmp(receive->key, transmit->key, sizeof(receive->key)) == 0)
+        return VAL_ERROR;
+
+    /* Step 1: Change only RX; the endpoint and the independent TX keyset remain active. */
+    out->last_x0 = VAL_HOST_IDE_ROOT_RX;
+    out->fail_step = VAL_HOST_IDE_STEP_ROOT_STOP;
+    if (val_host_spdm_root_command(transaction->world, VAL_IDE_LINK_STOP,
+                                    receive->keyset_id, 0ULL, 0ULL) != VAL_SUCCESS)
+        return VAL_ERROR;
+    receive->root_stopped = VAL_TRUE;
+
+    /* Step 2: Require an authenticated TX write and independently rejected RX response. */
+    out->fail_step = VAL_HOST_IDE_STEP_TRAFFIC;
+    if (val_firme_ide_namespace_rx_stopped(&probe) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 3: Restart RX without reprogramming either of the two distinct keys. */
+    out->fail_step = VAL_HOST_IDE_STEP_ROOT_GO;
+    receive->root_stopped = VAL_FALSE;
+    if (val_host_spdm_root_command(transaction->world, VAL_IDE_LINK_GO,
+                                    receive->keyset_id, 0ULL, 0ULL) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 4: Recover the original TX-only write, with no overwrite that could hide loss. */
+    out->fail_step = VAL_HOST_IDE_STEP_TRAFFIC;
+    if (val_firme_ide_namespace_rx_restored(&probe) != VAL_SUCCESS)
+        return VAL_ERROR;
+    LOG_TEST(NULL, "R0212: ECAM=%llx RX=%llx TX=%llx retain distinct keys and isolated state\n",
+             (unsigned long long)transaction->ecam_address,
+             (unsigned long long)receive->keyset_id,
+             (unsigned long long)transmit->keyset_id);
+    return VAL_SUCCESS;
+}
+
+/**
  * @brief Validate paired Root Port and endpoint programming in one secured session.
  * @param endpoint Discovered Type-2 endpoint with a working DOE capability.
  * @param operation Operation requiring fresh programming or GO/STOP evidence.
@@ -879,6 +945,13 @@ static int val_host_spdm_validate_cxl_key_programming(
         if (!libspdm_get_random_number(sizeof(link[direction].key),
                                         (uint8_t *)link[direction].key))
             goto cleanup;
+        if (operation == VAL_HOST_IDE_NAMESPACE_OBSERVATION &&
+            direction == VAL_HOST_IDE_ROOT_TX &&
+            memcmp(link[VAL_HOST_IDE_ROOT_RX].key, link[direction].key,
+                   sizeof(link[direction].key)) == 0) {
+            LOG_ERROR(NULL, "R0212: key generator did not supply distinguishable keys\n");
+            goto cleanup;
+        }
         memcpy(link[direction].endpoint_key.key, link[direction].key,
                sizeof(link[direction].key));
 
@@ -911,11 +984,16 @@ static int val_host_spdm_validate_cxl_key_programming(
 
     out->fail_step = VAL_HOST_IDE_STEP_TRAFFIC;
     transaction->traffic_owned = VAL_TRUE;
-    if (pal_cxl_traffic_prepare(endpoint->root_bdf, endpoint->endpoint_bdf) != VAL_SUCCESS) {
+    if (pal_cxl_traffic_prepare_at(endpoint->ecam_base, endpoint->root_bdf,
+                                    endpoint->endpoint_bdf) != VAL_SUCCESS) {
         LOG_ERROR(NULL, "CXL.mem test-owned aperture setup failed");
         goto cleanup;
     }
     if (pal_cxl_traffic_check(VAL_FALSE) != VAL_SUCCESS)
+        goto cleanup;
+
+    if (operation == VAL_HOST_IDE_NAMESPACE_OBSERVATION &&
+        val_host_spdm_namespace_observe(transaction, out) != VAL_SUCCESS)
         goto cleanup;
 
     /* Step 1: Attribute key-use evidence only to the PROG rule. */
@@ -991,12 +1069,12 @@ cleanup:
 
 /**
  * @brief Run functional IDE evidence inside the owning rule, not as a preflight.
- * @param operation PROG, GO or STOP operation from the link interface.
+ * @param operation PROG, GO, STOP or the host-local namespace observation selector.
  * @param world The same FIRME instance used by the rule's ABI checks.
  * @param out Result including endpoint/session/setup/cleanup failures.
  * @return VAL_SUCCESS only after the selected observation completes successfully.
  */
-int val_firme_ide_observe_operation(uint64_t operation,
+static int val_host_spdm_observe_cxl_operation(uint64_t operation,
                                    firme_acs_world_t world,
                                    firme_rule_res_t *out)
 {
@@ -1008,7 +1086,7 @@ int val_firme_ide_observe_operation(uint64_t operation,
     *out = (firme_rule_res_t){.status = ACS_STATUS_FAIL,
                             .fail_step = VAL_HOST_IDE_STEP_DISCOVERY};
     if ((operation != VAL_IDE_LINK_PROG && operation != VAL_IDE_LINK_GO &&
-         operation != VAL_IDE_LINK_STOP) ||
+         operation != VAL_IDE_LINK_STOP && operation != VAL_HOST_IDE_NAMESPACE_OBSERVATION) ||
         (world != FIRME_ACS_WORLD_NSEL2 && world != FIRME_ACS_WORLD_REALM) ||
         val_pe_index() != val_host_mp_primary_index())
         return VAL_ERROR;
@@ -1022,15 +1100,15 @@ int val_firme_ide_observe_operation(uint64_t operation,
     transaction->world = world;
     LOG_TEST(NULL, "IDE operation=%u: observe CXL Root Port effects through FIRME world=%u",
              (unsigned int)operation, (unsigned int)world);
-    if (val_host_doe_prepare_endpoint(&transaction->endpoint) == VAL_SUCCESS &&
-        val_pcie_ecam_base_for_bdf(transaction->endpoint.root_bdf,
-                                    &transaction->ecam_address) == VAL_SUCCESS &&
-        val_host_doe_discover_spdm(&transaction->endpoint) == VAL_SUCCESS)
-        status = val_host_spdm_validate_cxl_key_programming(&transaction->endpoint, operation,
-                                                           world, out);
-    else
+    if (val_host_doe_prepare_endpoint(&transaction->endpoint) == VAL_SUCCESS) {
+        transaction->ecam_address = transaction->endpoint.ecam_base;
+        if (val_host_doe_discover_spdm(&transaction->endpoint) == VAL_SUCCESS)
+            status = val_host_spdm_validate_cxl_key_programming(&transaction->endpoint, operation,
+                                                               world, out);
+    } else {
         LOG_ERROR(NULL, "IDE operation=%u: configured CXL endpoint discovery failed",
                   (unsigned int)operation);
+    }
 
     if (val_host_spdm_cleanup(transaction) != VAL_SUCCESS) {
         if (status == VAL_SUCCESS)
@@ -1041,6 +1119,53 @@ int val_firme_ide_observe_operation(uint64_t operation,
     return status;
 }
 
+/**
+ * @brief Exercise R0212 in the selected instance through a retained host SPDM session.
+ * @param world NS or Realm instance issuing all Root Port FIRME operations.
+ * @param out Includes service absence, transport failure and real keyset observations.
+ * @return VAL_SUCCESS on PASS or exact NOT_SUPPORTED, otherwise VAL_ERROR.
+ */
+int val_firme_ide_namespace_host_run(firme_acs_world_t world, firme_rule_res_t *out)
+{
+    firme_acs_call_res_t discovery = {0};
+    int transport = VAL_SUCCESS;
+    int64_t version;
+
+    if (!out)
+        return VAL_ERROR;
+    *out = (firme_rule_res_t){.status = ACS_STATUS_FAIL,
+                            .fail_step = VAL_HOST_IDE_STEP_DISCOVERY};
+    if ((world != FIRME_ACS_WORLD_NSEL2 && world != FIRME_ACS_WORLD_REALM) ||
+        val_pe_index() != val_host_mp_primary_index())
+        return VAL_ERROR;
+
+    /* Step 1: Discover the service at the actual caller instance, not always NS. */
+    if (world == FIRME_ACS_WORLD_NSEL2)
+        val_firme_ide_link_command(VAL_IDE_LINK_DISCOVER, 0ULL, 0ULL, 0ULL, &discovery);
+    else
+        transport = val_firme_world_call(world, FIRME_ACS_CMD_IDE_LINK,
+                                          VAL_IDE_LINK_DISCOVER, 0ULL, 0ULL, 0ULL, &discovery);
+    version = val_firme_status_to_i64(discovery.x1);
+    if (transport == VAL_SUCCESS && discovery.x0 == ACS_STATUS_SKIP &&
+        version == FIRME_NOT_SUPPORTED) {
+        *out = (firme_rule_res_t){.status = ACS_STATUS_SKIP};
+        LOG_WARN(NULL, "R0212: IDE service is not implemented in world=%u\n",
+                 (unsigned int)world);
+        return VAL_SUCCESS;
+    }
+    if (transport != VAL_SUCCESS || discovery.x0 != ACS_STATUS_PASS || version < 0) {
+        out->last_x0 = discovery.x1;
+        out->last_x1 = discovery.x0;
+        LOG_ERROR(NULL, "R0212: discovery failed world=%u transport=%d status=%llx version=%llx\n",
+                  (unsigned int)world, transport, (unsigned long long)discovery.x0,
+                  (unsigned long long)discovery.x1);
+        return VAL_ERROR;
+    }
+
+    /* Step 2: Discover a real pair, prove distinct-key isolation and clean up both ends. */
+    return val_host_spdm_observe_cxl_operation(VAL_HOST_IDE_NAMESPACE_OBSERVATION, world, out);
+}
+
 /** @brief Bind a generated case to its exact retained host fixture. */
 static uint32_t val_host_spdm_abi_matches(uint32_t world,
                                           const pal_firme_ide_abi_scenario_t *scenario)
@@ -1049,8 +1174,8 @@ static uint32_t val_host_spdm_abi_matches(uint32_t world,
 
     return scenario && val_pe_index() == val_host_mp_primary_index() &&
            transaction->open && transaction->abi_owned &&
-           world == FIRME_ACS_WORLD_NSEL2 &&
-           transaction->world == FIRME_ACS_WORLD_NSEL2 &&
+           (world == FIRME_ACS_WORLD_NSEL2 || world == FIRME_ACS_WORLD_REALM) &&
+           transaction->world == (firme_acs_world_t)world &&
            scenario->token != 0ULL && scenario->token == transaction->abi_token &&
            scenario->ecam_address == transaction->ecam_address &&
            scenario->ide_type == VAL_FIRME_IDE_TYPE_CXL_CACHEMEM &&
@@ -1058,10 +1183,10 @@ static uint32_t val_host_spdm_abi_matches(uint32_t world,
 }
 
 /**
- * @brief Reserve the existing paired observer for a real NS GO or STOP invocation.
- * @param world Caller world; Realm needs a host coordination channel not supplied here.
- * @param operation GO/STOP use same-invocation traffic, not an independent replay.
- * @param condition Only the valid case has qualified pre-state/effect support.
+ * @brief Reserve one paired path while the selected instance executes the IDE ABI.
+ * @param world Actual NS or Realm caller, with the endpoint session retained in NS.
+ * @param operation The adapter issues this ABI and retains its own completion state.
+ * @param condition Positive, invalid-input or no-pending case to prepare.
  * @param scenario Selected receive keyset, matching peer key, and ownership token.
  * @return UNAVAILABLE for missing scenarios; ERROR retains failed cleanup ownership.
  */
@@ -1077,19 +1202,24 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
     if (!scenario || val_pe_index() != val_host_mp_primary_index())
         return PAL_FIRME_IDE_ABI_ERROR;
     *scenario = (pal_firme_ide_abi_scenario_t){0};
-    if (world != FIRME_ACS_WORLD_NSEL2 || condition != PAL_FIRME_IDE_ABI_VALID ||
-        (operation != PAL_FIRME_IDE_ABI_GO && operation != PAL_FIRME_IDE_ABI_STOP))
+    if (world != FIRME_ACS_WORLD_NSEL2 && world != FIRME_ACS_WORLD_REALM)
         return PAL_FIRME_IDE_ABI_UNAVAILABLE;
+    if ((uint32_t)operation > PAL_FIRME_IDE_ABI_POLL ||
+        (uint32_t)condition > PAL_FIRME_IDE_ABI_POLL_ANY ||
+        ((condition == PAL_FIRME_IDE_ABI_NO_PENDING ||
+          condition == PAL_FIRME_IDE_ABI_POLL_ANY) && operation != PAL_FIRME_IDE_ABI_POLL) ||
+        (condition == PAL_FIRME_IDE_ABI_INVALID_TYPE && operation == PAL_FIRME_IDE_ABI_POLL))
+        return PAL_FIRME_IDE_ABI_ERROR;
     if (val_host_spdm_cleanup(transaction) != VAL_SUCCESS ||
         g_val_host_spdm_abi_token == UINT64_MAX)
         return PAL_FIRME_IDE_ABI_ERROR;
 
     transaction->open = VAL_TRUE;
-    transaction->world = FIRME_ACS_WORLD_NSEL2;
-    if (val_host_doe_prepare_endpoint(&transaction->endpoint) != VAL_SUCCESS ||
-        val_pcie_ecam_base_for_bdf(transaction->endpoint.root_bdf,
-                                    &transaction->ecam_address) != VAL_SUCCESS ||
-        val_host_doe_discover_spdm(&transaction->endpoint) != VAL_SUCCESS ||
+    transaction->world = (firme_acs_world_t)world;
+    if (val_host_doe_prepare_endpoint(&transaction->endpoint) != VAL_SUCCESS)
+        goto failure;
+    transaction->ecam_address = transaction->endpoint.ecam_base;
+    if (val_host_doe_discover_spdm(&transaction->endpoint) != VAL_SUCCESS ||
         val_host_spdm_open(&transaction->owner, &transaction->endpoint) != VAL_SUCCESS ||
         val_host_spdm_start_session(&transaction->owner, &transaction->session_id) != VAL_SUCCESS)
         goto failure;
@@ -1110,6 +1240,10 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
             goto failure;
         memcpy(link[direction].endpoint_key.key, link[direction].key,
                  sizeof(link[direction].key));
+        if (direction == 0U && operation == PAL_FIRME_IDE_ABI_PROG &&
+            (condition == PAL_FIRME_IDE_ABI_INVALID_ECAM ||
+             condition == PAL_FIRME_IDE_ABI_INVALID_TYPE))
+            link[direction].endpoint_key.key[0] ^= (uint32_t)PAL_FIRME_IDE_ABI_BASELINE_KEY_XOR;
         link[direction].endpoint_programmed = VAL_TRUE;
         if (val_host_spdm_key_prog(&transaction->owner, transaction->session_id,
                 link[direction].endpoint_direction, &link[direction].endpoint_key) != VAL_SUCCESS)
@@ -1131,6 +1265,7 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_prepare(
 
     transaction->abi_owned = VAL_TRUE;
     transaction->abi_operation = operation;
+    transaction->abi_condition = condition;
     transaction->abi_token = ++g_val_host_spdm_abi_token;
     scenario->ecam_address = transaction->ecam_address;
     scenario->invalid_ecam_address = val_pcie_invalid_ecam_base();
@@ -1152,32 +1287,48 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_ready(
     pal_firme_ide_abi_condition_t condition, const pal_firme_ide_abi_scenario_t *scenario)
 {
     val_host_spdm_transaction_t *transaction = &g_val_host_spdm_transaction;
+    uint32_t expect_blocked = operation != PAL_FIRME_IDE_ABI_STOP;
 
     if (!val_host_spdm_abi_matches(world, scenario) ||
-        transaction->abi_operation != operation || condition != PAL_FIRME_IDE_ABI_VALID)
+        transaction->abi_operation != operation || transaction->abi_condition != condition)
         return PAL_FIRME_IDE_ABI_ERROR;
+    if (operation == PAL_FIRME_IDE_ABI_PROG &&
+        (condition == PAL_FIRME_IDE_ABI_INVALID_ECAM ||
+         condition == PAL_FIRME_IDE_ABI_INVALID_TYPE))
+        expect_blocked = VAL_FALSE;
     transaction->traffic_owned = VAL_TRUE;
-    if (pal_cxl_traffic_prepare(transaction->endpoint.root_bdf,
+    if (pal_cxl_traffic_prepare_at(transaction->endpoint.ecam_base, transaction->endpoint.root_bdf,
                                  transaction->endpoint.endpoint_bdf) != VAL_SUCCESS)
         return PAL_FIRME_IDE_ABI_ERROR;
     if (val_host_spdm_key_go(&transaction->owner, transaction->session_id,
                               CXL_IDE_KM_KEY_DIRECTION_TX) != VAL_SUCCESS ||
-        pal_cxl_traffic_check(operation == PAL_FIRME_IDE_ABI_GO) != VAL_SUCCESS)
+        pal_cxl_traffic_check(expect_blocked) != VAL_SUCCESS)
         return PAL_FIRME_IDE_ABI_ERROR;
     return PAL_FIRME_IDE_ABI_READY;
 }
 
-/** @brief Observe the generated GO/STOP itself using the still-owned paired path. */
+/** @brief Observe this invocation's key/state, including rejected requests' lack of effect. */
 pal_firme_ide_abi_status_t pal_firme_ide_abi_observe(
     uint32_t world, pal_firme_ide_abi_operation_t operation,
     pal_firme_ide_abi_condition_t condition, const pal_firme_ide_abi_scenario_t *scenario)
 {
     val_host_spdm_transaction_t *transaction = &g_val_host_spdm_transaction;
+    uint32_t expect_blocked;
 
     if (!val_host_spdm_abi_matches(world, scenario) ||
-        operation != transaction->abi_operation || condition != PAL_FIRME_IDE_ABI_VALID)
+        operation != transaction->abi_operation || condition != transaction->abi_condition)
         return PAL_FIRME_IDE_ABI_ERROR;
-    return pal_cxl_traffic_check(operation == PAL_FIRME_IDE_ABI_STOP) == VAL_SUCCESS ?
+    if (condition == PAL_FIRME_IDE_ABI_INVALID_ECAM ||
+        condition == PAL_FIRME_IDE_ABI_INVALID_TYPE ||
+        condition == PAL_FIRME_IDE_ABI_NO_PENDING)
+        expect_blocked = operation != PAL_FIRME_IDE_ABI_STOP ? VAL_TRUE : VAL_FALSE;
+    else
+        expect_blocked = operation == PAL_FIRME_IDE_ABI_STOP ? VAL_TRUE : VAL_FALSE;
+    if (operation == PAL_FIRME_IDE_ABI_PROG &&
+        (condition == PAL_FIRME_IDE_ABI_INVALID_ECAM ||
+         condition == PAL_FIRME_IDE_ABI_INVALID_TYPE))
+        expect_blocked = VAL_FALSE;
+    return pal_cxl_traffic_check(expect_blocked) == VAL_SUCCESS ?
            PAL_FIRME_IDE_ABI_READY : PAL_FIRME_IDE_ABI_ERROR;
 }
 
@@ -1201,7 +1352,7 @@ pal_firme_ide_abi_status_t pal_firme_ide_abi_cleanup(
     val_host_spdm_transaction_t *transaction = &g_val_host_spdm_transaction;
 
     if (!val_host_spdm_abi_matches(world, scenario) || operation != transaction->abi_operation ||
-        condition != PAL_FIRME_IDE_ABI_VALID || !transaction->link[0].endpoint_stopped)
+        condition != transaction->abi_condition || !transaction->link[0].endpoint_stopped)
         return PAL_FIRME_IDE_ABI_ERROR;
     transaction->abi_root_stopped = VAL_TRUE;
     return val_host_spdm_cleanup(transaction) == VAL_SUCCESS ?

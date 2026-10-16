@@ -54,8 +54,9 @@ static void service_features_fail(firme_rule_res_t *out, uint64_t fail_step,
 
 /**
  *   @brief    - Validate SERVICE_FEATURES ABI return semantics.
+ *   @param    - world : FIRME caller instance.
  *   @param    - out : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
 {
@@ -65,6 +66,10 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
     uint32_t service_id = 0U;
     uint32_t expected_present = VAL_FALSE;
     uint32_t allowed = VAL_FALSE;
+    int64_t expected_status = FIRME_NOT_SUPPORTED;
+
+    if (out == NULL)
+        return VAL_ERROR;
 
     service_features_init_result(out);
 
@@ -89,7 +94,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
     service_list = res.x1 & ((uint64_t)FIRME_BASE_SERVICE_LIST_MASK <<
                              FIRME_BASE_SERVICE_LIST_SHIFT);
 
-    /* Step 3: Allocated-but-absent services must not report feature register 0. */
+    /* Step 3: Check every register index at each allocated service ID. */
     for (service_id = FIRME_SERVICE_ID_GRANULE_MGMT; service_id < FIRME_SERVICE_ID_MAX;
          service_id++) {
         allowed = val_firme_service_is_allowed_at_world(world, service_id);
@@ -97,27 +102,22 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
                             ((service_list & val_firme_base_service_list_bit(service_id)) !=
                              0ULL)) ? VAL_TRUE : VAL_FALSE;
 
-        val_firme_service_features((uint64_t)service_id, FIRME_BASE_FEATURE_REG0_INDEX,
-                                   &res);
-        if (expected_present == VAL_FALSE) {
-            if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_NOT_SUPPORTED) {
-                LOG_ERROR(NULL, "%s: absent service_id=%u expected NOT_SUPPORTED x0=%llx",
-                          SERVICE_FEATURES_TEST_NAME, (unsigned int)service_id,
-                          (unsigned long long)res.x0);
-                service_features_fail(out, SERVICE_FEATURES_STEP_ABSENT_SERVICE,
-                                      res.x0, (uint64_t)service_id);
+        for (feature_reg_index = FIRME_BASE_FEATURE_REG0_INDEX;
+             feature_reg_index <= FIRME_FEATURE_REG_INDEX_8BIT_MAX; feature_reg_index++) {
+            expected_status = ((expected_present == VAL_TRUE) &&
+                               (feature_reg_index <= FIRME_BASE_FEATURE_REG1_INDEX)) ?
+                               FIRME_SUCCESS : FIRME_NOT_SUPPORTED;
+            val_firme_service_features(service_id, feature_reg_index, &res);
+            if (val_firme_status_to_i64(res.x0) != expected_status) {
+                LOG_ERROR(NULL, "%s: service=%u register=%u expected=%lld x0=%llx\n",
+                          SERVICE_FEATURES_TEST_NAME, service_id, feature_reg_index,
+                          (long long)expected_status, (unsigned long long)res.x0);
+                service_features_fail(out,
+                    expected_status == FIRME_SUCCESS ? SERVICE_FEATURES_STEP_PRESENT_SERVICE :
+                        SERVICE_FEATURES_STEP_ABSENT_SERVICE,
+                    res.x0, ((uint64_t)service_id << 32) | feature_reg_index);
                 return VAL_ERROR;
             }
-            continue;
-        }
-
-        if (val_firme_status_to_i64(res.x0) != (int64_t)FIRME_SUCCESS) {
-            LOG_ERROR(NULL, "%s: present service_id=%u feature reg0 expected SUCCESS x0=%llx",
-                      SERVICE_FEATURES_TEST_NAME, (unsigned int)service_id,
-                      (unsigned long long)res.x0);
-            service_features_fail(out, SERVICE_FEATURES_STEP_PRESENT_SERVICE,
-                                  res.x0, (uint64_t)service_id);
-            return VAL_ERROR;
         }
     }
 
@@ -157,7 +157,7 @@ static int service_features_run(firme_acs_world_t world, firme_rule_res_t *out)
  *   @brief    - SERVICE_FEATURES rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_features_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -169,7 +169,7 @@ int firme_base_service_features_run_ns(uint64_t base_pa, firme_rule_res_t *out)
  *   @brief    - SERVICE_FEATURES rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_features_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -181,7 +181,7 @@ int firme_base_service_features_run_secure(uint64_t base_pa, firme_rule_res_t *o
  *   @brief    - SERVICE_FEATURES rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - 0 (status stored in `out->status` when provided).
+ *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
  **/
 int firme_base_service_features_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

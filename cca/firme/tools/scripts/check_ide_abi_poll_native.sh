@@ -17,6 +17,7 @@ fi
     -I"$firme_dir/val/include" -I"$firme_dir/val_common/include" \
     -I"$firme_dir/platform/pal_baremetal/targets/fvp/include" \
     "$firme_dir/test/ide/unit/ide_abi_poll_test.c" \
+    "$firme_dir/val/src/val_firme_abi_test.c" \
     "$firme_dir/val/src/val_firme_ide.c" \
     "$firme_dir/platform/pal_baremetal/targets/fvp/src/pal_firme_ide_abi.c" \
     -Wl,--gc-sections -o "$build_dir/ide_abi_poll_test"

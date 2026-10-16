@@ -46,6 +46,7 @@ static int mec_feature_registers_fail(firme_rule_res_t *out, uint64_t step,
 int firme_mec_feature_registers_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {
     firme_res_t result = {0};
+    uint32_t register_index;
 
     (void)base_pa;
     if (!out)
@@ -79,13 +80,18 @@ int firme_mec_feature_registers_run_realm(uint64_t base_pa, firme_rule_res_t *ou
         return mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_REG1,
                                           &result);
 
-    /* Step 4: The first unallocated register index is not implemented. */
-    val_firme_service_features(FIRME_SERVICE_ID_MECID_MGMT,
-                               MEC_FEATURE_REGISTERS_FIRST_UNALLOCATED_INDEX, &result);
-    if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_NOT_SUPPORTED)
-        return mec_feature_registers_fail(out,
-                                          MEC_FEATURE_REGISTERS_STEP_UNALLOCATED,
-                                          &result);
+    /* Step 4: Every unallocated register index must return NOT_SUPPORTED. */
+    for (register_index = MEC_FEATURE_REGISTERS_FIRST_UNALLOCATED_INDEX;
+         register_index <= FIRME_FEATURE_REG_INDEX_8BIT_MAX; register_index++) {
+        val_firme_service_features(FIRME_SERVICE_ID_MECID_MGMT,
+                                   register_index, &result);
+        if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_NOT_SUPPORTED) {
+            mec_feature_registers_fail(out, MEC_FEATURE_REGISTERS_STEP_UNALLOCATED,
+                                       &result);
+            out->last_x1 = register_index;
+            return VAL_ERROR;
+        }
+    }
 
     out->status = (uint64_t)ACS_STATUS_PASS;
     return VAL_SUCCESS;

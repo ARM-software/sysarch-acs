@@ -69,12 +69,13 @@ static uint32_t gpt_gpi_set_progress_expect_access(uint64_t address,
     val_fault_info_t fault_info = {0};
     uint64_t value = 0ULL;
     uint32_t matched = VAL_FALSE;
+    int probe_result;
 
-    val_probe_read64(address, &value, &fault_info);
+    probe_result = val_probe_read64(address, &value, &fault_info);
     if (expect_access == VAL_TRUE)
-        matched = (uint32_t)(fault_info.faulted == 0ULL);
+        matched = (uint32_t)(probe_result == VAL_SUCCESS && fault_info.faulted == 0ULL);
     else
-        matched = (uint32_t)((fault_info.faulted != 0ULL) &&
+        matched = (uint32_t)((probe_result == VAL_ERROR) && (fault_info.faulted != 0ULL) &&
                              val_fault_is_gpf(fault_info.esr));
 
     if (matched == VAL_FALSE) {
@@ -110,13 +111,13 @@ static uint32_t gpt_gpi_set_progress_prepare_ns(uint64_t address,
     int64_t status = 0;
     const uint64_t granule_count = UINT64_C(1);
 
-    if (val_firme_gm_gpi_set_complete(address, granule_count,
-                                      FIRME_GPI_NONSECURE,
-                                      &result) != VAL_SUCCESS) {
+    if (val_firme_gpt_transition_terminal(address, FIRME_GPI_NONSECURE,
+            &result, out, fail_step) != VAL_SUCCESS) {
         LOG_ERROR(NULL, "%s: NS setup did not complete PA=%llx",
                   GPT_GPI_SET_PROGRESS_TEST_NAME,
                   (unsigned long long)address);
         gpt_gpi_set_progress_record(out, fail_step, &result);
+        out->status = (uint64_t)ACS_STATUS_ERR;
         return VAL_FALSE;
     }
 
@@ -156,15 +157,15 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
                                     firme_rule_res_t *out)
 {
     firme_res_t result = {0};
+    val_firme_gpt_trace_t trace = {0};
+    const val_firme_gpt_phase_t *last_phase;
     uint64_t feature_reg1 = 0ULL;
     uint64_t granule_size = 0ULL;
-    uint64_t current_pa = 0ULL;
-    uint64_t remaining = GPT_GPI_SET_PROGRESS_GRANULES;
-    uint64_t progress = 0ULL;
-    uint64_t total = 0ULL;
     uint64_t index = 0ULL;
+    uint64_t changed_count = 0ULL;
     uint32_t main_passed = VAL_FALSE;
     uint32_t cleanup_passed = VAL_TRUE;
+    uint32_t safe_to_restore = VAL_TRUE;
 
     if (!out)
         return VAL_ERROR;
@@ -189,7 +190,8 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
     granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
     if ((granule_size == 0ULL) ||
         ((base_pa % granule_size) != 0ULL) ||
-        (base_pa > (UINT64_MAX - granule_size))) {
+        (GPT_GPI_SET_PROGRESS_GRANULES >
+         ((UINT64_MAX - base_pa) / granule_size))) {
         LOG_ERROR(NULL, "%s: invalid platform base=%llx PGS=%llx",
                   GPT_GPI_SET_PROGRESS_TEST_NAME,
                   (unsigned long long)base_pa,
@@ -211,53 +213,54 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
             GPT_GPI_SET_PROGRESS_STEP_SETUP + UINT64_C(1)) == VAL_FALSE)
         goto cleanup;
 
-    /*
-     * Step 2: validate SUCCESS rows in Table 3.4. A count equal to the
-     * request completes the operation; a smaller count is stateless progress
-     * and is resumed by a new GPI_SET over the remaining range.
-     */
-    current_pa = base_pa;
-    while (remaining != 0ULL) {
-        val_firme_gm_gpi_set_do(current_pa, remaining, target_gpi, &result);
-        if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_SUCCESS) ||
-            (result.x1 == 0ULL) || (result.x1 > remaining)) {
-            LOG_ERROR(NULL,
-                      "%s: invalid SUCCESS progress remaining=%llu x0=%llx x1=%llx",
-                      GPT_GPI_SET_PROGRESS_TEST_NAME,
-                      (unsigned long long)remaining,
-                      (unsigned long long)result.x0,
-                      (unsigned long long)result.x1);
+    /* Step 2: Validate each prefix through bounded BUSY/INCOMPLETE continuation. */
+    if (val_firme_gpt_trace_transition(
+            base_pa, GPT_GPI_SET_PROGRESS_GRANULES, target_gpi, VAL_TRUE,
+            out, GPT_GPI_SET_PROGRESS_STEP_PREFIX, &trace) != VAL_SUCCESS ||
+        trace.phase_count == 0U) {
+        safe_to_restore = VAL_FALSE;
+        gpt_gpi_set_progress_record(out, GPT_GPI_SET_PROGRESS_STEP_SUCCESS, NULL);
+        goto cleanup;
+    }
+
+    last_phase = &trace.phases[trace.phase_count - 1U];
+    safe_to_restore = val_firme_gpt_trace_terminal(&trace);
+    changed_count = trace.completed_count;
+    if (trace.malformed || trace.unexpected_status || trace.exhausted ||
+        trace.observation_failed ||
+        last_phase->status != (int64_t)FIRME_SUCCESS ||
+        trace.completed_count != GPT_GPI_SET_PROGRESS_GRANULES) {
+        if (!trace.observation_failed) {
+            result.x0 = (uint64_t)last_phase->status;
+            result.x1 = last_phase->granule_count;
             gpt_gpi_set_progress_record(
-                out, GPT_GPI_SET_PROGRESS_STEP_SUCCESS + total, &result);
-            goto cleanup;
+                out, GPT_GPI_SET_PROGRESS_STEP_SUCCESS, &result);
         }
 
-        progress = result.x1;
-        for (index = 0ULL; index < progress; index++) {
-            if (gpt_gpi_set_progress_expect_access(
-                    current_pa + (index * granule_size), VAL_TRUE, out,
-                    GPT_GPI_SET_PROGRESS_STEP_PREFIX + total + index) ==
-                VAL_FALSE)
-                goto cleanup;
-        }
-
-        if ((progress < remaining) &&
-            (gpt_gpi_set_progress_expect_access(
-                 current_pa + (progress * granule_size), VAL_FALSE, out,
-                 GPT_GPI_SET_PROGRESS_STEP_BOUNDARY + total) == VAL_FALSE))
-            goto cleanup;
-
-        current_pa += progress * granule_size;
-        remaining -= progress;
-        total += progress;
+        goto cleanup;
     }
 
     /*
      * Step 3: validate the reachable DENIED row. Root is not a permitted
      * target from these callers, so no granule may be reported as progressed.
      */
-    val_firme_gm_gpi_set_do(base_pa, GPT_GPI_SET_PROGRESS_GRANULES,
-                            FIRME_GPI_ROOT, &result);
+    if (val_firme_gpt_trace_transition(base_pa, GPT_GPI_SET_PROGRESS_GRANULES,
+            FIRME_GPI_ROOT, VAL_FALSE, out, GPT_GPI_SET_PROGRESS_STEP_DENIED,
+            &trace) != VAL_SUCCESS || !val_firme_gpt_trace_terminal(&trace)) {
+        safe_to_restore = VAL_FALSE;
+        if (trace.phase_count != 0U && trace.phase_count <= VAL_FIRME_GPT_TRACE_MAX_PHASES) {
+            last_phase = &trace.phases[trace.phase_count - 1U];
+            result.x0 = (uint64_t)last_phase->status;
+            result.x1 = last_phase->granule_count;
+        }
+
+        gpt_gpi_set_progress_record(out, GPT_GPI_SET_PROGRESS_STEP_DENIED, &result);
+        goto cleanup;
+    }
+
+    last_phase = &trace.phases[trace.phase_count - 1U];
+    result.x0 = (uint64_t)last_phase->status;
+    result.x1 = trace.completed_count;
     if ((val_firme_as_i64(result.x0) != (int64_t)FIRME_DENIED) ||
         (result.x1 != 0ULL)) {
         LOG_ERROR(NULL, "%s: invalid DENIED progress x0=%llx x1=%llx",
@@ -279,14 +282,16 @@ static int gpt_gpi_set_progress_run(uint64_t base_pa,
     main_passed = VAL_TRUE;
 
 cleanup:
-    /* Step 4: restore both test granules to Non-secure state. */
-    if (gpt_gpi_set_progress_prepare_ns(
-            base_pa, out, GPT_GPI_SET_PROGRESS_STEP_CLEANUP) == VAL_FALSE)
-        cleanup_passed = VAL_FALSE;
-    if (gpt_gpi_set_progress_prepare_ns(
-            base_pa + granule_size, out,
-            GPT_GPI_SET_PROGRESS_STEP_CLEANUP + UINT64_C(1)) == VAL_FALSE)
-        cleanup_passed = VAL_FALSE;
+    if (!safe_to_restore || out->status == (uint64_t)ACS_STATUS_ERR) {
+        LOG_ERROR(NULL, "%s: outstanding or unknown operation prevents restoration",
+                  GPT_GPI_SET_PROGRESS_TEST_NAME);
+        out->status = (uint64_t)ACS_STATUS_ERR;
+        return VAL_ERROR;
+    }
+
+    /* Step 4: Restore the changed prefix; Host independently checks the untouched suffix. */
+    cleanup_passed = val_firme_gpt_restore_prefix_ns(base_pa, changed_count,
+        granule_size, out, GPT_GPI_SET_PROGRESS_STEP_CLEANUP);
 
     if ((main_passed == VAL_TRUE) && (cleanup_passed == VAL_TRUE) && out)
         out->status = (uint64_t)ACS_STATUS_PASS;

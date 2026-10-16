@@ -25,5 +25,6 @@ fi
     -I"$firme_dir/platform/pal_baremetal/targets/fvp/include" \
     "$firme_dir/test/ide/unit/ide_rule_test.c" \
     "$firme_dir/val/src/val_firme_ide.c" \
+    "$firme_dir/val/src/val_firme_ide_observation.c" \
     -Wl,--gc-sections -o "$build_dir/ide_rule_test"
 "$build_dir/ide_rule_test"

@@ -934,6 +934,18 @@ def generated_function_name(plan: dict[str, Any], world: str) -> str:
     return f"firme_abi_{plan['rule'].lower()}_run_{WORLD_SUFFIXES[world]}"
 
 
+def host_coordinated_worlds(plan: dict[str, Any]) -> list[str]:
+    """Keep mutable GPT memory and endpoint sessions owned by the NS coordinator."""
+    worlds = plan["required_worlds"] + plan["optional_worlds"]
+    if plan["abi"].startswith("IDE_KEYSET_"):
+        return [world for world in worlds if world == "realm"]
+    if plan["abi"] in {
+        "GM_GPI_SET", "GM_GPI_OP_CONTINUE", "GM_L1_GPT_CREATE", "GM_L1_GPT_DESTROY"
+    }:
+        return [world for world in worlds if world in {"secure", "realm"}]
+    return []
+
+
 def registry_world_mask_lines(field: str, worlds: list[str]) -> list[str]:
     """Format a registry world mask without producing long generated lines."""
     if not worlds:
@@ -971,12 +983,22 @@ def generate_wrapper_header(model: dict[str, Any]) -> str:
         "    val_firme_abi_test_plan_id_t plan_id, firme_acs_world_t world,",
         "    uint64_t base_pa, firme_rule_res_t *out);",
         "",
+        "/** Run a remote ABI with fixtures retained by the NS coordinator. */",
+        "int val_firme_abi_generated_remote_execute(",
+        "    val_firme_abi_test_plan_id_t plan_id, firme_acs_world_t world,",
+        "    uint64_t base_pa, firme_rule_res_t *out);",
+        "",
     ]
     for plan in model["test_plans"]:
         for world in plan["required_worlds"] + plan["optional_worlds"]:
             function = generated_function_name(plan, world)
             lines.extend([
                 f"int {function}(uint64_t base_pa,",
+                "                         firme_rule_res_t *out);",
+            ])
+        for world in host_coordinated_worlds(plan):
+            lines.extend([
+                f"int firme_abi_{plan['rule'].lower()}_run_host_{world}(uint64_t base_pa,",
                 "                         firme_rule_res_t *out);",
             ])
     lines.append("")
@@ -1087,6 +1109,23 @@ def generate_test_source(plan: dict[str, Any]) -> str:
             "}",
             "",
         ])
+    for world in host_coordinated_worlds(plan):
+        lines.extend([
+            "/**",
+            f" * @brief Coordinate {world} calls while retaining the owned fixture in NS.",
+            " * @param base_pa Platform test address supplied by the dispatcher.",
+            " * @param out Rule result populated by the common executor.",
+            " * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.",
+            " */",
+            f"int firme_abi_{plan['rule'].lower()}_run_host_{world}(uint64_t base_pa,",
+            "                         firme_rule_res_t *out)",
+            "{",
+            "    return val_firme_abi_generated_remote_execute(",
+            f"        VAL_FIRME_TEST_PLAN_{plan['id']},",
+            f"        {WORLD_ENUMS[world]}, base_pa, out);",
+            "}",
+            "",
+        ])
     return "\n".join(lines)
 
 
@@ -1134,6 +1173,10 @@ def generate_registry(model: dict[str, Any]) -> str:
                 if world in worlds else "0"
             )
             lines.append(f"        .run_{world} = {function},")
+        for world in host_coordinated_worlds(plan):
+            lines.append(
+                f"        .run_host_{world} = firme_abi_{plan['rule'].lower()}_run_host_{world},"
+            )
         lines.extend([
             "    },",
             "#endif",
@@ -1171,9 +1214,11 @@ def generate_coverage(model: dict[str, Any]) -> str:
         )
     lines.extend([
         "",
-        "Every plan has a generated one-rule test entry point. Gated plans are",
-        "not added to the runtime registry until their adapters and platform",
-        "prerequisites support the stated rule coverage.",
+        "Every active plan is registered and executes its applicable cases. Missing",
+        "owned memory, a retained operation or an observable endpoint path produces",
+        "SKIP, not PASS. The runner still executes later cases and preserves any",
+        "failure. Missing mandatory ABIs and incorrect DUT results produce FAIL.",
+        "A registered rule is not a claim that every listed status was observed.",
         "",
     ])
     return "\n".join(lines)

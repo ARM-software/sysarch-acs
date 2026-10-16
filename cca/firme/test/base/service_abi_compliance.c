@@ -18,6 +18,7 @@
 #define SERVICE_ABI_COMPLIANCE_STEP_SERVICE_FORBIDDEN UINT64_C(5)
 #define SERVICE_ABI_COMPLIANCE_STEP_MANDATORY_BITS    UINT64_C(6)
 #define SERVICE_ABI_COMPLIANCE_STEP_OPTIONAL_GROUP    UINT64_C(7)
+#define SERVICE_ABI_COMPLIANCE_STEP_ABI_DEPENDENCY    UINT64_C(8)
 
 /**
  *   @brief    - Initialize a service ABI compliance result record.
@@ -108,6 +109,17 @@ static uint32_t service_abi_compliance_check_service(firme_acs_world_t world,
                   (unsigned long long)feature_reg0,
                   (unsigned long long)(allocated_mask & ~supported_mask));
         service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_PROHIBITED_BITS,
+                                    feature_reg0, (uint64_t)service_id);
+        return VAL_FALSE;
+    }
+
+    if ((service_id == FIRME_SERVICE_ID_ATTESTATION) &&
+        ((feature_reg0 & FIRME_ATTEST_FEATURE_REG0_RAT_SIGN_BIT) != 0ULL) &&
+        ((feature_reg0 & FIRME_ATTEST_FEATURE_REG0_RAK_GET_BIT) == 0ULL)) {
+        LOG_ERROR(NULL, "%s: service_id=%u RAT_SIGN requires RAK_GET value=%llx",
+                  SERVICE_ABI_COMPLIANCE_TEST_NAME, (unsigned int)service_id,
+                  (unsigned long long)feature_reg0);
+        service_abi_compliance_fail(out, SERVICE_ABI_COMPLIANCE_STEP_ABI_DEPENDENCY,
                                     feature_reg0, (uint64_t)service_id);
         return VAL_FALSE;
     }

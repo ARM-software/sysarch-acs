@@ -30,6 +30,9 @@ typedef struct {
     uint32_t l1_present;
     uint32_t l1_destroy;
     uint32_t restoring;
+    uint32_t continue_advertised;
+    uint32_t has_abi_context;
+    val_firme_abi_test_context_t abi_context;
 } val_firme_gpt_fixture_t;
 
 /** @brief Acquire and independently validate a disposable platform fixture.
@@ -41,6 +44,17 @@ typedef struct {
  */
 pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin(
     val_firme_gpt_fixture_t *fixture, firme_acs_world_t world,
+    pal_firme_gpt_memory_kind_t kind);
+
+/**
+ * @brief Acquire a Host-coordinated fixture with calls issued by its actual ABI caller.
+ * @param fixture Empty fixture to retain until independent cleanup completes.
+ * @param context Generated-case context carrying the caller-specific invocation path.
+ * @param kind Required memory layout.
+ * @return Readiness, unavailability, or error with uncertain storage quarantined.
+ */
+pal_firme_gpt_scenario_status_t val_firme_gpt_fixture_begin_abi(
+    val_firme_gpt_fixture_t *fixture, val_firme_abi_test_context_t *context,
     pal_firme_gpt_memory_kind_t kind);
 
 /** @brief Record one real GPI response, respecting per-call count validity.
@@ -92,7 +106,13 @@ int val_firme_gpt_fixture_l1_record(val_firme_gpt_fixture_t *fixture,
 int val_firme_gpt_fixture_l1_complete(val_firme_gpt_fixture_t *fixture,
                                        uint32_t destroy);
 
-/** @brief Complete retained work, restore initial state, then release storage.
+/** @brief Complete a positive GPI operation before beginning rollback.
+ * @param fixture Prepared transition session with its actual operation state.
+ * @return VAL_SUCCESS only after all requested granules reach the target GPI.
+ */
+int val_firme_gpt_fixture_complete_transition(val_firme_gpt_fixture_t *fixture);
+
+/** @brief Complete retained work, scrub NSO before NS restoration, then release storage.
  * @param fixture Session; failed/uncertain cleanup keeps its lease quarantined.
  * @return VAL_SUCCESS only after independent full-range GPI verification and,
  * for L1 fixtures, GPT_INFO confirms the original Host-managed block.

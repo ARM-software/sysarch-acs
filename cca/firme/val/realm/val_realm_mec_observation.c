@@ -129,6 +129,7 @@ int val_firme_mec_observation_probe(
     uint64_t test_pa = (uint64_t)(uintptr_t)__mec_test_pa__;
     uint64_t test_va = PLAT_FIRME_MEC_TEST_VA;
     uint64_t test_mecid = PLAT_FIRME_MEC_TEST_MECID;
+    uint64_t refresh_reason = FIRME_MEC_REFRESH_REASON_CREATE;
     uint64_t line_size = 0ULL;
     uint64_t sample_va = 0ULL;
     uint64_t sample_pa = 0ULL;
@@ -146,8 +147,12 @@ int val_firme_mec_observation_probe(
 
     if ((evidence == 0) ||
         ((test_case != VAL_FIRME_MEC_OBSERVE_CONTEXT_REFRESH) &&
-         (test_case != VAL_FIRME_MEC_OBSERVE_CIPHERTEXT_DECORRELATION)))
+         (test_case != VAL_FIRME_MEC_OBSERVE_CIPHERTEXT_DECORRELATION) &&
+         (test_case != VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY)))
         return VAL_FIRME_MEC_OBSERVATION_PROBE_ERROR;
+
+    if (test_case == VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY)
+        refresh_reason = FIRME_MEC_REFRESH_REASON_DESTROY;
 
     mec_observation_clear(evidence);
     evidence->mecid = test_mecid;
@@ -242,9 +247,8 @@ int val_firme_mec_observation_probe(
     evidence->cache_maintenance_completed = VAL_TRUE;
     evidence->valid_fields |= VAL_FIRME_MEC_EVIDENCE_CACHE_MAINTENANCE;
 
-    /* Step 7: Refresh the same MECID to create the replacement context. */
-    evidence->abi_status = mec_refresh(
-        test_mecid, FIRME_MEC_REFRESH_REASON_CREATE);
+    /* Step 7: Refresh the same MECID with the selected creation/destruction hint. */
+    evidence->abi_status = mec_refresh(test_mecid, refresh_reason);
     if (evidence->abi_status != (int64_t)FIRME_SUCCESS)
         goto cleanup;
 
@@ -261,6 +265,17 @@ int val_firme_mec_observation_probe(
         }
     }
     evidence->valid_fields |= VAL_FIRME_MEC_EVIDENCE_STALE_READ;
+
+    /* A destruction hint may disable the MECID; re-enable after observing its effects. */
+    if (refresh_reason == FIRME_MEC_REFRESH_REASON_DESTROY) {
+        for (index = 0U; index < evidence->sample_count; index++) {
+            sample_pa = test_pa + ((uint64_t)index * line_size);
+            val_dcache_clean_invalidate_poe_realm(sample_pa);
+        }
+        evidence->abi_status = mec_refresh(test_mecid, FIRME_MEC_REFRESH_REASON_CREATE);
+        if (evidence->abi_status != (int64_t)FIRME_SUCCESS)
+            goto cleanup;
+    }
 
     /* Step 9: Rewrite and verify the same plaintext under the new context. */
     for (index = 0U; index < evidence->sample_count; index++) {

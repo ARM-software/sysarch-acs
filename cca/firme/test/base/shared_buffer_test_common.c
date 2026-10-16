@@ -131,6 +131,10 @@ int firme_shared_buffer_test_collect(
         limits->maximum_page_count, evidence);
     if (probe_result == VAL_FIRME_SHARED_BUFFER_PROBE_UNAVAILABLE) {
         shared_buffer_skip(out, world);
+        if (evidence->prerequisite_reason != 0ULL) {
+            out->last_x0 = evidence->prerequisite_reason;
+            out->last_x1 = evidence->prerequisite_detail;
+        }
         return VAL_SUCCESS;
     }
 

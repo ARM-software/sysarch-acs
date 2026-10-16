@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 
+#define PAL_FIRME_IDE_ABI_BASELINE_KEY_XOR UINT64_C(1)
+
 typedef enum {
     PAL_FIRME_IDE_ABI_UNAVAILABLE = 0,
     PAL_FIRME_IDE_ABI_READY,

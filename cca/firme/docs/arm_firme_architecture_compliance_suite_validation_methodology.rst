@@ -10,23 +10,14 @@ Copyright © 2026 Arm Limited (or its affiliates). All rights reserved.
 Document status
 ===============
 
-This is the updated reStructuredText source for the FIRME-ACS Alpha1
-validation methodology. It describes the ALP4 development baseline and the
-current test infrastructure. It is a working draft, not a newly issued Arm
-publication or a declaration that release qualification is complete.
+This working draft describes the validation methodology for FIRME-ACS
+``v26.10_FIRME_1.0.1`` (v1.0.1 Alpha), aligned with DEN0149 FIRME 1.0 ALP4.
+Release quality is **Alpha (qualification incomplete)**. The README records
+`known results and limitations <../README.md#release-quality-and-known-results>`_;
+registration and completed execution do not establish full compliance.
 
-The release quality is **Alpha (qualification incomplete)**, as reported
-by the runtime startup banner. The README's `release quality and known results
-<../README.md#release-quality-and-known-results>`_ distinguish recorded
-firmware/model limitations, observed DUT failures and unfinished ACS evidence.
-SKIP, registration and successful execution completion are not proof of
-full compliance or release qualification.
-
-This source replaces the repository PDF for document ``111888_0005_01_en``,
-Issue 01, dated 18 March 2026. That publication describes the historical
-v0.5 Alpha methodology; its issue number and date do not identify this
-updated draft. The `Proprietary Notice`_ from that publication is retained
-below.
+This source replaces the repository's v0.5 Alpha PDF. Publication history
+and the retained `Proprietary Notice`_ are provided at the end of this document.
 
 For current build instructions, use the `FIRME-ACS README <../README.md>`_.
 For individual rule algorithms, registration state and coverage limitations,
@@ -87,8 +78,9 @@ The ACS distinguishes three kinds of evidence:
 An expected result comes from the selected specification revision, not from
 what the reference firmware currently returns. Feature discovery determines
 whether a scenario is applicable; it must not waive a mandatory requirement.
-Similarly, reading a local constant or accepting any negative return value
-does not validate a rule that requires a specific observable response.
+Strict tests and their failures remain visible, with missing evidence
+distinguished from a DUT mismatch. R0023 and R0041 have Architect-agreed
+exclusions documented in the scenario document.
 
 Abbreviations
 -------------
@@ -174,16 +166,14 @@ Components
      - Supplies PEs, memory, access enforcement and any required SMMU,
        PCIe/CXL endpoints or encryption resources.
 
-The supplied TF-A integration loads the Secure image through its BL32 slot,
-the NS image through BL33, and the Realm image through the Realm payload
-slot. Secure messaging and Realm forwarding use the monitor integration
-provided by SPMD and RMMD. These mechanisms route ACS requests; they do not
-make TF-A behavior the test oracle.
+In the reference TF-A integration, BL32, BL33 and the Realm payload slot load
+the three images. SPMD/RMMD route cross-world requests; these mechanisms are
+integration details, not the source of architectural expected results.
 
 Source directory structure
 --------------------------
 
-Paths in the following tree are relative to ``cca/firme/``::
+The suite is organized under ``cca/firme/``::
 
     cca/firme/
     ├── CMakeLists.txt
@@ -239,8 +229,7 @@ Boot preparation
    PASS or SKIP.
 5. The host enumerates the compiled suite registry. A default ``SUITE=all``
    build includes every selected module's registered tests; a module-specific
-   build restricts that set. A registry-gated body is not run merely because
-   it was compiled.
+   build restricts that set.
 
 Rule execution
 --------------
@@ -264,13 +253,10 @@ Rule execution
    rule outcome. Missing required-world coverage cannot be hidden by a
    passing Normal-world check.
 
-Ordinary Realm rule results are retained per PE and retrieved using an
-execution-sequence token. MP payload results are retained per PE and matched
-by rule and phase; ordinary Secure rule results are returned directly.
-Retained-result reads transfer full words in two 32-bit halves rather than
-assuming that a monitor forwards additional return registers. The rule
+Cross-world results are matched to the requesting execution and PE. The rule
 outcome, failure step and captured DUT registers remain separate from
-transport success.
+transport success. After suite cleanup, the host requests platform shutdown;
+an abnormal exit remains an execution error even after a complete UART summary.
 
 Common ABI test framework
 =========================
@@ -288,10 +274,16 @@ generated runner applies the cases and aggregates their results. Negative
 cases isolate the intended invalid condition; outputs are interpreted only
 when the specification defines them for the returned status.
 
-Generated sources are checked into the suite and built normally. Running the
-generator does not temporarily activate tests. A disabled plan has an explicit
-reason and no active registry entry until its adapter and prerequisites have
-been qualified. See `ABI test generation <../tools/config/abi/README.md>`_ and
+Host coordinates owned GPT and IDE fixtures for remote callers. A sequenced
+command channel transfers the complete register frame to the Secure or Realm
+payload, which executes the SMC in that security state. Discovery, setup,
+test invocation and cleanup use the same caller world. Lost acknowledgements
+do not cause a second SMC; an uncertain result quarantines the resources.
+
+Generated sources are checked into the suite and built normally; running the
+generator does not temporarily activate tests. Registry and evidence limits
+remain visible in coverage accounting. See
+`ABI test generation <../tools/config/abi/README.md>`_ and
 `Alpha1 ABI interface coverage <FIRME_Alpha1_ABI_Interface_Coverage.md>`_.
 
 SMCCC and Concepts rules retain their own tests. There is no implicit
@@ -319,11 +311,12 @@ affect which state must remain live; they do not waive FIRME SBZ input
 requirements. Any unavailable state probe or unsupported observation remains
 an explicit coverage limitation.
 
-Shared-buffer rules require a real applicable service invocation with
-independent evidence of the tested address, size, mapping and PAS condition.
-Success from an ABI that does not consume a shared buffer cannot establish
-those properties. Availability of a test body without its service adapter
-does not establish runtime coverage.
+Shared-buffer rules require an applicable service invocation and evidence of
+the tested address, size and ownership. R0070 requires independent EL3 mapping
+attribute evidence; R0071 requires evidence of the buffer's PAS/GPI. ABI
+success alone does not prove either. EL3 mapping lifetime is informational
+I0073 and does not require a separate test. An unavailable observation remains
+a coverage limitation, not an implied exclusion of R0070 or R0071.
 
 Granule Management
 ------------------
@@ -340,6 +333,10 @@ checked so that an unrelated translation or alignment fault cannot pass a GPC
 test. Access probes alone do not establish internal bridge-object lifetime,
 scrubbing order, or every protected-range management property.
 
+NS and NSO are distinguished by a Secure access selecting Non-secure output
+PAS: NS permits that access, whereas NSO rejects it with a granule protection
+fault.
+
 L1 creation and destruction need a suitable protected range and separately
 reserved object storage. The table object's architected size is distinct
 from the size of the complete granules that contain it. Tests that require
@@ -351,7 +348,8 @@ replacement for that evidence.
 Concurrent scenarios require operations that genuinely overlap and exercise
 the state named by the rule. Merely running the same call on multiple PEs, or
 changing a GPI when the observed protected-range state is unchanged, does not
-prove a concurrency requirement. Unqualified fixtures remain documented gates.
+prove a concurrency requirement. An unavailable fixture remains an explicit
+runtime evidence limitation, not successful concurrency validation.
 
 MECID Management
 ----------------
@@ -393,7 +391,7 @@ mistaken for decorrelation.
 
 The optional reference-model refresh extension is a functional experiment.
 It can qualify sequencing and modeled effects, not cryptographic strength,
-and does not automatically enable registry-gated rules.
+and does not change the test's architectural expectations.
 
 IDE Key Management
 ------------------
@@ -417,20 +415,16 @@ FIRME. Matching key and direction state, completion, traffic effects, and
 cleanup at both ends are separate checks. Writing Root Port keys directly
 instead of invoking FIRME would bypass the behavior under test.
 
-The local paired firmware/model backend can provide transaction-level CXL.mem
-evidence, including matching-key operation and negative direction/key cases.
-It is not an upstream FVP capability, complete CXL.cache validation, or proof
-of wire-protocol or cryptographic compliance. It requires a matching model,
-firmware build and endpoint configuration; selecting ``SUITE=ide`` alone does
-not provide them. Use `IDE validation setup <IDE_Validation_Setup.md>`_ to
-identify the exact prerequisites and remaining limits.
+The experimental paired backend provides transaction-level CXL.mem evidence,
+not complete CXL.cache, wire-protocol or cryptographic qualification. It needs
+matching firmware, model and endpoint configuration; ``SUITE=ide`` alone does
+not supply them. See `IDE validation setup <IDE_Validation_Setup.md>`_.
 
 Cleanup must retain ownership until pending responses are drained and both
 ends are stopped or otherwise safely restored. A timeout, unknown handle
-ownership or failed cleanup must prevent resource reuse. These are
-qualification requirements, not a claim that every fixture is qualified.
-Namespace tests require independently observable paths; a single simulated
-status cannot prove isolation between two paths.
+ownership or failed cleanup must prevent resource reuse. Namespace tests
+require independently observable paths. The paired backend checks same-ECAM
+RX/TX isolation; two-ECAM fixture work remains deferred, not waived.
 
 Memory, mappings and exceptions
 ===============================
@@ -463,9 +457,8 @@ reservations. These are integration defaults, not architectural addresses.
      - R-EL2 shim, tests, stacks and reserved MEC test page
 
 These are separate PAS reservations, not allocations from one NS heap. The
-Realm link reserves the final 4 KiB page at ``0xFDCFF000`` for MEC observations
-and checks that the stacks do not overlap it. The firmware loader must assign
-the complete loaded reservations to their intended security states.
+firmware loader must assign each complete reservation to its intended
+security state; payload stacks and test storage must not overlap.
 
 The configured GPT window is separate from the images. It must not overlap
 live firmware, payload storage or another agent's memory. Increasing model
@@ -477,12 +470,9 @@ must come from the selected FIRME specification.
 Translation and attributes
 --------------------------
 
-The common reference MMU setup uses 4 KiB translation granules and 1 GiB
-identity-mapped blocks. It overlays the configured DRAM range with Normal
-WBWA attributes and uses Device-nGnRE attributes for the low device region.
-Specific helpers can temporarily map device windows and a dedicated Realm
-MEC alias under their ownership rules. This is not a general-purpose dynamic
-memory manager, and an arbitrary high address is not necessarily mapped.
+The common runtime maps configured DRAM as Normal WBWA memory and device
+regions as Device-nGnRE. Test-specific mappings remain bounded by ownership
+and restoration requirements; arbitrary addresses are not necessarily mapped.
 
 All participating PEs must agree on the attributes of shared memory. Mapping
 changes must not race with worker accesses; cache and TLB synchronization
@@ -524,20 +514,16 @@ audit resources remain serial facilities.
 Worker lifecycle and cache ordering
 -----------------------------------
 
-1. Cold initialization publishes the image's executable code, translation
-   tables and boot storage to PoC before a worker is released.
-2. PSCI CPU_ON starts a worker on its private stack. Secondary entry attaches
-   the existing mappings without clearing global BSS or rebuilding shared
-   tables. The stackless MMU transition avoids retaining a C frame across
-   uncached and cached execution.
-3. Per-PE vectors and local state are initialized before readiness is
-   published. CPU_ON returning success is not itself proof of readiness.
-4. Coherent, isolated mailboxes use release/acquire publication for requests
-   and results. Routine invalidation of live dirty mailbox lines is not used
-   as a substitute for synchronization.
-5. VAL waits for completion and then for firmware-confirmed CPU_OFF. A
-   timeout or uncertain cleanup quarantines the PE and its storage; a late
-   result does not authorize reuse.
+1. Publish executable code, translation tables and boot storage to PoC before
+   releasing a worker.
+2. Use PSCI CPU_ON to start the worker on a private stack with existing shared
+   mappings; do not clear shared BSS or rebuild active translation tables.
+3. Wait for initialized per-PE state and explicit readiness, not just a
+   successful CPU_ON response.
+4. Publish requests and results through coherent mailboxes with release/acquire
+   ordering; cache maintenance is not a substitute for synchronization.
+5. Confirm completion and CPU_OFF before reuse. A timeout or uncertain cleanup
+   quarantines the PE and its storage.
 
 The current implementation requires coherent shared Normal memory. It does
 not qualify non-coherent platforms. Worker contexts must outlive their jobs;
@@ -545,11 +531,10 @@ unconfirmed completion must not be followed by releasing their memory or
 running dependent tests. PoC publication for workers does not satisfy MEC
 observations that require maintenance to PoE or PoPA.
 
-The default worker self-test checks boot/off cycles, coherent exchanges,
-failure propagation and cross-world entry before rule execution. It is an
-infrastructure check, not additional rule coverage. On a genuine single-PE
-platform it cannot supply secondary-PE evidence. For model-based MP
-qualification, enable modeled caches and record the topology used.
+The worker self-test checks startup, coherent exchanges, failure propagation,
+cross-world entry and shutdown before rule execution. It is infrastructure
+evidence, not additional rule coverage. Model-based MP qualification requires
+modeled caches and a recorded topology; a single PE cannot provide MP evidence.
 See `MP execution <MP_Execution.md>`_ for the detailed platform contract and
 worker APIs.
 
@@ -594,6 +579,11 @@ step and relevant DUT register values. Transport errors and incomplete runs
 must not be collapsed into unsupported-feature skips. Optional-world absence
 does not justify ignoring malformed responses from a world that did execute.
 
+An unresolved GPT operation or failed restoration quarantines GPT scratch
+storage. The original failure remains; dependent tests skip with the blocking
+rule identified, while independent suites continue. An unresponsive secondary
+PE stops the run because its outstanding accesses cannot be safely isolated.
+
 A completed process or a zero-failure subtotal alone is insufficient for
 release qualification. The run must reach its completion summary, exercise
 the intended suite and account for missing, gated and skipped cases. A build
@@ -620,7 +610,7 @@ The principal target headers are under
      - Complete PE affinity and SMMU inventory contracts
    * - ``pal_pcie.h`` and ``pal_cxl.h``
      - PCIe/CXL access and endpoint integration
-   * - ``pal_firme_gpt.h``
+   * - ``pal_firme_gpt.h`` and ``pal_firme_gpt_memory.h``
      - Reserved GPT fixtures and independent observation where required
    * - ``pal_firme_ide_abi.h`` and ``pal_firme_ide_namespace.h``
      - Qualified IDE fixtures and ownership/isolation evidence
@@ -646,15 +636,13 @@ For each qualification run, retain:
   endpoint configuration and owned test-memory reservations.
 * Build and static-check results, complete UART/model logs, timeout settings,
   and per-rule PASS/FAIL/SKIP results with prerequisite and gate reasons.
-* Comparison with the previous run and revalidation of gates when firmware
-  or platform support changes. An old missing-feature gate must not silently
-  survive the introduction of the feature.
+* Comparison with the previous run and revalidation of missing-evidence paths
+  when firmware or platform support changes. Preserve DUT failures rather
+  than introducing a gate or weaker expectation to obtain a passing report.
 
-Validate a review commit independently of its children: a helper supplied
-only by a later commit cannot establish that its parent builds or runs.
 Native ACS checks complement, but do not replace, real firmware execution.
-GCC and Clang qualification must each use the payloads produced by that
-toolchain rather than reusing an earlier firmware package.
+Qualification applies to the exact ACS/firmware binaries tested. GCC and Clang
+runs must each use payloads produced by the corresponding toolchain.
 
 The release audit script checks the rule inventory and can compare a complete
 UART log with the expected coverage. Its inventory-only mode checks internal
@@ -700,10 +688,8 @@ References and document history
        framework, MP execution, evidence limits and release qualification.
        New publication issue/date subject to document review.
 
-This remains documentation for an Alpha product under development. Literal
-identifiers, commands and paths use fixed-width text; angle-bracketed path
-components are placeholders. Tables and diagrams describe the reference
-integration unless explicitly stated as architectural requirements.
+Tables and diagrams describe the reference integration unless explicitly
+stated as architectural requirements. Angle-bracketed paths are placeholders.
 
 Proprietary Notice
 ==================

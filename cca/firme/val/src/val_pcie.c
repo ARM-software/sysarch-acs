@@ -9,6 +9,8 @@
 
 #include "pal_pcie.h"
 
+#include <stddef.h>
+
 #define VAL_PCIE_BDF_SEG_SHIFT 24U
 #define VAL_PCIE_BDF_BUS_SHIFT 16U
 #define VAL_PCIE_BDF_DEV_SHIFT 8U
@@ -63,17 +65,24 @@
  */
 static int val_pcie_ecam_for_bdf(uint32_t bdf, pal_pcie_ecam_info_t *info)
 {
+    pal_pcie_ecam_info_t candidate = {0};
     uint32_t index = 0U;
     uint32_t bus = val_pcie_bdf_bus(bdf);
+    uint32_t found = VAL_FALSE;
 
     for (index = 0U; index < pal_pcie_ecam_count(); index++) {
-        if ((pal_pcie_ecam_info(index, info) == VAL_SUCCESS) &&
-            (info->segment == val_pcie_bdf_segment(bdf)) &&
-            (bus >= info->start_bus) && (bus <= info->end_bus))
-            return VAL_SUCCESS;
+        if (pal_pcie_ecam_info(index, &candidate) != VAL_SUCCESS)
+            return VAL_ERROR;
+        if ((candidate.segment == val_pcie_bdf_segment(bdf)) &&
+            (bus >= candidate.start_bus) && (bus <= candidate.end_bus)) {
+            if (found)
+                return VAL_ERROR;
+            *info = candidate;
+            found = VAL_TRUE;
+        }
     }
 
-    return VAL_ERROR;
+    return found ? VAL_SUCCESS : VAL_ERROR;
 }
 
 /**
@@ -388,25 +397,99 @@ int val_pcie_cfg_write32(uint32_t bdf, uint32_t offset, uint32_t value)
 }
 
 /**
- *   @brief    - Check whether a PCIe function is present.
- *   @param    - bdf : VAL packed BDF value.
- *   @return   - VAL_SUCCESS if present, VAL_ERROR otherwise.
+ * @brief Distinguish a missing PCI function from a configuration-read error.
+ * @param bdf Packed BDF.
+ * @param error_offset Configuration offset that failed inspection, if any.
+ * @return PRESENT, ABSENT, or ERROR.
  **/
-int val_pcie_function_present(uint32_t bdf)
+val_pcie_probe_status_t val_pcie_function_probe(uint32_t bdf,
+                                                uint32_t *error_offset)
 {
     uint32_t reg_value = 0U;
     uint32_t vendor_id = 0U;
 
+    if (error_offset)
+        *error_offset = 0U;
     if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_VENDOR_ID, &reg_value) != VAL_SUCCESS)
-        return VAL_ERROR;
+        return VAL_PCIE_PROBE_ERROR;
 
     vendor_id = reg_value & VAL_PCIE_VENDOR_ID_MASK;
     if ((reg_value == VAL_PCIE_CFG_VALUE_ABSENT) ||
         (vendor_id == VAL_PCIE_VENDOR_ID_ABSENT) ||
         (vendor_id == 0U))
-        return VAL_ERROR;
+        return VAL_PCIE_PROBE_ABSENT;
 
-    return VAL_SUCCESS;
+    return VAL_PCIE_PROBE_PRESENT;
+}
+
+/**
+ * @brief Test whether a PCIe function is present using the legacy VAL result.
+ * @param bdf Packed BDF.
+ * @return VAL_SUCCESS if present, otherwise VAL_ERROR.
+ */
+int val_pcie_function_present(uint32_t bdf)
+{
+    return val_pcie_function_probe(bdf, NULL) == VAL_PCIE_PROBE_PRESENT ?
+           VAL_SUCCESS : VAL_ERROR;
+}
+
+/**
+ * @brief Distinguish absent PCIe functions and capabilities from read errors.
+ * @param bdf Packed BDF.
+ * @param port_type Returned PCIe Device/Port Type when present.
+ * @param error_offset Configuration offset that failed inspection, if any.
+ * @return PRESENT for a PCIe function, ABSENT when not PCIe, ERROR on access.
+ */
+val_pcie_probe_status_t val_pcie_device_port_type_probe(uint32_t bdf,
+                                                        uint32_t *port_type,
+                                                        uint32_t *error_offset)
+{
+    val_pcie_probe_status_t presence;
+    uint64_t visited = 0ULL;
+    uint32_t reg_value = 0U;
+    uint32_t offset = 0U;
+    uint32_t cap_index = 0U;
+
+    if (!port_type)
+        return VAL_PCIE_PROBE_ERROR;
+    *port_type = 0U;
+    presence = val_pcie_function_probe(bdf, error_offset);
+    if (presence != VAL_PCIE_PROBE_PRESENT)
+        return presence;
+
+    if (error_offset)
+        *error_offset = VAL_PCIE_CFG_STATUS;
+    if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_STATUS, &reg_value) != VAL_SUCCESS)
+        return VAL_PCIE_PROBE_ERROR;
+    if ((reg_value & VAL_PCIE_STATUS_CAP_LIST) == 0U)
+        return VAL_PCIE_PROBE_ABSENT;
+
+    if (error_offset)
+        *error_offset = VAL_PCIE_CFG_CAP_PTR;
+    if (val_pcie_cfg_read32(bdf, VAL_PCIE_CFG_CAP_PTR, &reg_value) != VAL_SUCCESS)
+        return VAL_PCIE_PROBE_ERROR;
+    offset = reg_value & VAL_PCIE_CAP_PTR_MASK;
+    while (offset != 0U) {
+        if (offset < VAL_PCIE_CAP_START || offset > VAL_PCIE_CAP_END)
+            return VAL_PCIE_PROBE_ERROR;
+        cap_index = (offset - VAL_PCIE_CAP_START) / sizeof(uint32_t);
+        if ((visited & (UINT64_C(1) << cap_index)) != 0ULL)
+            return VAL_PCIE_PROBE_ERROR;
+        visited |= UINT64_C(1) << cap_index;
+        if (error_offset)
+            *error_offset = offset;
+        if (val_pcie_cfg_read32(bdf, offset, &reg_value) != VAL_SUCCESS ||
+            reg_value == 0U || reg_value == VAL_PCIE_CFG_VALUE_ABSENT)
+            return VAL_PCIE_PROBE_ERROR;
+        if ((reg_value & VAL_PCIE_CAP_ID_MASK) == VAL_PCIE_CAP_ID_EXPRESS) {
+            *port_type = (reg_value >> VAL_PCIE_PORT_TYPE_SHIFT) &
+                         VAL_PCIE_PORT_TYPE_MASK;
+            return VAL_PCIE_PROBE_PRESENT;
+        }
+        offset = (reg_value >> VAL_PCIE_CAP_NEXT_SHIFT) & VAL_PCIE_CAP_NEXT_MASK;
+    }
+
+    return VAL_PCIE_PROBE_ABSENT;
 }
 
 /**
@@ -501,23 +584,8 @@ int val_pcie_find_capability(uint32_t bdf, uint32_t cap_type, uint32_t cap_id,
  **/
 int val_pcie_device_port_type(uint32_t bdf, uint32_t *port_type)
 {
-    uint32_t pcie_cap_offset = 0U;
-    uint32_t reg_value = 0U;
-
-    if (!port_type)
-        return VAL_ERROR;
-
-    *port_type = 0U;
-    if (val_pcie_find_capability(bdf, VAL_PCIE_CAP_TYPE_LEGACY,
-                                 VAL_PCIE_CAP_ID_EXPRESS,
-                                 &pcie_cap_offset) != VAL_SUCCESS)
-        return VAL_ERROR;
-
-    if (val_pcie_cfg_read32(bdf, pcie_cap_offset, &reg_value) != VAL_SUCCESS)
-        return VAL_ERROR;
-
-    *port_type = (reg_value >> VAL_PCIE_PORT_TYPE_SHIFT) & VAL_PCIE_PORT_TYPE_MASK;
-    return VAL_SUCCESS;
+    return val_pcie_device_port_type_probe(bdf, port_type, NULL) ==
+           VAL_PCIE_PROBE_PRESENT ? VAL_SUCCESS : VAL_ERROR;
 }
 
 /**

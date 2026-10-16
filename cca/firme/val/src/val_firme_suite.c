@@ -19,6 +19,36 @@
 /* Chapter selection is controlled by build-time macros (from CMake/Make). */
 
 #if FIRME_ENABLE_BASE
+extern int firme_base_specification_version_policy_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_mapping_attributes_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_mapping_attributes_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_pas_gpi_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_pas_gpi_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_size_bounds_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_size_bounds_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_alignment_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_shared_buffer_alignment_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_last_chunk_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_last_chunk_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_intermediate_chunk_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_intermediate_chunk_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_no_chunk_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_base_partial_retrieval_no_chunk_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
 extern int firme_base_smccc_version_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_smccc_version_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_smccc_version_run_ns(uint64_t base_pa, firme_rule_res_t *out);
@@ -122,9 +152,29 @@ extern int firme_base_service_features_run_ns(uint64_t base_pa, firme_rule_res_t
 extern int firme_base_service_mandatory_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_mandatory_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_base_service_mandatory_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0064_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0064_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0064_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0065_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0065_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0065_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_base_max_concurrent_r0065_post(const firme_acs_call_res_t *res_ns,
+                                                 const firme_acs_call_res_t *res_secure,
+                                                 const firme_acs_call_res_t *res_realm,
+                                                 firme_acs_call_res_t *overall);
 #endif
 
 #if FIRME_ENABLE_IDE
+extern int firme_ide_ecam_keyset_namespace_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_ide_ecam_keyset_namespace_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_ide_keyset_id_uniqueness_run_ns(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_ide_keyset_id_uniqueness_run_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
+extern int firme_ide_keyset_id_uniqueness_run_host_realm(uint64_t base_pa,
+    firme_rule_res_t *out);
 extern int firme_ide_keyset_id_bitmap_encoding_run_realm(uint64_t base_pa,
                                                           firme_rule_res_t *out);
 extern int firme_ide_cxl_key_set_unused_run_realm(uint64_t base_pa, firme_rule_res_t *out);
@@ -169,6 +219,9 @@ extern int firme_mec_feature_registers_run_realm(uint64_t base_pa, firme_rule_re
 extern int firme_mec_abi_compliance_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_abi_compliance_run_secure(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_mec_abi_compliance_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_context_refresh_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_mec_ciphertext_decorrelation_run_realm(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
 #endif
 
 #if FIRME_ENABLE_GPT
@@ -206,6 +259,111 @@ extern int firme_gpt_success_count_nonzero_run_secure(uint64_t base_pa, firme_ru
 extern int firme_gpt_success_count_nonzero_run_realm(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_invalid_parameters_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
 extern int firme_gpt_denied_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_protected_range_base_alignment_run_ns(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_gpt_protected_range_base_alignment_run_secure(uint64_t base_pa,
+                                                               firme_rule_res_t *out);
+extern int firme_gpt_protected_range_base_alignment_run_realm(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_gpt_protected_range_size_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_protected_range_size_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_protected_range_size_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_management_owner_stability_run_secure(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_gpt_management_owner_stability_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_gpt_par_state_encoding_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_par_state_encoding_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_par_state_encoding_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_status_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_success_outputs_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_success_outputs_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_success_outputs_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_output_validity_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_output_validity_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_output_validity_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_op_continue_start_granule_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_op_continue_start_granule_run_secure(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_gpt_op_continue_start_granule_run_realm(uint64_t base_pa,
+                                                         firme_rule_res_t *out);
+extern int firme_gpt_op_continue_granule_count_run_ns(uint64_t base_pa,
+                                                      firme_rule_res_t *out);
+extern int firme_gpt_op_continue_granule_count_run_secure(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_gpt_op_continue_granule_count_run_realm(uint64_t base_pa,
+                                                         firme_rule_res_t *out);
+extern int firme_gpt_op_continue_progress_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_op_continue_progress_run_secure(uint64_t base_pa,
+                                                     firme_rule_res_t *out);
+extern int firme_gpt_op_continue_progress_run_realm(uint64_t base_pa,
+                                                    firme_rule_res_t *out);
+extern int firme_gpt_not_supported_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_not_supported_status_run_secure(uint64_t base_pa,
+                                                    firme_rule_res_t *out);
+extern int firme_gpt_not_supported_status_run_realm(uint64_t base_pa,
+                                                   firme_rule_res_t *out);
+extern int firme_gpt_busy_retry_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_busy_retry_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_busy_retry_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_allocation_not_found_run_ns(uint64_t base_pa,
+                                                    firme_rule_res_t *out);
+extern int firme_gpt_l1_allocation_not_found_run_secure(uint64_t base_pa,
+                                                        firme_rule_res_t *out);
+extern int firme_gpt_l1_allocation_not_found_run_realm(uint64_t base_pa,
+                                                       firme_rule_res_t *out);
+extern int firme_gpt_operation_conflict_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_operation_conflict_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_operation_conflict_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_stateful_incomplete_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_stateful_incomplete_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_stateful_incomplete_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_concurrent_state_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_info_concurrent_state_run_secure(uint64_t base_pa,
+                                                     firme_rule_res_t *out);
+extern int firme_gpt_info_concurrent_state_run_realm(uint64_t base_pa,
+                                                    firme_rule_res_t *out);
+extern int firme_gpt_l1_bridge_object_properties_run_realm(uint64_t base_pa,
+                                                            firme_rule_res_t *out);
+extern int firme_gpt_l1_create_transition_policy_run_ns(uint64_t base_pa,
+                                                         firme_rule_res_t *out);
+extern int firme_gpt_l1_create_transition_policy_run_secure(uint64_t base_pa,
+                                                             firme_rule_res_t *out);
+extern int firme_gpt_l1_create_transition_policy_run_realm(uint64_t base_pa,
+                                                            firme_rule_res_t *out);
+extern int firme_gpt_l1_create_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_create_status_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_create_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_create_range_gpi_stability_run_realm(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_gpt_l1_create_success_object_gpi_run_realm(uint64_t base_pa,
+                                                             firme_rule_res_t *out);
+extern int firme_gpt_l1_create_incomplete_object_gpi_run_realm(uint64_t base_pa,
+                                                                firme_rule_res_t *out);
+extern int firme_gpt_l1_create_denied_no_effect_run_realm(uint64_t base_pa,
+                                                           firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_transition_policy_run_ns(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_transition_policy_run_secure(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_transition_policy_run_realm(uint64_t base_pa,
+                                                             firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_scrub_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_status_run_ns(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_status_run_secure(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_status_run_realm(uint64_t base_pa, firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_success_output_run_realm(uint64_t base_pa,
+                                                          firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_range_gpi_stability_run_realm(uint64_t base_pa,
+                                                               firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_success_object_gpi_run_realm(uint64_t base_pa,
+                                                              firme_rule_res_t *out);
+extern int firme_gpt_l1_destroy_incomplete_object_gpi_run_realm(uint64_t base_pa,
+                                                                 firme_rule_res_t *out);
+extern int firme_gpt_l1_single_in_progress_operation_run_realm(uint64_t base_pa,
+                                                                firme_rule_res_t *out);
 #endif
 
 /* Global, self-describing registry (ordered by chapter). */
@@ -279,12 +437,24 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_smc64_calling_convention_run_secure,
         .run_realm = firme_base_smc64_calling_convention_run_realm,
     },
-    /*
-     * R0011 validates statuses observed from every advertised ABI against the
-     * status set permitted for that ABI. It remains unscheduled until all
-     * service-specific test paths feed the shared validator, so one safe probe
-     * per advertised ABI is not misreported as complete status-path coverage.
-     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0011,
+        .rule_str = "R0011",
+        .suite = "firme",
+        .test_name = "status_codes",
+        .desc = "Architected statuses from implemented service paths",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Architected statuses from implemented service paths (ns)",
+        .run_ns = firme_base_status_codes_run_ns,
+        .check_secure = "Architected statuses from implemented service paths (secure)",
+        .run_secure = firme_base_status_codes_run_secure,
+        .check_realm = "Architected statuses from implemented service paths (realm)",
+        .run_realm = firme_base_status_codes_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0012,
@@ -319,18 +489,61 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_reserved_input_bits_run_secure,
         .run_realm = firme_base_reserved_input_bits_run_realm,
     },
-    /*
-     * R0014 and R0015 have caller-side poisoning self-tests, but are not
-     * scheduled as DUT compliance tests. Full coverage also requires every
-     * service/status output shape and a callee non-disclosure security audit.
-     */
-    /*
-     * R0023 is a proposed DUT-validation exclusion pending Architect review:
-     * legal calls keep bits [63:8] SBZ and cannot distinguish a wider decoder.
-     * R0024 validates the allocated/unallocated discovery ranges, but remains
-     * unscheduled until service-specific behavior identifies every implemented
-     * ID 1 through 5.
-     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0014,
+        .rule_str = "R0014",
+        .suite = "firme",
+        .test_name = "reserved_output_registers",
+        .desc = "Unused output-register caller and callee evidence",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Unused output-register caller and callee evidence (ns)",
+        .run_ns = firme_base_reserved_output_registers_run_ns,
+        .check_secure = "Unused output-register caller and callee evidence (secure)",
+        .run_secure = firme_base_reserved_output_registers_run_secure,
+        .check_realm = "Unused output-register caller and callee evidence (realm)",
+        .run_realm = firme_base_reserved_output_registers_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0015,
+        .rule_str = "R0015",
+        .suite = "firme",
+        .test_name = "reserved_output_bits",
+        .desc = "Unused output-bit caller and callee evidence",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Unused output-bit caller and callee evidence (ns)",
+        .run_ns = firme_base_reserved_output_bits_run_ns,
+        .check_secure = "Unused output-bit caller and callee evidence (secure)",
+        .run_secure = firme_base_reserved_output_bits_run_secure,
+        .check_realm = "Unused output-bit caller and callee evidence (realm)",
+        .run_realm = firme_base_reserved_output_bits_run_realm,
+    },
+    /* R0023 is Architect-excluded: legal inputs cannot establish internal type width. */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0024,
+        .rule_str = "R0024",
+        .suite = "firme",
+        .test_name = "service_id_allocation",
+        .desc = "Allocated service IDs identify prescribed services",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Allocated service IDs identify prescribed services (ns)",
+        .run_ns = firme_base_service_id_allocation_run_ns,
+        .check_secure = "Allocated service IDs identify prescribed services (secure)",
+        .run_secure = firme_base_service_id_allocation_run_secure,
+        .check_realm = "Allocated service IDs identify prescribed services (realm)",
+        .run_realm = firme_base_service_id_allocation_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0025,
@@ -365,12 +578,19 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_presence_run_secure,
         .run_realm = firme_base_service_presence_run_realm,
     },
-    /*
-     * The strict R0031 body is implemented in
-     * test/base/specification_version_policy.c. Keep its registry entry gated
-     * until consecutive specification-release metadata is supplied through
-     * the policy probe. It validates publication metadata, not DUT behavior.
-     */
+    /* Publication metadata is reported separately from DUT observations. */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0031,
+        .rule_str = "R0031",
+        .suite = "firme",
+        .test_name = "specification_version_policy",
+        .desc = "Publication policy for specification and service versions",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Publication policy for specification and service versions (ns)",
+        .run_ns = firme_base_specification_version_policy_run_ns,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0033,
@@ -440,7 +660,7 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_realm = firme_base_service_version_run_realm,
     },
     /*
-     * R0041 is a proposed DUT-validation exclusion pending Architect review:
+     * R0041 is an Architect-agreed DUT-validation exclusion:
      * SERVICE_FEATURES exposes register contents and indices, not observable
      * register-size metadata. Catalog checks do not prove DUT compliance.
      */
@@ -478,13 +698,22 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_feature_register_index_run_secure,
         .run_realm = firme_base_feature_register_index_run_realm,
     },
-    /*
-     * R0048 is implemented in test/base/feature_register_abi_presence.c,
-     * but is intentionally not scheduled until the reference DUT advertises
-     * all ALP4 mandatory ABI bits for each implemented service. Current TF-A
-     * reports Granule Management feature register 0 as 0x1, missing the
-     * mandatory OP_CONTINUE bit, so this rule currently fails by design.
-     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0048,
+        .rule_str = "R0048",
+        .suite = "firme",
+        .test_name = "feature_register_abi_presence",
+        .desc = "Implemented services advertise mandatory and permitted ABIs",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Check mandatory ABI bits from NS world",
+        .check_secure = "Check mandatory ABI bits from Secure world",
+        .check_realm = "Check mandatory ABI bits from Realm world",
+        .run_ns = firme_base_feature_register_abi_presence_run_ns,
+        .run_secure = firme_base_feature_register_abi_presence_run_secure,
+        .run_realm = firme_base_feature_register_abi_presence_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0051,
@@ -519,13 +748,22 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_features_run_secure,
         .run_realm = firme_base_service_features_run_realm,
     },
-    /*
-     * R0054 is implemented in test/base/service_abi_compliance.c, but is
-     * intentionally not scheduled until the reference DUT advertises all
-     * ALP4 mandatory ABI bits for each implemented service. Do not relax the
-     * strict rule body to match older DUT behavior; re-enable the registry
-     * entry when the DUT claims the applicable ALP4 semantics.
-     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0054,
+        .rule_str = "R0054",
+        .suite = "firme",
+        .test_name = "service_abi_compliance",
+        .desc = "Each implemented service follows its ABI compliance table",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Check service ABI classification from NS world",
+        .check_secure = "Check service ABI classification from Secure world",
+        .check_realm = "Check service ABI classification from Realm world",
+        .run_ns = firme_base_service_abi_compliance_run_ns,
+        .run_secure = firme_base_service_abi_compliance_run_secure,
+        .run_realm = firme_base_service_abi_compliance_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_BASE,
         .rule_id = FIRME_RULE_R0055,
@@ -543,36 +781,177 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_base_service_mandatory_run_secure,
         .run_realm = firme_base_service_mandatory_run_realm,
     },
-    /*
-     * Strict R0064 and R0065 bodies are implemented in
-     * test/base/max_concurrent_operations.c. They remain registry-gated while
-     * current TF-A advertises IDE key management without the ALP4 feature
-     * register 1 required by R0064. R0065 additionally reports SKIP for a
-     * non-zero advertised limit until retained operations can be driven
-     * collectively across ABIs and FIRME instances.
-     */
-    /*
-     * Strict R0070, R0071, R0076 and R0077 bodies are implemented in
-     * test/base/shared_buffer_*.c. Keep their registry entries gated
-     * until an Attestation or Integrated Device adapter overrides the shared-
-     * buffer probe and supplies caller/EL3 mapping, PAS/GPI and ABI evidence.
-     * Do not replace the strict checks with Base feature-register inference.
-     */
-    /*
-     * Strict R0080, R0081 and R0082 bodies are implemented in
-     * test/base/partial_retrieval_*.c. Keep their registry entries gated until
-     * an Attestation or Integrated Device adapter drives last, intermediate
-     * and no-data retrieval paths through a real shared-buffer ABI.
-     */
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0064,
+        .rule_str = "R0064",
+        .suite = "firme",
+        .test_name = "max_concurrent_feature_fields",
+        .desc = "Non-Base services expose MAX_CONCURRENT_OP_CNT in register 1",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Check register 1 from NS world",
+        .check_secure = "Check register 1 from Secure world",
+        .check_realm = "Check register 1 from Realm world",
+        .run_ns = firme_base_max_concurrent_r0064_run_ns,
+        .run_secure = firme_base_max_concurrent_r0064_run_secure,
+        .run_realm = firme_base_max_concurrent_r0064_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0065,
+        .rule_str = "R0065",
+        .suite = "firme",
+        .test_name = "max_concurrent_consistency",
+        .desc = "Compare concurrent-operation limits across FIRME instances",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Collect limits from NS world",
+        .check_secure = "Collect limits from Secure world",
+        .check_realm = "Collect limits from Realm world",
+        .run_ns = firme_base_max_concurrent_r0065_run_ns,
+        .run_secure = firme_base_max_concurrent_r0065_run_secure,
+        .run_realm = firme_base_max_concurrent_r0065_run_realm,
+        .post_run = firme_base_max_concurrent_r0065_post,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0070,
+        .rule_str = "R0070",
+        .suite = "firme",
+        .test_name = "shared_buffer_mapping_attributes",
+        .desc = "Shared-buffer mapping attributes",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Shared-buffer mapping attributes (ns)",
+        .run_ns = firme_base_shared_buffer_mapping_attributes_run_ns,
+        .check_realm = "Shared-buffer mapping attributes (realm)",
+        .run_realm = firme_base_shared_buffer_mapping_attributes_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0071,
+        .rule_str = "R0071",
+        .suite = "firme",
+        .test_name = "shared_buffer_pas_gpi",
+        .desc = "Shared-buffer PAS and GPI ownership",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Shared-buffer PAS and GPI ownership (ns)",
+        .run_ns = firme_base_shared_buffer_pas_gpi_run_ns,
+        .check_realm = "Shared-buffer PAS and GPI ownership (realm)",
+        .run_realm = firme_base_shared_buffer_pas_gpi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0076,
+        .rule_str = "R0076",
+        .suite = "firme",
+        .test_name = "shared_buffer_size_bounds",
+        .desc = "Shared-buffer size bounds",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Shared-buffer size bounds (ns)",
+        .run_ns = firme_base_shared_buffer_size_bounds_run_ns,
+        .check_realm = "Shared-buffer size bounds (realm)",
+        .run_realm = firme_base_shared_buffer_size_bounds_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0077,
+        .rule_str = "R0077",
+        .suite = "firme",
+        .test_name = "shared_buffer_alignment",
+        .desc = "Shared-buffer base alignment",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Shared-buffer base alignment (ns)",
+        .run_ns = firme_base_shared_buffer_alignment_run_ns,
+        .check_realm = "Shared-buffer base alignment (realm)",
+        .run_realm = firme_base_shared_buffer_alignment_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0080,
+        .rule_str = "R0080",
+        .suite = "firme",
+        .test_name = "partial_retrieval_last_chunk",
+        .desc = "Partial retrieval final-chunk outputs",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Partial retrieval final-chunk outputs (ns)",
+        .run_ns = firme_base_partial_retrieval_last_chunk_run_ns,
+        .check_realm = "Partial retrieval final-chunk outputs (realm)",
+        .run_realm = firme_base_partial_retrieval_last_chunk_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0081,
+        .rule_str = "R0081",
+        .suite = "firme",
+        .test_name = "partial_retrieval_intermediate_chunk",
+        .desc = "Partial retrieval intermediate outputs",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Partial retrieval intermediate outputs (ns)",
+        .run_ns = firme_base_partial_retrieval_intermediate_chunk_run_ns,
+        .check_realm = "Partial retrieval intermediate outputs (realm)",
+        .run_realm = firme_base_partial_retrieval_intermediate_chunk_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_BASE,
+        .rule_id = FIRME_RULE_R0082,
+        .rule_str = "R0082",
+        .suite = "firme",
+        .test_name = "partial_retrieval_no_chunk",
+        .desc = "Partial retrieval without a returned chunk",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_ns = "Partial retrieval without a returned chunk (ns)",
+        .run_ns = firme_base_partial_retrieval_no_chunk_run_ns,
+        .check_realm = "Partial retrieval without a returned chunk (realm)",
+        .run_realm = firme_base_partial_retrieval_no_chunk_run_realm,
+    },
 #endif
 #if FIRME_ENABLE_IDE
-    /*
-     * Strict R0211/R0212 bodies are implemented in
-     * test/ide/ecam_keyset_namespace.c and keyset_id_uniqueness.c.
-     * Keep them registry-gated until PAL provides two independently
-     * observable Root Port/endpoint paths and protected-traffic evidence.
-     * ABI SUCCESS alone cannot prove that keyset namespaces do not alias.
-     */
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0211,
+        .rule_str = "R0211",
+        .suite = "firme",
+        .test_name = "ecam_keyset_namespace",
+        .desc = "Independent ECAM keyset namespaces",
+        .required_worlds_mask = 0u,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Independent ECAM keyset namespaces (ns)",
+        .run_ns = firme_ide_ecam_keyset_namespace_run_ns,
+        .check_realm = "Independent ECAM keyset namespaces (realm)",
+        .run_realm = firme_ide_ecam_keyset_namespace_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0212,
+        .rule_str = "R0212",
+        .suite = "firme",
+        .test_name = "keyset_id_uniqueness",
+        .desc = "Independent keyset selection within an ECAM space",
+        .required_worlds_mask = 0u,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Independent keyset selection within an ECAM space (ns)",
+        .run_ns = firme_ide_keyset_id_uniqueness_run_ns,
+        .check_realm = "Independent keyset selection within an ECAM space (realm)",
+        .run_realm = firme_ide_keyset_id_uniqueness_run_realm,
+        .run_host_realm = firme_ide_keyset_id_uniqueness_run_host_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_IDE,
         .rule_id = FIRME_RULE_R0205,
@@ -587,13 +966,48 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = 0,
         .run_realm = firme_ide_keyset_id_bitmap_encoding_run_realm,
     },
-    /*
-     * R0207, R0209 and R0210 remain implemented but temporarily registry-gated.
-     * The CI TF-A rejects CXL.cachemem IDE type 3 with INVALID_PARAMETERS
-     * during valid baseline setup; the paired CXL firmware/model is absent.
-     * Restore these entries with final CI qualification and golden-log updates.
-     * Keep the strict test expectations; this temporary gate is not coverage.
-     */
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0207,
+        .rule_str = "R0207",
+        .suite = "firme",
+        .test_name = "ide_cxl_key_set_unused",
+        .desc = "CXL.cachemem requests keep the unused Key Set field zero",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with unused Key Set zero",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_key_set_unused_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0209,
+        .rule_str = "R0209",
+        .suite = "firme",
+        .test_name = "ide_cxl_stream_id_zero",
+        .desc = "CXL.cachemem IDE Stream ID is zero",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with non-zero Stream ID",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_stream_id_zero_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0210,
+        .rule_str = "R0210",
+        .suite = "firme",
+        .test_name = "ide_cxl_substream_id",
+        .desc = "CXL.cachemem IDE Substream ID is 0b1000",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_realm = "Invoke CXL.cachemem PROG with invalid Substream ID",
+        .run_ns = 0,
+        .run_secure = 0,
+        .run_realm = firme_ide_cxl_substream_id_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_IDE,
         .rule_id = FIRME_RULE_R0214,
@@ -667,10 +1081,20 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_ide_secure_caller_not_supported_run_secure,
         .run_realm = 0,
     },
-    /* R0231: Re-enable after TF-A implements and qualifies ALP4 IDE register 1.
-     * The strict NS/Realm bodies also check register 0 and unallocated indices.
-     * Do not treat missing mandatory register 1 as an optional feature.
-     */
+    {
+        .chapter = FIRME_CHAPTER_IDE,
+        .rule_id = FIRME_RULE_R0231,
+        .rule_str = "R0231",
+        .suite = "firme",
+        .test_name = "ide_feature_register",
+        .desc = "IDE feature registers follow ALP4 Table 4.3",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
+        .check_ns = "Check IDE feature registers from NS world",
+        .check_realm = "Check IDE feature registers from Realm world",
+        .run_ns = firme_ide_feature_register_run_ns,
+        .run_realm = firme_ide_feature_register_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_IDE,
         .rule_id = FIRME_RULE_R0232,
@@ -689,12 +1113,28 @@ const firme_test_case_t g_firme_test_cases[] = {
     },
 #endif
 #if FIRME_ENABLE_MEC
-    /*
-     * Strict ALP4 bodies for R0236 and R0238 remain registry-gated because
-     * the default FVP TF-A refresh hook does not replace the MPE context.
-     * Local opt-in functional-model qualification does not qualify the
-     * default DUT; re-enable only for a qualified deployment.
-     */
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0236,
+        .rule_str = "R0236",
+        .suite = "firme",
+        .test_name = "mec_context_refresh",
+        .desc = "MEC_REFRESH invalidates the previous encryption context",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .check_realm = "Observe stale data and the new MEC context",
+        .run_realm = firme_mec_context_refresh_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_MEC,
+        .rule_id = FIRME_RULE_R0238,
+        .rule_str = "R0238",
+        .suite = "firme",
+        .test_name = "mec_ciphertext_decorrelation",
+        .desc = "MEC_REFRESH decorrelates old and new protected representations",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .check_realm = "Compare old-context and new-context memory behavior",
+        .run_realm = firme_mec_ciphertext_decorrelation_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_MEC,
         .rule_id = FIRME_RULE_R0239,
@@ -776,38 +1216,390 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_gpt_granule_management_feature_registers_run_secure,
         .run_realm = firme_gpt_granule_management_feature_registers_run_realm,
     },
-    /*
-     * R0195 is implemented in test/gpt/granule_management_abi_compliance.c,
-     * but is intentionally not scheduled until the reference DUT advertises
-     * all ALP4 mandatory Granule Management ABIs. Current TF-A reports GM
-     * feature register 0 as 0x1, missing FIRME_GM_GPI_OP_CONTINUE (bit 1),
-     * so this rule currently fails by design.
-     */
-    /*
-     * R0102, R0103, R0134, R0138-R0141, R0356, and R0357 have strict
-     * GPT_INFO bodies or generated interface plans. They remain outside the
-     * runtime registry because current TF-A neither advertises nor implements
-     * mandatory FIRME_GM_GPT_INFO. Re-enable the handwritten rule entries and
-     * the two generated plans together when the DUT advertises feature
-     * register 0 bit 4.
-     */
-    /*
-     * R0114, R0115, R0118, R0122, R0124, R0126, R0129, and R0130 have
-     * strict bodies for continuation and architected status behavior. They
-     * remain registry-gated because current TF-A does not advertise
-     * FIRME_GM_GPI_OP_CONTINUE and the default FVP PAL cannot create the
-     * deterministic BUSY, allocation-failure, or conflict scenarios.
-     * R0144 also needs GPT_INFO and a real, synchronized protected-range
-     * state change; MP worker support alone is not sufficient.
-     */
-    /*
-     * R0156, R0161, R0167, R0168, R0170, R0171, R0173, R0179, R0180,
-     * R0184, R0185, R0186, R0188, R0189, and R0191 have strict one-rule
-     * L1 GPT lifecycle bodies. They remain registry-gated because current
-     * TF-A does not advertise the optional CREATE/DESTROY ABI pair and the
-     * default FVP PAL cannot provide deterministic lifecycle, bridge, scrub,
-     * complete-range GPI observation, or retained-operation scenarios.
-     */
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0195,
+        .rule_str = "R0195",
+        .suite = "firme",
+        .test_name = "granule_management_abi_compliance",
+        .desc = "Granule Management ABIs follow the ALP4 compliance table",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .check_ns = "Check GM ABI classification from NS world",
+        .check_secure = "Check GM ABI classification from Secure world",
+        .check_realm = "Check GM ABI classification from Realm world",
+        .run_ns = firme_gpt_granule_management_abi_compliance_run_ns,
+        .run_secure = firme_gpt_granule_management_abi_compliance_run_secure,
+        .run_realm = firme_gpt_granule_management_abi_compliance_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0102,
+        .rule_str = "R0102",
+        .suite = "firme",
+        .test_name = "gpt_protected_range_base_alignment",
+        .desc = "GPT protected range base aligns to advertised geometry",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_protected_range_base_alignment_run_ns,
+        .run_secure = firme_gpt_protected_range_base_alignment_run_secure,
+        .run_realm = firme_gpt_protected_range_base_alignment_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0103,
+        .rule_str = "R0103",
+        .suite = "firme",
+        .test_name = "gpt_protected_range_size",
+        .desc = "GPT protected range size matches advertised geometry",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_protected_range_size_run_ns,
+        .run_secure = firme_gpt_protected_range_size_run_secure,
+        .run_realm = firme_gpt_protected_range_size_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0134,
+        .rule_str = "R0134",
+        .suite = "firme",
+        .test_name = "gpt_management_owner_stability",
+        .desc = "GPI transitions preserve protected-range management ownership",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .run_secure = firme_gpt_management_owner_stability_run_secure,
+        .run_realm = firme_gpt_management_owner_stability_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0138,
+        .rule_str = "R0138",
+        .suite = "firme",
+        .test_name = "gpt_par_state_encoding",
+        .desc = "GPT_INFO reports an architected protected-range state",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_par_state_encoding_run_ns,
+        .run_secure = firme_gpt_par_state_encoding_run_secure,
+        .run_realm = firme_gpt_par_state_encoding_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0139,
+        .rule_str = "R0139",
+        .suite = "firme",
+        .test_name = "gpt_info_status",
+        .desc = "GPT_INFO returns the specified status for each input class",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_info_status_run_ns,
+        .run_secure = firme_gpt_info_status_run_secure,
+        .run_realm = firme_gpt_info_status_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0140,
+        .rule_str = "R0140",
+        .suite = "firme",
+        .test_name = "gpt_info_success_outputs",
+        .desc = "GPT_INFO success outputs describe the queried protected range",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_info_success_outputs_run_ns,
+        .run_secure = firme_gpt_info_success_outputs_run_secure,
+        .run_realm = firme_gpt_info_success_outputs_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0141,
+        .rule_str = "R0141",
+        .suite = "firme",
+        .test_name = "gpt_info_output_validity",
+        .desc = "GPT_INFO outputs are meaningful only on success",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_info_output_validity_run_ns,
+        .run_secure = firme_gpt_info_output_validity_run_secure,
+        .run_realm = firme_gpt_info_output_validity_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0114,
+        .rule_str = "R0114",
+        .suite = "firme",
+        .test_name = "gpt_op_continue_start_granule",
+        .desc = "OP_CONTINUE resumes at the first untransitioned granule",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_op_continue_start_granule_run_ns,
+        .run_secure = firme_gpt_op_continue_start_granule_run_secure,
+        .run_realm = firme_gpt_op_continue_start_granule_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0115,
+        .rule_str = "R0115",
+        .suite = "firme",
+        .test_name = "gpt_op_continue_granule_count",
+        .desc = "OP_CONTINUE reports progress for the resumed granule prefix",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_op_continue_granule_count_run_ns,
+        .run_secure = firme_gpt_op_continue_granule_count_run_secure,
+        .run_realm = firme_gpt_op_continue_granule_count_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0118,
+        .rule_str = "R0118",
+        .suite = "firme",
+        .test_name = "gpt_op_continue_progress",
+        .desc = "OP_CONTINUE status, count and cookie describe actual progress",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_op_continue_progress_run_ns,
+        .run_secure = firme_gpt_op_continue_progress_run_secure,
+        .run_realm = firme_gpt_op_continue_progress_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0122,
+        .rule_str = "R0122",
+        .suite = "firme",
+        .test_name = "gpt_not_supported_status",
+        .desc = "Disallowed Granule Management calls return NOT_SUPPORTED",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_not_supported_status_run_ns,
+        .run_secure = firme_gpt_not_supported_status_run_secure,
+        .run_realm = firme_gpt_not_supported_status_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0124,
+        .rule_str = "R0124",
+        .suite = "firme",
+        .test_name = "gpt_busy_retry",
+        .desc = "BUSY reports no progress and permits a bounded retry",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_busy_retry_run_ns,
+        .run_secure = firme_gpt_busy_retry_run_secure,
+        .run_realm = firme_gpt_busy_retry_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0126,
+        .rule_str = "R0126",
+        .suite = "firme",
+        .test_name = "gpt_l1_allocation_not_found",
+        .desc = "Unavailable L1 allocation reports NOT_FOUND and valid progress",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_l1_allocation_not_found_run_ns,
+        .run_secure = firme_gpt_l1_allocation_not_found_run_secure,
+        .run_realm = firme_gpt_l1_allocation_not_found_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0129,
+        .rule_str = "R0129",
+        .suite = "firme",
+        .test_name = "gpt_operation_conflict",
+        .desc = "Overlapping retained operations report OP_CONFLICT",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_operation_conflict_run_ns,
+        .run_secure = firme_gpt_operation_conflict_run_secure,
+        .run_realm = firme_gpt_operation_conflict_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0130,
+        .rule_str = "R0130",
+        .suite = "firme",
+        .test_name = "gpt_stateful_incomplete",
+        .desc = "INCOMPLETE retains operation state until its terminal result",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_stateful_incomplete_run_ns,
+        .run_secure = firme_gpt_stateful_incomplete_run_secure,
+        .run_realm = firme_gpt_stateful_incomplete_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0144,
+        .rule_str = "R0144",
+        .suite = "firme",
+        .test_name = "gpt_info_concurrent_state",
+        .desc = "Concurrent GPT_INFO returns a state observed during the call",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_info_concurrent_state_run_ns,
+        .run_secure = firme_gpt_info_concurrent_state_run_secure,
+        .run_realm = firme_gpt_info_concurrent_state_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0156,
+        .rule_str = "R0156",
+        .suite = "firme",
+        .test_name = "l1_bridge_object_properties",
+        .desc = "Temporary L1 bridge preserves object ownership and geometry",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_bridge_object_properties_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0161,
+        .rule_str = "R0161",
+        .suite = "firme",
+        .test_name = "l1_create_transition_policy",
+        .desc = "L1 CREATE follows Realm-only NS-to-Root transition policy",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE,
+        .run_ns = firme_gpt_l1_create_transition_policy_run_ns,
+        .run_secure = firme_gpt_l1_create_transition_policy_run_secure,
+        .run_realm = firme_gpt_l1_create_transition_policy_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0167,
+        .rule_str = "R0167",
+        .suite = "firme",
+        .test_name = "l1_create_status",
+        .desc = "L1 CREATE returns the status for each architected condition",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE,
+        .run_ns = firme_gpt_l1_create_status_run_ns,
+        .run_secure = firme_gpt_l1_create_status_run_secure,
+        .run_realm = firme_gpt_l1_create_status_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0168,
+        .rule_str = "R0168",
+        .suite = "firme",
+        .test_name = "l1_create_range_gpi_stability",
+        .desc = "L1 CREATE preserves non-object range GPIs",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_create_range_gpi_stability_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0170,
+        .rule_str = "R0170",
+        .suite = "firme",
+        .test_name = "l1_create_success_object_gpi",
+        .desc = "Successful L1 CREATE moves object granules to Root",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_create_success_object_gpi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0171,
+        .rule_str = "R0171",
+        .suite = "firme",
+        .test_name = "l1_create_incomplete_object_gpi",
+        .desc = "Interrupted L1 CREATE keeps each object granule in a valid GPI",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_create_incomplete_object_gpi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0173,
+        .rule_str = "R0173",
+        .suite = "firme",
+        .test_name = "l1_create_denied_no_effect",
+        .desc = "Denied L1 CREATE leaves the remaining object range unchanged",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_create_denied_no_effect_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0179,
+        .rule_str = "R0179",
+        .suite = "firme",
+        .test_name = "l1_destroy_transition_policy",
+        .desc = "L1 DESTROY follows Realm-only Root-to-NS transition policy",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE,
+        .run_ns = firme_gpt_l1_destroy_transition_policy_run_ns,
+        .run_secure = firme_gpt_l1_destroy_transition_policy_run_secure,
+        .run_realm = firme_gpt_l1_destroy_transition_policy_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0180,
+        .rule_str = "R0180",
+        .suite = "firme",
+        .test_name = "l1_destroy_scrub",
+        .desc = "L1 DESTROY scrubs object storage before releasing it",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_destroy_scrub_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0184,
+        .rule_str = "R0184",
+        .suite = "firme",
+        .test_name = "l1_destroy_status",
+        .desc = "L1 DESTROY returns the status for each architected condition",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE,
+        .run_ns = firme_gpt_l1_destroy_status_run_ns,
+        .run_secure = firme_gpt_l1_destroy_status_run_secure,
+        .run_realm = firme_gpt_l1_destroy_status_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0185,
+        .rule_str = "R0185",
+        .suite = "firme",
+        .test_name = "l1_destroy_success_output",
+        .desc = "Successful L1 DESTROY returns the correct object base",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_destroy_success_output_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0186,
+        .rule_str = "R0186",
+        .suite = "firme",
+        .test_name = "l1_destroy_range_gpi_stability",
+        .desc = "L1 DESTROY preserves non-object range GPIs",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_destroy_range_gpi_stability_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0188,
+        .rule_str = "R0188",
+        .suite = "firme",
+        .test_name = "l1_destroy_success_object_gpi",
+        .desc = "Successful L1 DESTROY returns object granules to NS",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_destroy_success_object_gpi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0189,
+        .rule_str = "R0189",
+        .suite = "firme",
+        .test_name = "l1_destroy_incomplete_object_gpi",
+        .desc = "Interrupted L1 DESTROY keeps each object granule in a valid GPI",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_destroy_incomplete_object_gpi_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0191,
+        .rule_str = "R0191",
+        .suite = "firme",
+        .test_name = "l1_single_in_progress_operation",
+        .desc = "Conflicting L1 CREATE and DESTROY requests cannot overlap",
+        .required_worlds_mask = FIRME_WORLD_MASK_REALM,
+        .run_realm = firme_gpt_l1_single_in_progress_operation_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_GPT,
         .rule_id = FIRME_RULE_R0086,
@@ -837,28 +1629,119 @@ const firme_test_case_t g_firme_test_cases[] = {
         .run_secure = firme_gpt_base_alignment_run_secure,
         .run_realm = firme_gpt_base_alignment_run_realm,
     },
-    /*
-     * Strict ALP4 bodies for R0092 and R0123 remain
-     * registry-gated while current TF-A returns non-conformant status values
-     * for those scenarios. Re-enable them after the corresponding DUT fixes.
-     */
-    /*
-     * R0094, R0095, R0098 and R0120 remain implemented but temporarily
-     * registry-gated after strict setup, negative-case and cleanup checks
-     * exposed current TF-A behavior. Same-GPI NS setup/restoration returns
-     * DENIED instead of successful nop progress (R0092/I0121). With GPC2/GDI
-     * absent, unallocated NSO/NSP targets return DENIED instead of
-     * INVALID_PARAMETERS (D0091/R0123). Re-enable these entries only after
-     * all required caller paths, absent/present feature cases and cleanup
-     * pass unchanged strict expectations. Do not treat this gate as coverage.
-     */
-    /*
-     * R0111, R0113 and R0117 retain strict bodies but are temporarily gated.
-     * The CI TF-A returns DENIED during NS setup/restoration with the GDI
-     * profile, so the requested progress checks cannot complete successfully.
-     * Restore the entries with qualified DUT behavior and final CI/golden-log
-     * updates; do not accept failed setup or cleanup to force a passing run.
-     */
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0092,
+        .rule_str = "R0092",
+        .suite = "firme",
+        .test_name = "gpt_same_gpi_transition",
+        .desc = "A same-GPI transition succeeds without changing ownership",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_same_gpi_transition_run_ns,
+        .run_secure = firme_gpt_same_gpi_transition_run_secure,
+        .run_realm = firme_gpt_same_gpi_transition_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0094,
+        .rule_str = "R0094",
+        .suite = "firme",
+        .test_name = "gpt_transition_feat_rme",
+        .desc = "GPI transitions follow FEAT_RME caller policy",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS | FIRME_WORLD_MASK_SECURE |
+                                FIRME_WORLD_MASK_REALM,
+        .run_ns = firme_gpt_transition_feat_rme_run_ns,
+        .run_secure = firme_gpt_transition_feat_rme_run_secure,
+        .run_realm = firme_gpt_transition_feat_rme_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0095,
+        .rule_str = "R0095",
+        .suite = "firme",
+        .test_name = "gpt_transition_feat_gpc2",
+        .desc = "NSO transition policy follows FEAT_GPC2 availability",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .run_ns = firme_gpt_transition_feat_gpc2_run_ns,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0098,
+        .rule_str = "R0098",
+        .suite = "firme",
+        .test_name = "gpt_transition_feat_gdi",
+        .desc = "NSP transition policy follows FEAT_GDI availability",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .run_ns = firme_gpt_transition_feat_gdi_run_ns,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0120,
+        .rule_str = "R0120",
+        .suite = "firme",
+        .test_name = "gpt_success_count_nonzero",
+        .desc = "Successful GPI operations report nonzero progress",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .run_secure = firme_gpt_success_count_nonzero_run_secure,
+        .run_realm = firme_gpt_success_count_nonzero_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0123,
+        .rule_str = "R0123",
+        .suite = "firme",
+        .test_name = "gpt_invalid_parameters_status",
+        .desc = "Malformed GM_GPI_SET inputs return INVALID_PARAMETERS",
+        .required_worlds_mask = FIRME_WORLD_MASK_NS,
+        .run_ns = firme_gpt_invalid_parameters_status_run_ns,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0111,
+        .rule_str = "R0111",
+        .suite = "firme",
+        .test_name = "gpt_start_granule",
+        .desc = "GM_GPI_SET start granule is the granule at Base address",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = FIRME_WORLD_MASK_NS,
+        .check_secure = "Secure GM_GPI_SET starts at Base granule",
+        .check_realm = "Realm GM_GPI_SET starts at Base granule",
+        .check_ns = "NS GM_GPI_SET starts at Base granule (GDI)",
+        .run_ns = firme_gpt_start_granule_run_ns,
+        .run_secure = firme_gpt_start_granule_run_secure,
+        .run_realm = firme_gpt_start_granule_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0113,
+        .rule_str = "R0113",
+        .suite = "firme",
+        .test_name = "gpt_success_granule_count",
+        .desc = "GM_GPI_SET reports the transitioned granule prefix",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Secure GM_GPI_SET successful prefix and partial progress",
+        .check_realm = "Realm GM_GPI_SET successful prefix and partial progress",
+        .run_ns = 0,
+        .run_secure = firme_gpt_success_granule_count_run_secure,
+        .run_realm = firme_gpt_success_granule_count_run_realm,
+    },
+    {
+        .chapter = FIRME_CHAPTER_GPT,
+        .rule_id = FIRME_RULE_R0117,
+        .rule_str = "R0117",
+        .suite = "firme",
+        .test_name = "gpt_gpi_set_progress",
+        .desc = "GM_GPI_SET status and count describe operation progress",
+        .required_worlds_mask = FIRME_WORLD_MASK_SECURE | FIRME_WORLD_MASK_REALM,
+        .optional_worlds_mask = 0u,
+        .check_secure = "Secure GM_GPI_SET success and denied progress",
+        .check_realm = "Realm GM_GPI_SET success and denied progress",
+        .run_ns = 0,
+        .run_secure = firme_gpt_gpi_set_progress_run_secure,
+        .run_realm = firme_gpt_gpi_set_progress_run_realm,
+    },
     {
         .chapter = FIRME_CHAPTER_GPT,
         .rule_id = FIRME_RULE_R0127,

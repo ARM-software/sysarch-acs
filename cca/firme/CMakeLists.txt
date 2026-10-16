@@ -136,15 +136,9 @@ set(FIRME_COMMON_CFLAGS
     -Wdeclaration-after-statement
     -ffreestanding -fno-builtin -fno-stack-protector -fno-omit-frame-pointer
     $<$<COMPILE_LANGUAGE:C>:-mstrict-align>
+    $<$<COMPILE_LANGUAGE:C>:-mgeneral-regs-only>
     $<$<COMPILE_LANGUAGE:C>:-mno-outline-atomics>
     -O2 -g
-)
-
-set_source_files_properties(
-    "${CMAKE_CURRENT_LIST_DIR}/val_common/src/val_fault.c"
-    "${CMAKE_CURRENT_LIST_DIR}/test/base/reserved_input_bits.c"
-    "${CMAKE_CURRENT_LIST_DIR}/test/base/reserved_input_registers.c"
-    PROPERTIES COMPILE_OPTIONS "-mgeneral-regs-only"
 )
 
 set(FIRME_COMMON_LDFLAGS
@@ -312,5 +306,7 @@ add_firme_payload(
   "tools/linker/realm.ld"
   ${FIRME_REALM_SRC}
 )
+
+include("${CMAKE_CURRENT_LIST_DIR}/tools/cmake/firme_realm_pat.cmake")
 
 add_custom_target(firme_payloads ALL DEPENDS nsel2.elf secure.elf rel2.elf)

@@ -9,6 +9,8 @@
 #include "val_firme_rules.h"
 #include "val_log.h"
 
+#include <stddef.h>
+
 /* Fail-step bases for cross-world enforcement matrix checks. */
 #define GPT_TRANS_FEAT_GPC2_MATRIX_BASELINE_STEP_BASE UINT64_C(10)
 #define GPT_TRANS_FEAT_GPC2_MATRIX_NSO_STEP_BASE      UINT64_C(20)
@@ -19,6 +21,10 @@
 
 /**
  *   @brief    - GPT transition policy (FEAT_RME_GPC2): NS<->NSO transitions.
+ *   @details  - The access matrix includes a Secure load to the same PA using
+ *               a Non-secure output PAS: allowed before transition, GPF in NSO,
+ *               and allowed after restoration. Native-PAS loads alone cannot
+ *               distinguish NS from NSO.
  *   @param    - base_pa : Base PA for the GPT test window.
  *   @param    - out     : Optional result record.
  *   @return   - VAL_SUCCESS only for PASS or SKIP, otherwise VAL_ERROR.
@@ -30,8 +36,7 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
     firme_res_t res = (firme_res_t){0};
     val_fault_info_t fault_info = (val_fault_info_t){0};
     const uint64_t test_data = FIRME_TEST_DATA_PATTERN;
-    const uint64_t granule_count = 1ULL;
-    const uint64_t expected_done = granule_count;
+    const uint64_t expected_done = 1ULL;
     const uint32_t check_value = 1U;
     const uint64_t clear_value = 0ULL;
 
@@ -83,7 +88,11 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
     }
 
     /* Step 3: request NS->NSO (FEAT_RME_GPC2) and validate enforcement. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NSO, &res);
+    if (val_firme_gpt_transition_terminal(base_pa, FIRME_GPI_NSO, &res, out, UINT64_C(1)) !=
+        VAL_SUCCESS)
+        return VAL_ERROR;
+
+    nso_owned = val_firme_status_success(res.x0, res.x1, expected_done);
     if (gpc2) {
         if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
             LOG_ERROR(NULL, "%s: NS->NSO failed x0=%llx x1=%llx",
@@ -97,7 +106,6 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
             goto cleanup;
         }
 
-        nso_owned = VAL_TRUE;
         if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NSO, test_data, check_value, out,
                                            GPT_TRANS_FEAT_GPC2_MATRIX_NSO_STEP_BASE)) {
             if (out) {
@@ -114,7 +122,11 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         if (val_firme_gpt_scrub_ns(base_pa, out,
                                    GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE)
             return VAL_ERROR;
-        val_firme_gm_gpi_set_complete(base_pa, granule_count, FIRME_GPI_NONSECURE, &res);
+        if (val_firme_gpt_transition_terminal(base_pa, FIRME_GPI_NONSECURE, &res, out,
+                                              UINT64_C(2)) !=
+            VAL_SUCCESS)
+            return VAL_ERROR;
+
         if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
             LOG_ERROR(NULL, "%s: NSO->NS failed x0=%llx x1=%llx",
                       GPT_TRANS_FEAT_GPC2_TEST_NAME,
@@ -159,18 +171,39 @@ int firme_gpt_transition_feat_gpc2_run_ns(uint64_t base_pa, firme_rule_res_t *ou
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
+    /* Step 5: Confirm NS independently instead of issuing a redundant same-GPI request. */
+    if (nso_owned == VAL_FALSE) {
+        if (!val_firme_gpt_confirm_ns_restored(base_pa, out,
+                                              GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE))
+            return VAL_ERROR;
+
+        return val_firme_gpt_rule_result_status(out);
+    }
+
     if ((nso_owned == VAL_TRUE) &&
         (val_firme_gpt_scrub_ns(base_pa, out,
                                GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE))
         return VAL_ERROR;
-    if (val_firme_gpt_restore_ns(base_pa, out,
-                                GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) == VAL_FALSE)
+    if (val_firme_gpt_transition_terminal(base_pa, FIRME_GPI_NONSECURE, &res, out,
+                            GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE) != VAL_SUCCESS)
         return VAL_ERROR;
-    if (val_probe_write64(base_pa, clear_value, &fault_info) != VAL_SUCCESS) {
-        val_firme_gpt_rule_result_fail(out,
-            GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE + UINT64_C(1),
-            fault_info.esr, fault_info.far);
+
+    if (!val_firme_status_success(res.x0, res.x1, expected_done)) {
+        LOG_ERROR(NULL, "%s: NS cleanup failed x0=%llx x1=%llx",
+                  GPT_TRANS_FEAT_GPC2_TEST_NAME,
+                  (unsigned long long)res.x0, (unsigned long long)res.x1);
+        if (((out->status != ACS_STATUS_FAIL) && (out->status != ACS_STATUS_ERR)) ||
+            out->fail_step == 0ULL)
+            val_firme_gpt_rule_result_fail(out, GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE,
+                                           res.x0, res.x1);
+
+        out->status = ACS_STATUS_ERR;
         return VAL_ERROR;
     }
+
+    if (!val_firme_gpt_confirm_ns_restored(base_pa, out,
+            GPT_TRANS_FEAT_GPC2_CLEANUP_STEP_BASE + UINT64_C(1)))
+        return VAL_ERROR;
+
     return val_firme_gpt_rule_result_status(out);
 }

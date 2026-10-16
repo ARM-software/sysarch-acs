@@ -169,6 +169,10 @@ int firme_ide_keyset_id_bitmap_encoding_run_realm(uint64_t base_pa, firme_rule_r
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
+    /* Step 4: Local encoding and SUCCESS do not prove independently selected keysets. */
+    firme_ide_test_observe(&state, VAL_FIRME_IDE_OBSERVE_KEYSET_ENCODING,
+                            IDE_KEYSET_BITMAP_HANDLE, &prog_args, out);
+
 cleanup:
     return firme_ide_test_cleanup(&state, out);
 }

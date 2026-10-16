@@ -49,6 +49,45 @@ static uint32_t native_observer_error;
 static uint32_t native_release_error;
 static uint32_t native_lease_live;
 static uint32_t native_create_mismatch;
+static uint32_t native_gpc2 = VAL_TRUE;
+static uint32_t native_scrub_failure;
+static uint64_t native_scrub_writes;
+static uint64_t native_scrub_cleans;
+static uint32_t native_continue_corruption;
+static uint32_t native_conflict_corruption;
+
+typedef struct {
+    firme_acs_world_t world;
+    uint32_t calls;
+    uint32_t fail_next;
+    uint32_t issued_on_failure;
+    uint64_t fid_mask;
+} native_frame_route_t;
+
+/** @brief Model a caller-specific transport without silently invoking setup in Host. */
+static int native_frame_invoke(const smccc_call_frame_t *input,
+    smccc_call_frame_t *output, uint32_t *issued, void *cookie)
+{
+    native_frame_route_t *route = cookie;
+    val_firme_abi_test_context_t local_context = {0};
+    uint32_t register_index;
+
+    assert(route && route->world == FIRME_ACS_WORLD_REALM);
+    route->calls++;
+    assert(input->registers[0] >= FIRME_FID_SERVICE_VERSION &&
+           input->registers[0] <= FIRME_FID_GM_GPT_INFO);
+    route->fid_mask |= UINT64_C(1) << (input->registers[0] - FIRME_FID_SERVICE_VERSION);
+    for (register_index = 4U; register_index < VAL_SMCCC_REGISTER_COUNT; register_index++)
+        assert(input->registers[register_index] == 0ULL);
+
+    if (route->fail_next) {
+        route->fail_next = VAL_FALSE;
+        *issued = route->issued_on_failure;
+        return VAL_ERROR;
+    }
+
+    return val_firme_abi_call(&local_context, input, output, issued);
+}
 
 /** @brief Reset the native model, including quarantines as on platform reset. */
 static void native_reset(void)
@@ -66,6 +105,10 @@ static void native_reset(void)
     native_observer_error = native_release_error = VAL_FALSE;
     native_lease_live = VAL_FALSE;
     native_create_mismatch = VAL_FALSE;
+    native_gpc2 = VAL_TRUE;
+    native_scrub_failure = VAL_FALSE;
+    native_scrub_writes = native_scrub_cleans = 0ULL;
+    native_continue_corruption = native_conflict_corruption = VAL_FALSE;
     native_abis = FIRME_GM_FEATURE_REG0_ALLOCATED_BITS;
     native_feature = FIRME_GM_PGS_64KB;
     native_pgs = UINT64_C(0x10000);
@@ -111,6 +154,33 @@ uint32_t val_logf(print_verbosity_t verbosity, const char *tag, const char *form
     return VAL_SUCCESS;
 }
 
+/** @brief Model the PE feature needed for an observable Normal-world transition. */
+uint32_t val_firme_feat_rme_gpc2_present(void)
+{
+    return native_gpc2;
+}
+
+/** @brief Count real scrub-helper writes without dereferencing synthetic native addresses. */
+int val_probe_write64(uint64_t address, uint64_t value, val_fault_info_t *fault)
+{
+    assert(address >= NATIVE_BASE && address < NATIVE_BASE + NATIVE_COUNT * native_pgs);
+    assert(value == 0ULL && fault);
+    *fault = (val_fault_info_t){0};
+    if (native_scrub_failure) {
+        fault->faulted = VAL_TRUE;
+        return VAL_ERROR;
+    }
+    native_scrub_writes++;
+    return VAL_SUCCESS;
+}
+
+/** @brief Record that each complete granule is cleaned before returning NS ownership. */
+void val_cache_clean_poc(uintptr_t address, size_t size)
+{
+    assert(address >= NATIVE_BASE && size == native_pgs);
+    native_scrub_cleans++;
+}
+
 /** @brief Advertise independently configurable ABI presence and geometry. */
 void val_firme_service_features(uint64_t service, uint64_t index, firme_res_t *result)
 {
@@ -138,8 +208,12 @@ void val_firme_gm_gpi_set(uint64_t base, uint64_t count, uint64_t attributes,
                           firme_res_t *result)
 {
     native_invoke(NATIVE_SET, base, count, result);
-    if (val_firme_status_to_i64(result->x0) == FIRME_OP_CONFLICT && result->x1 == 0ULL)
+    if (val_firme_status_to_i64(result->x0) == FIRME_OP_CONFLICT && result->x1 == 0ULL) {
+        if (native_conflict_corruption)
+            native_gpis[(base - NATIVE_BASE) / native_pgs] = native_target;
+
         return;
+    }
     if (val_firme_status_to_i64(result->x0) == FIRME_BUSY)
         return;
     native_progress = (base - NATIVE_BASE) / native_pgs;
@@ -152,6 +226,11 @@ void val_firme_gm_gpi_op_continue(uint64_t cookie, firme_res_t *result)
 {
     native_invoke(NATIVE_CONTINUE, cookie, 0ULL, result);
     native_apply(result);
+    if (native_continue_corruption && native_progress > 1ULL &&
+        native_progress < NATIVE_COUNT) {
+        native_gpis[native_progress - 1ULL] = FIRME_GPI_NONSECURE;
+        native_gpis[native_progress] = native_target;
+    }
 }
 
 /** @brief Model creation including whole-granule Root ownership and table state. */
@@ -286,11 +365,80 @@ static void native_progress_test(void)
     native_reply(NATIVE_CONTINUE, FIRME_DENIED, 1ULL, UINT64_MAX);
     assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_SUCCESS);
     assert(fixture.completed == 2ULL && !fixture.pending && !fixture.cookie);
-    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
+    native_reply(NATIVE_SET, FIRME_SUCCESS, 2ULL, UINT64_MAX);
     assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
     assert(native_calls[3].argument == native_calls[4].argument);
     assert(native_calls[5].argument == 12ULL && native_releases == 1U);
     assert(!fixture.memory.token && native_issued == native_queued);
+}
+
+/** @brief Observe unchanged BUSY state independently and quarantine uncertain leases. */
+static void native_busy_observation_test(void)
+{
+    static const struct {
+        uint32_t pending;
+        uint32_t corrupt_index;
+        uint32_t short_observation;
+        uint32_t observer_error;
+    } cases[] = {
+        {VAL_FALSE, 0U, VAL_FALSE, VAL_FALSE},
+        {VAL_TRUE, 0U, VAL_FALSE, VAL_FALSE},
+        {VAL_TRUE, 1U, VAL_FALSE, VAL_FALSE},
+        {VAL_FALSE, UINT32_MAX, VAL_TRUE, VAL_FALSE},
+        {VAL_TRUE, UINT32_MAX, VAL_TRUE, VAL_FALSE},
+        {VAL_FALSE, UINT32_MAX, VAL_FALSE, VAL_TRUE},
+        {VAL_TRUE, UINT32_MAX, VAL_FALSE, VAL_TRUE},
+    };
+    val_firme_gpt_fixture_t fixture = {0};
+    firme_res_t result;
+    size_t case_index;
+    uint32_t issued;
+    uint32_t is_pending;
+    uint64_t corrupt_gpi;
+
+    /* Step 1: A stateless BUSY must ignore unknown count and cookie outputs. */
+    native_reset();
+    assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
+        PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
+    native_reply(NATIVE_SET, FIRME_BUSY, UINT64_MAX, UINT64_MAX);
+    assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_SUCCESS);
+    assert(fixture.completed == 0ULL && !fixture.pending && fixture.cookie == 0ULL);
+    assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
+    assert(native_releases == 1U && native_issued == 1U);
+
+    /* Step 2: Inject independent prefix/suffix corruption or incomplete observation. */
+    for (case_index = 0U; case_index < sizeof(cases) / sizeof(cases[0]); case_index++) {
+        is_pending = cases[case_index].pending;
+        native_reset();
+        fixture = (val_firme_gpt_fixture_t){0};
+        assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
+            PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
+        if (is_pending) {
+            native_reply(NATIVE_SET, FIRME_INCOMPLETE, 1ULL, 11ULL);
+            assert(val_firme_gpt_fixture_retain(&fixture) == PAL_FIRME_GPT_SCENARIO_READY);
+        }
+        if (cases[case_index].corrupt_index != UINT32_MAX) {
+            corrupt_gpi = fixture.target_gpi;
+            if (is_pending && cases[case_index].corrupt_index == 0U)
+                corrupt_gpi = FIRME_GPI_NONSECURE;
+            native_gpis[cases[case_index].corrupt_index] = corrupt_gpi;
+        }
+        native_short_observation = cases[case_index].short_observation;
+        native_observer_error = cases[case_index].observer_error;
+        native_reply(is_pending ? NATIVE_CONTINUE : NATIVE_SET,
+            FIRME_BUSY, UINT64_MAX, 12ULL);
+        assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_ERROR);
+        assert(fixture.completed == (is_pending ? 1ULL : 0ULL));
+        assert(fixture.pending == cases[case_index].pending);
+        assert(fixture.cookie == (is_pending ? 12ULL : 0ULL));
+
+        /* Step 3: Preserve the lease and latest cookie without attempting rollback. */
+        issued = native_issued;
+        assert(fixture.poisoned && fixture.memory.token);
+        assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_ERROR);
+        assert(native_lease_live && !native_releases && native_issued == issued);
+        assert(native_issued == native_queued);
+    }
 }
 
 /** @brief Restore a retained request across partial SUCCESS and a stateful rollback. */
@@ -334,13 +482,12 @@ static void native_quarantine_test(void)
     fixture = (val_firme_gpt_fixture_t){0};
     assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
         PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
-    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
     native_release_error = VAL_TRUE;
     assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_ERROR);
     assert(fixture.memory.token && native_releases == 0U);
     native_release_error = VAL_FALSE;
     assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
-    assert(native_issued == 1U && native_releases == 1U);
+    assert(native_issued == 0U && native_releases == 1U);
 
     native_reset();
     assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
@@ -448,12 +595,48 @@ static void native_adapter_test(void)
     context.output.registers[1] = result.x1;
     context.output.registers[2] = result.x2;
     assert(ops->validate_output(&context) == VAL_FALSE);
-    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
+    native_reply(NATIVE_SET, FIRME_SUCCESS, 2ULL, UINT64_MAX);
     assert(ops->cleanup(&context) == VAL_SUCCESS && native_releases == 1U);
 
     native_reset();
     memset(context.scratch, 0, sizeof(context.scratch));
     context.call_issued = VAL_FALSE;
+    abi.id = VAL_FIRME_ABI_ID_GM_GPI_SET;
+    assert(ops->prepare_state(&context) == VAL_SUCCESS);
+    assert(ops->build_valid_input(&context) == VAL_SUCCESS);
+    native_reply(NATIVE_SET, FIRME_INCOMPLETE, 1ULL, 41ULL);
+    context.call_issued = VAL_TRUE;
+    val_firme_gm_gpi_set(NATIVE_BASE, NATIVE_COUNT, FIRME_GPI_REALM, &result);
+    context.output.registers[0] = result.x0;
+    context.output.registers[1] = result.x1;
+    context.output.registers[2] = result.x2;
+    assert(ops->validate_output(&context) == VAL_TRUE);
+    native_reply(NATIVE_CONTINUE, FIRME_DENIED, 0ULL, UINT64_MAX);
+    native_reply(NATIVE_SET, FIRME_SUCCESS, 1ULL, UINT64_MAX);
+    assert(ops->cleanup(&context) == VAL_ERROR);
+    assert(native_releases == 1U && native_issued == native_queued);
+
+    native_reset();
+    memset(context.scratch, 0, sizeof(context.scratch));
+    context.call_issued = VAL_FALSE;
+    assert(ops->prepare_state(&context) == VAL_SUCCESS);
+    assert(ops->build_valid_input(&context) == VAL_SUCCESS);
+    native_reply(NATIVE_SET, FIRME_INCOMPLETE, 1ULL, 41ULL);
+    context.call_issued = VAL_TRUE;
+    val_firme_gm_gpi_set(NATIVE_BASE, NATIVE_COUNT, FIRME_GPI_REALM, &result);
+    context.output.registers[0] = result.x0;
+    context.output.registers[1] = result.x1;
+    context.output.registers[2] = result.x2;
+    assert(ops->validate_output(&context) == VAL_TRUE);
+    native_reply(NATIVE_CONTINUE, FIRME_SUCCESS, NATIVE_COUNT - 1U, UINT64_MAX);
+    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
+    assert(ops->cleanup(&context) == VAL_SUCCESS);
+    assert(native_releases == 1U && native_issued == native_queued);
+
+    native_reset();
+    memset(context.scratch, 0, sizeof(context.scratch));
+    context.call_issued = VAL_FALSE;
+    abi.id = VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE;
     native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
     assert(ops->prepare_state(&context) == VAL_FIRME_ABI_SCENARIO_UNAVAILABLE);
     native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
@@ -635,6 +818,7 @@ static void native_l1_rule_test(void)
 {
     firme_rule_res_t out;
 
+    /* Step 1: Successful operations and verified release remain PASS. */
     native_reset();
     native_reply(NATIVE_CREATE, FIRME_SUCCESS, UINT64_MAX, UINT64_MAX);
     native_reply(NATIVE_DESTROY, FIRME_SUCCESS, UINT64_MAX, NATIVE_BASE + 0x2000ULL);
@@ -645,6 +829,7 @@ static void native_l1_rule_test(void)
     assert(out.status == ACS_STATUS_PASS && native_releases == 2U);
     assert(native_issued == native_queued);
 
+    /* Step 2: A failed assertion with verified cleanup remains FAIL. */
     native_reset();
     native_create_mismatch = VAL_TRUE;
     native_reply(NATIVE_CREATE, FIRME_SUCCESS, UINT64_MAX, UINT64_MAX);
@@ -654,13 +839,27 @@ static void native_l1_rule_test(void)
     assert(out.status == ACS_STATUS_FAIL && native_releases == 1U);
     assert(out.fail_step == VAL_FIRME_GPT_L1_STEP_INVOKE);
 
+    /* Step 3: Uncertain DESTROY correlation retains the lease and original diagnostic. */
     native_reset();
     native_reply(NATIVE_CREATE, FIRME_SUCCESS, UINT64_MAX, UINT64_MAX);
     native_reply(NATIVE_DESTROY, FIRME_SUCCESS, NATIVE_BASE + 0x2000ULL, UINT64_MAX);
     assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0185, FIRME_ACS_WORLD_REALM,
         NATIVE_BASE, &out) == VAL_ERROR);
-    assert(out.status == ACS_STATUS_FAIL && !native_releases);
+    assert(out.status == ACS_STATUS_ERR && !native_releases);
     assert(out.fail_step == VAL_FIRME_GPT_L1_STEP_INVOKE);
+    assert(g_l1_fixture.memory.token && g_l1_fixture_lock && native_lease_live);
+
+    /* Step 4: Even a correct operation cannot PASS when release remains uncertain. */
+    native_reset();
+    native_release_error = VAL_TRUE;
+    native_reply(NATIVE_CREATE, FIRME_SUCCESS, UINT64_MAX, UINT64_MAX);
+    native_reply(NATIVE_DESTROY, FIRME_SUCCESS, UINT64_MAX, NATIVE_BASE + 0x2000ULL);
+    assert(val_firme_gpt_l1_rule_run(FIRME_RULE_R0170, FIRME_ACS_WORLD_REALM,
+        NATIVE_BASE, &out) == VAL_ERROR);
+    assert(out.status == ACS_STATUS_ERR && !native_releases);
+    assert(out.fail_step == VAL_FIRME_GPT_L1_STEP_CLEANUP);
+    assert(g_l1_fixture.memory.token && g_l1_fixture_lock && native_lease_live);
+    assert(native_issued == native_queued);
 }
 
 /** @brief Check allocation/observation geometry for the other advertised PGS values. */
@@ -700,6 +899,10 @@ static void native_prerequisite_test(void)
     assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
         PAL_FIRME_GPT_MEMORY_L1_NON_SELF) == PAL_FIRME_GPT_SCENARIO_UNAVAILABLE);
     assert(!native_acquires && !native_issued);
+    native_abis = FIRME_GM_FEATURE_REG0_L1_CREATE_BIT;
+    assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
+        PAL_FIRME_GPT_MEMORY_L1_NON_SELF) == PAL_FIRME_GPT_SCENARIO_ERROR);
+    assert(!native_acquires && !native_issued);
     native_abis = FIRME_GM_FEATURE_REG0_ALLOCATED_BITS;
     native_par = FIRME_GPT_PAR_STATE_EL3_BLOCK;
     assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_REALM,
@@ -713,11 +916,92 @@ static void native_prerequisite_test(void)
     assert(!native_issued && !native_releases);
 }
 
+/** @brief Exercise NS-owned same-GPI requests without inventing a continuation cookie. */
+static void native_ns_fixture_test(void)
+{
+    val_firme_gpt_fixture_t fixture = {0};
+    firme_res_t result = {0};
+
+    native_reset();
+    native_abis = FIRME_GM_FEATURE_REG0_GPI_SET_BIT;
+    assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_NSEL2,
+        PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_ERROR);
+    assert(!native_acquires && !native_issued);
+
+    native_abis = FIRME_GM_FEATURE_REG0_ALLOCATED_BITS;
+    assert(val_firme_gpt_fixture_begin(&fixture, FIRME_ACS_WORLD_NSEL2,
+        PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
+    assert(fixture.target_gpi == FIRME_GPI_NONSECURE);
+    native_reply(NATIVE_SET, FIRME_INCOMPLETE, 1ULL, 67ULL);
+    assert(val_firme_gpt_fixture_retain(&fixture) == PAL_FIRME_GPT_SCENARIO_READY);
+    assert(fixture.pending && fixture.cookie == 67ULL);
+    native_reply(NATIVE_CONTINUE, FIRME_BUSY, UINT64_MAX, 68ULL);
+    assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_SUCCESS);
+    assert(fixture.pending && fixture.cookie == 68ULL && fixture.completed == 1ULL);
+    native_reply(NATIVE_CONTINUE, FIRME_SUCCESS, NATIVE_COUNT - 1U, UINT64_MAX);
+    assert(val_firme_gpt_fixture_complete_transition(&fixture) == VAL_SUCCESS);
+    assert(native_calls[2].argument == 68ULL);
+    assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
+    assert(native_releases == 1U && native_issued == native_queued);
+}
+
+/** @brief Forward all fixture calls, preserve their caller and quarantine lost completions. */
+static void native_remote_fixture_test(void)
+{
+    val_firme_gpt_fixture_t fixture = {0};
+    native_frame_route_t route = {.world = FIRME_ACS_WORLD_REALM};
+    val_firme_abi_test_context_t context = {
+        .world = FIRME_ACS_WORLD_REALM,
+        .invoke_frame = native_frame_invoke,
+        .invoke_cookie = &route,
+    };
+    firme_res_t result = {0};
+    uint64_t l1_fids = (UINT64_C(1) << (FIRME_FID_SERVICE_FEATURES - FIRME_FID_SERVICE_VERSION)) |
+                      (UINT64_C(1) << (FIRME_FID_GM_GPT_INFO - FIRME_FID_SERVICE_VERSION)) |
+                      (UINT64_C(1) << (FIRME_FID_GM_L1_GPT_CREATE - FIRME_FID_SERVICE_VERSION)) |
+                      (UINT64_C(1) << (FIRME_FID_GM_L1_GPT_DESTROY - FIRME_FID_SERVICE_VERSION));
+
+    native_reset();
+    assert(val_firme_gpt_fixture_begin_abi(&fixture, &context,
+        PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
+    assert(route.calls == 2U && fixture.has_abi_context);
+    context.invoke_frame = NULL;
+    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
+    assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_SUCCESS);
+    assert(route.calls == 3U && fixture.completed == NATIVE_COUNT);
+    native_reply(NATIVE_SET, FIRME_SUCCESS, NATIVE_COUNT, UINT64_MAX);
+    assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
+    assert(route.calls == 4U && native_releases == 1U);
+
+    native_reset();
+    route = (native_frame_route_t){.world = FIRME_ACS_WORLD_REALM};
+    context.invoke_frame = native_frame_invoke;
+    assert(val_firme_gpt_fixture_begin_abi(&fixture, &context,
+        PAL_FIRME_GPT_MEMORY_L1_NON_SELF) == PAL_FIRME_GPT_SCENARIO_READY);
+    native_reply(NATIVE_CREATE, FIRME_SUCCESS, UINT64_MAX, UINT64_MAX);
+    assert(val_firme_gpt_fixture_l1_complete(&fixture, VAL_FALSE) == VAL_SUCCESS);
+    native_reply(NATIVE_DESTROY, FIRME_SUCCESS, UINT64_MAX, fixture.memory.object_base);
+    assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_SUCCESS);
+    assert(route.fid_mask == l1_fids && native_releases == 1U);
+
+    native_reset();
+    route = (native_frame_route_t){.world = FIRME_ACS_WORLD_REALM};
+    assert(val_firme_gpt_fixture_begin_abi(&fixture, &context,
+        PAL_FIRME_GPT_MEMORY_TRANSITION) == PAL_FIRME_GPT_SCENARIO_READY);
+    route.fail_next = route.issued_on_failure = VAL_TRUE;
+    assert(val_firme_gpt_fixture_gpi_step(&fixture, &result) == VAL_ERROR);
+    assert(fixture.poisoned && fixture.abi_context.transport_uncertain);
+    assert(val_firme_gpt_fixture_cleanup(&fixture) == VAL_ERROR);
+    assert(native_releases == 0U && native_issued == 0U);
+}
+
 /** @brief Run native controlled-session regressions; not evidence of DUT support. */
 int main(void)
 {
     native_prerequisite_test();
+    native_ns_fixture_test();
     native_progress_test();
+    native_busy_observation_test();
     native_cleanup_test();
     native_quarantine_test();
     native_l1_test();
@@ -725,6 +1009,7 @@ int main(void)
     native_adapter_cleanup_test();
     native_l1_rule_test();
     native_l1_geometry_test();
+    native_remote_fixture_test();
     puts("GPT fixture/adapter regressions: PASS");
     return VAL_SUCCESS;
 }

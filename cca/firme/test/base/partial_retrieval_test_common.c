@@ -14,7 +14,7 @@
 #define PARTIAL_RETRIEVAL_TEST_NAME "partial_retrieval"
 
 /**
- * @brief Supply the NS PAT adapter's Table 6.3 status/size-validity contract.
+ * @brief Supply the NS/Realm PAT adapter's Table 8.26 status/size-validity contract.
  * @param world Caller world.
  * @param test_case Requested chunk scenario.
  * @param evidence Selected service and completion evidence.
@@ -28,7 +28,7 @@ __attribute__((weak)) int firme_partial_retrieval_test_expected_status(
 {
     if ((evidence == 0) || (expected_status == 0))
         return VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_ERROR;
-    if ((world == FIRME_ACS_WORLD_NSEL2) &&
+    if (((world == FIRME_ACS_WORLD_NSEL2) || (world == FIRME_ACS_WORLD_REALM)) &&
         (evidence->service_id == FIRME_SERVICE_ID_ATTESTATION) &&
         (evidence->abi_fid == FIRME_FID_ATTEST_PAT_GET) &&
         ((test_case == VAL_FIRME_PARTIAL_RETRIEVAL_INTERMEDIATE_CHUNK) ||
@@ -151,11 +151,15 @@ int firme_partial_retrieval_test_collect(
     probe_result = val_firme_partial_retrieval_probe(world, test_case,
                                                       evidence);
     if (probe_result == VAL_FIRME_PARTIAL_RETRIEVAL_PROBE_UNAVAILABLE) {
-        if ((world == FIRME_ACS_WORLD_NSEL2) &&
+        if (((world == FIRME_ACS_WORLD_NSEL2) || (world == FIRME_ACS_WORLD_REALM)) &&
             (test_case == VAL_FIRME_PARTIAL_RETRIEVAL_LAST_CHUNK))
             LOG_WARN(NULL, "%s: PAT SUCCESS has no Remaining output in Table 8.26",
                      PARTIAL_RETRIEVAL_TEST_NAME);
         partial_retrieval_skip(world, out);
+        if (evidence->prerequisite_reason != 0ULL) {
+            out->last_x0 = evidence->prerequisite_reason;
+            out->last_x1 = evidence->prerequisite_detail;
+        }
         return VAL_SUCCESS;
     }
 

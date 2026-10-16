@@ -9,9 +9,13 @@
 
 #include "aarch64/sysreg.h"
 #include "pal_platform.h"
+#include "pal_firme_gpt_memory.h"
 #include "val_common/val_mp.h"
 #include "val_common/val_status.h"
 #include "val_firme_service.h"
+#include "val_firme_diag.h"
+#include "val_firme_gpt_probe.h"
+#include "val_host_gpt.h"
 #include "val_log.h"
 
 #define VAL_FIRME_GPT_PGS_SIZE_4KB  UINT64_C(0x1000)
@@ -70,19 +74,13 @@ int val_firme_mem_read64_world(firme_acs_world_t world,
     }
 
     if (world == FIRME_ACS_WORLD_NSEL2) {
-        val_probe_read64(addr, out_value, out_fault);
-        return VAL_SUCCESS;
-    }
-
-    if (val_firme_world_call(world, FIRME_ACS_CMD_RUN_DIAG,
-                            /* test_id */ 2,
-                            /* a0 */ addr,
-                            /* a1 */ 0,
-                            /* a2 */ 0,
-                            &res) != 0) {
+        val_firme_gpt_probe_command(addr, &res);
+    } else if (val_firme_world_call(world, FIRME_ACS_CMD_GPT_PROBE,
+                                   addr, 0ULL, 0ULL, 0ULL, &res) != VAL_SUCCESS) {
         return VAL_ERROR;
     }
-    if (res.x0 != (uint64_t)ACS_STATUS_PASS) {
+
+    if (res.x0 != (uint64_t)ACS_STATUS_PASS || res.x1 > VAL_TRUE) {
         return VAL_ERROR;
     }
 
@@ -102,6 +100,31 @@ int val_firme_mem_read64_world(firme_acs_world_t world,
     if (out_value) {
         *out_value = (res.x1 == 0ULL) ? res.x2 : 0; /* value */
     }
+    return VAL_SUCCESS;
+}
+
+/**
+ * @brief Read an owned PA through the Secure observer's Non-secure output PAS.
+ * @return VAL_SUCCESS for completed access/fault evidence, VAL_ERROR on transport/setup errors.
+ */
+int val_firme_mem_read64_ns_world(firme_acs_world_t world, uint64_t address,
+                                  uint64_t *value, val_fault_info_t *fault)
+{
+    firme_acs_call_res_t response = {0};
+
+    if (!value || !fault || world != FIRME_ACS_WORLD_SECURE)
+        return VAL_ERROR;
+    *value = 0ULL;
+    *fault = (val_fault_info_t){0};
+    if (val_firme_world_call(world, FIRME_ACS_CMD_RUN_DIAG,
+        FIRME_DIAG_READ_NS_PAS, address, 0ULL, 0ULL, &response) != VAL_SUCCESS ||
+        response.x0 != ACS_STATUS_PASS || response.x1 > VAL_TRUE)
+        return VAL_ERROR;
+
+    fault->faulted = response.x1;
+    fault->esr = response.x1 ? response.x2 : 0ULL;
+    fault->far = response.x3;
+    *value = response.x1 ? 0ULL : response.x2;
     return VAL_SUCCESS;
 }
 
@@ -172,7 +195,7 @@ uint32_t val_firme_status_invalid_parameters(uint64_t x0)
 /**
  * @brief Restore one test granule to NS while preserving primary diagnostics.
  * @param base_pa Test granule physical address.
- * @param out Optional rule result updated on failure.
+ * @param out Optional rule result marked ERR on failure, retaining primary diagnostics.
  * @param fail_step Cleanup diagnostic step.
  * @return VAL_TRUE only for complete, successful restoration.
  */
@@ -190,14 +213,313 @@ uint32_t val_firme_gpt_restore_ns(uint64_t base_pa, firme_rule_res_t *out,
                   (unsigned long long)fail_step,
                   (unsigned long long)result.x0,
                   (unsigned long long)result.x1);
-        if (!out || (out->status != (uint64_t)ACS_STATUS_FAIL) ||
+        if (!out || ((out->status != (uint64_t)ACS_STATUS_FAIL) &&
+                     (out->status != (uint64_t)ACS_STATUS_ERR)) ||
             ((out->fail_step == 0ULL) && (out->last_x0 == 0ULL) &&
              (out->last_x1 == 0ULL)))
             val_firme_gpt_record_failure(out, fail_step, result.x0, result.x1);
+
+        if (out)
+            out->status = (uint64_t)ACS_STATUS_ERR;
+
         return VAL_FALSE;
     }
 
     return VAL_TRUE;
+}
+
+/**
+ * @brief Resolve one granule without mistaking a failed continuation for termination.
+ * @param base_pa Owned granule physical address.
+ * @param target_gpi Requested GPI encoding.
+ * @param result Last ABI result, including valid progress and retained cookie.
+ * @param out Rule result quarantined on malformed or unresolved operation state.
+ * @param fail_step Transition diagnostic step.
+ * @return VAL_SUCCESS for a known terminal result, not necessarily a successful transition.
+ */
+int val_firme_gpt_transition_terminal(uint64_t base_pa, uint64_t target_gpi,
+    firme_res_t *result, firme_rule_res_t *out, uint64_t fail_step)
+{
+    val_firme_gpt_trace_t trace = {0};
+    const val_firme_gpt_phase_t *last = NULL;
+    int trace_status;
+
+    if (!result || !out || out->status == ACS_STATUS_ERR)
+        return VAL_ERROR;
+
+    *result = (firme_res_t){0};
+    trace_status = val_firme_gpt_trace_transition(base_pa, UINT64_C(1), target_gpi,
+                                                 VAL_FALSE, out, fail_step, &trace);
+    if (trace.phase_count != 0U && trace.phase_count <= VAL_FIRME_GPT_TRACE_MAX_PHASES) {
+        last = &trace.phases[trace.phase_count - 1U];
+        result->x0 = (uint64_t)last->status;
+        result->x1 = last->granule_count;
+        result->x2 = last->output_cookie;
+    }
+
+    if (trace_status == VAL_SUCCESS && !trace.observation_failed &&
+        val_firme_gpt_trace_terminal(&trace))
+        return VAL_SUCCESS;
+
+    LOG_ERROR(NULL, "gpt: operation unresolved; no competing cleanup "
+              "step=%llu x0=%llx x1=%llx cookie=%llx\n",
+              (unsigned long long)fail_step, (unsigned long long)result->x0,
+              (unsigned long long)result->x1, (unsigned long long)result->x2);
+    val_firme_gpt_rule_result_fail(out, fail_step, result->x0, result->x1);
+    out->status = ACS_STATUS_ERR;
+    return VAL_ERROR;
+}
+
+/**
+ * @brief Prove Host-owned scratch is NS without trusting a terminal ABI error.
+ * @param base_pa Owned granule; no retained or unresolved operation may reference it.
+ * @param out Rule result retained on successful restoration, quarantined on uncertainty.
+ * @param fail_step Restoration diagnostic step.
+ * @return VAL_TRUE only for independent NS evidence and successful scrubbing.
+ */
+uint32_t val_firme_gpt_confirm_ns_restored(uint64_t base_pa,
+    firme_rule_res_t *out, uint64_t fail_step)
+{
+    firme_rule_res_t observation = {0};
+
+    if (!out || out->status == ACS_STATUS_ERR)
+        return VAL_FALSE;
+
+    if (!val_firme_check_access_matrix(base_pa, FIRME_GPI_NONSECURE,
+            0ULL, VAL_FALSE, &observation, fail_step)) {
+        if (out->status != ACS_STATUS_FAIL || out->fail_step == 0ULL)
+            *out = observation;
+
+        out->status = ACS_STATUS_ERR;
+        return VAL_FALSE;
+    }
+
+    if (!val_firme_gpt_scrub_ns(base_pa, out, fail_step)) {
+        out->status = ACS_STATUS_ERR;
+        return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ * @brief Surround a protected caller's R0094 body with independent Host PAS observations.
+ * @param world Secure or Realm caller; Host owns the supplied scratch granule.
+ * @param base_pa Scratch whose prior test completed without unresolved operation state.
+ * @param response Original diagnostics, upgraded to ERR if restoration cannot be proved.
+ * @return VAL_SUCCESS for a delivered result, VAL_ERROR for transport or argument errors.
+ */
+int val_firme_gpt_run_rme_observed(firme_acs_world_t world, uint64_t base_pa,
+    firme_acs_call_res_t *response)
+{
+    return val_firme_gpt_run_observed(FIRME_RULE_R0094, world, base_pa, response);
+}
+
+/** @brief Select only rules whose bodies preserve unresolved operation state as ERR. */
+uint64_t val_firme_gpt_observed_rule_granules(firme_rule_id_t rule)
+{
+    switch (rule) {
+    case FIRME_RULE_R0111:
+    case FIRME_RULE_R0113:
+    case FIRME_RULE_R0117:
+        return UINT64_C(2);
+    case FIRME_RULE_R0114:
+    case FIRME_RULE_R0115:
+    case FIRME_RULE_R0129:
+    case FIRME_RULE_R0130:
+        return PLAT_FIRME_GPT_TRANSITION_SIZE / PLAT_FIRME_GPT_GRANULE_SIZE;
+    case FIRME_RULE_R0090:
+    case FIRME_RULE_R0092:
+    case FIRME_RULE_R0094:
+    case FIRME_RULE_R0120:
+    case FIRME_RULE_R0127:
+    case FIRME_RULE_R0134:
+        return UINT64_C(1);
+    default:
+        return 0ULL;
+    }
+}
+
+/**
+ * @brief Prove a bounded scratch range is NS from Host before permitting reuse.
+ * @param base_pa Owned scratch range base.
+ * @param count Number of granules in the rule's complete lease.
+ * @param granule_size Validated architectural granule size.
+ * @param out Original rule result, never downgraded from ERR.
+ * @param step Observation diagnostic step.
+ * @return VAL_TRUE only if every granule passes exact NS checks and scrubbing.
+ */
+static uint32_t val_firme_gpt_confirm_ns_range(uint64_t base_pa, uint64_t count,
+    uint64_t granule_size, firme_rule_res_t *out, uint64_t step)
+{
+    uint64_t index;
+
+    for (index = 0ULL; index < count; index++) {
+        if (!val_firme_gpt_confirm_ns_restored(base_pa + index * granule_size,
+                                               out, step))
+            return VAL_FALSE;
+    }
+
+    return VAL_TRUE;
+}
+
+/**
+ * @brief Run an audited rule with Host-owned, independently checked scratch.
+ * @param rule Audited rule whose body never hides unresolved work.
+ * @param world Caller world; protected bodies execute without nested transport.
+ * @param base_pa Owned scratch base, not referenced by an earlier retained operation.
+ * @param response Original rule result, quarantined if whole-range restoration is unproved.
+ * @return VAL_SUCCESS for a delivered result, VAL_ERROR for transport or argument errors.
+ */
+int val_firme_gpt_run_observed(firme_rule_id_t rule, firme_acs_world_t world,
+    uint64_t base_pa, firme_acs_call_res_t *response)
+{
+    firme_rule_res_t observation = {.status = ACS_STATUS_PASS};
+    firme_rule_res_t result = {.status = ACS_STATUS_ERR};
+    uint64_t count = val_firme_gpt_observed_rule_granules(rule);
+    uint64_t feature_reg1 = 0ULL;
+    uint64_t granule_size;
+    int call_status;
+
+    if (!response || count == 0ULL ||
+        (world != FIRME_ACS_WORLD_SECURE && world != FIRME_ACS_WORLD_REALM &&
+         world != FIRME_ACS_WORLD_NSEL2))
+        return VAL_ERROR;
+
+    *response = (firme_acs_call_res_t){.x0 = ACS_STATUS_ERR};
+    if (rule == FIRME_RULE_R0114 || rule == FIRME_RULE_R0115 ||
+        rule == FIRME_RULE_R0129 || rule == FIRME_RULE_R0130) {
+        call_status = val_host_gpt_retained_run(rule, world, &result);
+        if (call_status != VAL_SUCCESS &&
+            (result.status == ACS_STATUS_PASS || result.status == ACS_STATUS_SKIP))
+            result.status = ACS_STATUS_ERR;
+
+        *response = (firme_acs_call_res_t){.x0 = result.status, .x1 = result.fail_step,
+            .x2 = result.last_x0, .x3 = result.last_x1};
+        return VAL_SUCCESS;
+    }
+
+    if (!val_firme_gpt_feature_reg1(&feature_reg1, &observation, UINT64_C(1)))
+        goto failed;
+
+    granule_size = val_firme_gpt_pgs_size_from_feature_reg1(feature_reg1);
+    if (!base_pa || !granule_size || base_pa % granule_size != 0ULL ||
+        count > (UINT64_MAX - base_pa) / granule_size) {
+        val_firme_gpt_rule_result_fail(&observation, UINT64_C(1), base_pa, granule_size);
+        goto failed;
+    }
+
+    if (!val_firme_gpt_confirm_ns_range(base_pa, count, granule_size,
+                                        &observation, UINT64_C(1)))
+        goto failed;
+
+    if (world == FIRME_ACS_WORLD_NSEL2) {
+        call_status = val_firme_rule_run_ns(rule, base_pa, &result);
+        if (call_status != VAL_SUCCESS &&
+            (result.status == ACS_STATUS_PASS || result.status == ACS_STATUS_SKIP))
+            result.status = ACS_STATUS_ERR;
+
+        *response = (firme_acs_call_res_t){.x0 = result.status, .x1 = result.fail_step,
+            .x2 = result.last_x0, .x3 = result.last_x1};
+    } else {
+        call_status = val_firme_world_call(world, FIRME_ACS_CMD_RUN_RULE,
+            rule, base_pa, 0ULL, 0ULL, response);
+        if (call_status != VAL_SUCCESS) {
+            response->x0 = ACS_STATUS_ERR;
+            return VAL_ERROR;
+        }
+    }
+
+    if (response->x0 == ACS_STATUS_ERR)
+        return VAL_SUCCESS;
+
+    if (response->x0 != ACS_STATUS_PASS && response->x0 != ACS_STATUS_FAIL &&
+        response->x0 != ACS_STATUS_SKIP) {
+        response->x0 = ACS_STATUS_ERR;
+        return VAL_SUCCESS;
+    }
+
+    observation = (firme_rule_res_t){.status = response->x0, .fail_step = response->x1,
+                                    .last_x0 = response->x2, .last_x1 = response->x3};
+    if (!val_firme_gpt_confirm_ns_range(base_pa, count, granule_size,
+                                        &observation, UINT64_C(30)))
+        goto failed;
+
+    return VAL_SUCCESS;
+
+failed:
+    *response = (firme_acs_call_res_t){.x0 = ACS_STATUS_ERR,
+        .x1 = observation.fail_step, .x2 = observation.last_x0, .x3 = observation.last_x1};
+    return VAL_SUCCESS;
+}
+
+/** @brief Accept only bounded terminal traces; unknown continuation errors retain quarantine. */
+uint32_t val_firme_gpt_trace_terminal(const val_firme_gpt_trace_t *trace)
+{
+    const val_firme_gpt_phase_t *last;
+
+    if (!trace || !trace->phase_count || trace->phase_count > VAL_FIRME_GPT_TRACE_MAX_PHASES ||
+        trace->malformed || trace->exhausted)
+        return VAL_FALSE;
+
+    last = &trace->phases[trace->phase_count - 1U];
+    if (last->status == FIRME_INCOMPLETE || last->status == FIRME_BUSY)
+        return VAL_FALSE;
+
+    if (trace->unexpected_status)
+        return last->abi == VAL_FIRME_GPT_PHASE_GPI_SET &&
+               (last->status == FIRME_INVALID_PARAMETERS || last->status == FIRME_NOT_SUPPORTED);
+
+    return VAL_TRUE;
+}
+
+/**
+ * @brief Restore a known changed prefix without issuing same-GPI requests for its suffix.
+ * @param base_pa Start of the exclusively owned range.
+ * @param count Known changed prefix; zero defers the entire range to Host observation.
+ * @param granule_size Validated granule size.
+ * @param out Original rule result; existing ERR forbids further calls.
+ * @param fail_step Cleanup diagnostic step.
+ * @return VAL_TRUE for successful cleanup calls; whole-range Host proof is still required.
+ */
+uint32_t val_firme_gpt_restore_prefix_ns(uint64_t base_pa, uint64_t count,
+    uint64_t granule_size, firme_rule_res_t *out, uint64_t fail_step)
+{
+    firme_rule_res_t cleanup = {.status = ACS_STATUS_PASS};
+    firme_res_t result = {0};
+    uint64_t index;
+    uint32_t restored = VAL_TRUE;
+
+    if (!out || out->status == ACS_STATUS_ERR)
+        return VAL_FALSE;
+
+    if (!granule_size || count > (UINT64_MAX - base_pa) / granule_size) {
+        out->status = ACS_STATUS_ERR;
+        return VAL_FALSE;
+    }
+
+    for (index = 0ULL; index < count; index++) {
+        if (val_firme_gpt_transition_terminal(base_pa + index * granule_size,
+                FIRME_GPI_NONSECURE, &result, &cleanup, fail_step + index) != VAL_SUCCESS) {
+            if (out->status != ACS_STATUS_FAIL || out->fail_step == 0ULL)
+                *out = cleanup;
+
+            out->status = ACS_STATUS_ERR;
+            return VAL_FALSE;
+        }
+
+        if (!val_firme_status_success(result.x0, result.x1, UINT64_C(1))) {
+            LOG_ERROR(NULL, "gpt: changed-prefix cleanup rejected PA=%llx x0=%llx x1=%llx\n",
+                (unsigned long long)(base_pa + index * granule_size),
+                (unsigned long long)result.x0, (unsigned long long)result.x1);
+            if (out->status != ACS_STATUS_FAIL || out->fail_step == 0ULL)
+                val_firme_gpt_rule_result_fail(out, fail_step + index, result.x0, result.x1);
+
+            restored = VAL_FALSE;
+        }
+    }
+
+    return restored;
 }
 
 /**
@@ -1004,17 +1326,32 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
         FIRME_ACS_WORLD_SECURE,
         FIRME_ACS_WORLD_REALM,
     };
+    firme_acs_call_res_t ns_pas_result = {0};
+    val_fault_info_t fault_info;
+    firme_acs_world_t world;
+    uint64_t value;
+    uint64_t ns_pas_step = fail_step_base + UINT64_C(3);
+    uint32_t ns_pas_access;
+    uint32_t world_index;
+    uint32_t expected_ok;
 
-    for (uint32_t i = 0; i < 3U; i++) {
-        const firme_acs_world_t world = worlds[i];
-        val_fault_info_t fault_info = {0};
-        uint64_t value = 0;
-        uint32_t expected_ok = 0;
+    if (gpi == FIRME_GPI_NSO && !val_firme_feat_rme_gpc2_present()) {
+        val_firme_gpt_record_failure(out, ns_pas_step, gpi, VAL_FALSE);
+        return VAL_FALSE;
+    }
+
+    if (gpi == FIRME_GPI_NONSECURE || gpi == FIRME_GPI_NSO)
+        val_cache_clean_poc((uintptr_t)addr, sizeof(uint64_t));
+
+    for (world_index = 0U; world_index < 3U; world_index++) {
+        world = worlds[world_index];
+        fault_info = (val_fault_info_t){0};
+        value = 0ULL;
 
         if (val_firme_mem_read64_world(world, addr, &value, &fault_info) != VAL_SUCCESS) {
             if (out) {
-                out->fail_step = fail_step_base + (uint64_t)i;
-                out->last_x0 = transport_fail_magic | (uint64_t)i;
+                out->fail_step = fail_step_base + world_index;
+                out->last_x0 = transport_fail_magic | world_index;
                 out->last_x1 = 0;
             }
             return 0U;
@@ -1024,7 +1361,7 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
         if (expected_ok != 0U) {
             if (fault_info.faulted != 0U) {
                 if (out) {
-                    out->fail_step = fail_step_base + (uint64_t)i;
+                    out->fail_step = fail_step_base + world_index;
                     out->last_x0 = fault_info.esr;
                     out->last_x1 = fault_info.far;
                 }
@@ -1032,7 +1369,7 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
             }
             if (check_value != 0U && value != expected_value) {
                 if (out) {
-                    out->fail_step = fail_step_base + (uint64_t)i;
+                    out->fail_step = fail_step_base + world_index;
                     out->last_x0 = value;
                     out->last_x1 = expected_value;
                 }
@@ -1041,7 +1378,7 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
         } else {
             if (fault_info.faulted == 0U) {
                 if (out) {
-                    out->fail_step = fail_step_base + (uint64_t)i;
+                    out->fail_step = fail_step_base + world_index;
                     out->last_x0 = value;
                     out->last_x1 = 0;
                 }
@@ -1049,7 +1386,7 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
             }
             if (!val_fault_is_gpf(fault_info.esr)) {
                 if (out) {
-                    out->fail_step = fail_step_base + (uint64_t)i;
+                    out->fail_step = fail_step_base + world_index;
                     out->last_x0 = fault_info.esr;
                     out->last_x1 = fault_info.far;
                 }
@@ -1058,5 +1395,33 @@ uint32_t val_firme_check_access_matrix(uint64_t addr,
         }
     }
 
-    return 1U;
+    if (val_firme_feat_rme_gpc2_present() &&
+        ((gpi == FIRME_GPI_NONSECURE) || (gpi == FIRME_GPI_NSO))) {
+        if (val_firme_world_call(FIRME_ACS_WORLD_SECURE, FIRME_ACS_CMD_RUN_DIAG,
+            FIRME_DIAG_READ_NS_PAS, addr, 0ULL, 0ULL, &ns_pas_result) != VAL_SUCCESS ||
+            ns_pas_result.x0 != ACS_STATUS_PASS || ns_pas_result.x1 > VAL_TRUE) {
+            LOG_ERROR(NULL, "gpt access: Secure NS-PAS probe setup failed at %llx",
+                      (unsigned long long)addr);
+            val_firme_gpt_record_failure(out, ns_pas_step,
+                transport_fail_magic | UINT64_C(3), ns_pas_result.x0);
+            return VAL_FALSE;
+        }
+
+        ns_pas_access = (gpi == FIRME_GPI_NONSECURE);
+        if ((ns_pas_access && (ns_pas_result.x1 != 0ULL ||
+             (check_value && ns_pas_result.x2 != expected_value))) ||
+            (!ns_pas_access && (ns_pas_result.x1 == 0ULL ||
+             !val_fault_is_gpf(ns_pas_result.x2)))) {
+            LOG_ERROR(NULL, "gpt access: Secure NS-PAS mismatch gpi=%llx "
+                      "faulted=%llu value/esr=%llx expected=%llx",
+                      (unsigned long long)gpi, (unsigned long long)ns_pas_result.x1,
+                      (unsigned long long)ns_pas_result.x2,
+                      (unsigned long long)expected_value);
+            val_firme_gpt_record_failure(out, ns_pas_step,
+                ns_pas_result.x2, expected_value);
+            return VAL_FALSE;
+        }
+    }
+
+    return VAL_TRUE;
 }

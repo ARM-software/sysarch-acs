@@ -593,6 +593,24 @@ static const val_firme_abi_case_t g_gm_gpi_set_inputs_cases[] = {
         .priority = 0U,
         .verify_no_effect = 0U,
     },
+    {
+        .name = "unaligned_base",
+        .mutation = VAL_FIRME_MUTATION_GM_UNALIGNED_BASE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 1U,
+    },
+    {
+        .name = "zero_count",
+        .mutation = VAL_FIRME_MUTATION_GM_ZERO_COUNT,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 1U,
+    },
 };
 
 static const val_firme_abi_case_t g_gm_gpi_set_outputs_cases[] = {
@@ -604,6 +622,24 @@ static const val_firme_abi_case_t g_gm_gpi_set_outputs_cases[] = {
         .diagnostic_step = 1U,
         .priority = 0U,
         .verify_no_effect = 0U,
+    },
+    {
+        .name = "unaligned_base",
+        .mutation = VAL_FIRME_MUTATION_GM_UNALIGNED_BASE,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 2U,
+        .priority = 1U,
+        .verify_no_effect = 1U,
+    },
+    {
+        .name = "zero_count",
+        .mutation = VAL_FIRME_MUTATION_GM_ZERO_COUNT,
+        .expectation = VAL_FIRME_EXPECT_STATUS,
+        .expected_status = -2,
+        .diagnostic_step = 3U,
+        .priority = 2U,
+        .verify_no_effect = 1U,
     },
 };
 
@@ -1087,14 +1123,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPI_SET base, count and target-GPI input allocation.",
         .disabled_reason =
-            "Needs a state-aware transition adapter with deterministic setup and rollback.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPI_SET,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
-        .enabled = 0U,
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
+        .enabled = 1U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_gm_gpi_set_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_gm_gpi_set_inputs_cases) /
                                  sizeof(g_gm_gpi_set_inputs_cases[0])),
@@ -1106,12 +1142,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPI_SET status, count and continuation-cookie outputs.",
         .disabled_reason =
-            "Needs controlled terminal and progress paths plus transition cleanup.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPI_SET,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
-        .enabled = 0U,
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_gm_gpi_set_outputs_cases,
@@ -1125,14 +1161,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPI_OP_CONTINUE function ID and cookie input allocation.",
         .disabled_reason =
-            "Needs a reproducible incomplete GM operation that returns a valid cookie.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
-        .enabled = 0U,
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
+        .enabled = 1U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_gm_gpi_op_continue_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_gm_gpi_op_continue_inputs_cases) /
                                  sizeof(g_gm_gpi_op_continue_inputs_cases[0])),
@@ -1144,12 +1180,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPI_OP_CONTINUE status, count and cookie outputs.",
         .disabled_reason =
-            "Needs deterministic terminal, incomplete and busy continuation paths.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPI_OP_CONTINUE,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
-        .required_worlds_mask = UINT32_C(0x0),
-        .optional_worlds_mask = UINT32_C(0x7),
-        .enabled = 0U,
+        .required_worlds_mask = UINT32_C(0x7),
+        .optional_worlds_mask = UINT32_C(0x0),
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_gm_gpi_op_continue_outputs_cases,
@@ -1163,14 +1199,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_L1_GPT_CREATE protected-range and L1 object inputs.",
         .disabled_reason =
-            "Needs platform protected-range discovery and L1 GPT object setup.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_L1_GPT_CREATE,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x4),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_gm_l1_gpt_create_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_gm_l1_gpt_create_inputs_cases) /
                                  sizeof(g_gm_l1_gpt_create_inputs_cases[0])),
@@ -1182,12 +1218,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_L1_GPT_CREATE status outputs across terminal and progress paths.",
         .disabled_reason =
-            "Needs create, continuation, negative-path and cleanup orchestration.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_L1_GPT_CREATE,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x4),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_gm_l1_gpt_create_outputs_cases,
@@ -1201,14 +1237,14 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_L1_GPT_DESTROY protected-range input allocation.",
         .disabled_reason =
-            "Needs a successfully created L1 GPT object as deterministic pre-state.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_L1_GPT_DESTROY,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x4),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
-        .require_output_validation = 0U,
+        .require_output_validation = 1U,
         .cases = g_gm_l1_gpt_destroy_inputs_cases,
         .case_count = (uint32_t)(sizeof(g_gm_l1_gpt_destroy_inputs_cases) /
                                  sizeof(g_gm_l1_gpt_destroy_inputs_cases[0])),
@@ -1220,12 +1256,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_L1_GPT_DESTROY status and returned L1 object base.",
         .disabled_reason =
-            "Needs create/destroy lifecycle setup, output correlation and cleanup.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_L1_GPT_DESTROY,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x4),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_gm_l1_gpt_destroy_outputs_cases,
@@ -1239,12 +1275,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPT_INFO inclusive base and exclusive top inputs.",
         .disabled_reason =
-            "Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPT_INFO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x7),
         .optional_worlds_mask = UINT32_C(0x0),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 0U,
         .cases = g_gm_gpt_info_inputs_cases,
@@ -1258,12 +1294,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate GM_GPT_INFO status, returned top and protected-range state.",
         .disabled_reason =
-            "Adapter complete; registry-gated until TF-A advertises mandatory GM_GPT_INFO.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_GM_GPT_INFO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x7),
         .optional_worlds_mask = UINT32_C(0x0),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_gm_gpt_info_outputs_cases,
@@ -1277,12 +1313,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_PROG ECAM, stream, key and handle inputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies a real IDE path and deterministic status/effect evidence.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_PROG,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_prog_inputs_cases,
@@ -1296,12 +1332,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_PROG terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies Root Port evidence, progress control and rollback.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_PROG,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_prog_outputs_cases,
@@ -1315,12 +1351,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_GO ECAM, stream, keyset and handle inputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies a real programmed Root Port/endpoint path and cleanup.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_GO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_go_inputs_cases,
@@ -1334,12 +1370,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_GO terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies controlled Root Port state and rollback.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_GO,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_go_outputs_cases,
@@ -1353,12 +1389,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_STOP ECAM, stream, keyset and handle inputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies a running IDE stream and safe cleanup.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_STOP,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_stop_inputs_cases,
@@ -1372,12 +1408,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_STOP terminal and asynchronous status outputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies controlled running/stopped Root Port states.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_STOP,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_stop_outputs_cases,
@@ -1391,12 +1427,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_POLL ECAM, response selector and keyset inputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL supplies a pending IDE operation and real endpoint context.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_POLL,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_poll_inputs_cases,
@@ -1410,12 +1446,12 @@ const val_firme_abi_test_plan_t g_val_firme_abi_test_plans[] = {
         .description =
             "Validate IDE_KEYSET_POLL status, handle and keyset outputs.",
         .disabled_reason =
-            "Adapter implemented; gated until PAL controls pending, completed and aborted IDE operations.",
+            "",
         .abi_id = VAL_FIRME_ABI_ID_IDE_KEYSET_POLL,
         .baseline_policy = VAL_FIRME_BASELINE_ADAPTER_VALIDATED,
         .required_worlds_mask = UINT32_C(0x0),
         .optional_worlds_mask = UINT32_C(0x5),
-        .enabled = 0U,
+        .enabled = 1U,
         .require_advertised = 1U,
         .require_output_validation = 1U,
         .cases = g_ide_keyset_poll_outputs_cases,

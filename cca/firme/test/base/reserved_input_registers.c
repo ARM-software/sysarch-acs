@@ -20,6 +20,10 @@
 #define RESERVED_INPUT_REGS_STEP_IDE_GO           UINT64_C(6)
 #define RESERVED_INPUT_REGS_STEP_IDE_STOP         UINT64_C(7)
 #define RESERVED_INPUT_REGS_STEP_IDE_POLL         UINT64_C(8)
+#define RESERVED_INPUT_REGS_STEP_GM_CONTINUE      UINT64_C(9)
+#define RESERVED_INPUT_REGS_STEP_L1_CREATE        UINT64_C(10)
+#define RESERVED_INPUT_REGS_STEP_L1_DESTROY       UINT64_C(11)
+#define RESERVED_INPUT_REGS_STEP_GPT_INFO         UINT64_C(12)
 #define RESERVED_INPUT_REGS_VERSION_FIRST_UNUSED  2U
 #define RESERVED_INPUT_REGS_FEATURES_FIRST_UNUSED 3U
 #define RESERVED_INPUT_REGS_GPI_SET_FIRST_UNUSED  4U
@@ -28,6 +32,10 @@
 #define RESERVED_INPUT_REGS_IDE_GO_FIRST_UNUSED   5U
 #define RESERVED_INPUT_REGS_IDE_STOP_FIRST_UNUSED 5U
 #define RESERVED_INPUT_REGS_IDE_POLL_FIRST_UNUSED 4U
+#define RESERVED_INPUT_REGS_CONTINUE_FIRST_UNUSED 2U
+#define RESERVED_INPUT_REGS_L1_CREATE_FIRST_UNUSED 3U
+#define RESERVED_INPUT_REGS_L1_DESTROY_FIRST_UNUSED 2U
+#define RESERVED_INPUT_REGS_GPT_INFO_FIRST_UNUSED 3U
 #define RESERVED_INPUT_REGS_GRANULE_COUNT         UINT64_C(1)
 
 /**
@@ -227,6 +235,46 @@ static int reserved_input_regs_run(uint64_t base_pa, firme_rule_res_t *out)
     if (reserved_input_regs_check_capture(
             RESERVED_INPUT_REGS_IDE_POLL_FIRST_UNUSED,
             RESERVED_INPUT_REGS_STEP_IDE_POLL, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 9: Capture GM_GPI_OP_CONTINUE and verify x2-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_GM_CONTINUE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_gpi_op_continue(UINT64_MAX, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_CONTINUE_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_GM_CONTINUE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 10: Capture GM_L1_GPT_CREATE and verify x3-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_L1_CREATE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_l1_gpt_create(base_pa, base_pa, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_L1_CREATE_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_L1_CREATE, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 11: Capture GM_L1_GPT_DESTROY and verify x2-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_L1_DESTROY, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_l1_gpt_destroy(base_pa, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_L1_DESTROY_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_L1_DESTROY, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+
+    /* Step 12: Capture GM_GPT_INFO and verify x3-x17 are zero. */
+    if (reserved_input_regs_capture_enable(
+            RESERVED_INPUT_REGS_STEP_GPT_INFO, out) != VAL_SUCCESS)
+        return VAL_ERROR;
+    val_firme_gm_gpt_info(base_pa, base_pa, &result);
+    if (reserved_input_regs_check_capture(
+            RESERVED_INPUT_REGS_GPT_INFO_FIRST_UNUSED,
+            RESERVED_INPUT_REGS_STEP_GPT_INFO, out) != VAL_SUCCESS)
         return VAL_ERROR;
 
     if (out)

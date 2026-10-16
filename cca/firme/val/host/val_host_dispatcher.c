@@ -15,12 +15,25 @@
 #include "val_common/val_smccc.h"
 #include "val_firme_spmd_msg.h"
 #include "val_host_mp.h"
+#include "val_firme_gpt.h"
 
 /** @brief Identify completed passing or explicitly skipped rule outcomes. */
 static int is_pass_or_skip(uint64_t status)
 {
     return (status == (uint64_t)ACS_STATUS_PASS) ||
            (status == (uint64_t)ACS_STATUS_SKIP);
+}
+
+/**
+ * @brief Reject GPT scratch reuse after an unknown operation or cleanup outcome.
+ * @param chapter Rule chapter.
+ * @param status Completed rule status.
+ * @return VAL_FALSE when the GPT window must remain quarantined.
+ */
+static uint32_t val_host_gpt_window_reusable(firme_chapter_id_t chapter, uint64_t status)
+{
+    return (chapter == FIRME_CHAPTER_GPT && status == (uint64_t)ACS_STATUS_ERR) ?
+           VAL_FALSE : VAL_TRUE;
 }
 
 /**
@@ -43,7 +56,7 @@ static void combine_rule_result(firme_acs_call_res_t *overall,
         return;
     }
 
-    if (!is_pass_or_skip(candidate->x0)) {
+    if (!is_pass_or_skip(candidate->x0) && (overall->x0 != (uint64_t)ACS_STATUS_ERR)) {
         *overall = *candidate;
         return;
     }
@@ -66,6 +79,31 @@ static const char *status_str(uint64_t s)
     if (s == (uint64_t)ACS_STATUS_ERR)
         return "ERR";
     return "FAIL";
+}
+
+/** @brief Keep host-owned fixtures alive while the tested call executes remotely. */
+static int val_host_run_remote_case(const firme_test_case_t *test_case,
+                                     firme_acs_world_t world, uint64_t base_pa,
+                                     firme_acs_call_res_t *response)
+{
+    firme_rule_res_t result = {.status = ACS_STATUS_ERR};
+    firme_rule_fn_t run_host = world == FIRME_ACS_WORLD_SECURE ?
+                              test_case->run_host_secure : test_case->run_host_realm;
+    int status;
+
+    if (!run_host && val_firme_gpt_observed_rule_granules(test_case->rule_id) != 0ULL)
+        return val_firme_gpt_run_observed(test_case->rule_id, world, base_pa, response);
+
+    if (!run_host)
+        return val_firme_world_call(world, FIRME_ACS_CMD_RUN_RULE,
+                                    test_case->rule_id, base_pa, 0ULL, 0ULL, response);
+
+    status = run_host(base_pa, &result);
+    if (status != VAL_SUCCESS && is_pass_or_skip(result.status))
+        result.status = ACS_STATUS_ERR;
+    *response = (firme_acs_call_res_t){.x0 = result.status, .x1 = result.fail_step,
+                                      .x2 = result.last_x0, .x3 = result.last_x1};
+    return VAL_SUCCESS;
 }
 
 /**
@@ -158,6 +196,30 @@ static void update_counts(uint64_t status,
         return;
     }
     (*failed)++;
+}
+
+/**
+ * @brief Account for a GPT test without invoking its body on quarantined storage.
+ * @param test_case Dependent registry entry.
+ * @param cause Rule that left GPT storage unsafe to reuse.
+ * @param total Total accounted entries.
+ * @param passed Passed entries.
+ * @param failed Failed entries.
+ * @param skipped Skipped entries, including blocked tests.
+ */
+static void val_host_skip_quarantined_gpt(const firme_test_case_t *test_case,
+                                         const char *cause, uint32_t *total,
+                                         uint32_t *passed, uint32_t *failed,
+                                         uint32_t *skipped)
+{
+    const firme_acs_call_res_t result = {.x0 = ACS_STATUS_SKIP};
+
+    print_test_begin(test_case->suite, test_case->test_name,
+                     test_case->rule_str, test_case->desc);
+    LOG_WARN(NULL, "Blocked: GPT scratch quarantined after %s; body not executed\n", cause);
+    log_rule_status(test_case->rule_str, &result);
+    print_test_end();
+    update_counts(result.x0, total, passed, failed, skipped);
 }
 
 /**
@@ -263,6 +325,10 @@ static int val_host_run_mp_case(const firme_test_case_t *test_case,
             overall->x0 = ACS_STATUS_ERR;
             return VAL_ERROR;
         }
+
+        if (val_host_gpt_window_reusable(test_case->chapter,
+                                         worlds[world_index].x0) == VAL_FALSE)
+            return VAL_ERROR;
     }
 
     if (is_pass_or_skip(overall->x0) && required_skip)
@@ -286,10 +352,11 @@ static int val_host_run_mp_case(const firme_test_case_t *test_case,
  *   @param    - passed  : Passed count (in/out).
  *   @param    - failed  : Failed count (in/out).
  *   @param    - skipped : Skipped count (in/out).
- *   @return   - void
+ *   @return   - Combined ACS_STATUS_* outcome.
 **/
-static void run_test_case(const firme_test_case_t *tc,
-                          uint32_t *total, uint32_t *passed, uint32_t *failed, uint32_t *skipped)
+static uint64_t run_test_case(const firme_test_case_t *tc,
+                              uint32_t *total, uint32_t *passed,
+                              uint32_t *failed, uint32_t *skipped)
 {
     firme_acs_call_res_t res_ns = {0};
     firme_acs_call_res_t res_sec = {0};
@@ -303,7 +370,7 @@ static void run_test_case(const firme_test_case_t *tc,
     int post_status = VAL_SUCCESS;
 
     if (!tc)
-        return;
+        return (uint64_t)ACS_STATUS_ERR;
 
     secure_required = ((tc->required_worlds_mask & FIRME_WORLD_MASK_SECURE) != 0U) ?
                       VAL_TRUE : VAL_FALSE;
@@ -319,14 +386,14 @@ static void run_test_case(const firme_test_case_t *tc,
         log_rule_status(tc->rule_str, &overall);
         print_test_end();
         update_counts(overall.x0, total, passed, failed, skipped);
-        return;
+        return overall.x0;
     }
 
     /* Secure world (optional/required depending on registry flags). */
     if (tc->run_secure) {
         const uint64_t base_pa = val_firme_gpt_base_for_world(FIRME_ACS_WORLD_SECURE);
-        if (val_firme_world_call(FIRME_ACS_WORLD_SECURE, FIRME_ACS_CMD_RUN_RULE,
-                                 (uint64_t)tc->rule_id, base_pa, 0, 0, &res_sec) == 0) {
+        if (val_host_run_remote_case(tc, FIRME_ACS_WORLD_SECURE,
+                                      base_pa, &res_sec) == VAL_SUCCESS) {
             LOG_TEST(NULL, "Check %u: %s ... %s", (unsigned)check_idx,
                      tc->check_secure ? tc->check_secure : "Secure caller",
                      status_str(res_sec.x0));
@@ -353,7 +420,7 @@ static void run_test_case(const firme_test_case_t *tc,
             log_rule_status(tc->rule_str, &overall);
             print_test_end();
             update_counts(overall.x0, total, passed, failed, skipped);
-            return;
+            return overall.x0;
         }
         check_idx++;
     } else if (secure_required) {
@@ -366,8 +433,8 @@ static void run_test_case(const firme_test_case_t *tc,
     /* Realm world (optional/required depending on registry flags). */
     if (tc->run_realm) {
         const uint64_t base_pa = val_firme_gpt_base_for_world(FIRME_ACS_WORLD_REALM);
-        if (val_firme_world_call(FIRME_ACS_WORLD_REALM, FIRME_ACS_CMD_RUN_RULE,
-                                 (uint64_t)tc->rule_id, base_pa, 0, 0, &res_realm) == 0) {
+        if (val_host_run_remote_case(tc, FIRME_ACS_WORLD_REALM,
+                                      base_pa, &res_realm) == VAL_SUCCESS) {
             LOG_TEST(NULL, "Check %u: %s ... %s", (unsigned)check_idx,
                      tc->check_realm ? tc->check_realm : "Realm caller",
                      status_str(res_realm.x0));
@@ -394,7 +461,7 @@ static void run_test_case(const firme_test_case_t *tc,
             log_rule_status(tc->rule_str, &overall);
             print_test_end();
             update_counts(overall.x0, total, passed, failed, skipped);
-            return;
+            return overall.x0;
         }
         check_idx++;
     } else if (realm_required) {
@@ -409,7 +476,16 @@ static void run_test_case(const firme_test_case_t *tc,
         firme_rule_res_t out = {.status = ACS_STATUS_ERR};
         const uint64_t base_pa = val_firme_gpt_base_for_world(FIRME_ACS_WORLD_NSEL2);
 
-        val_firme_rule_run_ns(tc->rule_id, base_pa, &out);
+        if (val_firme_gpt_observed_rule_granules(tc->rule_id) != 0ULL) {
+            if (val_firme_gpt_run_observed(tc->rule_id, FIRME_ACS_WORLD_NSEL2,
+                                           base_pa, &res_ns) != VAL_SUCCESS)
+                res_ns.x0 = ACS_STATUS_ERR;
+
+            out = (firme_rule_res_t){.status = res_ns.x0, .fail_step = res_ns.x1,
+                .last_x0 = res_ns.x2, .last_x1 = res_ns.x3};
+        } else {
+            val_firme_rule_run_ns(tc->rule_id, base_pa, &out);
+        }
 
         res_ns.x0 = out.status;
         res_ns.x1 = out.fail_step;
@@ -468,6 +544,7 @@ static void run_test_case(const firme_test_case_t *tc,
     log_rule_status(tc->rule_str, &overall);
     print_test_end();
     update_counts(overall.x0, total, passed, failed, skipped);
+    return overall.x0;
 }
 
 /**
@@ -480,7 +557,12 @@ void dispatcher_main(void)
     firme_res_t feat = { 0 };
     uint32_t total = 0, passed = 0, failed = 0, skipped = 0;
     uint32_t count = 0;
+    uint32_t case_index;
+    uint32_t blocked = 0U;
+    uint64_t rule_status = (uint64_t)ACS_STATUS_ERR;
     const firme_test_case_t *cases = 0;
+    const firme_test_case_t *tc;
+    const char *gpt_quarantine_cause = NULL;
     firme_chapter_id_t last_ch = 0;
 
 #if ACS_PRINT_LEVEL <= 2
@@ -595,17 +677,30 @@ void dispatcher_main(void)
     LOG_TEST(NULL, " Starting FIRME rule tests...");
     cases = val_firme_suite_cases(&count);
     last_ch = 0;
-    for (uint32_t i = 0; i < count; i++) {
-        const firme_test_case_t *tc = &cases[i];
+    for (case_index = 0U; case_index < count; case_index++) {
+        tc = &cases[case_index];
         if (tc->chapter != last_ch) {
             last_ch = tc->chapter;
             LOG_TEST(NULL, "");
             LOG_TEST(NULL, "[Chapter] %s", val_firme_chapter_str(tc->chapter));
         }
-        run_test_case(tc, &total, &passed, &failed, &skipped);
+        if ((gpt_quarantine_cause != NULL) && (tc->chapter == FIRME_CHAPTER_GPT)) {
+            val_host_skip_quarantined_gpt(tc, gpt_quarantine_cause,
+                                          &total, &passed, &failed, &skipped);
+            blocked++;
+            continue;
+        }
+
+        rule_status = run_test_case(tc, &total, &passed, &failed, &skipped);
         if (!val_host_test_payload_healthy()) {
             LOG_ERROR(NULL, "MP cleanup unconfirmed; stopping before dependent tests");
             return;
+        }
+
+        if (val_host_gpt_window_reusable(tc->chapter, rule_status) == VAL_FALSE) {
+            gpt_quarantine_cause = tc->rule_str ? tc->rule_str : "unknown rule";
+            LOG_ERROR(NULL, "%s: GPT state unconfirmed; quarantining GPT scratch\n",
+                      gpt_quarantine_cause);
         }
     }
 
@@ -618,6 +713,9 @@ void dispatcher_main(void)
              (unsigned int)total, (unsigned int)passed, (unsigned int)failed);
     if (skipped != 0u)
         LOG_TEST(NULL, "  Tests Skipped    = %u", (unsigned int)skipped);
+    if (blocked != 0U)
+        LOG_TEST(NULL, "  GPT tests blocked by quarantine = %u (included in SKIP)\n",
+                 (unsigned int)blocked);
     LOG_TEST(NULL, " ");
     LOG_TEST(NULL, "  -------------------------------------------------------------- ");
     LOG_TEST(NULL, " ");

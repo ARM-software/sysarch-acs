@@ -17,6 +17,13 @@ invokes firmware, an FVP, a cross-build, or a real PCI configuration access.
   accepting synchronous results and ignoring unused exact-mode POLL `x2`.
 - `spdm_buffer_test.c` checks the actual requester callbacks against libspdm's
   full-allocation buffer contract, including capacity canaries and release rules.
+  Host namespace checks reject identical keys/IDs, unavailable endpoint directions,
+  STOP/GO and observation failures; failed cleanup retains ownership. Both NS and
+  Realm routing are exercised with mocked Root Port commands.
+- `check_ide_namespace_native.sh` checks the directional CXL traffic observer:
+  RX STOP must leave authenticated TX writes working, reject read responses,
+  and preserve the written data after RX restarts. Fault injections reject
+  missing counters, unrelated faults, changed ownership and dropped writes.
 
 SPDM tests require the existing pinned libspdm and spdm-emu headers. The fixture
 trust-anchor header is intentionally not a usable certificate: no negotiation or

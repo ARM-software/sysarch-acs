@@ -41,6 +41,10 @@ static uint32_t g_bad_any_keyset;
 static uint64_t g_bad_handle_request;
 static uint32_t g_frame_calls;
 static uint32_t g_frame_busy_count;
+static uint32_t g_remote_only;
+static uint32_t g_remote_setup_calls;
+static uint32_t g_remote_fail;
+static uint32_t g_remote_poll_incomplete;
 static uint32_t g_secure_caller;
 static uint64_t g_secure_unexpected_fid;
 static uint32_t g_test_pe;
@@ -62,7 +66,107 @@ static uint32_t g_namespace_prepares;
 static uint32_t g_namespace_releases;
 static pal_firme_ide_namespace_status_t g_namespace_observation = PAL_FIRME_IDE_NAMESPACE_READY;
 
+typedef struct {
+    uint32_t enabled;
+    uint32_t program_completed;
+    uint32_t go_completed;
+    uint32_t go_calls;
+    uint32_t tested_stop_calls;
+    uint32_t observations;
+    uint32_t releases;
+    uint64_t keyset_id;
+    int64_t go_status;
+    int64_t poll_status;
+} test_stop_setup_t;
+
+static test_stop_setup_t g_stop_setup;
+
 static uint64_t test_link_prepare(uint32_t direction);
+
+/** @brief Expose one native ECAM so the rejection probe can exclude all valid bases. */
+uint32_t pal_pcie_ecam_count(void)
+{
+    return 1U;
+}
+
+/** @brief Supply address metadata without requiring an endpoint or traffic backend. */
+int pal_pcie_ecam_info(uint32_t index, pal_pcie_ecam_info_t *info)
+{
+    if (index || !info)
+        return VAL_ERROR;
+    *info = (pal_pcie_ecam_info_t){.ecam_base = TEST_ECAM,
+                                 .ecam_size = UINT64_C(0x1000000), .end_bus = 15U};
+    return VAL_SUCCESS;
+}
+
+/** @brief Return selected statuses while enforcing zero unused registers in the raw probe. */
+static int test_rejection_call(const smccc_call_frame_t *input, smccc_call_frame_t *output,
+                                uint32_t *issued, void *cookie)
+{
+    uint32_t index;
+    const int64_t *status = cookie;
+
+    assert(input->registers[1] == UINT64_MAX);
+    for (index = 2U; index < VAL_SMCCC_REGISTER_COUNT; index++)
+        assert(input->registers[index] == 0ULL);
+    *issued = VAL_TRUE;
+    output->registers[0] = (uint64_t)*status;
+    return VAL_SUCCESS;
+}
+
+/** @brief Check partial negative coverage without claiming a functional fixture exists. */
+static void test_fixture_free_rejection(void)
+{
+    val_firme_abi_descriptor_t abi = {.fid = FIRME_FID_IDE_KEYSET_PROG};
+    val_firme_abi_case_t test_case = {.mutation = VAL_FIRME_MUTATION_IDE_INVALID_ECAM};
+    val_firme_abi_test_plan_t plan = {.name = "native rejection without endpoint"};
+    int64_t status = FIRME_INVALID_PARAMETERS;
+    val_firme_abi_test_context_t context = {.abi = &abi, .plan = &plan,
+        .test_case = &test_case, .invoke_frame = test_rejection_call, .invoke_cookie = &status};
+    const uint64_t functions[] = {FIRME_FID_IDE_KEYSET_PROG, FIRME_FID_IDE_KEYSET_GO,
+                                  FIRME_FID_IDE_KEYSET_STOP, FIRME_FID_IDE_KEYSET_POLL};
+    uint32_t index;
+
+    for (index = 0U; index < sizeof(functions) / sizeof(functions[0]); index++) {
+        abi.fid = functions[index];
+        assert(val_firme_ide_abi_rejection_probe(&context) == VAL_FIRME_ABI_SCENARIO_UNAVAILABLE);
+        assert(context.call_issued && context.output_valid && !g_ide_abi_rejection_uncertain);
+    }
+
+    status = FIRME_NOT_SUPPORTED;
+    assert(val_firme_ide_abi_rejection_probe(&context) == VAL_ERROR);
+    assert(!g_ide_abi_rejection_uncertain);
+    status = FIRME_SUCCESS;
+    assert(val_firme_ide_abi_rejection_probe(&context) == VAL_ERROR);
+    assert(g_ide_abi_rejection_uncertain);
+    assert(val_firme_ide_abi_prepare(&context) == VAL_ERROR);
+    g_ide_abi_rejection_uncertain = VAL_FALSE;
+}
+
+/** @brief Supply mock-only effects for the same still-owned completion-test request. */
+int val_firme_ide_observe_operation(uint64_t operation, firme_acs_world_t world,
+                                    const val_firme_ide_observation_t *selection,
+                                    firme_rule_res_t *out)
+{
+    assert(world == FIRME_ACS_WORLD_REALM && selection && selection->stream);
+    assert(selection->stream->acquired && !g_pending);
+    assert(operation == VAL_IDE_LINK_PROG || operation == VAL_IDE_LINK_GO ||
+           operation == VAL_IDE_LINK_STOP || operation == VAL_FIRME_IDE_OBSERVE_KEYSET_ENCODING);
+    assert(selection->stream->path.ecam_base == TEST_ECAM);
+    assert(selection->key[0] == val_firme_ide_test_key_qw(0U));
+    if (g_stop_setup.enabled) {
+        assert(operation == VAL_IDE_LINK_STOP);
+        assert(selection->handle == IDE_KEYSET_STOP_HANDLE_OP);
+        assert(selection->keyset_id == g_stop_setup.keyset_id);
+        assert(g_stop_setup.go_completed && g_stop_setup.tested_stop_calls == 1U);
+        assert(g_stop_calls == 3U);
+        g_stop_setup.observations++;
+        *out = (firme_rule_res_t){.status = ACS_STATUS_SKIP};
+        return VAL_SUCCESS;
+    }
+    *out = (firme_rule_res_t){.status = ACS_STATUS_PASS};
+    return VAL_SUCCESS;
+}
 
 /** @brief Provide a discovered Selective pair for rule completion checks. */
 uint32_t val_pcie_ide_stream_discover(uint32_t realm_caller, val_pcie_ide_stream_t *stream)
@@ -78,6 +182,8 @@ uint32_t val_pcie_ide_stream_discover(uint32_t realm_caller, val_pcie_ide_stream
 int val_pcie_ide_stream_release(val_pcie_ide_stream_t *stream)
 {
     assert(stream && stream->acquired && !g_pending);
+    if (g_stop_setup.enabled)
+        g_stop_setup.releases++;
     stream->acquired = VAL_FALSE;
     return VAL_SUCCESS;
 }
@@ -312,6 +418,12 @@ static void test_smc(uint64_t fid, uint64_t ecam, uint64_t flags, uint64_t keyse
     } else if (ecam == TEST_ECAM) {
         if (fid == FIRME_FID_IDE_KEYSET_POLL) {
             status = g_pending ? g_poll_status : FIRME_DENIED;
+            if (g_stop_setup.enabled && g_pending) {
+                assert(flags == val_firme_ide_poll_flags(VAL_FALSE));
+                assert(keyset == g_stop_setup.keyset_id);
+                if (g_pending_handle == IDE_KEYSET_STOP_HANDLE_GO)
+                    status = g_stop_setup.poll_status;
+            }
             if (status == FIRME_SUCCESS) {
                 result->x1 = g_pending_handle;
                 if (flags == val_firme_ide_poll_flags(VAL_TRUE)) {
@@ -322,6 +434,12 @@ static void test_smc(uint64_t fid, uint64_t ecam, uint64_t flags, uint64_t keyse
                     result->x1 ^= g_bad_exact_handle ||
                                   (g_bad_handle_request != 0ULL &&
                                    g_bad_handle_request == g_pending_handle);
+                }
+                if (g_stop_setup.enabled && result->x1 == g_pending_handle) {
+                    if (g_pending_handle == IDE_KEYSET_STOP_HANDLE_PROG)
+                        g_stop_setup.program_completed = VAL_TRUE;
+                    if (g_pending_handle == IDE_KEYSET_STOP_HANDLE_GO)
+                        g_stop_setup.go_completed = VAL_TRUE;
                 }
                 g_pending = VAL_FALSE;
             }
@@ -340,6 +458,27 @@ static void test_smc(uint64_t fid, uint64_t ecam, uint64_t flags, uint64_t keyse
             status = g_pending ? FIRME_OP_CONFLICT :
                      fid == FIRME_FID_IDE_KEYSET_PROG ? g_program_status :
                      g_operation_status;
+            if (g_stop_setup.enabled) {
+                assert(!g_pending && flags == VAL_FIRME_IDE_TYPE_SELECTIVE);
+                if (fid == FIRME_FID_IDE_KEYSET_PROG) {
+                    assert(handle == IDE_KEYSET_STOP_HANDLE_PROG);
+                    g_stop_setup.keyset_id = keyset;
+                    g_stop_setup.program_completed = status == FIRME_SUCCESS;
+                } else {
+                    assert(keyset == g_stop_setup.keyset_id);
+                    if (fid == FIRME_FID_IDE_KEYSET_GO) {
+                        assert(g_stop_setup.program_completed);
+                        assert(handle == IDE_KEYSET_STOP_HANDLE_GO);
+                        g_stop_setup.go_calls++;
+                        status = g_stop_setup.go_status;
+                        g_stop_setup.go_completed = status == FIRME_SUCCESS;
+                    } else if (handle == IDE_KEYSET_STOP_HANDLE_OP) {
+                        assert(fid == FIRME_FID_IDE_KEYSET_STOP);
+                        assert(g_stop_setup.go_completed);
+                        g_stop_setup.tested_stop_calls++;
+                    }
+                }
+            }
             if ((fid == FIRME_FID_IDE_KEYSET_GO && g_cxl_bad_go) ||
                 (fid == FIRME_FID_IDE_KEYSET_STOP && g_cxl_bad_stop))
                 status = FIRME_DENIED;
@@ -358,6 +497,7 @@ void val_smccc_smc_call(uint64_t fid, uint64_t arg1, uint64_t arg2, uint64_t arg
                         uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
                         smccc_res_t *result)
 {
+    assert(!g_remote_only);
     (void)arg5;
     (void)arg6;
     (void)arg7;
@@ -369,6 +509,7 @@ void val_smccc_smc_call_x8(uint64_t fid, uint64_t arg1, uint64_t arg2, uint64_t 
                            uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
                            uint64_t arg8, smccc_res_t *result)
 {
+    assert(!g_remote_only);
     (void)arg4;
     (void)arg5;
     (void)arg6;
@@ -380,6 +521,7 @@ void val_smccc_smc_call_x8(uint64_t fid, uint64_t arg1, uint64_t arg2, uint64_t 
 void val_smccc_smc_call_frame(const smccc_call_frame_t *input,
                               smccc_call_frame_t *output)
 {
+    assert(!g_remote_only);
     (void)input;
     g_frame_calls++;
     output->registers[0] = g_frame_calls <= g_frame_busy_count ?
@@ -414,6 +556,153 @@ static void test_reset(void)
     g_cxl_bad_go = VAL_FALSE;
     g_cxl_bad_stop = VAL_FALSE;
     g_cxl_invalid_calls = 0U;
+    g_stop_setup = (test_stop_setup_t){.go_status = FIRME_INCOMPLETE,
+                                       .poll_status = FIRME_SUCCESS};
+}
+
+/** @brief Require completed GO before tested STOP without claiming an active traffic baseline. */
+static void test_stop_go_prerequisite(void)
+{
+    const int64_t rejections[] = {FIRME_DENIED, FIRME_INVALID_PARAMETERS,
+                                   FIRME_NOT_SUPPORTED, FIRME_OP_CONFLICT, FIRME_BUSY,
+                                   TEST_UNKNOWN_STATUS};
+    const int64_t poll_failures[] = {FIRME_ABORTED, FIRME_INCOMPLETE, FIRME_BUSY};
+    firme_rule_res_t result;
+    uint32_t mode;
+    uint32_t status_index;
+
+    /* Step 1: Complete PROG/GO/STOP in every synchronous/asynchronous combination. */
+    for (mode = 0U; mode < 8U; mode++) {
+        test_reset();
+        g_stop_setup.enabled = VAL_TRUE;
+        g_program_status = mode & 1U ? FIRME_INCOMPLETE : FIRME_SUCCESS;
+        g_stop_setup.go_status = mode & 2U ? FIRME_INCOMPLETE : FIRME_SUCCESS;
+        g_operation_status = mode & 4U ? FIRME_INCOMPLETE : FIRME_SUCCESS;
+        assert(firme_ide_keyset_stop_status_run_realm(0ULL, &result) == VAL_SUCCESS);
+        assert(result.status == ACS_STATUS_SKIP);
+        assert(g_stop_setup.program_completed && g_stop_setup.go_completed);
+        assert(g_stop_setup.go_calls == 1U && g_stop_setup.tested_stop_calls == 1U);
+        assert(g_stop_setup.observations == 1U && g_stop_setup.releases == 1U);
+        assert(g_poll_calls == (mode & 1U ? 1U : 0U) + (mode & 2U ? 1U : 0U) +
+                               (mode & 4U ? 2U : 0U));
+        assert(!g_pending);
+    }
+
+    /* Step 2: Reject failed GO setup before the tested STOP invocation. */
+    for (status_index = 0U; status_index < sizeof(rejections) / sizeof(rejections[0]);
+         status_index++) {
+        test_reset();
+        g_stop_setup.enabled = VAL_TRUE;
+        g_stop_setup.go_status = rejections[status_index];
+        assert(firme_ide_keyset_stop_status_run_realm(0ULL, &result) == VAL_ERROR);
+        assert(result.status == ACS_STATUS_FAIL && result.fail_step == IDE_KEYSET_STOP_STEP_GO);
+        assert(val_firme_status_to_i64(result.last_x0) == rejections[status_index]);
+        assert(g_stop_setup.program_completed && !g_stop_setup.go_completed);
+        assert(g_stop_setup.go_calls ==
+               (rejections[status_index] == FIRME_BUSY ? VAL_FIRME_IDE_RETRY_LIMIT : 1U));
+        assert(!g_stop_setup.tested_stop_calls && !g_stop_setup.observations);
+        assert(g_stop_setup.releases == 1U && !g_pending);
+    }
+
+    /* Step 3: Retain ownership when asynchronous completion cannot be confirmed. */
+    for (status_index = 0U; status_index < sizeof(poll_failures) / sizeof(poll_failures[0]);
+         status_index++) {
+        test_reset();
+        g_stop_setup.enabled = VAL_TRUE;
+        g_stop_setup.poll_status = poll_failures[status_index];
+        assert(firme_ide_keyset_stop_status_run_realm(0ULL, &result) == VAL_ERROR);
+        assert(result.status == ACS_STATUS_FAIL && result.fail_step == IDE_KEYSET_STOP_STEP_GO);
+        assert(val_firme_status_to_i64(result.last_x0) == poll_failures[status_index]);
+        assert(g_stop_setup.program_completed && !g_stop_setup.go_completed);
+        assert(g_stop_setup.go_calls == 1U && !g_stop_setup.tested_stop_calls);
+        assert(!g_stop_setup.observations && !g_stop_setup.releases);
+        assert(g_stop_calls == 2U);
+        assert(g_pending == (poll_failures[status_index] != FIRME_ABORTED));
+    }
+
+    test_reset();
+    g_stop_setup.enabled = VAL_TRUE;
+    /* Step 4: A mismatched completion handle must not establish the GO prerequisite. */
+    g_bad_handle_request = IDE_KEYSET_STOP_HANDLE_GO;
+    assert(firme_ide_keyset_stop_status_run_realm(0ULL, &result) == VAL_ERROR);
+    assert(result.status == ACS_STATUS_FAIL && result.fail_step == IDE_KEYSET_STOP_STEP_GO);
+    assert(val_firme_status_to_i64(result.last_x0) == FIRME_SUCCESS);
+    assert(result.last_x1 != IDE_KEYSET_STOP_HANDLE_GO);
+    assert(g_stop_setup.program_completed && !g_stop_setup.go_completed);
+    assert(g_stop_setup.go_calls == 1U && !g_stop_setup.tested_stop_calls);
+    assert(!g_stop_setup.observations && !g_stop_setup.releases);
+    assert(g_stop_calls == 2U && !g_pending);
+    test_reset();
+}
+
+/** @brief Exercise the remote callback without allowing any local-wrapper fallback. */
+static int test_remote_ide(const smccc_call_frame_t *input, smccc_call_frame_t *output,
+                             uint32_t *issued, void *cookie)
+{
+    smccc_res_t response = {0};
+    uint64_t handle = input->registers[0] == FIRME_FID_IDE_KEYSET_PROG ?
+                      input->registers[8] : input->registers[4];
+    uint32_t register_index;
+
+    assert(cookie == &g_remote_setup_calls);
+    for (register_index = 9U; register_index < VAL_SMCCC_REGISTER_COUNT; register_index++)
+        assert(input->registers[register_index] == 0ULL);
+    *issued = VAL_TRUE;
+    g_remote_setup_calls++;
+    if (g_remote_fail)
+        return VAL_ERROR;
+    if (input->registers[0] == FIRME_FID_IDE_KEYSET_POLL && g_remote_poll_incomplete) {
+        g_remote_poll_incomplete--;
+        output->registers[0] = (uint64_t)FIRME_INCOMPLETE;
+        output->registers[1] = TEST_UNUSED;
+        return VAL_SUCCESS;
+    }
+
+    test_smc(input->registers[0], input->registers[1], input->registers[2],
+               input->registers[3], handle, &response);
+    output->registers[0] = response.x0;
+    output->registers[1] = response.x1;
+    output->registers[2] = response.x2;
+    return VAL_SUCCESS;
+}
+
+/** @brief Require remote setup, POLL and STOP, and retain uncertain transport outcomes. */
+static void test_remote_lifecycle(void)
+{
+    const val_firme_abi_descriptor_t abi = {.id = VAL_FIRME_ABI_ID_IDE_KEYSET_STOP};
+    const val_firme_abi_case_t test_case = {.mutation = VAL_FIRME_MUTATION_NONE};
+    const val_firme_abi_test_plan_t plan = {.name = "native Realm transport"};
+    val_firme_abi_test_context_t context = {.abi = &abi, .test_case = &test_case,
+        .plan = &plan, .world = FIRME_ACS_WORLD_REALM, .invoke_frame = test_remote_ide,
+        .invoke_cookie = &g_remote_setup_calls};
+    uint32_t calls;
+
+    test_reset();
+    g_remote_only = VAL_TRUE;
+    assert(val_firme_ide_abi_prepare(&context) == VAL_SUCCESS);
+    assert(g_remote_setup_calls == 4U && context.scratch[IDE_ABI_ACTIVE]);
+    assert(val_firme_ide_abi_cleanup(&context) == VAL_SUCCESS);
+    assert(g_remote_setup_calls == 6U && !g_ide_abi_owned);
+
+    g_remote_setup_calls = 0U;
+    g_remote_poll_incomplete = 2U;
+    assert(val_firme_ide_abi_prepare(&context) == VAL_SUCCESS);
+    assert(g_remote_setup_calls == 6U && context.scratch[IDE_ABI_ACTIVE]);
+    assert(val_firme_ide_abi_cleanup(&context) == VAL_SUCCESS);
+    assert(g_remote_setup_calls == 8U && !g_ide_abi_owned);
+
+    g_remote_fail = VAL_TRUE;
+    assert(val_firme_ide_abi_prepare(&context) == VAL_ERROR);
+    assert(context.transport_uncertain);
+    calls = g_remote_setup_calls;
+    assert(val_firme_ide_abi_cleanup(&context) == VAL_ERROR);
+    assert(g_ide_abi_retained_valid && g_remote_setup_calls == calls);
+    g_remote_only = VAL_FALSE;
+    g_remote_fail = VAL_FALSE;
+    g_ide_abi_retained_valid = VAL_FALSE;
+    g_ide_abi_owned = VAL_FALSE;
+    g_pal_prepare_calls = 0U;
+    g_pal_cleanup_calls = 0U;
 }
 
 /** @brief Retain timed-out generated owners and never release after failed STOP. */
@@ -909,7 +1198,7 @@ int main(void)
     assert(result.fail_step == IDE_KEYSET_STOP_STEP_PROGRAM);
     test_reset();
     g_program_status = FIRME_SUCCESS;
-    g_bad_exact_handle = VAL_TRUE;
+    g_bad_handle_request = IDE_KEYSET_STOP_HANDLE_OP;
     assert(firme_ide_keyset_stop_status_run_realm(0ULL, &result) == VAL_ERROR);
     assert(result.fail_step == IDE_KEYSET_STOP_STEP_POLL);
     test_reset();
@@ -973,8 +1262,11 @@ int main(void)
     test_link_drain();
     test_cxl_completion();
     test_secure_caller_return();
+    test_remote_lifecycle();
     test_abi_lifetime();
     test_namespace_lifetime();
+    test_fixture_free_rejection();
+    test_stop_go_prerequisite();
     puts("IDE completion, retained ownership and namespace contracts: PASS");
     return VAL_SUCCESS;
 }

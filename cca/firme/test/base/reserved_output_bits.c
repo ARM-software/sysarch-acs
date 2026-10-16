@@ -19,6 +19,7 @@
 #define RESERVED_OUTPUT_BITS_STEP_VERSION_POISON UINT64_C(5)
 #define RESERVED_OUTPUT_BITS_STEP_REG0_POISON    UINT64_C(6)
 #define RESERVED_OUTPUT_BITS_STEP_REG1_POISON    UINT64_C(7)
+#define RESERVED_OUTPUT_BITS_STEP_SECURITY_AUDIT UINT64_C(8)
 #define RESERVED_OUTPUT_BITS_POISON_COUNT 3U
 #define RESERVED_OUTPUT_BITS_X0_ALLOCATED_MASK UINT64_C(0xffffffff)
 #define RESERVED_OUTPUT_BITS_REG0_ALLOCATED_MASK \
@@ -133,6 +134,9 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
     int reg1_status = VAL_ERROR;
     int poisoned_status = VAL_ERROR;
     int limits_status = VAL_ERROR;
+
+    if (out == NULL)
+        return VAL_ERROR;
 
     reserved_output_bits_init_result(out);
 
@@ -285,8 +289,11 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
         }
     }
 
-    if (out)
-        out->status = (uint64_t)ACS_STATUS_PASS;
+    LOG_WARN(NULL, "%s: sampled Base callers ignore unused bits; remaining callers "
+             "and callee non-disclosure still require qualification\n",
+             RESERVED_OUTPUT_BITS_TEST_NAME);
+    out->status = (uint64_t)ACS_STATUS_SKIP;
+    out->fail_step = RESERVED_OUTPUT_BITS_STEP_SECURITY_AUDIT;
 
     return VAL_SUCCESS;
 }
@@ -295,7 +302,7 @@ static int reserved_output_bits_run(firme_rule_res_t *out)
  *   @brief    - Reserved output bit rule body for NS caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -307,7 +314,7 @@ int firme_base_reserved_output_bits_run_ns(uint64_t base_pa, firme_rule_res_t *o
  *   @brief    - Reserved output bit rule body for Secure caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_secure(uint64_t base_pa, firme_rule_res_t *out)
 {
@@ -319,7 +326,7 @@ int firme_base_reserved_output_bits_run_secure(uint64_t base_pa, firme_rule_res_
  *   @brief    - Reserved output bit rule body for Realm caller execution.
  *   @param    - base_pa : Unused for base service tests.
  *   @param    - out     : Optional result record.
- *   @return   - VAL_SUCCESS for PASS, otherwise VAL_ERROR.
+ *   @return   - VAL_SUCCESS with SKIP for incomplete evidence, otherwise VAL_ERROR.
  **/
 int firme_base_reserved_output_bits_run_realm(uint64_t base_pa, firme_rule_res_t *out)
 {

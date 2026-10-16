@@ -10,15 +10,14 @@ CXL backend. Model topology and firmware support are separate prerequisites.
 | --- | --- |
 | R0205, R0214, R0216, R0218, R0225 | An ACS-owned Root Port and downstream endpoint with usable Selective IDE capabilities. VAL discovers and configures unused stream blocks; Realm performs protected RMEDA writes when required. |
 | R0207, R0209, R0210 | A usable CXL.cachemem path, authenticated endpoint IDE key management and a working Root Port programming backend. The local reference experiment uses the extended FVP and matching TF-A backend. |
+| R0211 | Two owned paths in different ECAM namespaces with independent traffic observations. The current single-ECAM model and reference PAL do not provide this fixture. |
+| R0212 | Distinct keyset IDs and keys within one ECAM namespace. The paired CXL backend isolates RX from TX using directional traffic counters, RX STOP/GO and retained data. |
+| R0358-R0365 | Host coordinates the paired endpoint session and observations for NS or Realm callers. Every FIRME setup, test and cleanup call uses the selected caller world. POLL positive cases additionally need a genuinely pending operation. |
 
 Unavailable prerequisites result in SKIP, not successful coverage. Unexpected
-DUT responses and cleanup errors remain failures. Registry-gated tests do not
-execute and are not qualified by a passing active-suite run.
-
-R0207, R0209 and R0210 are temporarily omitted from the current CI registry:
-its TF-A rejects valid CXL.cachemem setup before reaching platform programming.
-Enabling the backend alone does not restore these entries. Re-enable them with
-final qualification and the CI golden-log update, keeping strict expectations.
+DUT responses and cleanup errors remain failures. These rules are registered;
+an unavailable ACS observer is an implementation gap, not evidence that the
+DUT is correct or that the model alone prevents validation.
 
 ## Why the local extensions were needed
 
@@ -85,4 +84,5 @@ it does not itself establish an authenticated PCIe Selective IDE data path.
 The separate CXL experiment validates transaction-level CXL.mem effects, not
 full CXL.cache behavior, flit/wire-protocol conformance or production hardware
 security. Release qualification must identify the exact model, firmware and
-topology used, and track remaining gates and upstream integration separately.
+topology used, and track incomplete observations and upstream integration
+separately. Native fixture tests do not qualify a live paired path.

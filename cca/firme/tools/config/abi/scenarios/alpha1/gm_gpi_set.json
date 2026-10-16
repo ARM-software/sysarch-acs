@@ -8,15 +8,16 @@
       "rule": "R0348",
       "kind": "input",
       "description": "Validate GM_GPI_SET base, count and target-GPI input allocation.",
-      "enabled": false,
-      "disabled_reason": "Needs a state-aware transition adapter with deterministic setup and rollback.",
-      "required_worlds": [],
-      "optional_worlds": ["ns", "secure", "realm"],
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
-      "require_output_validation": false,
+      "require_output_validation": true,
       "cases": [
-        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "unaligned_base", "mutation": "gm_unaligned_base", "expected": "INVALID_PARAMETERS", "step": 2, "priority": 1, "verify_no_effect": true},
+        {"name": "zero_count", "mutation": "gm_zero_count", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2, "verify_no_effect": true}
       ]
     },
     {
@@ -25,15 +26,16 @@
       "rule": "R0349",
       "kind": "output",
       "description": "Validate GM_GPI_SET status, count and continuation-cookie outputs.",
-      "enabled": false,
-      "disabled_reason": "Needs controlled terminal and progress paths plus transition cleanup.",
-      "required_worlds": [],
-      "optional_worlds": ["ns", "secure", "realm"],
+      "enabled": true,
+      "required_worlds": ["ns", "secure", "realm"],
+      "optional_worlds": [],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
       "require_output_validation": true,
       "cases": [
-        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
+        {"name": "valid_transition", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0},
+        {"name": "unaligned_base", "mutation": "gm_unaligned_base", "expected": "INVALID_PARAMETERS", "step": 2, "priority": 1, "verify_no_effect": true},
+        {"name": "zero_count", "mutation": "gm_zero_count", "expected": "INVALID_PARAMETERS", "step": 3, "priority": 2, "verify_no_effect": true}
       ]
     }
   ]

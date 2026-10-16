@@ -5,6 +5,7 @@
  *
  */
 
+#include "pal_platform.h"
 #include "val_firme_gpt.h"
 #include "val_log.h"
 
@@ -14,6 +15,7 @@
 #define GPT_SAME_GPI_STEP_RESULT    UINT64_C(3)
 #define GPT_SAME_GPI_STEP_CLEANUP   UINT64_C(4)
 
+/** @brief Initialize the rule to FAIL until all required checks complete. */
 static void gpt_same_gpi_init(firme_rule_res_t *out)
 {
     if (out) {
@@ -24,6 +26,7 @@ static void gpt_same_gpi_init(firme_rule_res_t *out)
     }
 }
 
+/** @brief Require exact successful progress without masking the DUT's status. */
 static uint32_t gpt_same_gpi_expect_success(firme_res_t *res, uint64_t expected_count,
                                             firme_rule_res_t *out, uint64_t fail_step)
 {
@@ -53,6 +56,7 @@ static int gpt_same_gpi_run(uint64_t base_pa, uint64_t target_gpi, firme_rule_re
 {
     firme_res_t res = {0};
     const uint64_t granule_count = UINT64_C(1);
+    uint64_t changed_count = 0ULL;
 
     if (!out)
         return VAL_ERROR;
@@ -69,13 +73,19 @@ static int gpt_same_gpi_run(uint64_t base_pa, uint64_t target_gpi, firme_rule_re
         return val_firme_gpt_rule_result_status(out);
 
     /* Step 1: place the granule at the target GPI. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, target_gpi, &res);
+    if (val_firme_gpt_transition_terminal(base_pa, target_gpi, &res,
+                                         out, GPT_SAME_GPI_STEP_SEED) != VAL_SUCCESS)
+        return VAL_ERROR;
     if (gpt_same_gpi_expect_success(&res, granule_count, out,
                                     GPT_SAME_GPI_STEP_SEED) == VAL_FALSE)
         goto cleanup;
+    if (target_gpi != FIRME_GPI_NONSECURE)
+        changed_count = granule_count;
 
     /* Step 2: invoke GM_GPI_SET again with Current GPI == Target GPI. */
-    val_firme_gm_gpi_set_complete(base_pa, granule_count, target_gpi, &res);
+    if (val_firme_gpt_transition_terminal(base_pa, target_gpi, &res,
+                                         out, GPT_SAME_GPI_STEP_RESULT) != VAL_SUCCESS)
+        return VAL_ERROR;
     if (gpt_same_gpi_expect_success(&res, granule_count, out,
                                     GPT_SAME_GPI_STEP_RESULT) == VAL_FALSE)
         goto cleanup;
@@ -84,8 +94,8 @@ static int gpt_same_gpi_run(uint64_t base_pa, uint64_t target_gpi, firme_rule_re
         out->status = (uint64_t)ACS_STATUS_PASS;
 
 cleanup:
-    if (val_firme_gpt_restore_ns(base_pa, out,
-                                GPT_SAME_GPI_STEP_CLEANUP) == VAL_FALSE)
+    if (!val_firme_gpt_restore_prefix_ns(base_pa, changed_count,
+            PLAT_FIRME_GPT_GRANULE_SIZE, out, GPT_SAME_GPI_STEP_CLEANUP))
         return VAL_ERROR;
     return val_firme_gpt_rule_result_status(out);
 }

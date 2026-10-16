@@ -36,6 +36,8 @@ typedef enum {
     FIRME_ACS_CMD_GET_TEST_RESULT = 0x07,
     FIRME_ACS_CMD_IDE_LINK = 0x08,
     FIRME_ACS_CMD_GET_RULE_RESULT = 0x09,
+    FIRME_ACS_CMD_GPT_PROBE = 0x0a,
+    FIRME_ACS_CMD_ABI_FRAME = 0x20,
 } firme_acs_cmd_t;
 
 typedef struct {

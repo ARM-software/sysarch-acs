@@ -21,6 +21,9 @@
  */
 uint32_t pal_firme_shared_buffer_ns_mapping_ready(uint64_t base, uint64_t size);
 
+/** @brief Verify the Realm boot shared-buffer range uses the live EL2 boot map. */
+uint32_t pal_firme_shared_buffer_realm_mapping_ready(uint64_t base, uint64_t size);
+
 /** @brief Read the current EL2 translation-table base for the PAT lease check. */
 uint64_t pal_firme_shared_buffer_read_ttbr0_el2(void);
 

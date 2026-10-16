@@ -35,6 +35,13 @@
 #define VAL_FIRME_SHARED_BUFFER_PROBE_ERROR       (-1)
 #define VAL_FIRME_SHARED_BUFFER_PROBE_FAILED      2
 #define VAL_FIRME_PAT_MAX_INVOCATIONS             64U
+#define VAL_FIRME_PAT_NO_SERVICE                  1U
+#define VAL_FIRME_PAT_NO_BOOT_BUFFER              2U
+#define VAL_FIRME_PAT_BOOT_MAPPING_UNAVAILABLE    3U
+#define VAL_FIRME_PAT_BACKING_TOO_SMALL           4U
+#define VAL_FIRME_PAT_INSTANCE_UNAVAILABLE        5U
+#define VAL_FIRME_PAT_NO_WORKLOAD_BINDING          6U
+#define VAL_FIRME_PAT_WORKLOAD_BINDING_OFFSET     UINT64_C(0x40)
 
 typedef enum {
     VAL_FIRME_SHARED_BUFFER_CASE_VALID = 0,
@@ -55,6 +62,8 @@ typedef struct {
     uint32_t gpi;
     uint32_t service_id;
     uint32_t valid_fields;
+    uint64_t prerequisite_reason;
+    uint64_t prerequisite_detail;
 } val_firme_shared_buffer_evidence_t;
 
 typedef struct {
@@ -63,8 +72,25 @@ typedef struct {
     uint64_t capacity;
     const uint8_t *challenge;
     uint32_t challenge_size;
+    const uint8_t *workload_binding;
+    uint32_t workload_binding_size;
     uint64_t owner_token;
+    uint64_t prerequisite_reason;
+    uint64_t prerequisite_detail;
 } val_firme_shared_buffer_lease_t;
+
+/** @brief Retain the supported EL3/Realm boot handoff's shared page after cold boot. */
+void val_firme_shared_buffer_init_realm_pat(uint64_t boot_version, uint64_t base_pa);
+
+/**
+ * @brief Supply the real workload binding for the externally selected attestation model.
+ * @param binding Base-model RAT hash or delegated-model current public RAK hash.
+ * @param size Binding size, held stable outside the shared buffer until release.
+ * @return PROBE_AVAILABLE, UNAVAILABLE without a valid fixture, or ERROR.
+ * Model selection is outside FIRME discovery (I0248). Arbitrary challenge
+ * bytes or absent RAK advertisement cannot establish this prerequisite.
+ */
+int val_firme_shared_buffer_get_realm_binding(const uint8_t **binding, uint32_t *size);
 
 /**
  * @brief Acquire exclusive ownership of an idle NS PAT instance and its buffer.
@@ -88,7 +114,9 @@ int val_firme_shared_buffer_acquire_ns_pat(uint64_t capacity, uint64_t alignment
  * Evidence must describe the entire invocation range during the SMC, including
  * any temporary EL3 mapping, not be inferred from SUCCESS or the caller world.
  * Available evidence must identify matching BASE and PAGE_COUNT fields.
- * @return PROBE_AVAILABLE, UNAVAILABLE without observations, or ERROR.
+ * @return PROBE_AVAILABLE, UNAVAILABLE for incomplete observations, or ERROR.
+ * Partial observations may accompany UNAVAILABLE, but each supplied field must
+ * be independently measured and identify the matching BASE and PAGE_COUNT.
  */
 int val_firme_shared_buffer_observe_ns_pat(
     const val_firme_shared_buffer_lease_t *lease,
@@ -105,9 +133,23 @@ int val_firme_shared_buffer_observe_ns_pat(
 int val_firme_shared_buffer_release_ns_pat(
     const val_firme_shared_buffer_lease_t *lease, uint32_t pending);
 
+/** @brief Acquire the Realm PAT instance and its firmware-established buffer. */
+int val_firme_shared_buffer_acquire_realm_pat(uint64_t capacity, uint64_t alignment,
+                                             val_firme_shared_buffer_lease_t *lease);
+
+/** @brief Release or quarantine the exact owned Realm PAT lease. */
+int val_firme_shared_buffer_release_realm_pat(
+    const val_firme_shared_buffer_lease_t *lease, uint32_t pending);
+
+/** @brief Obtain independent invocation-time Realm shared-buffer evidence. */
+int val_firme_shared_buffer_observe_realm_pat(
+    const val_firme_shared_buffer_lease_t *lease,
+    const val_firme_shared_buffer_evidence_t *invocation,
+    val_firme_shared_buffer_evidence_t *observation);
+
 /**
- * @brief Run a real NS PAT_GET buffer case and drain its owned retrieval.
- * @param world Caller world; only NS is supported by this adapter.
+ * @brief Run a real PAT_GET buffer case and drain its owned retrieval.
+ * @param world NS or Realm caller world, with separately owned resources.
  * @param test_case Buffer case, with safe backing even for negative inputs.
  * @param minimum_size_bytes Base minimum size/alignment.
  * @param maximum_page_count Base maximum count-minus-one encoding.

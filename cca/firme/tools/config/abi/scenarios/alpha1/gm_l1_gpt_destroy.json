@@ -8,13 +8,12 @@
       "rule": "R0354",
       "kind": "input",
       "description": "Validate GM_L1_GPT_DESTROY protected-range input allocation.",
-      "enabled": false,
-      "disabled_reason": "Needs a successfully created L1 GPT object as deterministic pre-state.",
+      "enabled": true,
       "required_worlds": [],
       "optional_worlds": ["realm"],
       "baseline_policy": "adapter_validated",
       "require_advertised": true,
-      "require_output_validation": false,
+      "require_output_validation": true,
       "cases": [
         {"name": "valid_destroy", "mutation": "none", "expected": "architected_status", "step": 1, "priority": 0}
       ]
@@ -25,8 +24,7 @@
       "rule": "R0355",
       "kind": "output",
       "description": "Validate GM_L1_GPT_DESTROY status and returned L1 object base.",
-      "enabled": false,
-      "disabled_reason": "Needs create/destroy lifecycle setup, output correlation and cleanup.",
+      "enabled": true,
       "required_worlds": [],
       "optional_worlds": ["realm"],
       "baseline_policy": "adapter_validated",

@@ -10,6 +10,7 @@
 #include <stddef.h>
 
 #include "val_common/val_status.h"
+#include "pal_platform.h"
 #include "val_firme_abi.h"
 #include "val_firme_gpt.h"
 #include "val_firme_gpt_fixture.h"
@@ -17,12 +18,16 @@
 #include "val_log.h"
 
 #define VAL_FIRME_ALPHA1_MAJOR_VERSION 1U
-#define VAL_FIRME_ABI_TEST_MECID       UINT64_C(1)
+#define VAL_FIRME_MEC_SCRATCH_OWNED   0U
+#define VAL_FIRME_MEC_SCRATCH_CREATED 1U
+#define VAL_FIRME_MEC_SCRATCH_UNCERTAIN 2U
 #define VAL_FIRME_GPT_INFO_SCRATCH_BASE       0U
 #define VAL_FIRME_GPT_INFO_SCRATCH_TOP        1U
 #define VAL_FIRME_GPT_INFO_SCRATCH_RANGE_SIZE 2U
 #define VAL_FIRME_GPT_INFO_SCRATCH_GRANULE    3U
 #define VAL_FIRME_GPT_INFO_SCRATCH_PPS_SIZE   4U
+
+static uint32_t g_mec_abi_owned;
 
 /**
  * @brief Build a valid SERVICE_VERSION input frame for the Base service.
@@ -165,19 +170,66 @@ static uint32_t val_firme_abi_service_features_validate(
     return VAL_TRUE;
 }
 
+/** @brief Reserve the configured test MECID and create pre-state for a DESTROY case. */
+static int val_firme_abi_mec_refresh_prepare(val_firme_abi_test_context_t *context)
+{
+    firme_res_t result = {0};
+    uint32_t common_width = 0U;
+    uint32_t unlocked = VAL_FALSE;
+    uint64_t test_mecid = PLAT_FIRME_MEC_TEST_MECID;
+    int64_t status;
+
+    if (!context || !context->plan || !context->test_case ||
+        context->world != FIRME_ACS_WORLD_REALM ||
+        (context->test_case->mutation != VAL_FIRME_MUTATION_NONE &&
+         context->test_case->mutation != VAL_FIRME_MUTATION_DESTROY_REASON) ||
+        test_mecid == 0ULL || test_mecid > UINT16_MAX)
+        return VAL_ERROR;
+    if (val_firme_mec_advertised_common_mecid_width(&common_width, &result) != VAL_SUCCESS ||
+        common_width < VAL_FIRME_MECID_WIDTH_MIN || common_width > VAL_FIRME_MECID_WIDTH_MAX ||
+        test_mecid >= (UINT64_C(1) << common_width)) {
+        context->output.registers[0] = result.x0;
+        context->output.registers[1] = result.x1;
+        LOG_ERROR(NULL, "%s: reserved MECID=%llx does not fit advertised width=%u",
+                  context->plan->name, (unsigned long long)test_mecid, common_width);
+        return VAL_ERROR;
+    }
+    if (!__atomic_compare_exchange_n(&g_mec_abi_owned, &unlocked, VAL_TRUE,
+                                      0, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+        return VAL_ERROR;
+    context->scratch[VAL_FIRME_MEC_SCRATCH_OWNED] = VAL_TRUE;
+    if (context->test_case->mutation == VAL_FIRME_MUTATION_DESTROY_REASON) {
+        context->scratch[VAL_FIRME_MEC_SCRATCH_CREATED] = VAL_TRUE;
+        val_firme_mec_refresh_do_retry(val_firme_mec_params(test_mecid,
+            FIRME_MEC_REFRESH_REASON_CREATE), &result);
+        context->output.registers[0] = result.x0;
+        context->output.registers[1] = result.x1;
+        status = val_firme_status_to_i64(result.x0);
+        if (status != (int64_t)FIRME_SUCCESS) {
+            if (status == (int64_t)FIRME_BUSY || status == (int64_t)FIRME_NOT_SUPPORTED ||
+                status == (int64_t)FIRME_INVALID_PARAMETERS)
+                context->scratch[VAL_FIRME_MEC_SCRATCH_CREATED] = VAL_FALSE;
+            else
+                context->scratch[VAL_FIRME_MEC_SCRATCH_UNCERTAIN] = VAL_TRUE;
+            return VAL_ERROR;
+        }
+    }
+    return VAL_SUCCESS;
+}
+
 /**
- * @brief Build a valid MEC_REFRESH input for Realm creation.
+ * @brief Build a valid MEC_REFRESH input for the exclusively reserved MECID.
  * @param context Generated test execution context.
  * @return VAL_SUCCESS on success, otherwise VAL_ERROR.
  */
 static int val_firme_abi_mec_refresh_build(
     val_firme_abi_test_context_t *context)
 {
-    if (!context)
+    if (!context || context->scratch[VAL_FIRME_MEC_SCRATCH_OWNED] != VAL_TRUE)
         return VAL_ERROR;
 
     context->input.registers[1] = val_firme_mec_params(
-        VAL_FIRME_ABI_TEST_MECID, FIRME_MEC_REFRESH_REASON_CREATE);
+        PLAT_FIRME_MEC_TEST_MECID, FIRME_MEC_REFRESH_REASON_CREATE);
     return VAL_SUCCESS;
 }
 
@@ -189,7 +241,8 @@ static int val_firme_abi_mec_refresh_build(
 static int val_firme_abi_mec_refresh_mutate(
     val_firme_abi_test_context_t *context)
 {
-    if (!context || !context->test_case)
+    if (!context || !context->test_case ||
+        context->scratch[VAL_FIRME_MEC_SCRATCH_OWNED] != VAL_TRUE)
         return VAL_ERROR;
 
     if (context->test_case->mutation !=
@@ -197,7 +250,7 @@ static int val_firme_abi_mec_refresh_mutate(
         return VAL_ERROR;
 
     context->input.registers[1] = val_firme_mec_params(
-        VAL_FIRME_ABI_TEST_MECID, FIRME_MEC_REFRESH_REASON_DESTROY);
+        PLAT_FIRME_MEC_TEST_MECID, FIRME_MEC_REFRESH_REASON_DESTROY);
     return VAL_SUCCESS;
 }
 
@@ -214,6 +267,43 @@ static uint32_t val_firme_abi_mec_refresh_validate(
 
     return (val_firme_status_to_i64(context->output.registers[0]) ==
             (int64_t)FIRME_SUCCESS) ? VAL_TRUE : VAL_FALSE;
+}
+
+/** @brief Retire only the reserved MECID, retaining ownership after failed cleanup. */
+static int val_firme_abi_mec_refresh_cleanup(val_firme_abi_test_context_t *context)
+{
+    firme_res_t result = {0};
+    int64_t status;
+
+    if (!context || !context->test_case)
+        return VAL_ERROR;
+    if (context->scratch[VAL_FIRME_MEC_SCRATCH_OWNED] != VAL_TRUE)
+        return VAL_SUCCESS;
+    if (context->scratch[VAL_FIRME_MEC_SCRATCH_UNCERTAIN] == VAL_TRUE)
+        return VAL_ERROR;
+    if (context->call_issued == VAL_TRUE) {
+        status = val_firme_status_to_i64(context->output.registers[0]);
+        if (status == (int64_t)FIRME_SUCCESS)
+            context->scratch[VAL_FIRME_MEC_SCRATCH_CREATED] =
+                context->test_case->mutation == VAL_FIRME_MUTATION_DESTROY_REASON ?
+                VAL_FALSE : VAL_TRUE;
+        else if (status != (int64_t)FIRME_BUSY && status != (int64_t)FIRME_NOT_SUPPORTED &&
+                 status != (int64_t)FIRME_INVALID_PARAMETERS)
+            return VAL_ERROR;
+    }
+    if (context->scratch[VAL_FIRME_MEC_SCRATCH_CREATED] == VAL_TRUE) {
+        val_firme_mec_refresh_do_retry(val_firme_mec_params(PLAT_FIRME_MEC_TEST_MECID,
+            FIRME_MEC_REFRESH_REASON_DESTROY), &result);
+        if (val_firme_status_to_i64(result.x0) != (int64_t)FIRME_SUCCESS) {
+            LOG_ERROR(NULL, "%s: reserved MECID cleanup failed x0=%llx",
+                      context->plan->name, (unsigned long long)result.x0);
+            return VAL_ERROR;
+        }
+    }
+    context->scratch[VAL_FIRME_MEC_SCRATCH_CREATED] = VAL_FALSE;
+    context->scratch[VAL_FIRME_MEC_SCRATCH_OWNED] = VAL_FALSE;
+    __atomic_store_n(&g_mec_abi_owned, VAL_FALSE, __ATOMIC_RELEASE);
+    return VAL_SUCCESS;
 }
 
 /**
@@ -313,9 +403,11 @@ static const val_firme_abi_test_ops_t g_service_features_ops = {
 };
 
 static const val_firme_abi_test_ops_t g_mec_refresh_ops = {
+    .prepare_state = val_firme_abi_mec_refresh_prepare,
     .build_valid_input = val_firme_abi_mec_refresh_build,
     .apply_mutation = val_firme_abi_mec_refresh_mutate,
     .validate_output = val_firme_abi_mec_refresh_validate,
+    .cleanup = val_firme_abi_mec_refresh_cleanup,
 };
 
 static const val_firme_abi_test_ops_t g_gpt_info_ops = {

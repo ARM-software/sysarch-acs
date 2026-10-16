@@ -19,6 +19,10 @@
 
 typedef struct val_firme_abi_test_context val_firme_abi_test_context_t;
 
+typedef int (*val_firme_abi_invoke_frame_fn_t)(
+    const smccc_call_frame_t *input, smccc_call_frame_t *output,
+    uint32_t *issued, void *cookie);
+
 typedef int (*val_firme_abi_prepare_state_fn_t)(
     val_firme_abi_test_context_t *context);
 typedef int (*val_firme_abi_build_input_fn_t)(
@@ -46,6 +50,10 @@ struct val_firme_abi_test_context {
     smccc_call_frame_t input;
     smccc_call_frame_t output;
     uint32_t call_issued;
+    uint32_t output_valid;
+    uint32_t transport_uncertain;
+    val_firme_abi_invoke_frame_fn_t invoke_frame;
+    void *invoke_cookie;
     firme_acs_world_t world;
     uint64_t base_pa;
     uint64_t scratch[VAL_FIRME_ABI_SCRATCH_QWORDS];
@@ -58,7 +66,21 @@ typedef struct {
     uint64_t base_pa;
     void *adapter_context;
     const val_firme_abi_test_ops_t *ops;
+    val_firme_abi_invoke_frame_fn_t invoke_frame;
+    void *invoke_cookie;
 } val_firme_abi_test_request_t;
+
+/**
+ * @brief Invoke a full frame through the context's selected caller transport.
+ * @param context Owner, including sticky uncertain-execution state.
+ * @param input Complete architectural input frame.
+ * @param output Outputs, valid only on VAL_SUCCESS.
+ * @param issued Set when the call executed or execution cannot be ruled out.
+ * @return VAL_SUCCESS for valid outputs, otherwise VAL_ERROR.
+ */
+int val_firme_abi_call(val_firme_abi_test_context_t *context,
+                       const smccc_call_frame_t *input, smccc_call_frame_t *output,
+                       uint32_t *issued);
 
 /**
  * @brief Execute a generated ABI test plan through service-specific adapters.

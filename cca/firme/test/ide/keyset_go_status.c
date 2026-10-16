@@ -188,12 +188,16 @@ int firme_ide_keyset_go_status_run_realm(uint64_t base_pa, firme_rule_res_t *out
     if (out)
         out->status = (uint64_t)ACS_STATUS_PASS;
 
+    /* Step 6: Observe this GO before cleanup changes the selected stream. */
+    firme_ide_test_observe(&state, VAL_IDE_LINK_GO, IDE_KEYSET_GO_HANDLE_OP,
+                            &prog_args, out);
+
 cleanup:
     return firme_ide_test_cleanup(&state, out);
 }
 
 /**
- * @brief Require observable GO effects after the Realm ABI status checks.
+ * @brief Preserve the Realm result, including effects observed before cleanup.
  * @param res_ns Unused Normal-world result.
  * @param res_secure Unused Secure-world result.
  * @param res_realm Realm result already combined by the dispatcher.
@@ -208,6 +212,6 @@ int firme_ide_keyset_go_post(const firme_acs_call_res_t *res_ns,
     (void)res_ns;
     (void)res_secure;
     (void)res_realm;
-    return val_firme_ide_check_effect(VAL_IDE_LINK_GO, FIRME_ACS_WORLD_REALM,
-                                      overall);
+    return overall && (overall->x0 == ACS_STATUS_PASS || overall->x0 == ACS_STATUS_SKIP) ?
+           VAL_SUCCESS : VAL_ERROR;
 }

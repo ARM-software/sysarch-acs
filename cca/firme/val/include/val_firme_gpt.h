@@ -69,6 +69,10 @@ int val_firme_mem_read64_world(firme_acs_world_t world,
                                uint64_t *out_value,
                                val_fault_info_t *out_fault);
 
+/** @brief Request a bounded Secure-state NS-output read, returning independent evidence. */
+int val_firme_mem_read64_ns_world(firme_acs_world_t world, uint64_t address,
+                                  uint64_t *value, val_fault_info_t *fault);
+
 void val_firme_ns_write64(uint64_t addr, uint64_t value);
 
 /* Status helpers (FIRME returns are signed, but often transported as unsigned). */
@@ -81,6 +85,38 @@ uint32_t val_firme_gpt_restore_ns(uint64_t base_pa, firme_rule_res_t *out,
                                    uint64_t fail_step);
 uint32_t val_firme_gpt_scrub_ns(uint64_t base_pa, firme_rule_res_t *out,
                                  uint64_t fail_step);
+
+/**
+ * @brief Prove NS scratch restoration from Host without issuing a same-GPI request.
+ * @param base_pa Owned granule whose prior operation is known to be terminal.
+ * @param out Rule result; an existing quarantine is never cleared.
+ * @param fail_step Restoration diagnostic step.
+ * @return VAL_TRUE only after independent native/NS-output PAS checks and scrubbing.
+ */
+uint32_t val_firme_gpt_confirm_ns_restored(uint64_t base_pa,
+    firme_rule_res_t *out, uint64_t fail_step);
+
+/** @brief Resolve one granule and quarantine malformed or retained/unknown outcomes. */
+int val_firme_gpt_transition_terminal(uint64_t base_pa, uint64_t target_gpi,
+    firme_res_t *result, firme_rule_res_t *out, uint64_t fail_step);
+
+/** @brief Host-side R0094 dispatch with independent NS ownership checks before and after. */
+int val_firme_gpt_run_rme_observed(firme_acs_world_t world, uint64_t base_pa,
+    firme_acs_call_res_t *response);
+
+/** @brief Return the owned scratch extent for audited Host-observed GPT rules. */
+uint64_t val_firme_gpt_observed_rule_granules(firme_rule_id_t rule);
+
+/** @brief Run an audited rule between independent Host observations of its whole extent. */
+int val_firme_gpt_run_observed(firme_rule_id_t rule, firme_acs_world_t world,
+    uint64_t base_pa, firme_acs_call_res_t *response);
+
+/** @brief Classify a bounded trace without treating failed continuations as termination. */
+uint32_t val_firme_gpt_trace_terminal(const val_firme_gpt_trace_t *trace);
+
+/** @brief Restore only a known changed prefix; Host must independently check the whole lease. */
+uint32_t val_firme_gpt_restore_prefix_ns(uint64_t base_pa, uint64_t count,
+    uint64_t granule_size, firme_rule_res_t *out, uint64_t fail_step);
 
 /* Granule-management feature helpers. */
 uint32_t val_firme_gpt_gpi_set_advertised(firme_rule_res_t *out, uint64_t fail_step);

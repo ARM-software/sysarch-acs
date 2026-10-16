@@ -27,6 +27,7 @@
 typedef enum {
     VAL_FIRME_MEC_OBSERVE_CONTEXT_REFRESH = 0,
     VAL_FIRME_MEC_OBSERVE_CIPHERTEXT_DECORRELATION,
+    VAL_FIRME_MEC_OBSERVE_CONTEXT_DESTROY,
 } val_firme_mec_observation_case_t;
 
 typedef struct {

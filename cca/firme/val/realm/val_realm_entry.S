@@ -20,6 +20,8 @@
 
 /* Entry point for TF-A RMMD: runs in Realm EL2. */
 func rel2_entry
+    mov x20, x1
+    mov x21, x3
     /* Ensure we use SP_EL2 (SPx) so EL2 exceptions hit the SPx vector table. */
     mov x1, #1
     msr spsel, x1
@@ -51,6 +53,12 @@ func rel2_entry
     /* Per-CPU init (VBAR/MMU/FP). */
     mov w0, w19
     bl  rel2_platform_init
+
+    cbz w19, 2f
+    mov x0, x20
+    mov x1, x21
+    bl val_firme_shared_buffer_init_realm_pat
+2:
 
     /* Signal boot complete to EL3 (RMMD). x1=status, x2=activation token. */
     ldr x0, =0xC40001CF /* RMM_BOOT_COMPLETE */

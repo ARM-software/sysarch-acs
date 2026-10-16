@@ -35,3 +35,17 @@ int firme_abi_r0358_run_realm(uint64_t base_pa,
         VAL_FIRME_TEST_PLAN_IDE_KEYSET_PROG_INPUTS,
         FIRME_ACS_WORLD_REALM, base_pa, out);
 }
+
+/**
+ * @brief Coordinate realm calls while retaining the owned fixture in NS.
+ * @param base_pa Platform test address supplied by the dispatcher.
+ * @param out Rule result populated by the common executor.
+ * @return VAL_SUCCESS for PASS/SKIP, otherwise VAL_ERROR.
+ */
+int firme_abi_r0358_run_host_realm(uint64_t base_pa,
+                         firme_rule_res_t *out)
+{
+    return val_firme_abi_generated_remote_execute(
+        VAL_FIRME_TEST_PLAN_IDE_KEYSET_PROG_INPUTS,
+        FIRME_ACS_WORLD_REALM, base_pa, out);
+}
