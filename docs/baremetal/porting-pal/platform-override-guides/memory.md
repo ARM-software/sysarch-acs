@@ -5,6 +5,8 @@ This guide explains how to populate the **platform memory configuration** macros
 
 > This is the **static memory map override** used by the platform layer to describe **physical regions**, optional **identity-mapped virtual aliases**, sizes, and semantic **memory types** (Normal/Device/Reserved/Not‑Populated).
 
+> **Bare-metal MAIR note:** During bare-metal MMU initialization, ACS expects `MAIR_ELx` to be initially zero and configures it as `0x44bbff04080caa00`. The stage-1 `AttrIndx` values used by the bare-metal PAL depend on this layout; a platform that supplies a different initial MAIR layout must update the corresponding attribute indices.
+
 ---
 
 ## 1) What these entries represent

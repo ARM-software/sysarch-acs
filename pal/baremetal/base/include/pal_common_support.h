@@ -219,11 +219,18 @@ void pal_warn_not_implemented(const char *api_name);
 #define ATTR_DEVICE               (0x0ull << 2)
 #define ATTR_NORMAL_WB            (0x3ull << 3)
 
-/* Stage 1 Inner and Outer Cacheability attribute encoding without TEX remap */
-#define ATTR_S1_NONCACHEABLE   (0x0ull << 2)
-#define ATTR_S1_WB_WA_RA       (0x1ull << 2)
-#define ATTR_S1_WT_RA          (0x2ull << 2)
-#define ATTR_S1_WB_RA          (0x3ull << 2)
+/*
+ * Stage-1 AttrIndx values for the MAIR layout installed by
+ * val_setup_mair_register() when bare-metal starts with MAIR_ELx == 0:
+ *   Attr1 = 0xAA (Normal WT RA), Attr5 = 0xFF (Normal WB RA/WA),
+ *   Attr7 = 0x44 (Normal Non-cacheable).
+ * There is no dedicated Normal WB RA-only entry, so use the supported
+ * Normal WB RA/WA entry for that mapping as well.
+ */
+#define ATTR_S1_NONCACHEABLE   (0x7ull << 2)
+#define ATTR_S1_WB_WA_RA       (0x5ull << 2)
+#define ATTR_S1_WT_RA          (0x1ull << 2)
+#define ATTR_S1_WB_RA          ATTR_S1_WB_WA_RA
 
 /* Stage 2 MemAttr[1:0] encoding for Normal memory */
 #define ATTR_S2_INNER_NONCACHEABLE   (0x1ull << 2)
