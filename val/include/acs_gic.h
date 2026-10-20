@@ -30,6 +30,7 @@
 #define GICD_IROUTER        0x6000
 #define GICD_PIDR2          0xFFE8
 
+#define GICD_ISENABLERE     0x1200
 #define GICD_ICENABLERE     0x1400
 #define GICD_ICPENDRE0      0x1800
 #define GICD_ICACTIVERE0    0x1C00

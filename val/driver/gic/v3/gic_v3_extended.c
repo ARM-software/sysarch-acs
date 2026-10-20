@@ -200,7 +200,7 @@ v3_enable_extended_interrupt_source(uint32_t int_id)
       /* Calculate register offset and bit position */
       regOffset = (int_id - EXTENDED_SPI_START_INTID) / 32;
       regShift = (int_id - EXTENDED_SPI_START_INTID) % 32;
-      val_mmio_write(val_get_gicd_base() + GICD_ICENABLERE + (4 * regOffset), 1 << regShift);
+      val_mmio_write(val_get_gicd_base() + GICD_ISENABLERE + (4 * regOffset), 1 << regShift);
   } else {
       /* Calculate register offset and bit position */
       regOffset = (int_id - EXTENDED_PPI_REG_OFFSET) / 32;
@@ -268,7 +268,9 @@ v3_route_extended_interrupt(uint32_t int_id)
   Mpidr = read_mpidr_el1();
   cpuTarget = Mpidr & (PE_AFF0 | PE_AFF1 | PE_AFF2 | PE_AFF3);
 
-  val_mmio_write64(gicd_base + GICD_IROUTERn + (int_id * 8), cpuTarget);
+  /* ESPI routing registers start at GICD_IROUTERnE; INTID 4096 maps to register 0 */
+  val_mmio_write64(gicd_base + GICD_IROUTERnE +
+                   ((int_id - EXTENDED_SPI_START_INTID) * 8U), cpuTarget);
 }
 
 /**
