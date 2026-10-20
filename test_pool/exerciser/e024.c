@@ -32,6 +32,7 @@
 #define ERR_FATAL 1
 #define ERR_FATAL_NONFATAL 2
 #define ERR_UNCORR   0x3
+#define DPC_COMPLETION_UR 0x40000
 #define MAX_DEVICES  256
 #define PCIE_BDF_TABLE_MAX_ENTRIES \
         ((PCIE_DEVICE_BDF_TABLE_SZ - sizeof(pcie_device_bdf_table)) / \
@@ -218,19 +219,29 @@ payload(void)
       e_bdf = val_exerciser_get_bdf(instance);
       val_print(DEBUG, "\n       Exerciser BDF - 0x%x", e_bdf);
 
-      val_pcie_enable_eru(e_bdf);
-
       if (val_pcie_get_rootport(e_bdf, &erp_bdf))
           continue;
-      val_pcie_enable_eru(erp_bdf);
 
       /* Check DPC capability */
       status = val_pcie_find_capability(erp_bdf, PCIE_ECAP, ECID_DPC, &rp_dpc_cap_base);
       if (status == PCIE_CAP_NOT_FOUND)
       {
-          val_print(ERROR, "\n       ECID_DPC not found");
+          val_print(ERROR, "\n       ECID_DPC not found for BDF 0x%x", erp_bdf);
           continue;
       }
+
+      /* BSA mandates software-visible PCIe compliance and PCIe
+       * requires DLL Link Active reporting for DPC-capable ports
+       */
+      if (val_pcie_data_link_layer_status(erp_bdf) == PCIE_DLL_LINK_ACTIVE_NOT_SUPPORTED)
+      {
+          val_print(ERROR, "\n       DLL Link Active reporting not supported, BDF 0x%x", erp_bdf);
+          fail_cnt++;
+          continue;
+      }
+
+      val_pcie_enable_eru(e_bdf);
+      val_pcie_enable_eru(erp_bdf);
 
       /* Check AER capability for both exerciser and RP */
       if (val_pcie_find_capability(e_bdf, PCIE_ECAP, ECID_AER, &aer_offset) != PCIE_SUCCESS) {
@@ -295,8 +306,6 @@ err_check:
       /* check for both fatal and non-fatal error */
       for (int i = 0; i < 2; i++)
       {
-          val_pcie_data_link_layer_status(erp_bdf);
-
           /* Save downstream config state under this RP before SBR. */
           if (save_downstream_config_space(erp_bdf))
           {
@@ -312,9 +321,10 @@ err_check:
           /* Enable DPC */
           val_pcie_enable_dpc(erp_bdf, msg_type[i]);
 
-          /* Enable DPC Interrupt bit */
+          /* Select UR completions during DPC and enable the DPC interrupt. */
+          /* If UR completions is not selected, then DPC completions could return Completer Abort */
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
-          reg_value |= DPC_INTR_ENABLE;
+          reg_value |= DPC_INTR_ENABLE | DPC_COMPLETION_UR;
           val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, reg_value);
 
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
@@ -331,6 +341,28 @@ err_check:
 
           /*Inject error immediately*/
           val_exerciser_ops(INJECT_ERROR, CFG_READ, instance);
+
+          /* Wait for the link to go down before accessing the EP or releasing DPC. */
+          val_time_delay_ms(10 * ONE_MILLISECOND);
+          timeout = TIMEOUT_LARGE;
+          do
+          {
+              status = val_pcie_data_link_layer_status(erp_bdf);
+          } while ((status == PCIE_DLL_LINK_STATUS_ACTIVE) && --timeout);
+
+          if (status != PCIE_DLL_LINK_STATUS_NOT_ACTIVE) {
+              val_print(ERROR, "\n       DPC link-down wait failed, BDF 0x%x", erp_bdf);
+              fail_cnt++;
+
+              /* Stop new triggers before deciding whether restoration is safe. */
+              val_pcie_disable_dpc(erp_bdf);
+              if (msi_check == 1) {
+                  free_msi_interrupt(erp_bdf, device_id, its_id,
+                                     lpi_int_id + instance, msi_index);
+                  msi_check = 0;
+              }
+              goto dpc_recover;
+          }
 
           val_pcie_read_cfg(e_bdf, CFG_READ, &reg_value);
           if (reg_value != PCIE_UNKNOWN_RESPONSE)
@@ -381,10 +413,10 @@ err_check:
               if (timeout == 0) {
                   val_print(ERROR, "\n       Interrupt trigger failed for bdf 0x%x", e_bdf);
                   fail_cnt++;
-                  goto disable_dpc;
               }
           }
 
+dpc_recover:
           /* RP Busy is applicable only when RP Extensions for DPC are supported. */
           val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_CTRL_OFFSET, &reg_value);
           if ((reg_value >> DPC_RP_EXT_OFFSET) & DPC_RP_EXT_MASK)
@@ -411,7 +443,13 @@ err_check:
                   return;
               }
           }
-          val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, 1);
+
+          /* Disable further DPC triggers before releasing containment. */
+          val_pcie_disable_dpc(erp_bdf);
+
+          /* Clear DPC Trigger Status and Interrupt Status (RW1C). */
+          /* Until this trigger is cleared, the LTSSM will be in the disabled state */
+          val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, 0x9);
 
           val_pcie_read_cfg(erp_bdf, TYPE01_ILR, &reg_value);
           reg_value = reg_value | BRIDGE_CTRL_SBR_SET;
@@ -439,12 +477,7 @@ err_check:
                   {
                       val_print(ERROR,
                                "\n       Failed to time delay for BDF 0x%x ", erp_bdf);
-                      free_config_space();
-                      if (msi_check == 1)
-                          free_msi_interrupt(erp_bdf, device_id, its_id,
-                                             lpi_int_id + instance, msi_index);
-                      val_set_status(pe_index, RESULT_FAIL(02));
-                      return;
+                      fail_cnt++;
                   }
 
                   status = val_pcie_data_link_layer_status(erp_bdf);
@@ -455,7 +488,8 @@ err_check:
           {
               val_print(ERROR,
                        "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
-              val_set_status(pe_index, RESULT_FAIL(02));
+              fail_cnt++;
+              val_set_status(pe_index, RESULT_FAIL(fail_cnt));
               free_config_space();
               if (msi_check == 1)
                   free_msi_interrupt(erp_bdf, device_id, its_id,
@@ -463,26 +497,25 @@ err_check:
               return;
           }
 
-disable_dpc:
-          /*Disable the DPC status register*/
+          /* Allow post-reset initialization before restoring configuration. */
+          delay_status = val_time_delay_ms(100 * ONE_MILLISECOND);
 
-          val_pcie_read_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, &reg_value);
-          val_pcie_write_cfg(erp_bdf, rp_dpc_cap_base + DPC_STATUS_OFFSET, reg_value | 0x1);
-
-          /*Disable the DPC control register*/
-          val_pcie_disable_dpc(erp_bdf);
-
-          /* Restore saved downstream config state after Secondary Bus Reset. */
           restore_downstream_config_space(erp_bdf);
+          status = val_pcie_read_cfg(e_bdf, CFG_READ, &reg_value);
+          if (delay_status || status || (reg_value == PCIE_UNKNOWN_RESPONSE))
+          {
+              val_print(ERROR, "\n       EP config read failed, BDF 0x%x", e_bdf);
+              fail_cnt++;
+              val_set_status(pe_index, RESULT_FAIL(fail_cnt));
+              free_config_space();
+              if (msi_check == 1)
+                  free_msi_interrupt(erp_bdf, device_id, its_id,
+                                     lpi_int_id + instance, msi_index);
+              return;
+          }
+
           val_pcie_read_cfg(e_bdf, aer_offset + AER_UNCORR_STATUS_OFFSET, &reg_value);
           val_pcie_write_cfg(e_bdf, aer_offset + AER_UNCORR_STATUS_OFFSET, reg_value & 0xFFFFFFFF);
-
-          val_pcie_read_cfg(e_bdf, CFG_READ, &reg_value);
-          if (reg_value == PCIE_UNKNOWN_RESPONSE)
-          {
-              val_print(ERROR, "\n       EP 0x%x not recovered from DPC", e_bdf);
-              fail_cnt++;
-          }
 
       }
 
@@ -491,10 +524,10 @@ disable_dpc:
                              lpi_int_id + instance, msi_index);
   }
 
-  if (test_skip)
-      val_set_status(pe_index, RESULT_SKIP(01));
-  else if (fail_cnt)
+  if (fail_cnt)
       val_set_status(pe_index, RESULT_FAIL(fail_cnt));
+  else if (test_skip)
+      val_set_status(pe_index, RESULT_SKIP(01));
   else
       val_set_status(pe_index, RESULT_PASS);
 
