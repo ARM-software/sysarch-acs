@@ -500,6 +500,7 @@ def validate_model(catalog: dict[str, Any],
 
     return {
         "specification": catalog["specification"],
+        "specification_url": catalog.get("specification_url"),
         "release_scope": catalog["release_scope"],
         "service_id_width": catalog["service_id_width"],
         "feature_registers": feature_registers,
@@ -1188,10 +1189,16 @@ def generate_registry(model: dict[str, Any]) -> str:
 def generate_coverage(model: dict[str, Any]) -> str:
     """Generate the reviewable Alpha1 ABI interface coverage table."""
     abi_by_id = {abi["id"]: abi for abi in model["abis"]}
+    specification = model["specification"]
+    specification_url = model.get("specification_url")
+    specification_reference = (
+        f"[{specification}]({specification_url})"
+        if specification_url else f"`{specification}`"
+    )
     lines = [
         "# FIRME Alpha1 ABI Interface Coverage",
         "",
-        f"Specification: `{model['specification']}`",
+        f"Specification: {specification_reference}",
         "",
         "This generated table is limited to the Alpha1 Base, GPT, IDE and MEC",
         "ABIs. Attestation and Integrated Device Management are intentionally",

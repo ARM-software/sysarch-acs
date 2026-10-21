@@ -664,7 +664,7 @@ credentials or private platform information.
 References and document history
 ===============================
 
-* `FIRME specification, DEN0149 <https://developer.arm.com/documentation/den0149/latest>`_.
+* `FIRME specification, DEN0149 1.0 ALP4 <https://support.arm.com/documentation/den0149/1-0alp4/?lang=en>`_.
   Use the revision selected for the ACS release when interpreting rule IDs.
 * `SMC Calling Convention, DEN0028 <https://developer.arm.com/documentation/den0028/latest>`_.
   Apply the version and behavior required by the selected FIRME specification.

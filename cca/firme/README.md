@@ -8,7 +8,7 @@ include Granule Protection Table (GPT) management, Memory Encryption Context
 (MEC) refresh, IDE key management, attestation and integrated-device management.
 
 FIRME-ACS validates an EL3 implementation against the
-[DEN0149 FIRME specification](https://developer.arm.com/documentation/den0149/latest).
+[DEN0149 FIRME 1.0 ALP4 specification](https://support.arm.com/documentation/den0149/1-0alp4/?lang=en).
 The DUT can be supplied by any firmware implementer; the provided FVP
 integration uses Trusted Firmware-A (TF-A).
 
@@ -34,7 +34,7 @@ and [ABI interface coverage](docs/FIRME_Alpha1_ABI_Interface_Coverage.md).
 | ACS revision | Git tag | Specification baseline |
 |---|---|---|
 | FIRME Alpha1 ACS v0.5 Alpha | v26.03_FIRME_0.5 | [DEN0149 FIRME 1.0 ALP1](https://developer.arm.com/documentation/den0149/1-0alp1) |
-| FIRME Alpha1 ACS v1.0.1 Alpha | `v26.10_FIRME_1.0.1` (release target) | DEN0149 FIRME 1.0 ALP4 |
+| FIRME Alpha1 ACS v1.0.1 Alpha | `v26.10_FIRME_1.0.1` | [DEN0149 FIRME 1.0 ALP4](https://support.arm.com/documentation/den0149/1-0alp4/?lang=en) |
 
 The runtime banner reports the ACS version, release target and Alpha quality.
 The target tag alone does not establish publication or completed qualification.

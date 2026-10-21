@@ -25,7 +25,7 @@ Scope and exclusions
 ====================
 
 These scenarios target ACS release ``v26.10_FIRME_1.0.1`` against
-DEN0149 FIRME 1.0 ALP4.
+`DEN0149 FIRME 1.0 ALP4 <https://support.arm.com/documentation/den0149/1-0alp4/?lang=en>`_.
 
 The ALP4 Alpha1 inventory contains 123 rules across Concepts/Base, Granule
 Management, MECID Management, IDE Key Management and their ABI interfaces.

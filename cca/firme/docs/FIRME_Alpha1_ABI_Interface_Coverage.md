@@ -1,6 +1,6 @@
 # FIRME Alpha1 ABI Interface Coverage
 
-Specification: `DEN0149 FIRME 1.0 ALP4`
+Specification: [DEN0149 FIRME 1.0 ALP4](https://support.arm.com/documentation/den0149/1-0alp4/?lang=en)
 
 This generated table is limited to the Alpha1 Base, GPT, IDE and MEC
 ABIs. Attestation and Integrated Device Management are intentionally

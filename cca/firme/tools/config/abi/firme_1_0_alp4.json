@@ -1,6 +1,7 @@
 {
   "schema_version": 2,
   "specification": "DEN0149 FIRME 1.0 ALP4",
+  "specification_url": "https://support.arm.com/documentation/den0149/1-0alp4/?lang=en",
   "release_scope": "Alpha1",
   "release_abis": [
     "SERVICE_VERSION",
