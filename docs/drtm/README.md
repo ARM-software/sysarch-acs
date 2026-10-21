@@ -1,123 +1,175 @@
+# DRTM Architecture for Arm - Architecture Compliance Suite
 
-# DRTM Architecture For Arm - Architecture Compliance Suite
+## Table of Contents
 
-## Dynamic Root of Trust for Measurement
-**DRTM Acrhitecture for Arm** (DRTM) specification defines an architecture for Dynamic Root of Trust for Measurement (DRTM) for processors based on the Arm A-profile architecture.
+- [DRTM Architecture for Arm](#drtm-architecture-for-arm)
+- [DRTM Architecture Compliance Suite](#drtm-architecture-compliance-suite)
+- [Release details](#release-details)
+- [Documentation and Guides](#documentation-and-guides)
+- [DRTM build steps](#drtm-build-steps)
+  - [UEFI Shell application](#uefi-shell-application)
+- [DRTM run steps](#drtm-run-steps)
+  - [For UEFI application](#for-uefi-application)
+- [Application arguments](#application-arguments)
+- [Limitations](#limitations)
+- [Feedback, contributions and support](#feedback-contributions-and-support)
+- [License](#license)
 
-For more information, download the [DRTM Architecture for Arm](https://developer.arm.com/documentation/den0113/latest).
+## DRTM Architecture for Arm
+
+The **Dynamic Root of Trust for Measurement (DRTM) Architecture for Arm**
+defines an architecture for beginning a new chain of trust and launching a
+measured, protected payload on processors based on the Arm A-profile
+architecture.
+
+For more information, download the
+[DRTM Architecture for Arm specification](https://developer.arm.com/documentation/den0113/latest).
+
+## DRTM Architecture Compliance Suite
+
+The DRTM **Architecture Compliance Suite (ACS)** is a collection of
+self-checking, portable C-based tests. The tests cover the DRTM interface and
+dynamic-launch behavior defined by the specification.
+
+The suite is built as a UEFI Shell application. DRTM ACS currently uses numeric
+test and module identifiers for execution and reporting.
 
 ## Release details
- - Code Quality: Alpha
- - The tests are written for version 1.1 of the DRTM Architecture for Arm.
- - For more details on tests implemented in this release, Please refer [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.md).
 
-## Downloading DRTM ACS
+- **Code quality:** BETA
+- **ACS version:** v1.4.0
+- **Specification coverage:** DRTM Architecture for Arm v1.4
+- **Execution environments:** Silicon and emulation
+- **Scope:** The compliance suite is **not** a substitute for design verification.
+- For details on the tests implemented in this release, see the
+  [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.md).
 
-DRTM ACS code is present in the sysarch-acs repository.
+## Documentation and Guides
 
-$ git clone https://github.com/ARM-software/sysarch-acs.git <br/>
-$ cd sysarch-acs <br/>
+- [DRTM Test Scenario Document](arm_drtm_architecture_compliance_test_scenario.md)
+- [Common UEFI build guide](../common/uefi_build.md)
 
-## Building DRTM ACS
-### UEFI application
-#### Prerequisites
+## DRTM build steps
 
-ACS build requires that the following requirements are met, Please skip this if you are using [DRTM Application Build Script](../../tools/scripts/build_drtm_uefi.sh).
+### UEFI Shell application
 
-- Any mainstream Linux based OS distribution.
-- git clone EDK2 tree.
-- git clone EDK2-libc tree.
-- Install GCC-ARM 14.3 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
-- Install the build prerequisite packages to build EDK2. The details of the packages are beyond the scope of this document.
+Follow the [Common UEFI build guide](../common/uefi_build.md) to set up the
+edk2 workspace and Arm toolchain, then run the following command from the edk2
+workspace:
 
-#### Build Steps
+```bash
+source ShellPkg/Application/sysarch-acs/tools/scripts/acsbuild.sh drtm
+```
 
-$ cd /path/to/sysarch-acs/<br/>
-$ source tools/scripts/build_drtm_uefi.sh
+The build emits `Drtm.efi` under
+`Build/Shell/<TOOL_CHAIN_TAG>/AARCH64/` inside the edk2 workspace.
 
-#### Build Output
+## DRTM run steps
 
-The following output file is created in /path/to/sysarch-acs/workspace/output/:
+### For UEFI application
 
-- Drtm.efi
+#### Silicon system
 
-#### Note : Steps to get toolchain
-- wget https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-- tar -xf arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-- export GCC_AARCH64_PREFIX= GCC 14.3 toolchain path pointing to arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+On a system with a functional USB port:
 
-## Test suite execution in UEFI
+1. Copy `Drtm.efi` to a FAT-formatted USB device.
+2. Boot to the UEFI Shell.
+3. Refresh filesystem mappings with `map -r`.
+4. Switch to the USB filesystem, for example `fs0:`.
+5. Run `Drtm.efi` with the required parameters described in
+   [Application arguments](#application-arguments).
+6. Capture the UART console output to a log file for analysis.
 
-### Post-Silicon
+**Example**
 
-On a system where a USB port is available and functional, perform the following steps:
+`Shell> Drtm.efi -v 1 -skip 5,10,105 -f drtm_uefi.log`
 
-1. Copy 'Drtm.efi' to a USB Flash drive.
-2. Plug in the USB Flash drive to one of the functional USB ports on the system.
-3. Boot the system to UEFI shell.
-4. To determine the file system number of the plugged in USB drive, execute 'map -r' command.
-5. Type 'fsx' where 'x' is replaced by the number determined in step 4.
-6. To start the compliance tests, run the executable Drtm.efi with the appropriate arguments.
+Runs at INFO level, skips tests 5, 10, and 105, and saves the output to
+`drtm_uefi.log`.
 
-### Emulation environment with secondary storage
+#### Emulation environment with secondary storage
 
-On an emulation environment with secondary storage, perform the following steps:
+1. Create a FAT image containing `Drtm.efi`:
 
-1. Create an image file which contains the 'Drtm.efi' file. For Example: <br/>
-$ mkfs.vfat -C -n HD0 hda.img 2097152 <br/>
-$ sudo mount hda.img /mnt/drtm <br/>
-$ cd /path/to/sysarch-acs/workspace/output/ <br/>
-$ sudo cp Drtm.efi /mnt/drtm/ <br/>
-$ sudo umount /mnt/drtm
-2. Load the image file to the secondary storage using a backdoor. The steps followed to load the image file are Emulation environment specific and beyond the scope of this document.
-3. Boot the system to UEFI shell.
-4. To determine the file system number of the secondary storage, execute 'map -r' command.
-5. Type 'fsx' where 'x' is replaced by the number determined in step 4.
-6. To start the compliance tests, run the executable Drtm.efi with the appropriate arguments.
+   ```bash
+   mkfs.vfat -C -n HD0 hda.img 2097152
+   sudo mount hda.img /mnt/drtm
+   sudo cp <path-to-Drtm.efi> /mnt/drtm/
+   sudo umount /mnt/drtm
+   ```
+
+2. Attach the image to the virtual platform or emulator using its documented
+   backdoor method.
+3. Boot to the UEFI Shell.
+4. Refresh filesystem mappings with `map -r`.
+5. Switch to the assigned filesystem, for example `fs0:`.
+6. Run `Drtm.efi` with the required parameters.
+7. Capture the UART console output for analysis.
 
 ## Application arguments
 
-Command line arguments are similar for uefi application, with some exceptions.
+DRTM ACS currently supports numeric test and module selectors:
 
-### UEFI
+```text
+Drtm.efi [-v <verbosity>] [-skip <test_id>] [-t <test_id>] [-m <module_id>] [-f <filename>]
+```
 
-Shell> Drtm.efi [-v &lt;verbosity&gt;] [-skip &lt;test_id&gt;] [-f &lt;filename&gt;]
+### `-v`
 
-#### -v
-Choose the verbosity level.
+Choose the verbosity level:
 
-- 1 - ERROR
-- 2 - WARN and ERROR
-- 3 - TEST and above
-- 4 - DEBUG and above
-- 5 - INFO and above
+- `1` - INFO and above
+- `2` - DEBUG and above
+- `3` - TEST and above
+- `4` - WARN and ERROR
+- `5` - ERROR
 
-#### -skip
-Overrides the suite to skip the execution of a particular
-test. For example, <i>-skip 10</i> skips test 10.
+### `-skip`
 
-#### -f (Only for UEFI application)
-Save the test output into a file in secondary storage. For example <i>-f drtm.log</i> creates a file drtm.log with test output.
+Skip one or more comma-separated test IDs. For example, `-skip 5,10` skips
+tests 5 and 10.
 
-### UEFI example
+### `-t`
 
-Shell> Drtm.efi -v 5 -skip 15,20,30 -f drtm_uefi.log
+Run only the specified comma-separated test IDs. For example, `-t 5,105` runs
+only tests 5 and 105.
 
-Runs DRTM ACS with verbosity INFO, skips test 15, 20 and 30 and saves the test results in <i>drtm_uefi.log</i>.
+### `-m`
+
+Run only the specified comma-separated module IDs:
+
+- `0` - Interface tests (test IDs 1-99)
+- `100` - Dynamic Launch tests (test IDs 101-199)
+
+For example, `-m 0` runs only the Interface module, while `-m 100` runs only
+the Dynamic Launch module. Module names such as `INTERFACE` are not accepted by
+the current command-line parser.
+
+### `-f` (UEFI only)
+
+Save test output to a file on the active filesystem. For example,
+`-f drtm.log` creates `drtm.log` containing the test output.
+
+### `-help`, `-h`
+
+Display the application usage information.
 
 ## Limitations
 
- - Since this is a Alpha quality release, contains limited number of tests based on DRTM Specification.
+- DRTM ACS is an Beta-quality release with limited verification for ACPI Hash Table related scenarios.
+- The suite currently targets version 1.4 of the DRTM Architecture for Arm specification.
+
+## Feedback, contributions and support
+
+- Email: [support-systemready-acs@arm.com](mailto:support-systemready-acs@arm.com)
+- GitHub Issues: [sysarch-acs issue tracker](https://github.com/ARM-software/sysarch-acs/issues)
+- Contributions: [GitHub Pull Requests](https://github.com/ARM-software/sysarch-acs/pulls)
+- Arm licensees can contact Arm through their partner managers.
 
 ## License
-DRTM ACS is distributed under Apache v2.0 License.
 
-## Feedback, contributions, and support
-
- - For feedback, use the GitHub Issue Tracker that is associated with this repository.
- - For support, send an email to "support-systemready-acs@arm.com" with details.
- - Arm licensees may contact Arm directly through their partner managers.
- - Arm welcomes code contributions through GitHub pull requests. See the GitHub documentation on how to raise pull requests.
+DRTM ACS is distributed under the
+[Apache v2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 --------------
 

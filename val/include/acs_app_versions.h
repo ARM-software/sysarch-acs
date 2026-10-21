@@ -44,8 +44,9 @@
 #define XBSA_ACS_SUBMINOR_VER      0
 
 /* DRTM Release versions */
-#define DRTM_ACS_MAJOR_VER         0
-#define DRTM_ACS_MINOR_VER         7
+#define DRTM_ACS_MAJOR_VER         1
+#define DRTM_ACS_MINOR_VER         4
+#define DRTM_ACS_SUBMINOR_VER      0
 
 /* MPAM Release versions */
 #define MPAM_ACS_MAJOR_VER         0
