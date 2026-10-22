@@ -43,6 +43,7 @@ uint64_t val_pmu_get_info(PMU_INFO_e type, uint32_t node_index);
 uint8_t  val_pmu_supports_dedicated_cycle_counter(uint32_t node_index);
 uint32_t val_pmu_get_monitor_count(uint32_t node_index);
 void     val_pmu_disable_all_monitors(uint32_t node_index);
+void     val_pmu_teardown_monitor_config(uint32_t node_index);
 void     val_pmu_enable_all_monitors(uint32_t node_index);
 void     val_pmu_reset_all_monitors(uint32_t node_index);
 uint32_t val_pmu_get_monitor_group_count(uint32_t node_index);
@@ -60,7 +61,7 @@ uint32_t val_pmu_get_multi_traffic_support_interface(uint64_t *interface_acpiid,
 uint32_t val_pmu_get_index_acpiid(uint64_t interface_acpiid);
 uint32_t val_generate_traffic(uint64_t interface_acpiid, uint32_t pmu_node_index,
                                      uint32_t mon_index, uint32_t eventid);
-uint32_t val_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint32_t count_value,
+uint32_t val_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint64_t count_value,
                                                                           uint32_t eventid);
 void     val_pmu_set_node_coresight_complaint(uint32_t flag, uint32_t node_index);
 uint32_t is_coresight_pmu_present(void);

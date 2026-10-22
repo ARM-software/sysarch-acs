@@ -91,6 +91,11 @@ uint32_t check_event_support(PMU_EVENT_TYPE_e *event_list, uint32_t num_events,
         return TEST_FAIL;
     }
 
+    if (val_pmu_configure_monitor(node_index, (PMU_EVENT_TYPE_e)PMU_EVENT_INVALID, 0) == 0) {
+        val_print(ERROR, "\n       Unsupported PMU event was accepted");
+        return TEST_FAIL;
+    }
+
     /* initialise even_supported array*/
     for (event_idx = 0; event_idx < num_events; event_idx++)
         event_supported[event_idx] = 0;
@@ -113,10 +118,12 @@ uint32_t check_event_support(PMU_EVENT_TYPE_e *event_list, uint32_t num_events,
         if (!event_supported[event_idx]) {
             val_print(DEBUG, "\n       Missing support for event ID %d",
                       event_list[event_idx]);
+            val_pmu_teardown_monitor_config(node_index);
             return TEST_FAIL;
         }
     }
 
+    val_pmu_teardown_monitor_config(node_index);
     return TEST_PASS;
 }
 

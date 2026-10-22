@@ -28,6 +28,269 @@ PMU_INFO_TABLE  *g_pmu_info_table;
 static uint64_t ControlRegBackup;
 static uint64_t CcFiltRegBackup;
 
+#define PMU_FILTER_STATE_MAX_NODES     512
+#define PMU_FILTER_STATE_MAX_MONITORS  128
+
+static uint64_t g_pmu_saved_filter[PMU_FILTER_STATE_MAX_NODES][PMU_FILTER_STATE_MAX_MONITORS];
+static uint8_t g_pmu_filter_saved[PMU_FILTER_STATE_MAX_NODES][PMU_FILTER_STATE_MAX_MONITORS];
+
+static uint32_t
+val_pmu_is_node_index_valid(uint32_t node_index)
+{
+    if (g_pmu_info_table == NULL) {
+        val_print(WARN, "\n   APMT info table not found");
+        return 0;
+    }
+
+    if (node_index >= g_pmu_info_table->pmu_count) {
+        val_print(WARN, "\n   Invalid Node index ");
+        return 0;
+    }
+
+    return 1;
+}
+
+static uint32_t
+val_pmu_get_cached_ext64(uint32_t node_index)
+{
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 1;
+
+    return g_pmu_info_table->info[node_index].cspmu_ext64;
+}
+
+static uint32_t
+val_pmu_get_pmcr_offset(uint32_t node_index)
+{
+    return val_pmu_get_cached_ext64(node_index) ? REG_PMCR_64 : REG_PMCR;
+}
+
+static uint64_t
+val_pmu_read_pmcr(uint32_t node_index)
+{
+    addr_t base;
+    uint32_t pmcr_offset;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 0;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    pmcr_offset = val_pmu_get_pmcr_offset(node_index);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        return val_mmio_read64(base + pmcr_offset);
+
+    return val_mmio_read(base + pmcr_offset);
+}
+
+static void
+val_pmu_write_pmcr(uint32_t node_index, uint64_t data)
+{
+    addr_t base;
+    uint32_t pmcr_offset;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    pmcr_offset = val_pmu_get_pmcr_offset(node_index);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        val_mmio_write64(base + pmcr_offset, data);
+    else
+        val_mmio_write(base + pmcr_offset, (uint32_t)data);
+}
+
+static uint64_t
+val_pmu_read_pmcfgr(uint32_t node_index)
+{
+    addr_t base;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 0;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        return val_mmio_read64(base + REG_PMCFGR);
+
+    return val_mmio_read(base + REG_PMCFGR);
+}
+
+static uint64_t
+val_pmu_read_pmscr(uint32_t node_index)
+{
+    addr_t base;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 0;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        return val_mmio_read64(base + REG_PMSCR_L);
+
+    return val_mmio_read(base + REG_PMSCR_L);
+}
+
+static uint32_t
+val_pmu_get_pmevtyper_offset(uint32_t node_index, uint32_t mon_inst)
+{
+    uint32_t stride;
+
+    stride = val_pmu_get_cached_ext64(node_index) ? REG_PMEVTYPER_64_STRIDE :
+                                                  REG_PMEVTYPER_32_STRIDE;
+
+    return REG_PMEVTYPER + (stride * mon_inst);
+}
+
+static uint32_t
+val_pmu_get_pmevfiltr_offset(uint32_t node_index, uint32_t mon_inst)
+{
+    uint32_t stride;
+
+    stride = val_pmu_get_cached_ext64(node_index) ? REG_PMEVFILTR_64_STRIDE :
+                                                  REG_PMEVFILTR_32_STRIDE;
+
+    return REG_PMEVFILTR + (stride * mon_inst);
+}
+
+static uint64_t
+val_pmu_read_pmevfiltr(uint32_t node_index, uint32_t mon_select)
+{
+    addr_t base;
+    uint32_t offset;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    offset = val_pmu_get_pmevfiltr_offset(node_index, mon_select);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        return val_mmio_read64(base + offset);
+
+    return val_mmio_read(base + offset);
+}
+
+static void
+val_pmu_write_pmevfiltr(uint32_t node_index, uint32_t mon_select, uint64_t data)
+{
+    addr_t base;
+    uint32_t offset;
+
+    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    offset = val_pmu_get_pmevfiltr_offset(node_index, mon_select);
+
+    if (val_pmu_get_cached_ext64(node_index))
+        val_mmio_write64(base + offset, data);
+    else
+        val_mmio_write(base + offset, (uint32_t)data);
+}
+
+static void
+val_pmu_restore_event_filter(uint32_t node_index, uint32_t mon_select)
+{
+    if ((node_index >= PMU_FILTER_STATE_MAX_NODES) ||
+        (mon_select >= PMU_FILTER_STATE_MAX_MONITORS))
+        return;
+
+    if (!g_pmu_filter_saved[node_index][mon_select])
+        return;
+
+    val_pmu_write_pmevfiltr(node_index, mon_select,
+                            g_pmu_saved_filter[node_index][mon_select]);
+    g_pmu_filter_saved[node_index][mon_select] = 0;
+}
+
+static void
+val_pmu_restore_all_event_filters(uint32_t node_index)
+{
+    uint32_t mon_select;
+
+    if (node_index >= PMU_FILTER_STATE_MAX_NODES)
+        return;
+
+    for (mon_select = 0; mon_select < PMU_FILTER_STATE_MAX_MONITORS; mon_select++)
+        val_pmu_restore_event_filter(node_index, mon_select);
+}
+
+static uint32_t
+val_pmu_apply_event_filter(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
+                           PMU_NODE_INFO_TYPE node_type, uint32_t mon_select)
+{
+    uint32_t status;
+    uint64_t filter_mask = 0;
+    uint64_t filter_value = 0;
+    uint64_t old_filter;
+    uint64_t new_filter;
+
+    val_pmu_restore_event_filter(node_index, mon_select);
+
+    status = pal_pmu_get_event_filter_info(node_index, event_type, node_type,
+                                           &filter_mask, &filter_value);
+    if (status == NOT_IMPLEMENTED)
+        return 0;
+
+    if (status != STATUS_SUCCESS)
+        return 1;
+
+    if ((node_index >= PMU_FILTER_STATE_MAX_NODES) ||
+        (mon_select >= PMU_FILTER_STATE_MAX_MONITORS))
+        return 1;
+
+    old_filter = val_pmu_read_pmevfiltr(node_index, mon_select);
+    new_filter = (old_filter & ~filter_mask) | (filter_value & filter_mask);
+
+    g_pmu_saved_filter[node_index][mon_select] = old_filter;
+    g_pmu_filter_saved[node_index][mon_select] = 1;
+    val_pmu_write_pmevfiltr(node_index, mon_select, new_filter);
+
+    return 0;
+}
+
+static uint32_t
+val_pmu_get_event_monitor_inst(uint32_t node_index, uint32_t mon_inst)
+{
+    if (val_pmu_supports_dedicated_cycle_counter(node_index) &&
+        (mon_inst >= PMU_DEDICATED_CYCLE_COUNTER))
+        return mon_inst + 1;
+
+    return mon_inst;
+}
+
+static void
+val_pmu_cache_node_arch(uint32_t node_index, uint32_t devarch)
+{
+    PMU_INFO_BLOCK *entry;
+    uint32_t archpart;
+
+    entry = &g_pmu_info_table->info[node_index];
+    entry->coresight_compliant = 0;
+    entry->cspmu_ext64 = 0;
+
+    if (!BITFIELD_READ(PMDEVARCH_PRESENT, devarch))
+        return;
+
+    if (BITFIELD_READ(PMDEVARCH_ARCHITECT, devarch) != PMDEVARCH_ARCHITECT_ARM)
+        return;
+
+    archpart = BITFIELD_READ(PMDEVARCH_ARCHPART, devarch);
+
+    switch (archpart) {
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32:
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32_PAGE0:
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32_PAGE1:
+        entry->coresight_compliant = 1;
+        break;
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64:
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64_PAGE0:
+    case PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64_PAGE1:
+        entry->coresight_compliant = 1;
+        entry->cspmu_ext64 = 1;
+        break;
+    default:
+        break;
+    }
+}
+
 /**
  * @brief   This API provides VAL interface to PMU register reads
  *
@@ -183,15 +446,17 @@ val_pmu_create_info_table(uint64_t *pmu_info_table)
       val_print(TRACE, "\n       PMU node index: %4d", node_index);
       base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
       val_mmu_update_entry(base, 0x1000, DEVICE_nGnRnE);
-      val_print(TRACE, "\n       PMU node mapped");
-      reg_value = BITFIELD_READ(PMDEVARCH_ARCHITECT, val_mmio_read(base + REG_PMDEVARCH));
-      /* 0x23B is value for Arm Limited */
-      if (reg_value == 0x23B)
-          val_pmu_set_node_coresight_complaint(0x1, node_index);
-      else {
-          val_pmu_set_node_coresight_complaint(0x0, node_index);
-          val_print(ERROR, "\n   PMU node index %d is not CS complaint", node_index);
+      if (val_pmu_get_info(PMU_NODE_DP_EXTN, node_index)) {
+          base = val_pmu_get_info(PMU_NODE_BASE1, node_index);
+          if (base != 0)
+              val_mmu_update_entry(base, 0x1000, DEVICE_nGnRnE);
       }
+      val_print(TRACE, "\n       PMU node mapped");
+      base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+      reg_value = val_mmio_read(base + REG_PMDEVARCH);
+      val_pmu_cache_node_arch(node_index, reg_value);
+      if (!val_pmu_get_info(PMU_NODE_CS_COM, node_index))
+          val_print(ERROR, "\n   PMU node index %d is not CS complaint", node_index);
   }
 
   return;
@@ -210,7 +475,7 @@ val_pmu_set_node_coresight_complaint(uint32_t flag, uint32_t node_index)
       return;
   }
 
-  if (node_index > g_pmu_info_table->pmu_count) {
+  if (node_index >= g_pmu_info_table->pmu_count) {
       val_print(WARN, "\n   Invalid Node index ");
       return;
   }
@@ -225,7 +490,11 @@ val_pmu_set_node_coresight_complaint(uint32_t flag, uint32_t node_index)
 void
 val_pmu_free_info_table(void)
 {
+    uint32_t node_index;
+
     if (g_pmu_info_table != NULL) {
+        for (node_index = 0; node_index < g_pmu_info_table->pmu_count; node_index++)
+            val_pmu_restore_all_event_filters(node_index);
         pal_mem_free_aligned((void *)g_pmu_info_table);
         g_pmu_info_table = NULL;
     }
@@ -254,7 +523,10 @@ val_pmu_get_info(PMU_INFO_e type, uint32_t node_index)
       return 0;
   }
 
-  if (node_index > g_pmu_info_table->pmu_count) {
+  if (type == PMU_NODE_COUNT)
+      return g_pmu_info_table->pmu_count;
+
+  if (node_index >= g_pmu_info_table->pmu_count) {
       val_print(WARN, "\n   Invalid Node index ");
       return 0;
   }
@@ -272,8 +544,6 @@ val_pmu_get_info(PMU_INFO_e type, uint32_t node_index)
       return entry->primary_instance;
   case PMU_NODE_SEC_INST:
       return entry->secondary_instance;
-  case PMU_NODE_COUNT:
-      return g_pmu_info_table->pmu_count;
   case PMU_NODE_DP_EXTN:
       return entry->dual_page_extension;
   case PMU_NODE_CS_COM:
@@ -292,11 +562,7 @@ val_pmu_get_info(PMU_INFO_e type, uint32_t node_index)
 uint8_t
 val_pmu_supports_dedicated_cycle_counter(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
-    return BITFIELD_READ(PMCFGR_CC, val_mmio_read(base + REG_PMCFGR));
+    return BITFIELD_READ(PMCFGR_CC, val_pmu_read_pmcfgr(node_index));
 }
 
 /**
@@ -307,16 +573,13 @@ val_pmu_supports_dedicated_cycle_counter(uint32_t node_index)
 uint32_t
 val_pmu_get_monitor_count(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
 
    /* If PMCFGR.CC == 1 PMEVCNTR31 is implemented and is a dedicated cycle counter
       else If PMEVCNTR31 is implemented, it is a normal monitor */
     if (val_pmu_supports_dedicated_cycle_counter(node_index))
-        return BITFIELD_READ(PMCFGR_N, val_mmio_read(base + REG_PMCFGR));
+        return BITFIELD_READ(PMCFGR_N, val_pmu_read_pmcfgr(node_index));
     else
-        return BITFIELD_READ(PMCFGR_N, val_mmio_read(base + REG_PMCFGR)) + 1;
+        return BITFIELD_READ(PMCFGR_N, val_pmu_read_pmcfgr(node_index)) + 1;
 }
 
 /**
@@ -324,17 +587,28 @@ val_pmu_get_monitor_count(uint32_t node_index)
   @param   node_index - index of the PMU node in the APMT info table.
   @return  none.
 **/
+static void
+val_pmu_disable_all_monitors_raw(uint32_t node_index)
+{
+    uint64_t data;
+
+    data = val_pmu_read_pmcr(node_index);
+    data &= ~((uint64_t)PMCR_E_MASK << PMCR_E_SHIFT);
+
+    val_pmu_write_pmcr(node_index, data);
+}
+
 void
 val_pmu_disable_all_monitors(uint32_t node_index)
 {
-    addr_t base;
-    uint32_t data;
+    val_pmu_disable_all_monitors_raw(node_index);
+}
 
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
-    data = BITFIELD_WRITE(val_mmio_read(base + REG_PMCR), PMCR_E, 0);
-
-    val_mmio_write(base + REG_PMCR, data);
+void
+val_pmu_teardown_monitor_config(uint32_t node_index)
+{
+    val_pmu_disable_all_monitors_raw(node_index);
+    val_pmu_restore_all_event_filters(node_index);
 }
 
 /**
@@ -345,14 +619,12 @@ val_pmu_disable_all_monitors(uint32_t node_index)
 void
 val_pmu_enable_all_monitors(uint32_t node_index)
 {
-    addr_t base;
-    uint32_t data;
+    uint64_t data;
 
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    data = val_pmu_read_pmcr(node_index);
+    data |= ((uint64_t)1 << PMCR_E_SHIFT);
 
-    data = BITFIELD_WRITE(val_mmio_read(base + REG_PMCR), PMCR_E, 1);
-
-    val_mmio_write(base + REG_PMCR, data);
+    val_pmu_write_pmcr(node_index, data);
 }
 
 /**
@@ -363,14 +635,12 @@ val_pmu_enable_all_monitors(uint32_t node_index)
 void
 val_pmu_reset_all_monitors(uint32_t node_index)
 {
-    addr_t base;
-    uint32_t data;
+    uint64_t data;
 
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    data = val_pmu_read_pmcr(node_index);
+    data |= ((uint64_t)1 << PMCR_P_SHIFT);
 
-    data = BITFIELD_WRITE(val_mmio_read(base + REG_PMCR), PMCR_P, 1);
-
-    val_mmio_write(base + REG_PMCR, data);
+    val_pmu_write_pmcr(node_index, data);
 }
 
 /**
@@ -381,12 +651,8 @@ val_pmu_reset_all_monitors(uint32_t node_index)
 uint32_t
 val_pmu_get_monitor_group_count(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
     /* PMCFGR.NCG gives number of monitor groups implemented minus one */
-    return BITFIELD_READ(PMCFGR_NCG, val_mmio_read(base + REG_PMCFGR)) + 1;
+    return BITFIELD_READ(PMCFGR_NCG, val_pmu_read_pmcfgr(node_index)) + 1;
 }
 
 /**
@@ -397,11 +663,7 @@ val_pmu_get_monitor_group_count(uint32_t node_index)
 uint32_t
 val_pmu_get_max_monitor_size(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
-    return BITFIELD_READ(PMCFGR_SIZE, val_mmio_read(base + REG_PMCFGR));
+    return BITFIELD_READ(PMCFGR_SIZE, val_pmu_read_pmcfgr(node_index));
 }
 
 /**
@@ -418,15 +680,29 @@ val_pmu_configure_monitor(uint32_t node_index, PMU_EVENT_TYPE_e event_type, uint
     addr_t base;
     uint32_t offset;
     uint32_t data;
+    uint32_t ext64;
     uint32_t node_type;
+    uint32_t mon_select;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 1;
 
     base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    ext64 = val_pmu_get_cached_ext64(node_index);
+
+    if (mon_inst >= val_pmu_get_monitor_count(node_index)) {
+        val_print(ERROR, "\n       Invalid PMU monitor index %d", mon_inst);
+        return 1;
+    }
+
+    mon_select = val_pmu_get_event_monitor_inst(node_index, mon_inst);
 
     /* Calculate the register offset based on selected monitor */
-    offset = 4 * mon_inst;
+    offset = val_pmu_get_pmevtyper_offset(node_index, mon_select);
 
     /* Disable all monitors before configuring the monitor */
-    val_pmu_disable_all_monitors(node_index);
+    val_pmu_disable_all_monitors_raw(node_index);
+    val_pmu_restore_event_filter(node_index, mon_select);
 
     node_type = val_pmu_get_info(PMU_NODE_TYPE, node_index);
     /* Get event id details based on Implementation */
@@ -436,8 +712,14 @@ val_pmu_configure_monitor(uint32_t node_index, PMU_EVENT_TYPE_e event_type, uint
         return 1;
     }
 
+    if (val_pmu_apply_event_filter(node_index, event_type, node_type, mon_select))
+        return 1;
+
     /* Write the received details into PMEVTYPER */
-    val_mmio_write(base + offset + REG_PMEVTYPER, data);
+    if (ext64)
+        val_mmio_write64(base + offset, data);
+    else
+        val_mmio_write(base + offset, data);
 
     /* Enable all the monitors  using PMCR.E */
     val_pmu_enable_all_monitors(node_index);
@@ -458,17 +740,36 @@ void
 val_pmu_enable_monitor(uint32_t node_index, uint32_t mon_inst)
 {
     addr_t base;
+    uint32_t bit_offset;
+    uint32_t reg_offset;
+    uint32_t mon_select;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return;
 
     base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    if (mon_inst >= val_pmu_get_monitor_count(node_index)) {
+        val_print(ERROR, "\n       Invalid PMU monitor index %d", mon_inst);
+        return;
+    }
 
-    uint32_t reg_offset, bit_offset;
+    mon_select = val_pmu_get_event_monitor_inst(node_index, mon_inst);
+
+    if (val_pmu_get_cached_ext64(node_index)) {
+        if (mon_select >= 64) {
+            val_print(ERROR, "\n       Invalid EXT64 PMU monitor index %d", mon_select);
+            return;
+        }
+        val_mmio_write64(base + REG_PMCNTENSET, 1ULL << mon_select);
+        return;
+    }
 
     /* Register offset and bit offset is calculated based on the selected
     monitor */
-    reg_offset = mon_inst / 32 * 4;
-    bit_offset = mon_inst % 32;
+    reg_offset = mon_select / 32 * 4;
+    bit_offset = mon_select % 32;
 
-    val_mmio_write(base + reg_offset + REG_PMCNTENSET, 1 << bit_offset);
+    val_mmio_write(base + reg_offset + REG_PMCNTENSET, 1U << bit_offset);
 }
 
 /**
@@ -481,17 +782,37 @@ void
 val_pmu_disable_monitor(uint32_t node_index, uint32_t mon_inst)
 {
     addr_t base;
+    uint32_t bit_offset;
+    uint32_t reg_offset;
+    uint32_t mon_select;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return;
 
     base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+    if (mon_inst >= val_pmu_get_monitor_count(node_index)) {
+        val_print(ERROR, "\n       Invalid PMU monitor index %d", mon_inst);
+        return;
+    }
 
-    uint32_t reg_offset, bit_offset;
+    mon_select = val_pmu_get_event_monitor_inst(node_index, mon_inst);
+
+    if (val_pmu_get_cached_ext64(node_index)) {
+        if (mon_select >= 64) {
+            val_print(ERROR, "\n       Invalid EXT64 PMU monitor index %d", mon_select);
+            return;
+        }
+        val_mmio_write64(base + REG_PMCNTENCLR, 1ULL << mon_select);
+        val_pmu_reset_all_monitors(node_index);
+        return;
+    }
 
     /* Register offset and bit offset is calculated based on the selected
     monitor */
-    reg_offset = mon_inst / 32 * 4;
-    bit_offset = mon_inst % 32;
+    reg_offset = mon_select / 32 * 4;
+    bit_offset = mon_select % 32;
 
-    val_mmio_write(base + reg_offset + REG_PMCNTENCLR, 1 << bit_offset);
+    val_mmio_write(base + reg_offset + REG_PMCNTENCLR, 1U << bit_offset);
 
     /* Reset all the monitors */
     val_pmu_reset_all_monitors(node_index);
@@ -509,6 +830,17 @@ val_pmu_read_count(uint32_t node_index, uint32_t mon_inst)
     addr_t base;
     uint64_t count;
     uint32_t offset;
+    uint32_t mon_select;
+
+    if (!val_pmu_is_node_index_valid(node_index))
+        return 0;
+
+    if (mon_inst >= val_pmu_get_monitor_count(node_index)) {
+        val_print(ERROR, "\n       Invalid PMU monitor index %d", mon_inst);
+        return 0;
+    }
+
+    mon_select = val_pmu_get_event_monitor_inst(node_index, mon_inst);
 
     /* PMEVCNTR is a page 1 register when dual page extension is implemented */
     if (val_pmu_get_info(PMU_NODE_DP_EXTN, node_index))
@@ -516,19 +848,20 @@ val_pmu_read_count(uint32_t node_index, uint32_t mon_inst)
     else
         base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
 
-    /* The width of the register PMEVCNTR depends on the size of the largest
-    implemented counter. if size if PMCFGR.SIZE <= 0b011111, all monitors are
-    32 bits or smaller else at least one monitor is larger than 32 bits. The
-    offset is then calculated accordingly. */
-
-    if (val_pmu_get_max_monitor_size(node_index) > 0b011111) {
-        offset = 8 * mon_inst;
+    /* EXT64 always maps PMEVCNTR<n> as a 64-bit register. In EXT32, the
+       register spacing depends on the largest implemented monitor size. */
+    if (val_pmu_get_cached_ext64(node_index)) {
+        offset = REG_PMEVCNTR + (REG_PMEVCNTR_64_STRIDE * mon_select);
+        count = val_mmio_read64(base + offset);
+    }
+    else if (val_pmu_get_max_monitor_size(node_index) > 0b011111) {
+        offset = REG_PMEVCNTR + (REG_PMEVCNTR_64_STRIDE * mon_select);
         count = (uint64_t)val_mmio_read(base + offset + REG_PMEVCNTR_H) << 32 |
                 val_mmio_read(base + offset + REG_PMEVCNTR_L);
     }
     else {
-        offset = 4 * mon_inst;
-        count = val_mmio_read(base + offset + REG_PMEVCNTR);
+        offset = REG_PMEVCNTR + (REG_PMEVCNTR_32_STRIDE * mon_select);
+        count = val_mmio_read(base + offset);
     }
 
     return count;
@@ -568,11 +901,7 @@ val_pmu_get_node_index(uint64_t node_instance_primary, PMU_NODE_INFO_TYPE node_t
 uint32_t
 val_pmu_implements_pmscr(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
-    return BITFIELD_READ(PMSCR_IMPL, val_mmio_read(base + REG_PMSCR_L));
+    return BITFIELD_READ(PMSCR_IMPL, val_pmu_read_pmscr(node_index));
 }
 
 /**
@@ -584,12 +913,8 @@ val_pmu_implements_pmscr(uint32_t node_index)
 uint32_t
 val_pmu_is_secure(uint32_t node_index)
 {
-    addr_t base;
-
-    base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
-
     if (val_pmu_implements_pmscr(node_index)) {
-        return BITFIELD_READ(PMSCR_NSRA, val_mmio_read(base + REG_PMSCR_L));
+        return BITFIELD_READ(PMSCR_NSRA, val_pmu_read_pmscr(node_index));
     }
 
     return 0;
@@ -604,7 +929,7 @@ val_pmu_is_secure(uint32_t node_index)
            non-zero - error or invallid count value
 **/
 uint32_t
-val_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint32_t count_value,
+val_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint64_t count_value,
                                                                        uint32_t eventid)
 {
     return pal_pmu_check_monitor_count_value(interface_acpiid, count_value, eventid);

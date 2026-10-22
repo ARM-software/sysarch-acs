@@ -37,7 +37,7 @@ static void payload(void)
     uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
     uint32_t pmu_node_count, num_mon, i;
     uint32_t mon_index, pmu_node_index;
-    uint32_t mon_count_value;
+    uint64_t mon_count_value;
     uint32_t ret_status, status;
     uint64_t interface_acpiid;
     uint32_t num_traffic_support;
@@ -104,6 +104,7 @@ static void payload(void)
                 val_print(ERROR,
                         "\n       Required PMU Event 0x%x not supported", config_events[i]);
                 val_print(ERROR, " at node %d", pmu_node_index);
+                val_pmu_teardown_monitor_config(pmu_node_index);
                 val_set_status(index, RESULT_FAIL(6));
                 return;
             }
@@ -113,10 +114,12 @@ static void payload(void)
             ret_status = val_generate_traffic(interface_acpiid, pmu_node_index, mon_index,
                                                                         config_events[i]);
             if (ret_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-                  val_set_status(index, RESULT_WARNING(2));
-                  return;
+                val_pmu_teardown_monitor_config(pmu_node_index);
+                val_set_status(index, RESULT_WARNING(2));
+                return;
             } else if (ret_status) {
                 val_print(ERROR, "\n       workload generate function failed");
+                val_pmu_teardown_monitor_config(pmu_node_index);
                 val_set_status(index, RESULT_FAIL(7));
                 return;
             }
@@ -126,10 +129,12 @@ static void payload(void)
             ret_status = val_pmu_check_monitor_count_value(interface_acpiid, mon_count_value,
                                                                              config_events[i]);
             if (ret_status == ACS_STATUS_PAL_NOT_IMPLEMENTED) {
-                  val_set_status(index, RESULT_WARNING(3));
-                  return;
+                val_pmu_teardown_monitor_config(pmu_node_index);
+                val_set_status(index, RESULT_WARNING(3));
+                return;
             } else if (ret_status) {
                 val_print(ERROR, "\n       count value not as expected");
+                val_pmu_teardown_monitor_config(pmu_node_index);
                 val_set_status(index, RESULT_FAIL(8));
                 return;
             }
@@ -139,7 +144,7 @@ static void payload(void)
     }
 
     /* Disable PMU monitors */
-    val_pmu_disable_all_monitors(pmu_node_index);
+    val_pmu_teardown_monitor_config(pmu_node_index);
 
     val_set_status(index, RESULT_PASS);
 }
