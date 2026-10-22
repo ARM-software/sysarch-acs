@@ -84,14 +84,14 @@ payload(void *arg)
    * pgt_base_array = array of data on which memeory operations will be performed
    * pgt_base = array of data against which we will verify the final values
    */
-  pgt_base_array = val_aligned_alloc(MEM_ALIGN_4K, sizeof(uint64_t) * num_exercisers);
+  pgt_base_array = val_aligned_alloc(MEM_ALIGN_4K, MAX_LEN);
   if (!pgt_base_array) {
       val_print(ERROR, "\n       mem alloc failure for pgt_base_array");
       val_set_status(pe_index, RESULT_FAIL(01));
       return;
   }
 
-  pgt_base = val_aligned_alloc(MEM_ALIGN_4K, sizeof(uint64_t) * num_exercisers);
+  pgt_base = val_aligned_alloc(MEM_ALIGN_4K, MAX_LEN);
   if (!pgt_base) {
       val_print(ERROR, "\n       mem alloc failure for pgt_base");
       val_set_status(pe_index, RESULT_FAIL(02));
@@ -99,8 +99,8 @@ payload(void *arg)
       return;
   }
 
-  val_memory_set(pgt_base_array, sizeof(uint64_t) * num_exercisers, 0);
-  val_memory_set(pgt_base, sizeof(uint64_t) * num_exercisers, 0);
+  val_memory_set(pgt_base_array, MAX_LEN, 0);
+  val_memory_set(pgt_base, MAX_LEN, 0);
 
   for (instance = 0; instance < num_exercisers; ++instance) {
 
