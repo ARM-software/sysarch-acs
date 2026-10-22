@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2024-2025, Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2026, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,6 +58,7 @@
 #define REG_PMCGR                  0x0CE0
 #define REG_PMCFGR                 0x0E00
 #define REG_PMCR                   0x0E04
+#define REG_PMCR_64                0x0E10
 #define REG_PMIIDR                 0x0E08
 #define REG_PMCEID                 0x0E20
 #define REG_PMSSCR                 0x0E30
@@ -90,6 +91,25 @@
 #define REG_PMCIDR2                0x0FF8
 #define REG_PMCIDR3                0x0FFC
 
+#define REG_PMEVTYPER_32_STRIDE    0x4
+#define REG_PMEVTYPER_64_STRIDE    0x8
+#define REG_PMEVFILTR_32_STRIDE    0x4
+#define REG_PMEVFILTR_64_STRIDE    0x8
+#define REG_PMEVCNTR_32_STRIDE     0x4
+#define REG_PMEVCNTR_64_STRIDE     0x8
+
+#define PMU_DEDICATED_CYCLE_COUNTER 31
+
+#define PMDEVARCH_ARCHITECT_ARM    0x23B
+
+#define PMDEVARCH_ARCHPART_ARM_AMU_EXT32          0xA66
+#define PMDEVARCH_ARCHPART_ARM_AMU_EXT64          0xA67
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32        0xAF0
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32_PAGE0  0xAF1
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT32_PAGE1  0xAF2
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64        0xAF4
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64_PAGE0  0xAF5
+#define PMDEVARCH_ARCHPART_ARM_CSPMU_EXT64_PAGE1  0xAF6
 
 
 /* PMCFGR bit definitions */
@@ -128,6 +148,8 @@ BITFIELD_DECL(uint32_t, PMSCR_NAO, 4, 4)
 BITFIELD_DECL(uint32_t, PMSCR_IMPL, 31, 31)
 
 /* PMDEVARCH bit configuration */
+BITFIELD_DECL(uint32_t, PMDEVARCH_ARCHPART, 11, 0)
+BITFIELD_DECL(uint32_t, PMDEVARCH_PRESENT, 20, 20)
 BITFIELD_DECL(uint32_t, PMDEVARCH_ARCHITECT, 31, 21)
 
 #endif /*__ACS_PMU_REG_H__ */
