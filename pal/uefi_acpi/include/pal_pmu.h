@@ -49,7 +49,11 @@ typedef enum {
   PMU_NODE_PE_CACHE
 } PMU_NODE_INFO_TYPE;
 
-#define PMU_EVENT_INVALID 0xFFFFFFFF
+#define PMU_EVENT_INVALID 0xFFFFFFFFU
+
+UINT32 pal_pmu_get_event_filter_info(UINT32 node_index, PMU_EVENT_TYPE_e event_type,
+                                     PMU_NODE_INFO_TYPE node_type, UINT64 *filter_mask,
+                                     UINT64 *filter_value);
 
 #pragma pack(1)
 
@@ -72,6 +76,8 @@ typedef struct {
     UINT32 affinity;
     UINT32 implementation_id;
 } APMT_NODE;
+
+#pragma pack()
 
 typedef struct{
     UINT32 node_index;

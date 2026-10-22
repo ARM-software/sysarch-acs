@@ -1738,3 +1738,5 @@ const PLATFORM_OVERRIDE_EVENT_DETAILS event_list[] = {
   {0, PMU_NODE_ACPI_DEVICE, PMU_EVENT_TRAFFIC_1, PMU_EVENT_INVALID},
   {0, PMU_NODE_ACPI_DEVICE, PMU_EVENT_TRAFFIC_2, PMU_EVENT_INVALID}
 };
+
+const uint32_t event_list_count = sizeof(event_list) / sizeof(event_list[0]);

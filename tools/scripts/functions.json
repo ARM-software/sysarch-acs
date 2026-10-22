@@ -255,7 +255,12 @@
     {
       "return_type": "uint32_t",
       "function_name": "pal_pmu_check_monitor_count_value",
-      "parameters": ["uint64_t interface_acpiid", "uint32_t count_value", "uint32_t eventid"]
+      "parameters": ["uint64_t interface_acpiid", "uint64_t count_value", "uint32_t eventid"]
+    },
+    {
+      "return_type": "uint32_t",
+      "function_name": "pal_pmu_get_event_filter_info",
+      "parameters": ["uint32_t node_index", "PMU_EVENT_TYPE_e event_type", "PMU_NODE_INFO_TYPE node_type", "uint64_t *filter_mask", "uint64_t *filter_value"]
     },
     {
       "return_type": "uint32_t",

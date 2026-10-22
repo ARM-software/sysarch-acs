@@ -174,12 +174,38 @@ event_details event_list[] = {
 UINT32
 pal_pmu_get_event_info(UINT32 node_index, PMU_EVENT_TYPE_e event_type, PMU_NODE_INFO_TYPE node_type)
 {
-  UINT32 i=0;
-  while (event_list[i].node_index != node_index || event_list[i].node_type != node_type
-         || event_list[i].event_desc != event_type) {
+  UINT32 i = 0;
+  UINT32 event_list_count = sizeof(event_list) / sizeof(event_list[0]);
+
+  while (i < event_list_count) {
+    if ((event_list[i].node_index == node_index) && (event_list[i].node_type == node_type)
+        && (event_list[i].event_desc == event_type)) {
+      return event_list[i].event_id;
+    }
     i++;
   }
-  return event_list[i].event_id;
+
+  return PMU_EVENT_INVALID;
+}
+
+/**
+    This API returns PMEVFILTR mask and value for a PMU event.
+
+   PAL_STATUS_SUCCESS if filter data is valid.
+          PAL_STATUS_NOT_IMPLEMENTED if no filter programming is required.
+**/
+UINT32
+pal_pmu_get_event_filter_info(UINT32 node_index, PMU_EVENT_TYPE_e event_type,
+                              PMU_NODE_INFO_TYPE node_type, UINT64 *filter_mask,
+                              UINT64 *filter_value)
+{
+  (void) node_index;
+  (void) event_type;
+  (void) node_type;
+  (void) filter_mask;
+  (void) filter_value;
+
+  return PAL_STATUS_NOT_IMPLEMENTED;
 }
 
 /**
@@ -191,7 +217,7 @@ pal_pmu_get_event_info(UINT32 node_index, PMU_EVENT_TYPE_e event_type, PMU_NODE_
            PAL_STATUS_NOT_IMPLEMENTED when platform-specific validation is absent.
 **/
 UINT32
-pal_pmu_check_monitor_count_value(UINT64 interface_acpiid, UINT32 count_value, UINT32 eventid)
+pal_pmu_check_monitor_count_value(UINT64 interface_acpiid, UINT64 count_value, UINT32 eventid)
 {
     (void) interface_acpiid;
     (void) count_value;

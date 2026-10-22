@@ -92,11 +92,36 @@ uint32_t pal_pcie_dsm_ste_tags(void)
            non-zero - error or invallid count value
 **/
 uint32_t
-pal_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint32_t count_value, uint32_t eventid)
+pal_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint64_t count_value, uint32_t eventid)
 {
   (void) interface_acpiid;
   (void) count_value;
   (void) eventid;
+
+  pal_warn_not_implemented(__func__);
+  return PAL_STATUS_NOT_IMPLEMENTED;
+}
+
+/**
+     This API returns PMEVFILTR mask and value for a PMU event.
+     node_index - index of PMU node
+     event_type - PMU event type
+     node_type - PMU node type
+     filter_mask - bits controlled by platform hook
+     filter_value - values to write under filter_mask
+    PAL_STATUS_SUCCESS when filter data is valid,
+           PAL_STATUS_NOT_IMPLEMENTED when no filter programming is required
+**/
+uint32_t
+pal_pmu_get_event_filter_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
+                              PMU_NODE_INFO_TYPE node_type, uint64_t *filter_mask,
+                              uint64_t *filter_value)
+{
+  (void) node_index;
+  (void) event_type;
+  (void) node_type;
+  (void) filter_mask;
+  (void) filter_value;
 
   pal_warn_not_implemented(__func__);
   return PAL_STATUS_NOT_IMPLEMENTED;
