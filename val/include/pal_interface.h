@@ -17,6 +17,7 @@
 
 #ifndef __PAL_INTERFACE_H__
 #define __PAL_INTERFACE_H__
+
 #ifdef TARGET_BAREMETAL
   #include <stdlib.h>
   #include <stdint.h>
@@ -1018,6 +1019,7 @@ typedef struct {
     uint64_t base1;               /* Base address of Page 1 of the PMU,
                                    valid only if dual_page_extension is 1*/
     uint32_t coresight_compliant; /* node is CS complaint or not */
+    uint32_t cspmu_ext64;         /* node follows CSPMU EXT64 register model */
 } PMU_INFO_BLOCK;
 
 typedef struct {
@@ -1100,7 +1102,7 @@ typedef enum {
 } PMU_NODE_INFO_TYPE;
 
 
-#define PMU_EVENT_INVALID 0xFFFFFFFF
+#define PMU_EVENT_INVALID 0xFFFFFFFFU
 
 /**
   @brief  This API fills in the PMU_INFO_TABLE with information about local and system
@@ -1113,11 +1115,14 @@ typedef enum {
 void pal_pmu_create_info_table(PMU_INFO_TABLE *PmuTable);
 uint32_t pal_pmu_get_event_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
                                 PMU_NODE_INFO_TYPE node_type);
+uint32_t pal_pmu_get_event_filter_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
+                                       PMU_NODE_INFO_TYPE node_type, uint64_t *filter_mask,
+                                       uint64_t *filter_value);
 uint32_t pal_pmu_get_multi_traffic_support_interface(uint64_t *interface_acpiid,
                                                        uint32_t *num_traffic_type_support);
 uint32_t pal_generate_traffic(uint64_t interface_acpiid, uint32_t pmu_node_index,
                                      uint32_t mon_index, uint32_t eventid);
-uint32_t pal_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint32_t count_value,
+uint32_t pal_pmu_check_monitor_count_value(uint64_t interface_acpiid, uint64_t count_value,
                                                                uint32_t eventid);
 
 /* Cache info table structures and APIs */

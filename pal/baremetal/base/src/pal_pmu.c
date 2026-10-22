@@ -20,6 +20,7 @@
 
 extern const PLATFORM_OVERRIDE_PMU_INFO_TABLE platform_pmu_cfg;
 extern const PLATFORM_OVERRIDE_EVENT_DETAILS event_list[];
+extern const uint32_t event_list_count;
 
 /**
   @brief  Display PMU info table details
@@ -128,10 +129,13 @@ pal_pmu_get_event_info(uint32_t node_index, PMU_EVENT_TYPE_e event_type,
                        PMU_NODE_INFO_TYPE node_type)
 {
   uint32_t i = 0;
-  while (event_list[i].node_index != node_index || event_list[i].node_type != node_type ||
-         event_list[i].event_desc != event_type) {
+  while (i < event_list_count) {
+    if ((event_list[i].node_index == node_index) && (event_list[i].node_type == node_type) &&
+        (event_list[i].event_desc == event_type)) {
+      return event_list[i].event_id;
+    }
     i++;
   }
 
-  return event_list[i].event_id;
+  return PMU_EVENT_INVALID;
 }

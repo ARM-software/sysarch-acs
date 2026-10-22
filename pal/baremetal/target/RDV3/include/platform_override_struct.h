@@ -517,7 +517,7 @@ typedef enum {
   PMU_NODE_PE_CACHE
 } PMU_NODE_INFO_TYPE;
 
-#define PMU_EVENT_INVALID 0xFFFFFFFF
+#define PMU_EVENT_INVALID 0xFFFFFFFFU
 
 typedef struct{
     uint32_t node_index;

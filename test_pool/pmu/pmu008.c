@@ -177,6 +177,7 @@ static void payload(void)
             val_print(ERROR,
                         "\n       Required PMU Event 0x%x not supported", config_events[i]);
             val_print(ERROR, " at node %d", mc_node_index);
+            val_pmu_teardown_monitor_config(mc_node_index);
             val_set_status(index, RESULT_WARNING(6));
             return;
         }
@@ -190,6 +191,7 @@ static void payload(void)
     remote_pe_prox_domain = val_srat_get_info(SRAT_GICC_REMOTE_PROX_DOMAIN, pe_prox_domain);
     if (remote_pe_prox_domain == SRAT_INVALID_INFO) {
         val_print(ERROR, "\n       Could not get remote PE proximity domain");
+        val_pmu_teardown_monitor_config(mc_node_index);
         val_set_status(index, RESULT_WARNING(7));
         return;
     }
@@ -203,8 +205,9 @@ static void payload(void)
     status = generate_traffic(pe_prox_domain, BUFFER_SIZE / 2, payload1);
     if (status) {
         val_print(ERROR, "\n       Memory allocation failed");
-            val_set_status(index, RESULT_WARNING(8));
-            return;
+        val_pmu_teardown_monitor_config(mc_node_index);
+        val_set_status(index, RESULT_WARNING(8));
+        return;
     }
 
     /* Read the configured monitors for bandwidth values */
@@ -221,7 +224,8 @@ static void payload(void)
     status = generate_traffic(pe_prox_domain, BUFFER_SIZE, payload2);
 
     if (status) {
-    val_print(ERROR, "\n       Memory allocation failed");
+        val_print(ERROR, "\n       Memory allocation failed");
+        val_pmu_teardown_monitor_config(mc_node_index);
         val_set_status(index, RESULT_WARNING(9));
         return;
     }
@@ -233,13 +237,14 @@ static void payload(void)
     /*Consider delta for results*/
     for (i = 0 ; i < NUM_PMU_MON ; i++) {
         if (value2[i] <= value1[i]) {
+            val_pmu_teardown_monitor_config(mc_node_index);
             val_set_status(index, RESULT_WARNING(10));
             return;
         }
     }
 
     /* Disable PMU monitors */
-    val_pmu_disable_all_monitors(mc_node_index);
+    val_pmu_teardown_monitor_config(mc_node_index);
 
     val_set_status(index, RESULT_PASS);
 }

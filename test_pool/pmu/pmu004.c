@@ -231,6 +231,7 @@ uint32_t sys_pmu_test_scenario(TEST_SCENARIO_e scenario, PMU_NODE_INFO_TYPE node
             val_print(ERROR,
                         "\n       Required PMU Event 0x%x not supported", event_ptr[i]);
             val_print(ERROR, " at node %d", node_index);
+            val_pmu_teardown_monitor_config(node_index);
             return TEST_FAIL;
         }
     }
@@ -244,7 +245,7 @@ uint32_t sys_pmu_test_scenario(TEST_SCENARIO_e scenario, PMU_NODE_INFO_TYPE node
         status = generate_mem_traffic(base_addr, BUFFER_SIZE / 2);
         if (status) {
             val_print(ERROR, "\n       Memory allocation failed", node_index);
-            val_pmu_disable_all_monitors(node_index);
+            val_pmu_teardown_monitor_config(node_index);
             return TEST_FAIL;
         }
     } else if (node_type == PMU_NODE_PCIE_RC) {
@@ -267,7 +268,7 @@ uint32_t sys_pmu_test_scenario(TEST_SCENARIO_e scenario, PMU_NODE_INFO_TYPE node
         status = generate_mem_traffic(base_addr, BUFFER_SIZE);
         if (status) {
             val_print(ERROR, "\n       Memory allocation failed", node_index);
-            val_pmu_disable_all_monitors(node_index);
+            val_pmu_teardown_monitor_config(node_index);
             return TEST_FAIL;
         }
     } else if (node_type == PMU_NODE_PCIE_RC) {
@@ -288,14 +289,14 @@ uint32_t sys_pmu_test_scenario(TEST_SCENARIO_e scenario, PMU_NODE_INFO_TYPE node
                     " for PMU node index: 0x%x",
                     node_index);
             /* Disable PMU monitors */
-            val_pmu_disable_all_monitors(node_index);
+            val_pmu_teardown_monitor_config(node_index);
             return TEST_FAIL;
 
         }
     }
 
     /* Disable PMU monitors */
-    val_pmu_disable_all_monitors(node_index);
+    val_pmu_teardown_monitor_config(node_index);
     return TEST_PASS;
 }
 
