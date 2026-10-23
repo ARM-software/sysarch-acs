@@ -17,6 +17,11 @@
 
 #include "val_libc.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+#define VAL_MEMCPY_WORD_COPY_SUPPORTED 1
+typedef uintptr_t val_memcpy_word_t __attribute__((__may_alias__));
+#endif
+
 /**
   @brief  Compare two memory buffers
 
@@ -48,18 +53,44 @@ int val_memory_compare(void *s1, void *s2, uint32_t len)
   @param  src  Source buffer
   @param  len  Number of bytes to copy
 
+  pointer overlapping is not taken care
   @return Pointer to destination buffer
 **/
 void *val_memcpy(void *dst, void *src, uint32_t len)
 {
-    const unsigned char *s = src;
-    unsigned char *d = dst;
+    const unsigned char *src_pointer = src;
+    unsigned char *dst_pointer = dst;
+#if defined(VAL_MEMCPY_WORD_COPY_SUPPORTED)
+    const uint32_t word_size = (uint32_t)sizeof(uintptr_t);
+    const uintptr_t word_mask = (uintptr_t)(word_size - 1U);
+#endif
 
-    while (len--) {
-        *d++ = *s++;
+    if ((len == 0) || (dst == NULL) || (src == NULL))
+        return dst;
+
+#if defined(VAL_MEMCPY_WORD_COPY_SUPPORTED)
+    if (len >= word_size) {
+        if ((((uintptr_t)dst_pointer ^ (uintptr_t)src_pointer) & word_mask) == 0U) {
+            while ((len != 0U) && (((uintptr_t)dst_pointer & word_mask) != 0U)) {
+                *dst_pointer++ = *src_pointer++;
+                len--;
+            }
+
+            while (len >= word_size) {
+                *(val_memcpy_word_t *)(void *)dst_pointer =
+                    *(const val_memcpy_word_t *)(const void *)src_pointer;
+                dst_pointer += word_size;
+                src_pointer += word_size;
+                len -= word_size;
+            }
+        }
     }
+#endif
 
-    return dst;  // ␛return start of destination
+    while (len-- != 0U)
+        *dst_pointer++ = *src_pointer++;
+
+    return dst; // return start of destination
 }
 
 /**
