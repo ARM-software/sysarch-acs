@@ -99,8 +99,11 @@ payload(void)
   uint32_t dp_type;
   uint32_t pe_index;
   uint32_t tbl_index;
-  uint32_t read_value, old_value, value;
+  uint32_t read_value, value, tmp = 0;
   uint32_t test_skip = 1;
+  /* Modified after val_pe_save_exception_return_context(); must survive exception return */
+  volatile uint32_t restore_pending = 0;
+  volatile uint32_t old_value = 0;
   uint32_t mem_offset = 0;
   uint64_t mem_base = 0;
   uint64_t ori_mem_base = 0;
@@ -147,6 +150,7 @@ payload(void)
       /* BSA -> PCI_IN_13 SBSA(iEP_RP) -> HVZJY */
       if (dp_type == RP || dp_type == iEP_RP)
       {
+        restore_pending = 0;
         /* Part 1:
          * Check When Address is within the Range of Non-Prefetchable
          * Memory Range.
@@ -197,9 +201,13 @@ payload(void)
 
         ori_mem_base = mem_base;
         branch_stack_pointer = val_pe_save_exception_return_context();
-        val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &old_value);
+        val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &tmp);
+        old_value = tmp;
+        restore_pending = 1;
         val_pcie_bar_mem_write(bdf, mem_base + mem_offset, KNOWN_DATA);
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &read_value);
+        restore_pending = 0;
+        val_pcie_bar_mem_write(bdf, mem_base + mem_offset, old_value);
 
         if ((old_value != read_value && read_value == PCIE_UNKNOWN_RESPONSE) ||
              val_pcie_is_urd(bdf)) {
@@ -255,6 +263,12 @@ exception_return:
         {
             val_pcie_write_cfg(bdf, TYPE1_NP_MEM,
                                            ((mem_lim & MEM_LIM_MASK) | (ori_mem_base  >> 16)));
+        }
+
+        if (restore_pending)
+        {
+            restore_pending = 0;
+            val_pcie_bar_mem_write(bdf, ori_mem_base + mem_offset, old_value);
         }
 
         /* Memory Space might have constraint on RW/RO behaviour
