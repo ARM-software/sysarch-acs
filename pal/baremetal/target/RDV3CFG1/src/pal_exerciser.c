@@ -351,6 +351,12 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
   case GENERATE_MEFN_VDM:
       return 1;
 
+  case MEFN_IRQ_SERVICE:
+      return 1;
+
+  case MEFN_IRQ_RESTORE:
+      return 1;
+
   default:
       return 1;
   }
@@ -421,6 +427,8 @@ uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE Type, uint64_t *Value1, ui
   case LEGACY_IRQ:
       *Value1 = pal_mmio_read(Base + INTXCTL);
       return pal_mmio_read(Base + INTXCTL) | MASK_BIT ;
+  case MEFN_SERR_IRQ:
+      return 0;
   case DMA_ATTRIBUTES:
       /* Reading the data from DMA Control Register 2 */
       lower_range = pal_mmio_read(Base + DMA_BUS_ADDR);

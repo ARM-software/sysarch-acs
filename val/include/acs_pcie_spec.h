@@ -82,6 +82,8 @@
 #define SR_IS_MASK     0x1
 #define SR_STA_SHIFT   27
 #define SR_STA_MASK    0x1
+#define SR_SSE_SHIFT   30
+#define SR_SSE_MASK    0x1
 
 /* Secondary Status Register */
 #define SSR_STA_SHIFT  27

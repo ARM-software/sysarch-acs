@@ -147,6 +147,7 @@
 #define PLATFORM_OVERRIDE_GICITS5_ID         0x5
 #define PLATFORM_OVERRIDE_GICCIRD_LENGTH     0x0
 #define PLATFORM_OVERRIDE_GICRIRD_LENGTH     0x1000000
+#define PLATFORM_OVERRIDE_MEFN_SERR_INTID    284
 
 /*
  *Secure EL1 timer Flags, Non-Secure EL1 timer Flags, EL2 timer Flags,
@@ -600,11 +601,16 @@
 
 #define VDM_TYPE_MASK      0xFU
 #define VDM_TYPE_PM        0x1U
+#define VDM_TYPE_MEFN      0x2U
 #define PM_D3_VDM          0x300U
-#define TRIGGER_PM_VDM     0x80000000U
+#define VDM_TRIGGER        0x80000000U
+#define TRIGGER_PM_VDM     VDM_TRIGGER
 #define VDM_RSP_SHIFT      16
 #define VDM_RSP_MASK       0x7U
 #define PM_VDM_RSP_ACK     0x1U
+#define TYPE01_CR          0x4
+#define TYPE01_CMD_MASK    0xFFFFU
+#define CR_SERRE_SHIFT     8
 /* Maximum MMIO polls; platforms should tune this for their PM service latency. */
 #define PM_VDM_MAX_POLLS   100000U
 

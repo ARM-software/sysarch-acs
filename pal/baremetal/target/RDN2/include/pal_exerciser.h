@@ -120,7 +120,10 @@ typedef enum {
     CLEAR_TXN = 0x11,
     ENABLE_CACHE_TXN = 0x12,
     PM_VDM_TYPE = 0x13,
-    GENERATE_MEFN_VDM = 0x14
+    GENERATE_MEFN_VDM = 0x14,
+    MEFN_SERR_IRQ = 0x15,
+    MEFN_IRQ_SERVICE = 0x16,
+    MEFN_IRQ_RESTORE = 0x17
 } EXERCISER_PARAM_TYPE;
 
 typedef enum {

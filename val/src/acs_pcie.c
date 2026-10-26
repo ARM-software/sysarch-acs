@@ -2706,6 +2706,24 @@ val_pcie_is_device_status_error(uint32_t bdf)
 }
 
 /**
+  @brief  Clear Signaled System Error bit in Status Register
+  @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @return None
+**/
+void
+val_pcie_clear_signaled_system_error(uint32_t bdf)
+{
+
+  uint32_t reg_value;
+  uint32_t clear_mask;
+
+  /* Preserve Command register bits and write 1b only to clear SSE. */
+  val_pcie_read_cfg(bdf, TYPE01_CR, &reg_value);
+  clear_mask = (SR_SSE_MASK << SR_SSE_SHIFT);
+  val_pcie_write_cfg(bdf, TYPE01_CR, (reg_value & 0xFFFF) | clear_mask);
+}
+
+/**
   @brief  Clear Signaled Target Abort bit in Status/Secondary Status Register
           in Root Port
   @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
