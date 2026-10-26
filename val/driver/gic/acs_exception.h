@@ -36,4 +36,3 @@ uint32_t common_exception_handler(uint32_t exception_type);
 uint32_t val_acs_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));
 uint32_t val_acs_install_isr(uint32_t interrupt_id, void (*isr)(void));
 
-

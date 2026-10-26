@@ -365,12 +365,24 @@ uint32_t pal_exerciser_set_param(EXERCISER_PARAM_TYPE Type, uint64_t Value1, uin
         /* Program PMReq(D3hot), then trigger the request. */
         Data = VDM_TYPE_PM | PM_D3_VDM;
         pal_mmio_write(Base + PM_VDM_CTLR, Data);
-        pal_mmio_write(Base + PM_VDM_CTLR, Data | TRIGGER_PM_VDM);
+        pal_mmio_write(Base + PM_VDM_CTLR, Data | VDM_TRIGGER);
         pal_time_delay_ms(PLATFORM_OVERRIDE_TIMEOUT);
         return 0;
 
       case GENERATE_MEFN_VDM:
-        return 1;
+        Data = pal_mmio_read(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + TYPE01_CR);
+        Data = (Data & TYPE01_CMD_MASK) | (1U << CR_SERRE_SHIFT);
+        pal_mmio_write(Ecam + pal_exerciser_get_pcie_config_offset(Bdf) + TYPE01_CR, Data);
+
+        pal_mmio_write(Base + PM_VDM_CTLR, VDM_TYPE_MEFN);
+        pal_mmio_write(Base + PM_VDM_CTLR, pal_mmio_read(Base + PM_VDM_CTLR) | VDM_TRIGGER);
+        return 0;
+
+      case MEFN_IRQ_SERVICE:
+        return 0;
+
+      case MEFN_IRQ_RESTORE:
+        return 0;
 
       default:
           return 1;
@@ -441,6 +453,9 @@ uint32_t pal_exerciser_get_param(EXERCISER_PARAM_TYPE Type, uint64_t *Value1, ui
       case LEGACY_IRQ:
           *Value1 = pal_mmio_read(Base + INTXCTL);
           return pal_mmio_read(Base + INTXCTL) | MASK_BIT ;
+      case MEFN_SERR_IRQ:
+          *Value1 = PLATFORM_OVERRIDE_MEFN_SERR_INTID;
+          return 0;
       case DMA_ATTRIBUTES:
           /* Reading the data from DMA Control Register 2 */
           lower_range = pal_mmio_read(Base + DMA_BUS_ADDR);
