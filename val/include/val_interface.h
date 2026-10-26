@@ -345,6 +345,7 @@ uint32_t val_pcie_is_devicedma_64bit(uint32_t bdf);
 uint32_t val_pcie_device_driver_present(uint32_t bdf);
 uint8_t val_pcie_parent_is_rootport(uint32_t dsf_bdf, uint32_t *rp_bdf);
 void val_pcie_clear_device_status_error(uint32_t bdf);
+void val_pcie_clear_signaled_system_error(uint32_t bdf);
 uint32_t val_pcie_is_device_status_error(uint32_t bdf);
 uint32_t val_pcie_is_sig_target_abort(uint32_t bdf);
 void val_pcie_clear_sig_target_abort(uint32_t bdf);

@@ -3547,7 +3547,7 @@ The checklist provides information about:
       <td>Yes</td>
       <td>No</td>
       <td>Exerciser VIP required</td>
-      <td>pal_exerciser_set_param (GENERATE_PMREQ_VDM)</td>
+      <td>pal_exerciser_set_param (PM_VDM_TYPE)</td>
     </tr>
     <tr>
       <td>CXL_06</td>
