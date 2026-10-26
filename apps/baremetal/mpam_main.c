@@ -92,8 +92,8 @@ ShellAppMainmpam(void)
     acs_apply_el3_params(ctx, policy);
 
     val_print(INFO, "\n\n MPAM Architecture Compliance Suite\n");
-    val_print(INFO, "    Version %d.", MPAM_ACS_MAJOR_VER);
-    val_print(INFO, "%d.", MPAM_ACS_MINOR_VER);
+    val_print(INFO, "    Version %c.", MPAM_ACS_MAJOR_VER);
+    val_print(INFO, "%c.", MPAM_ACS_MINOR_VER);
     val_print(INFO, "%d\n", MPAM_ACS_SUBMINOR_VER);
     val_print(INFO, "\nBuilt for target: %s", ACS_TARGET);
     val_print(INFO, "(Print level is %2d)\n\n", acs_policy_get_print_level());

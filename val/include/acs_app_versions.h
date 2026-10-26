@@ -49,8 +49,8 @@
 #define DRTM_ACS_SUBMINOR_VER      0
 
 /* MPAM Release versions */
-#define MPAM_ACS_MAJOR_VER         0
-#define MPAM_ACS_MINOR_VER         7
+#define MPAM_ACS_MAJOR_VER         'b'
+#define MPAM_ACS_MINOR_VER         'c'
 #define MPAM_ACS_SUBMINOR_VER      0
 
 /* PFDI Release versions */

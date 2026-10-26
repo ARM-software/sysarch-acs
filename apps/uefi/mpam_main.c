@@ -156,7 +156,7 @@ execute_tests()
     val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
 
     Print(L"\n\nMPAM System Architecture Compliance Suite \n");
-    Print(L"    Version %d.%d.", MPAM_ACS_MAJOR_VER, MPAM_ACS_MINOR_VER);
+    Print(L"    Version %c.%c.", MPAM_ACS_MAJOR_VER, MPAM_ACS_MINOR_VER);
     Print(L"%d  \n", MPAM_ACS_SUBMINOR_VER);
 
     Print(L"\nStarting tests for Print level %2d\n", acs_policy_get_print_level());

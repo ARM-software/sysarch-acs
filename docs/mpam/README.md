@@ -50,6 +50,8 @@ been implemented and interpreted correctly.
 
 ## Documentation and Guides
 - [SYS-MPAM Test Scenario Document](arm_mpam_architecture_compliance_test_scenario.md)
+- [SYS-MPAM Rule Coverage Checklist](arm_sys-mpam_testcase_checklist.md)
+- [Rule-based execution guide](../common/RuleBasedGuide.md)
 - Bare-metal porting guides:
   - [SYS-MPAM ACS Bare-metal User Guide](arm_mpam_architecture_compliance_bare-metal_user_guide.md)
   - [Common Bare-metal Build Guide](../../pal/baremetal/README.md)
@@ -92,9 +94,9 @@ On a system with a functional USB port:
 
 **Example**
 
-`Shell> Mpam.efi -v 1 -skip 15,20,30 -f mpam_uefi.log`
+`Shell> Mpam.efi -v 1 -skip CFXGZ,RNSLZ -f mpam_uefi.log`
 
-Runs at INFO level, skips tests 15/20/30, and saves the UART log to
+Runs at INFO level, skips rules `CFXGZ` and `RNSLZ`, and saves the UART log to
 `mpam_uefi.log`.
 
 #### Emulation environment with secondary storage
@@ -112,11 +114,17 @@ Runs at INFO level, skips tests 15/20/30, and saves the UART log to
 
 ## Application arguments
 
-SYS-MPAM ACS currently supports numeric test and module selectors. See example below:
+SYS-MPAM ACS uses rule IDs as the primary unit of execution and reporting.
+Legacy numeric test IDs cannot be used to select or skip tests.
 
-Shell> Mpam.efi [-v <verbosity>] [-skip <test_id>] [-t <test_id>] [-m <module_id>] [-f <filename>]
+```text
+Shell> Mpam.efi [-v <verbosity>] [-l <version>] [-r <rule_ids|rules_file>] [-skip <rule_ids|rules_file>] [-m <module_names>] [-skipmodule <module_names>] [-f <filename>]
+```
 
-#### -v
+With no rule or module selector, the application runs all SYS-MPAM rules for
+MPAM architecture version B.c.
+
+#### `-v`
 Choose the verbosity level.
 
 - 1 - INFO and above
@@ -125,19 +133,41 @@ Choose the verbosity level.
 - 4 - WARN and ERROR
 - 5 - ERROR
 
-#### -skip
-Skip execution of particular test IDs. For example, `-skip 10` skips test 10.
+#### `-l`
 
-#### -t
-If test ID(s) are set, only those tests run. For example, `-t 10` runs test 10.
+Select the MPAM architecture version. The supported value is `1`, which maps
+to `MPAM_VERSION_B_c`.
 
-#### -m
-If module ID(s) are set, only those modules run. For example, `-m 100` runs the
-Cache module.
+#### `-r`
 
-#### -f (UEFI only)
+Run one or more comma-separated SYS-MPAM rule IDs, or provide a text file that
+contains a comma-separated rule list. For example, `-r CFXGZ,RNSLZ` runs only
+those rules.
+
+#### `-skip`
+
+Skip one or more comma-separated SYS-MPAM rule IDs, or provide a text file that
+contains a comma-separated rule list. For example, `-skip CFXGZ,RNSLZ` skips
+those rules.
+
+#### `-m`
+
+Run only the specified comma-separated module names. Accepted values are
+`CACHE`, `REG`, `ERROR`, and `MBWU`.
+
+#### `-skipmodule`
+
+Skip the specified comma-separated module names. Accepted values are `CACHE`,
+`REG`, `ERROR`, and `MBWU`.
+
+#### `-f` (UEFI only)
+
 Save test output to a file in secondary storage. For example,
 `-f mpam.log` creates `mpam.log` with test output.
+
+#### `-h`, `-help`
+
+Display the application usage information.
 
 ## Limitations
 
