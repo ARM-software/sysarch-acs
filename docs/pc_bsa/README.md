@@ -35,13 +35,13 @@ rules run inside the UEFI shell via `PC_bsa.efi`; OS-visible behavior is
 validated by the Linux application and its kernel module companion.
 
 ## Release details
-- **Code quality:** EAC
-- **Latest release version:** v1.0.0
-- **Release tag:** `v25.12_PCBSA_1.0.0`
-- **Specification coverage:** PC BSA v1.0
+- **Code quality:** BETA
+- **Latest release version:** v2.0.0
+- **Release tag:** `v26.10_PCBSA_2.0.0`
+- **Specification coverage:** PC BSA v2.0
 - **Execution levels:** Pre-Silicon and Silicon
 - **Scope:** ACS is **not** a substitute for full design verification.
-- **Prebuilt binaries:** [`prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0`](../../prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0)
+- **Prebuilt binaries:** [`prebuilt_images/PCBSA/v26.10_PCBSA_2.0.0`](../../prebuilt_images/PCBSA/v26.10_PCBSA_2.0.0)
 
 ## Documentation & Guides
 - [PC BSA specification](https://developer.arm.com/documentation/den0151/latest)
