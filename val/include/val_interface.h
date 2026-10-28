@@ -333,6 +333,7 @@ uint32_t val_pcie_find_capability(uint32_t bdf, uint32_t cid_type,
                                            uint32_t cid, uint32_t *cid_offset);
 uint32_t val_pcie_is_msa_enabled(uint32_t bdf);
 uint32_t val_pcie_is_urd(uint32_t bdf);
+uint32_t val_pcie_urd_below_rp(uint32_t rp_bdf, uint32_t clear);
 uint32_t val_pcie_bitfield_check(uint32_t bdf, uint64_t *bf_entry);
 uint32_t val_pcie_register_bitfields_check(uint64_t *bf_info_table, uint32_t table_size);
 uint32_t val_pcie_function_header_type(uint32_t bdf);
