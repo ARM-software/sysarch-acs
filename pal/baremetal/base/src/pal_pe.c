@@ -360,6 +360,48 @@ pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type)
 }
 
 /**
+  @brief Perform cache maintenance on a range, with one completion barrier.
+  @param addr   - Start address
+  @param length - Number of bytes
+  @param type   - Cache operation, as for pal_pe_data_cache_ops_by_va()
+**/
+void
+pal_pe_data_cache_ops_range(uint64_t addr, uint64_t length, uint32_t type)
+{
+  uint64_t ctr, line_length, span;
+
+  if (length == 0)
+      return;
+
+  __asm__ volatile("mrs %0, ctr_el0" : "=r"(ctr));
+  line_length = 4ULL << ((ctr >> 16) & 0xf);
+  span = line_length - (addr & (line_length - 1));
+  addr &= ~(line_length - 1);
+
+  for (;;) {
+      switch (type) {
+      case CLEAN:
+          __asm__ volatile("dc cvac, %0" : : "r"(addr) : "memory");
+          break;
+      case INVALIDATE:
+          __asm__ volatile("dc ivac, %0" : : "r"(addr) : "memory");
+          break;
+      case CLEAN_POC:
+          __asm__ volatile("dc cvap, %0" : : "r"(addr) : "memory");
+          break;
+      default:
+          __asm__ volatile("dc civac, %0" : : "r"(addr) : "memory");
+      }
+      if (length <= span)
+          break;
+      length -= span;
+      span = line_length;
+      addr += line_length;
+  }
+  __asm__ volatile("dsb sy" : : : "memory");
+}
+
+/**
   @brief Returns the number of currently present PEs
 
   @return  The number of PEs that are present in the system

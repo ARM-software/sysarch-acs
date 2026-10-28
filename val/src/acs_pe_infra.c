@@ -424,16 +424,7 @@ void
 val_pe_cache_clean_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  uint64_t aligned_addr, end_addr, line_length;
-
-  line_length = 2 << ((val_pe_reg_read(CTR_EL0) >> 16) & 0xf);
-  aligned_addr = start_addr - (start_addr & (line_length-1));
-  end_addr = start_addr + length;
-
-  while(aligned_addr < end_addr){
-      val_data_cache_ops_by_va(aligned_addr, CLEAN);
-      aligned_addr += line_length;
-  }
+  pal_pe_data_cache_ops_range(start_addr, length, CLEAN);
 #endif
 }
 
@@ -449,16 +440,7 @@ void
 val_pe_cache_clean_invalidate_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  uint64_t aligned_addr, end_addr, line_length;
-
-  line_length = 2 << ((val_pe_reg_read(CTR_EL0) >> 16) & 0xf);
-  aligned_addr = start_addr - (start_addr & (line_length-1));
-  end_addr = start_addr + length;
-
-  while (aligned_addr < end_addr) {
-      val_data_cache_ops_by_va(aligned_addr, CLEAN_AND_INVALIDATE);
-      aligned_addr += line_length;
-  }
+  pal_pe_data_cache_ops_range(start_addr, length, CLEAN_AND_INVALIDATE);
 #endif
 }
 
@@ -474,16 +456,7 @@ void
 val_pe_cache_invalidate_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  uint64_t aligned_addr, end_addr, line_length;
-
-  line_length = 2 << ((val_pe_reg_read(CTR_EL0) >> 16) & 0xf);
-  aligned_addr = start_addr - (start_addr & (line_length-1));
-  end_addr = start_addr + length;
-
-  while (aligned_addr < end_addr) {
-      val_data_cache_ops_by_va(aligned_addr, INVALIDATE);
-      aligned_addr += line_length;
-  }
+  pal_pe_data_cache_ops_range(start_addr, length, INVALIDATE);
 #endif
 }
 
