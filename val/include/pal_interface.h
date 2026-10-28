@@ -837,6 +837,7 @@ void     pal_pe_update_sp(void *context, uint64_t sp);
 uint64_t pal_pe_get_esr(void *context);
 uint64_t pal_pe_get_far(void *context);
 void     pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);
+void     pal_pe_data_cache_ops_range(uint64_t addr, uint64_t length, uint32_t type);
 
 #define CLEAN_AND_INVALIDATE  0x1
 #define CLEAN                 0x2

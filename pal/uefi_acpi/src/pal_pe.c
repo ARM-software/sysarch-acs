@@ -708,3 +708,45 @@ pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
   }
 
 }
+
+/**
+  @brief Perform cache maintenance on a range, with one completion barrier.
+  @param addr   - Start address
+  @param length - Number of bytes
+  @param type   - Cache operation, as for pal_pe_data_cache_ops_by_va()
+**/
+VOID
+pal_pe_data_cache_ops_range(UINT64 addr, UINT64 length, UINT32 type)
+{
+  UINT64 ctr, line_length, span;
+
+  if (length == 0)
+      return;
+
+  __asm__ volatile("mrs %0, ctr_el0" : "=r"(ctr));
+  line_length = 4ULL << ((ctr >> 16) & 0xf);
+  span = line_length - (addr & (line_length - 1));
+  addr &= ~(line_length - 1);
+
+  for (;;) {
+      switch (type) {
+      case CLEAN:
+          __asm__ volatile("dc cvac, %0" : : "r"(addr) : "memory");
+          break;
+      case INVALIDATE:
+          __asm__ volatile("dc ivac, %0" : : "r"(addr) : "memory");
+          break;
+      case CLEAN_POC:
+          __asm__ volatile("dc cvap, %0" : : "r"(addr) : "memory");
+          break;
+      default:
+          __asm__ volatile("dc civac, %0" : : "r"(addr) : "memory");
+      }
+      if (length <= span)
+          break;
+      length -= span;
+      span = line_length;
+      addr += line_length;
+  }
+  __asm__ volatile("dsb sy" : : : "memory");
+}
