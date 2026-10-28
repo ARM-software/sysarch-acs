@@ -180,6 +180,23 @@ uint32_t val_exerciser_get_exerciser_instance(uint32_t rc_index)
 }
 
 /**
+  @brief   Return the exerciser instance for a specific PCIe function.
+  @param   bdf  - BDF Number, including the PCIe segment
+  @return  Instance number, or ACS_INVALID_INDEX if the function is not an exerciser
+**/
+uint32_t val_exerciser_get_instance_from_bdf(uint32_t bdf)
+{
+    uint32_t instance;
+    uint32_t num_exercisers = val_exerciser_get_info(EXERCISER_NUM_CARDS);
+
+    for (instance = 0; instance < num_exercisers; ++instance) {
+        if (val_exerciser_get_bdf(instance) == bdf)
+            return instance;
+    }
+    return ACS_INVALID_INDEX;
+}
+
+/**
   @brief   This API reads the configuration parameters of the PCIe stimulus generation hardware
   @param   type         - Parameter type that needs to be read from the stimulus hadrware
   @param   value1       - Parameter 1 that is read from hardware
