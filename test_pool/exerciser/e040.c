@@ -76,7 +76,6 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
   void *dram_buf_out_virt;
   uint64_t dram_buf_phys;
   uint64_t dram_buf_iova;
-  uint64_t dram_buf_out_iova;
   pgt_descriptor_t pgt_desc;
   memory_region_descriptor_t mem_desc;
   smmu_master_attributes_t master;
@@ -173,7 +172,6 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
   clear_dram_buf(dram_buf_virt, page_size);
 
   dram_buf_iova = mem_desc.virtual_address;
-  dram_buf_out_iova = dram_buf_iova + dma_len;
 
   val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_iova, dma_len, instance);
 
@@ -210,7 +208,7 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
   /* Trigger DMA from input buffer to exerciser memory */
   val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, instance);
 
-  if (val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_out_iova, dma_len, instance)) {
+  if (val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_phys + dma_len, dma_len, instance)) {
     val_print(ERROR, "\n       DMA attributes setting failure %4x", instance);
     goto test_fail;
   }
