@@ -207,7 +207,7 @@ execute_tests()
 
 print_test_status:
     val_print_acs_test_status_summary();
-    val_print(ERROR, "\n      *** PC BSA tests complete. Reset the system. ***\n\n");
+    val_print(INFO, "\n      *** PC BSA tests complete. Reset the system. ***\n\n");
 
     freeAcsMem();
 
