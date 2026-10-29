@@ -20,6 +20,7 @@
 #include "val_interface.h"
 #include "acs_pe.h"
 #include "acs_memory.h"
+#include "acs_execution_policy.h"
 
 extern uint8_t g_current_pal;
 extern rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
@@ -173,6 +174,7 @@ static void print_alias_walk_banner(RULE_ID_e rule_id, uint32_t indent, bool sta
  * @param indent        Indentation for child rule logging.
  * @param num_pe        Number of PEs in the system.
  * @param report_self   True if this invocation should print its own start/end.
+ * @param reuse_results Reuse completed base-rule results from this run.
  *
  * @return Rule execution status.
  */
@@ -180,7 +182,8 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
                                        RULE_ID_e rule_id,
                                        uint32_t indent,
                                        uint32_t num_pe,
-                                       bool report_self)
+                                       bool report_self,
+                                       bool reuse_results)
 {
     bool test_ns_flag;
     bool test_pass_flag;
@@ -230,6 +233,17 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
             rule_test_status = rule_support_status;
             goto exit_rule;
         }
+    }
+
+    /* Aliases must still walk their children, including cycle/depth checks. */
+    if (reuse_results && rule_test_map[rule_id].flag == BASE_RULE &&
+        rule_status_map[rule_id] != TEST_STATE_UNKNOWN) {
+        rule_test_status = rule_status_map[rule_id];
+        old_log_indent = val_log_get_indent();
+        val_log_set_indent(indent);
+        val_print(INFO, "\n       Reusing rule result from this run (cached)");
+        val_log_set_indent(old_log_indent);
+        goto exit_rule;
     }
 
     if (rule_test_map[rule_id].flag == ALIAS_RULE) {
@@ -287,7 +301,8 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
 
             /* Always recurse with indent == 1 for descendants. This keeps logs
                readable while still showing child and intermediate alias nodes. */
-            child_rule_status = execute_rule_recursive(ctx, child_rule_id, 1, num_pe, 1);
+            child_rule_status = execute_rule_recursive(ctx, child_rule_id, 1, num_pe, 1,
+                                                       reuse_results);
 
 #ifdef TARGET_LINUX
             if (child_rule_status == TEST_STATE_UNKNOWN) {
@@ -667,6 +682,7 @@ run_tests(const acs_run_request_t *ctx)
     uint32_t num_pe;
     RULE_ID_e *rule_list;
     uint32_t list_size;
+    bool reuse_results;
 
     if (ctx == NULL || ctx->rule_list == NULL || ctx->rule_count == 0)
         return;
@@ -681,6 +697,7 @@ run_tests(const acs_run_request_t *ctx)
     test_entry_status_cache_enable(ctx->arch_selection == ARCH_SYS_MPAM);
     /* Initialize per-test-entry status map to TEST_STATUS_UNKNOWN for this run */
     test_entry_status_map_reset();
+    reuse_results = acs_policy_get_rule_cache_enabled();
 
     /* Get number of PEs in the system */
     num_pe = val_pe_get_num();
@@ -710,7 +727,8 @@ run_tests(const acs_run_request_t *ctx)
             goto report_status;
         }
 
-        rule_test_status = execute_rule_recursive(ctx, rule_list[i], 0, num_pe, 0);
+        rule_test_status = execute_rule_recursive(ctx, rule_list[i], 0, num_pe, 0,
+                                                  reuse_results);
 report_status:
         /* Record and print overall rule status */
         rule_status_map[rule_list[i]] = rule_test_status;

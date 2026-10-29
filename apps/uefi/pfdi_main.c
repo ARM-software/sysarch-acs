@@ -38,6 +38,7 @@ HelpMsg (
         "-h, -help    Print this message\n"
         "-m <list>    Run only the specified modules (comma-separated names)\n"
         "-r <rules>   Run specified rule IDs (comma-separated) or a rules file\n"
+        "-rule-cache  Reuse completed base-rule results within this run (opt-in)\n"
         "-skip <rules>\n"
         "             Skip the specified rule IDs\n"
         "             Accepted value: PFDI\n"
@@ -52,6 +53,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
   {L"-help", TypeFlag},
   {L"-m", TypeValue},
   {L"-r", TypeValue},
+  {L"-rule-cache", TypeFlag},
   {L"-skip", TypeValue},
   {L"-skipmodule", TypeValue},
   {L"-v", TypeValue},

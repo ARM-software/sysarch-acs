@@ -25,12 +25,31 @@ semantics so individual READMEs can simply reference it.
 | `-os`, `-hyp`, `-ps` | BSA | Software-view filters; combine the flags to restrict execution to OS, hypervisor, or platform-security content. |
 | `-p2p` | All | Indicate that the PCIe hierarchy supports peer-to-peer transactions so related checks run. |
 | `-r <rules\|file>` | All | Run only the supplied rule IDs or the IDs provided in a file (same format as `-skip`). |
+| `-rule-cache` | Rule-based UEFI apps | Opt in to reuse of completed base-rule results within the current run. Reused results remain reported with a `(cached)` marker. |
 | `-skip <rules\|file>` | All | Skip the listed rule IDs (comma-separated) or load IDs from a text file (comments start with `#`; commas/newlines are accepted). |
 | `-skip-dp-nic-ms` | All | Skip PCIe exerciser coverage for DisplayPort, network, and mass-storage devices when those endpoints are unavailable. |
 | `-skipmodule <modules>` | All | Exclude the listed modules from the run (for example, `-skipmodule PE,GIC`). |
 | `-slc <type>` | SBSA | Provide the system last-level cache implementation (`1` for PPTT PE-side cache, `2` for HMAT memory-side cache). |
 | `-timeout <microseconds>` | All | Set pass timeout (delay in microseconds) for wakeup and watchdog and & timer tests (1ms = wakeup & WD default , 1sec = timer default, 500us = minimum, 2sec = maximum delay). |
 | `-v <level>` | All | Set verbosity: 5=ERROR, 4=WARN, 3=TEST, 2=DEBUG, 1=INFO. |
+
+## Opt-in rule result reuse
+
+`-rule-cache` reuses a completed result only for the same base-rule ID within
+one suite invocation. Each run resets the result map, including when a later
+run changes the PE count or rule selections. This cache does not merge different
+rule IDs that share a test entry, and unknown results are not reused.
+Aliases still traverse and report their children, so
+skip filtering, aggregation and cycle/depth checks remain active.
+
+The option is off by default. It skips repeat execution, including test side
+effects; use it only when once-per-run execution is appropriate for the selected
+rules. Omit it when investigating order-dependent or repeat-execution behavior.
+This option does not change the existing SYS-MPAM test-entry cache.
+
+Baremetal builds can opt in with `cmake --preset sbsa -DACS_RULE_CACHE=ON`.
+Non-CMake integrations can set the execution policy's `rule_cache_enabled`
+field before calling `run_tests()`.
 
 Refer to each specification README for other variant-level constraints, rule
 prefix conventions, and concrete invocation examples tailored to that ACS

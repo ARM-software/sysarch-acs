@@ -493,6 +493,8 @@ command_init (void)
     if (has_os)  ctx->bsa_sw_view_mask |= (1u << SW_OS);
     if (has_ps)  ctx->bsa_sw_view_mask |= (1u << SW_PS);
 
+    policy->rule_cache_enabled = ShellCommandLineGetFlag(ParamPackage, L"-rule-cache");
+
     /* Parse -skip CLI */
     if (ShellCommandLineGetFlag (ParamPackage, L"-skip")) {
         CmdLineArg  = ShellCommandLineGetValue (ParamPackage, L"-skip");
