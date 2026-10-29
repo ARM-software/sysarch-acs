@@ -89,6 +89,5 @@ uint32_t i029_entry(uint32_t num_pe);
 uint32_t i030_entry(uint32_t num_pe);
 uint32_t i031_entry(uint32_t num_pe);
 uint32_t i032_entry(uint32_t num_pe);
-uint32_t i033_entry(uint32_t num_pe);
 
 #endif

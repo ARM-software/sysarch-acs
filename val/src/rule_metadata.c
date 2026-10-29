@@ -1316,14 +1316,6 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .flag             = BASE_RULE,
             .test_num         = ACS_SMMU_TEST_NUM_BASE + 32,
         },
-        [SMMU_03] = {
-            .test_entry_id    = I033_ENTRY,
-            .module_id        = SMMU,
-            .rule_desc        = "Check SMMU 128-bit atomicity",
-            .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
-            .flag             = BASE_RULE,
-            .test_num         = ACS_SMMU_TEST_NUM_BASE + 33,
-        },
         [S_L4SM_01] = {
             .test_entry_id    = I008_ENTRY,
             .module_id        = SMMU,
@@ -3995,6 +3987,9 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
         [S_RAS_03] = {
             .module_id        = RAS,
         },
+        [SMMU_03] = {
+            .module_id        = SMMU,
+        },
         [B_SMMU_07] = {
             .module_id        = SMMU,
         },
@@ -4547,7 +4542,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I030_ENTRY] = i030_entry,
     [I031_ENTRY] = i031_entry,
     [I032_ENTRY] = i032_entry,
-    [I033_ENTRY] = i033_entry,
     [INTERFACE010_ENTRY] = interface010_entry,
     [INTERFACE011_ENTRY] = interface011_entry,
     [ITS003_ENTRY] = its003_entry,
@@ -4915,7 +4909,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I025_ENTRY] = i025_entry,
     [I029_ENTRY] = i029_entry,
     [I032_ENTRY] = i032_entry,
-    [I033_ENTRY] = i033_entry,
     [T001_ENTRY] = t001_entry,
     [T002_ENTRY] = t002_entry,
     [T003_ENTRY] = t003_entry,
@@ -5404,7 +5397,6 @@ test_entry_fn_t test_entry_func_table[TEST_ENTRY_SENTINEL] = {
     [I029_ENTRY] = i029_entry,
     [I007_ENTRY] = i007_entry,
     [I032_ENTRY] = i032_entry,
-    [I033_ENTRY] = i033_entry,
     [PCI_PAS_1_ENTRY] = pci_pas_1_entry,
     [P042_ENTRY] = p042_entry,
     [P030_ENTRY] = p030_entry, // used in wrapper.

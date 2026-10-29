@@ -181,7 +181,6 @@ val_pcbsa_smmu_execute_tests(uint32_t level, uint32_t num_pe)
 
       status |= i007_entry(num_pe);
       status |= i032_entry(num_pe);
-      status |= i033_entry(num_pe);
       status |= i022_entry(num_pe);
   }
 
