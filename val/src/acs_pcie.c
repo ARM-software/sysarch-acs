@@ -1661,6 +1661,41 @@ val_pcie_is_urd(uint32_t bdf)
 }
 
 /**
+  @brief  Check URD on all enumerated PCIe Functions below a Root Port.
+  @param  rp_bdf - Root Port Segment/Bus/Dev/Func
+  @param  clear  - Nonzero to clear URD after reading each Function's status
+  @return Nonzero if any downstream Function has URD set
+**/
+uint32_t
+val_pcie_urd_below_rp(uint32_t rp_bdf, uint32_t clear)
+{
+  pcie_device_bdf_table *table = val_pcie_bdf_table_ptr();
+  uint32_t buses, secondary, subordinate;
+  uint32_t index, bdf, bus, cap;
+  uint32_t detected = 0;
+
+  val_pcie_read_cfg(rp_bdf, TYPE1_PBN, &buses);
+  secondary = (buses >> SECBN_SHIFT) & SECBN_MASK;
+  subordinate = (buses >> SUBBN_SHIFT) & SUBBN_MASK;
+  if (secondary == 0 || secondary > subordinate)
+      return 0;
+
+  for (index = 0; index < table->num_entries; ++index) {
+      bdf = table->device[index].bdf;
+      bus = PCIE_EXTRACT_BDF_BUS(bdf);
+      if (bdf == rp_bdf || PCIE_EXTRACT_BDF_SEG(bdf) != PCIE_EXTRACT_BDF_SEG(rp_bdf) ||
+          bus < secondary || bus > subordinate)
+          continue;
+      if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap))
+          continue;
+      detected |= val_pcie_is_urd(bdf);
+      if (clear)
+          val_pcie_clear_urd(bdf);
+  }
+  return detected;
+}
+
+/**
   @brief  Enable error reporting of the PCIe Function to the upstream
   @param  bdf   - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
   @return None
