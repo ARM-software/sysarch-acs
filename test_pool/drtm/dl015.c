@@ -80,6 +80,11 @@ payload(uint32_t num_pe)
   drtm_params->launch_features |= (DRTM_LAUNCH_FEAT_REQ_DLME_IMG_AUTH <<
                     DRTM_LAUNCH_FEAT_SHIFT_DLME_IMG_AUTH);
 
+  /* Select DLME Authorities PCR schema R312090*/
+  drtm_params->launch_features |=
+                    (DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP <<
+                    DRTM_LAUNCH_FEATURES_SHIFT_PCR_SCHEMA);
+
   /* Request secure interrupt disable during dynamic launch when supported. */
   if (g_drtm_features.enable_secure_interrupts == DRTM_ACS_SUCCESS) {
     drtm_params->launch_features |= DRTM_LAUNCH_FEAT_SECURE_INT_DISABLE;
@@ -208,6 +213,23 @@ payload(uint32_t num_pe)
   }
   event_idx++;
 
+  /* DEBUG_CONFIG required */
+  if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DEBUG_CONFIG) {
+    val_print(ERROR, "\n       PCR[18] DEBUG_CONFIG not found or out of order");
+    val_set_status(index, RESULT_FAIL(17));
+    goto free_dlme_region;
+  }
+  event_idx++;
+
+  /* NONSECURE_CONFIG required */
+  if (event_idx >= pcr18_count ||
+      pcr18_events[event_idx] != DRTM_EVTYPE_ARM_NONSECURE_CONFIG) {
+    val_print(ERROR, "\n       PCR[18] NONSECURE_CONFIG not found or out of order");
+    val_set_status(index, RESULT_FAIL(18));
+    goto free_dlme_region;
+  }
+  event_idx++;
+
   /* DLME_PUBKEY required if auth succeeds */
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME_PUBKEY) {
     val_print(ERROR, "\n       PCR[18] DLME_PUBKEY not found or out of order");
@@ -224,22 +246,6 @@ payload(uint32_t num_pe)
   if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DLME_ENTRY_POINT) {
     val_print(ERROR, "\n       PCR[18] DLME_ENTRY_POINT not found or out of order");
     val_set_status(index, RESULT_FAIL(16));
-    goto free_dlme_region;
-  }
-  event_idx++;
-
-  /* DEBUG_CONFIG required */
-  if (event_idx >= pcr18_count || pcr18_events[event_idx] != DRTM_EVTYPE_ARM_DEBUG_CONFIG) {
-    val_print(ERROR, "\n       PCR[18] DEBUG_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(17));
-    goto free_dlme_region;
-  }
-  event_idx++;
-  /* NONSECURE_CONFIG required */
-  if (event_idx >= pcr18_count ||
-      pcr18_events[event_idx] != DRTM_EVTYPE_ARM_NONSECURE_CONFIG) {
-    val_print(ERROR, "\n       PCR[18] NONSECURE_CONFIG not found or out of order");
-    val_set_status(index, RESULT_FAIL(18));
     goto free_dlme_region;
   }
   event_idx++;

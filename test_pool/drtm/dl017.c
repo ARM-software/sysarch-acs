@@ -29,7 +29,7 @@ static uint64_t acpi_region_address;
 
 /* Required ACPI table signatures */
 static const uint32_t required_tables[] = {
-  ACS_ACPI_SIGNATURE('M', 'A', 'D', 'T'), /* MADT */
+  ACS_ACPI_SIGNATURE('A', 'P', 'I', 'C'), /* MADT */
   ACS_ACPI_SIGNATURE('M', 'C', 'F', 'G'), /* MCFG */
   ACS_ACPI_SIGNATURE('G', 'T', 'D', 'T'), /* GTDT */
   ACS_ACPI_SIGNATURE('I', 'O', 'R', 'T'), /* IORT */

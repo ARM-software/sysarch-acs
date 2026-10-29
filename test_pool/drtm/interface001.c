@@ -37,14 +37,16 @@ payload(uint32_t num_pe)
   }
 
   major = DRTM_VERSION_GET_MAJOR(g_drtm_features.version.value);
+  minor = DRTM_VERSION_GET_MINOR(g_drtm_features.version.value);
+  val_print(INFO, "\n       DRTM implementation version = %d.%d", major, minor);
+
   if (major != 1) {
     val_print(INFO, "\n       Major Version not as expected, Current version =%d", major);
     val_set_status(index, RESULT_FAIL(2));
     return;
   }
 
-  minor = DRTM_VERSION_GET_MINOR(g_drtm_features.version.value);
-  if (minor != 1) {
+  if (minor <= 1) {
     val_print(INFO, "\n       Minor Version not as expected, Current version =%d", minor);
     val_set_status(index, RESULT_FAIL(3));
     return;

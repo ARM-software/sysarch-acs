@@ -296,10 +296,10 @@ int64_t val_drtm_enable_secure_interrupts(void)
   @param   reserved_bits reserved bits value received
   @return  status
 **/
-uint32_t val_drtm_reserved_bits_check_is_zero(uint32_t reserved_bits)
+uint32_t val_drtm_reserved_bits_check_is_zero(uint64_t reserved_bits)
 {
     if (reserved_bits != VAL_DRTM_RESERVED_BYTE_ZERO) {
-        val_print(ERROR, "\n       CHECK RSVD BITS: FAILED [0x%08x]", reserved_bits);
+        val_print(ERROR, "\n       CHECK RSVD BITS: FAILED [0x%016lx]", reserved_bits);
         return ACS_STATUS_FAIL;
     } else
         val_print(DEBUG, "\n       CHECK RSVD BITS: PASSED");

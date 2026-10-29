@@ -87,7 +87,7 @@
 #define DRTM_LAUNCH_FEAT_MEM_PROT_REGION_SUPP     0x1
 #define DRTM_LAUNCH_FEAT_REQ_DLME_IMG_AUTH        0x1
 #define DRTM_TPM_FEAT_PCR_SCHEMA_DEF_SUPP         0x1
-#define DRTM_TPM_FEAT_PCR_SCHEMA_DLME_AUTH_SUPP   0x10
+#define DRTM_TPM_FEAT_PCR_SCHEMA_DLME_AUTH_SUPP   0x2
 #define DRTM_LAUNCH_FEAT_PCR_SCHEMA_DEF_SUPP      0x0
 #define DRTM_LAUNCH_FEAT_DLME_AUTH_SUPP           0x1
 #define DRTM_TPM_BASED_HASHING_SUPPORT            0x1
@@ -106,7 +106,7 @@
 #define DRTM_LAUNCH_FEATURES_SHIFT_TYPE_HASH      0
 #define DRTM_LAUNCH_FEATURES_MASK_TYPE_HASH       (0x1 << DRTM_LAUNCH_FEATURES_SHIFT_TYPE_HASH)
 #define DRTM_PCR_SCHEMA_USAGE_MASK_DEF_SCHEMA     0x1
-#define DRTM_PCR_SCHEMA_USAGE_MASK_AUTH_SCHEMA    0x10
+#define DRTM_PCR_SCHEMA_USAGE_MASK_AUTH_SCHEMA    0x2
 
 #define DRTM_GET_FEATURES_MASK_DLME_IMAGE_AUTH    0x1
 #define DRTM_GET_FEATURES_MASK_DMA_PROTECTION     0x7
@@ -389,7 +389,7 @@ int64_t val_drtm_get_error(uint64_t *feat1);
 int64_t val_drtm_set_tcb_hash(uint64_t tcb_hash_table_addr);
 int64_t val_drtm_lock_tcb_hashes(void);
 int64_t val_drtm_enable_secure_interrupts(void);
-uint32_t val_drtm_reserved_bits_check_is_zero(uint32_t reserved_bits);
+uint32_t val_drtm_reserved_bits_check_is_zero(uint64_t reserved_bits);
 uint32_t val_drtm_get_psci_ver(void);
 uint32_t val_drtm_get_smccc_ver(void);
 uint64_t val_drtm_read_daif(void);
