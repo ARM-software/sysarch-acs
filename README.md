@@ -111,6 +111,7 @@ Validates platform compliance with Arm PCBSA specification.
 |---------|--------------|-----------------|---------------------|
 | v0.8.0  | BET          | [PC_Bsa.efi](prebuilt_images/PCBSA/v25.07_PCBSA_0.8.0)| [PCBSA 1.0](https://developer.arm.com/documentation/den0151/latest/) |
 | v1.0.0  | EAC          | [PC_Bsa.efi](prebuilt_images/PCBSA/v25.12_PCBSA_1.0.0)| [PCBSA 1.0](https://developer.arm.com/documentation/den0151/latest/) |
+| v2.0.0  | BET          | [PC_Bsa.efi](prebuilt_images/PCBSA/v26.10_PCBSA_2.0.0)| [PCBSA 2.0](https://developer.arm.com/documentation/den0151/latest/) |
 
 ####  Reference for Build, Execution, and More
 Refer to the [PC BSA ACS README](docs/pc_bsa/README.md) for detailed build steps, execution procedures, additional information, and known limitations.
