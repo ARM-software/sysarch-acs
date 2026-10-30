@@ -210,6 +210,8 @@ payload(void)
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &old_value);
         val_pcie_bar_mem_write(bdf, mem_base + mem_offset, KNOWN_DATA);
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &read_value);
+        /* Restore original value; do not leave BAR memory (e.g. MSI-X table) modified */
+        val_pcie_bar_mem_write(bdf, mem_base + mem_offset, old_value);
 
         if ((old_value != read_value && read_value == PCIE_UNKNOWN_RESPONSE) ||
              val_pcie_is_urd(bdf)) {
