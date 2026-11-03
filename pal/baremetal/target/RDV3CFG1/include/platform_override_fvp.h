@@ -248,6 +248,8 @@
 #define PLATFORM_OVERRIDE_TIMEOUT              1000   /* time out for DUT */
 /* Timer test timeout (us); range 500us to 2 sec */
 #define PLATFORM_OVERRIDE_TIMER_TIMEOUT        10000
+/* Multi-PE completion polling multiplier */
+#define PLATFORM_OVERRIDE_PE_TIMEOUT_MULT      10
 
 /* FAIL safe timeout (> PLATFORM_OVERRIDE_TIMEOUT) */
 #define PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT     (PLATFORM_OVERRIDE_TIMEOUT * 2)

@@ -71,6 +71,7 @@
                                                           by default for wakeup & WD tests (1ms)*/
 #define TIMER_TIMEOUT_DEFAULT                   1000000   /*minimum timeout set
                                                           by default for timer tests (1s)*/
+#define PE_TIMEOUT_MULT_DEFAULT                 10        /* Shared multi-PE completion polling */
 
 /* EL1 skip-trap param defines (-el1skiptrap) */
 #define EL1SKIPTRAP_PMSIDR   (1u << 0)

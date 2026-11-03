@@ -24,6 +24,7 @@ semantics so individual READMEs can simply reference it.
 | `-only <level>` | All | Run only the rules that match the provided level. |
 | `-os`, `-hyp`, `-ps` | BSA | Software-view filters; combine the flags to restrict execution to OS, hypervisor, or platform-security content. |
 | `-p2p` | All | Indicate that the PCIe hierarchy supports peer-to-peer transactions so related checks run. |
+| `-pe-timeout-mult <N>` | All except PFDI | Multiply the shared multi-PE completion polling budget by the positive integer `N` (default `10`). |
 | `-r <rules\|file>` | All | Run only the supplied rule IDs or the IDs provided in a file (same format as `-skip`). |
 | `-skip <rules\|file>` | All | Skip the listed rule IDs (comma-separated) or load IDs from a text file (comments start with `#`; commas/newlines are accepted). |
 | `-skip-dp-nic-ms` | All | Skip PCIe exerciser coverage for DisplayPort, network, and mass-storage devices when those endpoints are unavailable. |

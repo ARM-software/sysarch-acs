@@ -29,6 +29,7 @@ void acs_reset_execution_policy(void)
         .timeout_fail = WAKEUP_WD_PASS_TIMEOUT_DEFAULT *
                         WAKEUP_WD_FAILSAFE_TIMEOUT_MULTIPLIER,
         .timer_timeout_us = TIMER_TIMEOUT_DEFAULT,
+        .pe_timeout_mult = PE_TIMEOUT_MULT_DEFAULT,
         .crypto_support = 1u,
     };
 }
@@ -91,6 +92,11 @@ uint32_t acs_policy_get_timeout_fail(void)
 uint32_t acs_policy_get_timer_timeout_us(void)
 {
     return g_execution_policy.timer_timeout_us;
+}
+
+uint32_t acs_policy_get_pe_timeout_mult(void)
+{
+    return g_execution_policy.pe_timeout_mult;
 }
 
 uint32_t acs_policy_get_crypto_support(void)
