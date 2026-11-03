@@ -46,7 +46,7 @@ class RuleCacheTests(unittest.TestCase):
                     result = subprocess.run(
                         [str(binary)], check=True, stdout=subprocess.PIPE, text=True
                     )
-                    self.assertIn("18 rule-cache regressions passed", result.stdout)
+                    self.assertIn("20 rule-cache regressions passed", result.stdout)
 
 
 if __name__ == "__main__":
