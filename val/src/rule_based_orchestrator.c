@@ -96,6 +96,26 @@ static bool is_rule_skipped(const acs_run_request_t *ctx, RULE_ID_e rule_id)
     return 0;
 }
 
+/* These rules select tests using the parent context, not just their own rule ID. */
+static bool is_rule_cacheable(RULE_ID_e rule_id)
+{
+    switch (rule_id) {
+    case PCI_IN_04:
+    case PCI_IN_17:
+    case PCI_LI_01:
+    case PCI_LI_03:
+    case RI_BAR_1:
+    case RI_BAR_3:
+    case RI_INT_1:
+    case RI_ORD_1:
+    case RI_PWR_1:
+    case RI_SMU_1:
+        return false;
+    default:
+        return true;
+    }
+}
+
 /**
  * @brief Finalize aggregated status for an alias rule.
  *
@@ -237,6 +257,7 @@ static uint32_t execute_rule_recursive(const acs_run_request_t *ctx,
 
     /* Aliases must still walk their children, including cycle/depth checks. */
     if (reuse_results && rule_test_map[rule_id].flag == BASE_RULE &&
+        is_rule_cacheable(rule_id) &&
         rule_status_map[rule_id] != TEST_STATE_UNKNOWN) {
         rule_test_status = rule_status_map[rule_id];
         old_log_indent = val_log_get_indent();

@@ -13,9 +13,11 @@
 
 #define ROOT_A B_PE_01
 #define ROOT_B B_PE_02
+#define LATE_ROOT_A S_L4PCI_1
+#define LATE_ROOT_B S_L6PCI_1
 #define LEAF_A PCI_IN_02
 #define LEAF_B PCI_IN_16
-#define NUM_ALIASES 12
+#define NUM_ALIASES 14
 
 uint8_t g_current_pal = 1;
 rule_test_map_t rule_test_map[RULE_ID_SENTINEL];
@@ -29,7 +31,8 @@ const alias_rule_map_t alias_rule_map[] = {
     {B_PE_05, children[4]}, {B_PE_06, children[5]},
     {B_PE_07, children[6]}, {B_PE_08, children[7]},
     {B_PE_09, children[8]}, {B_PE_10, children[9]},
-    {B_PE_11, children[10]}, {B_PE_12, children[11]}
+    {B_PE_11, children[10]}, {B_PE_12, children[11]},
+    {LATE_ROOT_A, children[12]}, {LATE_ROOT_B, children[13]}
 };
 const uint32_t alias_rule_map_count = NUM_ALIASES;
 
@@ -37,6 +40,7 @@ static uint32_t calls, prechecks, cached, cycles, depth_errors, pe_count, last_p
 static uint32_t starts[RULE_ID_SENTINEL], reports[RULE_ID_SENTINEL];
 static uint32_t leaf_status;
 static bool distinguish_rules;
+static bool parent_dependent;
 static const acs_execution_policy_t *platform_policy;
 static acs_test_status_counters_t stats;
 
@@ -62,6 +66,8 @@ static uint32_t leaf_entry(uint32_t num_pe)
 
     ++calls;
     last_pe = num_pe;
+    if (parent_dependent && (path[0] == ROOT_B || path[0] == LATE_ROOT_B))
+        return RESULT_FAIL(8);
     while (*path != RULE_ID_SENTINEL)
         leaf = *path++;
     if (distinguish_rules && leaf == LEAF_B)
@@ -148,6 +154,7 @@ static void reset(bool enable)
     calls = prechecks = cached = cycles = depth_errors = last_pe = 0;
     pe_count = 1;
     distinguish_rules = false;
+    parent_dependent = false;
     leaf_status = RESULT_PASS;
     acs_reset_execution_policy();
     assert(!acs_policy_get_rule_cache_enabled());
@@ -294,6 +301,43 @@ static void top_level_first(void)
     assert(reports[ROOT_A] == 2 && reports[ROOT_B] == 1);
 }
 
+static void parent_dependent_rules(bool top_level_first)
+{
+    const RULE_ID_e dependent_rules[] = {
+        PCI_IN_04, PCI_IN_17, PCI_LI_01, PCI_LI_03,
+        RI_BAR_1, RI_BAR_3, RI_INT_1, RI_ORD_1, RI_PWR_1, RI_SMU_1
+    };
+    RULE_ID_e rules[4];
+    acs_run_request_t ctx = request(rules, 4);
+    RULE_ID_e root_a = top_level_first ? LATE_ROOT_A : ROOT_A;
+    RULE_ID_e root_b = top_level_first ? LATE_ROOT_B : ROOT_B;
+    uint32_t i;
+    RULE_ID_e rule;
+
+    for (i = 0; i < sizeof(dependent_rules) / sizeof(dependent_rules[0]); ++i) {
+        reset(true);
+        rule = dependent_rules[i];
+        rule_test_map[rule] = rule_test_map[LEAF_A];
+        /* run_tests sorts by rule ID; choose parents before or after the leaf. */
+        assert(top_level_first ? rule < root_a : rule > root_b);
+        children[alias_rule_map_get_index(root_a)][0] = rule;
+        children[alias_rule_map_get_index(root_b)][0] = rule;
+        rules[0] = rule;
+        rules[1] = rules[2] = root_a;
+        rules[3] = root_b;
+        parent_dependent = true;
+        run_tests(&ctx);
+        assert(calls == 4 && cached == 0);
+        assert(starts[rule] == 4 && reports[rule] == 4);
+        assert(reports[root_a] == 2 && reports[root_b] == 1);
+        assert(rule_status_map[root_a] == RESULT_PASS);
+        assert(rule_status_map[root_b] == RESULT_FAIL(8));
+        assert(rule_status_map[rule] == (top_level_first ? RESULT_FAIL(8) : RESULT_PASS));
+        assert(stats.total_rules_run == 4 && stats.passed == 3 && stats.failed == 1);
+        assert(rule_reference_path_get()[0] == RULE_ID_SENTINEL);
+    }
+}
+
 static void unsupported_child(void)
 {
     RULE_ID_e rules[] = {ROOT_A, ROOT_B};
@@ -347,8 +391,10 @@ int main(void)
     cycle_or_depth(false);
     cycle_or_depth(true);
     top_level_first();
+    parent_dependent_rules(false);
+    parent_dependent_rules(true);
     unsupported_child();
     baremetal_configuration();
-    puts("18 rule-cache regressions passed");
+    puts("20 rule-cache regressions passed");
     return 0;
 }
