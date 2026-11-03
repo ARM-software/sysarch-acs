@@ -365,6 +365,31 @@ parse_rules_text_into_list(
     }
 }
 
+static BOOLEAN
+parse_pe_timeout_mult(CONST CHAR16 * arg, UINT32 *multiplier)
+{
+    UINT32 value = 0;
+    UINT32 digit;
+
+    if (arg == NULL || *arg == L'\0')
+        return FALSE;
+
+    for (; *arg != L'\0'; arg++) {
+        if (*arg < L'0' || *arg > L'9')
+            return FALSE;
+        digit = (UINT32)(*arg - L'0');
+        if (value > (MAX_UINT32 - digit) / 10u)
+            return FALSE;
+        value = value * 10u + digit;
+    }
+
+    if (value == 0)
+        return FALSE;
+
+    *multiplier = value;
+    return TRUE;
+}
+
 UINT32
 command_init (void)
 {
@@ -548,6 +573,16 @@ command_init (void)
                 return SHELL_INVALID_PARAMETER;
             }
         }
+    }
+
+    /* Parse multi-PE timeout */
+    if (ShellCommandLineGetFlag(ParamPackage, L"-pe-timeout-mult")) {
+        CmdLineArg = ShellCommandLineGetValue(ParamPackage, L"-pe-timeout-mult");
+        if (!parse_pe_timeout_mult(CmdLineArg, &policy->pe_timeout_mult)) {
+            Print(L"Invalid -pe-timeout-mult: expected a positive integer\n");
+            return SHELL_INVALID_PARAMETER;
+        }
+        Print(L"PE completion timeout multiplier: %u\n", policy->pe_timeout_mult);
     }
 
     /* Parse -timeout */

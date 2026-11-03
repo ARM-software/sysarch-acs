@@ -116,6 +116,7 @@ static const acs_execution_policy_t g_platform_execution_policy = {
     .timeout_pass = PLATFORM_OVERRIDE_TIMEOUT,
     .timeout_fail = PLATFORM_OVERRIDE_FAILSAFE_TIMEOUT,
     .timer_timeout_us = PLATFORM_OVERRIDE_TIMER_TIMEOUT,
+    .pe_timeout_mult = PLATFORM_OVERRIDE_PE_TIMEOUT_MULT,
     .crypto_support = TRUE,
     .sys_last_lvl_cache = PLATFORM_OVERRRIDE_SLC,
     .el1skiptrap_mask = 0,

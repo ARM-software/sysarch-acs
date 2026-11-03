@@ -106,6 +106,8 @@ HelpMsg (
              "        1 - MPAM_VERSION_B_c\n"
              "-m      Run only the specified modules (comma-separated names).\n"
              "        Accepted values: CACHE, REG, ERROR, MBWU\n"
+             "-pe-timeout-mult <N>\n"
+             "        Scale shared multi-PE completion polling by N (default 10).\n"
              "-r      Run tests for passed comma-separated SYS-MPAM rule IDs or a rules file\n"
              "        Example: -r RBDJXQ\n"
              "-skip   SYS-MPAM rule ID(s) to be skipped (comma-separated, like -r)\n"
@@ -122,6 +124,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-help", TypeFlag},
     {L"-l", TypeValue},
     {L"-m", TypeValue},
+    {L"-pe-timeout-mult", TypeValue},
     {L"-r", TypeValue},
     {L"-skip", TypeValue},
     {L"-skipmodule", TypeValue},

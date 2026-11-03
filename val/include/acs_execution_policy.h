@@ -27,7 +27,7 @@
  * defaults, build overrides, CLI parsing, or EL3-provided parameters:
  * - print verbosity and MMIO-print enablement
  * - PCIe/CXL behavior hints
- * - wakeup/watchdog/timer timeout controls
+ * - wakeup/watchdog/timer timeout controls and multi-PE completion wait scaling
  * - crypto-extension and EL1 trap workarounds
  * - system last-level cache hinting
  */
@@ -41,6 +41,7 @@ typedef struct acs_execution_policy {
     uint32_t timeout_pass;
     uint32_t timeout_fail;
     uint32_t timer_timeout_us;
+    uint32_t pe_timeout_mult;
     uint32_t crypto_support;
     /*
      * System last-level cache hint used by MPAM and related tests:
@@ -69,6 +70,7 @@ bool acs_policy_get_pcie_skip_dp_nic_ms(void);
 uint32_t acs_policy_get_timeout_pass(void);
 uint32_t acs_policy_get_timeout_fail(void);
 uint32_t acs_policy_get_timer_timeout_us(void);
+uint32_t acs_policy_get_pe_timeout_mult(void);
 uint32_t acs_policy_get_crypto_support(void);
 uint32_t acs_policy_get_sys_last_lvl_cache(void);
 uint32_t acs_policy_get_el1skiptrap_mask(void);

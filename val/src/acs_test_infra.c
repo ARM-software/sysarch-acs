@@ -18,6 +18,7 @@
 #include "acs_val.h"
 #include "acs_pe.h"
 #include "acs_common.h"
+#include "acs_execution_policy.h"
 #include "acs_exception.h"
 #include "pal_interface.h"
 #include "val_interface.h"
@@ -623,13 +624,13 @@ val_get_test_data(uint32_t index, uint64_t *data0, uint64_t *data1)
 
   @param test_num  Unique test number
   @param num_pe    Number of PE who are executing this test
-  @param timeout   integer value ob expiry the API will timeout and return
+  @param timeout   Polling budget, scaled by the multi-PE timeout multiplier
 
   @return        None
  **/
 
 static void
-val_wait_for_test_completion(uint32_t test_num, uint32_t num_pe, uint32_t timeout)
+val_wait_for_test_completion(uint32_t test_num, uint32_t num_pe, uint64_t timeout)
 {
 
   uint32_t i = 0, j = 0;
@@ -686,7 +687,8 @@ val_run_test_payload(uint32_t test_num, uint32_t num_pe, void (*payload)(void), 
           val_execute_on_pe(i, payload, test_input);
   }
 
-  val_wait_for_test_completion(test_num, num_pe, TIMEOUT_LARGE);
+  val_wait_for_test_completion(test_num, num_pe,
+      (uint64_t)TIMEOUT_LARGE * acs_policy_get_pe_timeout_mult());
 }
 
 /**

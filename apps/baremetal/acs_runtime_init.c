@@ -169,6 +169,7 @@ acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
       policy->timeout_pass = defaults->timeout_pass;
       policy->timeout_fail = defaults->timeout_fail;
       policy->timer_timeout_us = defaults->timer_timeout_us;
+      policy->pe_timeout_mult = defaults->pe_timeout_mult;
       policy->crypto_support = defaults->crypto_support;
       policy->sys_last_lvl_cache = defaults->sys_last_lvl_cache;
       policy->el1skiptrap_mask = defaults->el1skiptrap_mask;
@@ -192,6 +193,8 @@ acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
       policy->timeout_fail = platform_defaults->timeout_fail;
   if (platform_defaults->timer_timeout_us != 0u)
       policy->timer_timeout_us = platform_defaults->timer_timeout_us;
+  if (platform_defaults->pe_timeout_mult != 0u)
+      policy->pe_timeout_mult = platform_defaults->pe_timeout_mult;
 }
 
 void

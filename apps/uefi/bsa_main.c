@@ -44,6 +44,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-only", TypeValue},
     {L"-os", TypeFlag},
     {L"-p2p", TypeFlag},
+    {L"-pe-timeout-mult", TypeValue},
     {L"-ps", TypeFlag},
     {L"-r", TypeValue},
     {L"-skip", TypeValue},
@@ -88,6 +89,8 @@ HelpMsg (VOID)
         "        Pass -hyp to run BSA Hypervisior software view tests.\n"
         "        Pass -ps  to run BSA Platform security software view tests.\n"
         "-p2p    Pass this flag to indicate that PCIe Hierarchy Supports Peer-to-Peer\n"
+        "-pe-timeout-mult <N>\n"
+        "        Scale shared multi-PE completion polling by N (default 10).\n"
         "-r      Run tests for passed comma-separated Rule IDs or a rules file\n"
         "        Examples: -r B_PE_01,B_PE_02,B_GIC_01\n"
         "                  -r rules.txt  (file may mix commas/newlines; lines \n"
