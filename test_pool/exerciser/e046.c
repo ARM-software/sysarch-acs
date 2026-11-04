@@ -25,7 +25,6 @@
 #include "acs_exerciser.h"
 #include "acs_pgt.h"
 #include "acs_iovirt.h"
-#include "acs_pcie_enumeration.h"
 
 static const
 test_config_t test_entries[] = {
@@ -39,17 +38,18 @@ static uint32_t g_shared_result;
 static uint32_t g_shared_status;
 
 #define TEST_DATA_NUM_PAGES  1
-#define TEST_DATA 0xDE
+#define TEST_DATA_EVEN 0xDE
+#define TEST_DATA_ODD  0xED
 
 static void
-write_test_data(void *buf, uint32_t size)
+write_test_data(void *buf, uint32_t size, uint8_t test_data)
 {
   uint32_t index;
 
   for (index = 0; index < size; index++)
-    *((char8_t *)buf + index) = TEST_DATA;
+    *((char8_t *)buf + index) = test_data;
 
-  val_data_cache_ops_by_va((addr_t)buf, CLEAN_AND_INVALIDATE);
+  val_pe_cache_clean_invalidate_range((uint64_t)buf, size);
 }
 
 static void
@@ -60,7 +60,7 @@ clear_dram_buf(void *buf, uint32_t size)
   for (index = 0; index < size; index++)
     *((char8_t *)buf + index) = 0;
 
-  val_data_cache_ops_by_va((addr_t)buf, CLEAN_AND_INVALIDATE);
+  val_pe_cache_clean_invalidate_range((uint64_t)buf, size);
 }
 
 /*
@@ -79,12 +79,9 @@ void
 payload(void)
 {
   uint32_t pe_index;
-  uint32_t tbl_index;
   uint32_t dma_len;
   uint32_t instance;
   uint32_t e_bdf;
-  uint32_t bdf;
-  uint32_t dev_rc_index;
   void *dram_buf_in_virt;
   void *dram_buf_out_virt;
   uint64_t dram_buf_in_phys;
@@ -101,10 +98,8 @@ payload(void)
   uint64_t *pgt_base_array;
   uint32_t test_skip = 1;
   uint32_t smmu_backed = 0;
-  pcie_device_bdf_table *bdf_tbl_ptr;
+  uint32_t map_attempted = 0;
   smmu_stream_iova_check_t check;
-
-  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
   val_memory_set(&master, sizeof(master), 0);
   val_memory_set(mem_desc_array, sizeof(mem_desc_array), 0);
@@ -155,21 +150,8 @@ payload(void)
   for (instance = 0; instance < num_smmus; ++instance)
      val_smmu_enable(instance);
 
-  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
+  for (instance = 0; instance < num_exercisers; ++instance)
   {
-    bdf = bdf_tbl_ptr->device[tbl_index].bdf;
-
-    dev_rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(bdf));
-    if (dev_rc_index == ACS_INVALID_INDEX)
-        continue;
-
-    instance = val_exerciser_get_exerciser_instance(dev_rc_index);
-    if (instance == ACS_INVALID_INDEX)
-      continue;
-
-    if (val_exerciser_init(instance))
-        continue;
-
     e_bdf = val_exerciser_get_bdf(instance);
 
     master.smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
@@ -186,6 +168,11 @@ payload(void)
         continue;
     }
 
+    if (val_exerciser_init(instance)) {
+        val_print(ERROR, "\n       Exerciser %4x initialization failed", instance);
+        goto test_fail;
+    }
+
     pgt_desc.pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
     pgt_desc.mair = val_pe_reg_read(MAIR_ELx);
     pgt_desc.stage = PGT_STAGE1;
@@ -197,57 +184,63 @@ payload(void)
 
     clear_dram_buf(dram_buf_in_virt, test_data_blk_size);
 
-        if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(e_bdf),
-                                       PCIE_EXTRACT_BDF_SEG(e_bdf),
-                                       &device_id, &master.streamid,
-                                       &its_id))
-            continue;
+    if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(e_bdf),
+                                    PCIE_EXTRACT_BDF_SEG(e_bdf),
+                                    &device_id, &master.streamid,
+                                    &its_id)) {
+        val_print(ERROR, "\n       Exerciser %4x device info unavailable", instance);
+        goto test_fail;
+    }
 
-        mem_desc->virtual_address = (uint64_t)dram_buf_in_virt + instance * test_data_blk_size;
-        mem_desc->physical_address = dram_buf_in_phys;
-        mem_desc->length = test_data_blk_size;
-        mem_desc->attributes |= PGT_STAGE1_AP_RW;
+    mem_desc->virtual_address = (uint64_t)dram_buf_in_virt + instance * test_data_blk_size;
+    mem_desc->physical_address = dram_buf_in_phys;
+    mem_desc->length = test_data_blk_size;
+    mem_desc->attributes |= PGT_STAGE1_AP_RW;
 
-        pgt_desc.ias = val_smmu_get_info(SMMU_IN_ADDR_SIZE, master.smmu_index);
-        if ((pgt_desc.ias) == 0) {
-            val_print(ERROR, "\n       Input address size of SMMU %d is 0", master.smmu_index);
-            goto test_fail;
-        }
+    pgt_desc.ias = val_smmu_get_info(SMMU_IN_ADDR_SIZE, master.smmu_index);
+    if ((pgt_desc.ias) == 0) {
+        val_print(ERROR, "\n       Input address size of SMMU %d is 0", master.smmu_index);
+        goto test_fail;
+    }
 
-        pgt_desc.oas = val_smmu_get_info(SMMU_OUT_ADDR_SIZE, master.smmu_index);
-        if ((pgt_desc.oas) == 0) {
-            val_print(ERROR, "\n       Output address size of SMMU %d is 0", master.smmu_index);
-            goto test_fail;
-        }
+    pgt_desc.oas = val_smmu_get_info(SMMU_OUT_ADDR_SIZE, master.smmu_index);
+    if ((pgt_desc.oas) == 0) {
+        val_print(ERROR, "\n       Output address size of SMMU %d is 0", master.smmu_index);
+        goto test_fail;
+    }
 
-        pgt_desc.pgt_base = (uint64_t) NULL;
-        if (val_pgt_create(mem_desc, &pgt_desc)) {
-            val_print(ERROR, "\n       Unable to create page table with given attributes");
-            goto test_fail;
-        }
+    pgt_desc.pgt_base = (uint64_t) NULL;
+    if (val_pgt_create(mem_desc, &pgt_desc)) {
+        val_print(ERROR, "\n       Unable to create page table with given attributes");
+        goto test_fail;
+    }
 
-        pgt_base_array[instance] = pgt_desc.pgt_base;
+    pgt_base_array[instance] = pgt_desc.pgt_base;
 
-        if (val_smmu_map(master, pgt_desc))
-        {
-            val_print(ERROR, "\n       SMMU mapping failed (%x)     ", e_bdf);
-            goto test_fail;
-        }
+    map_attempted = 1;
+    if (val_smmu_map(master, pgt_desc))
+    {
+        val_print(ERROR, "\n       SMMU mapping failed (%x)     ", e_bdf);
+        goto test_fail;
+    }
 
-        dram_buf_in_iova = mem_desc->virtual_address;
-        dram_buf_out_iova = dram_buf_in_iova + (test_data_blk_size / 2);
+    dram_buf_in_iova = mem_desc->virtual_address;
+    dram_buf_out_iova = dram_buf_in_iova + (test_data_blk_size / 2);
 
-        check.smmu_index = master.smmu_index;
-        check.streamid = master.streamid;
-        check.iova = dram_buf_in_iova;
-        if (val_smmu_ops(SMMU_CHECK_STREAM_IOVA, &check, NULL)) {
-            val_print(ERROR, "\n       IOVA check failed for Exerciser %4x", instance);
-            goto test_fail;
-        }
+    check.smmu_index = master.smmu_index;
+    check.streamid = master.streamid;
+    check.iova = dram_buf_in_iova;
+    if (val_smmu_ops(SMMU_CHECK_STREAM_IOVA, &check, NULL)) {
+        val_print(ERROR, "\n       IOVA check failed for Exerciser %4x", instance);
+        goto test_fail;
+    }
 
     test_skip = 0;
 
-    write_test_data(dram_buf_in_virt, dma_len);
+    val_print(INFO, "\n       DMA test for exerciser BDF 0x%x, StreamID 0x%x",
+              e_bdf, master.streamid);
+    write_test_data(dram_buf_in_virt, dma_len,
+                    (instance & 1) ? TEST_DATA_ODD : TEST_DATA_EVEN);
 
     if (val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_in_iova, dma_len, instance)) {
         val_print(ERROR, "\n       DMA attributes setting failure %4x", instance);
@@ -263,12 +256,16 @@ payload(void)
 
     val_exerciser_ops(START_DMA, EDMA_FROM_DEVICE, instance);
 
+    val_pe_cache_invalidate_range((uint64_t)dram_buf_out_virt, dma_len);
     if (val_memory_compare(dram_buf_in_virt, dram_buf_out_virt, dma_len)) {
         val_print(ERROR, "\n       Data Comparasion failure for Exerciser %4x", instance);
         goto test_fail;
     }
 
     clear_dram_buf(dram_buf_in_virt, test_data_blk_size);
+
+    val_smmu_unmap(master);
+    map_attempted = 0;
 
   }
 
@@ -287,28 +284,21 @@ test_fail:
   val_set_status(pe_index, RESULT_FAIL(1));
 
 test_clean:
-  val_memory_free_pages(dram_buf_in_virt, TEST_DATA_NUM_PAGES);
-
-  for (instance = 0; instance < num_exercisers; ++instance)
-  {
-    e_bdf = val_exerciser_get_bdf(instance);
-    master.smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
-                                                     PCIE_CREATE_BDF_PACKED(e_bdf));
-    if (master.smmu_index == ACS_INVALID_INDEX)
-        continue;
-    if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(e_bdf),
-                                   PCIE_EXTRACT_BDF_SEG(e_bdf),
-                                   &device_id, &master.streamid,
-                                   &its_id))
-        continue;
-
+  if (map_attempted)
     val_smmu_unmap(master);
 
-    if (pgt_base_array[instance] != 0) {
+  for (instance = 0; instance < num_exercisers; ++instance) {
+    if (pgt_base_array[instance]) {
+      e_bdf = val_exerciser_get_bdf(instance);
+      master.smmu_index = val_iovirt_get_rc_smmu_index(PCIE_EXTRACT_BDF_SEG(e_bdf),
+                                                       PCIE_CREATE_BDF_PACKED(e_bdf));
+      pgt_desc.ias = val_smmu_get_info(SMMU_IN_ADDR_SIZE, master.smmu_index);
       pgt_desc.pgt_base = pgt_base_array[instance];
       val_pgt_destroy(pgt_desc);
     }
   }
+
+  val_memory_free_pages(dram_buf_in_virt, TEST_DATA_NUM_PAGES);
 
   for (instance = 0; instance < num_smmus; ++instance)
      val_smmu_disable(instance);
