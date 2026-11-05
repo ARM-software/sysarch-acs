@@ -208,6 +208,24 @@ exit_loop_\op:
 val_inv_dcache_range:
     do_dcache_maintenance_by_mva ivac
 
+    /* ------------------------------------------
+     * Clean to PoC from base address till
+     * size. 'x0' = addr, 'x1' = size
+     * ------------------------------------------
+     */
+    .global val_clean_dcache_range
+val_clean_dcache_range:
+    do_dcache_maintenance_by_mva cvac
+
+    /* ------------------------------------------
+     * Clean and invalidate to PoC from base
+     * address till size. 'x0' = addr, 'x1' = size
+     * ------------------------------------------
+     */
+    .global val_clean_inv_dcache_range
+val_clean_inv_dcache_range:
+    do_dcache_maintenance_by_mva civac
+
      /* ------------------------------------------
      * Invalidate from base address till
      * size. 'x0' = addr, 'x1' = size
