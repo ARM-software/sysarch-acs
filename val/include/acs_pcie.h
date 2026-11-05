@@ -233,6 +233,7 @@ uint32_t val_pcie_io_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data);
 uint32_t val_pcie_populate_device_rootport(void);
 uint32_t val_pcie_get_ecam_index(uint32_t bdf, uint32_t *ecam_index);
 uint32_t val_pcie_data_link_layer_status(uint32_t bdf);
+uint32_t val_pcie_wait_for_link_up(uint32_t bdf, uint32_t timeout_ms);
 uint32_t val_pcie_is_device_behind_smmu(uint32_t bdf);
 uint32_t val_pcie_check_interrupt_status(uint32_t bdf);
 uint32_t val_pcie_get_max_pasid_width(uint32_t bdf, uint32_t *max_pasid_width);

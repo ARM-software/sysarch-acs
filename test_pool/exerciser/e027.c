@@ -31,6 +31,7 @@
 #define TEST_RULE  "PCI_ER_10"
 
 #define ERR_UNCORR   0x3
+#define DPC_LINK_UP_TIMEOUT_MS 100
 #define MAX_DEVICES  256
 #define PCIE_BDF_TABLE_MAX_ENTRIES \
         ((PCIE_DEVICE_BDF_TABLE_SZ - sizeof(pcie_device_bdf_table)) / \
@@ -195,7 +196,6 @@ payload(void)
   uint32_t its_id = 0;
   uint32_t msi_index = 0;
   uint32_t msi_cap_offset = 0;
-  uint64_t delay_status;
 
   fail_cnt = 0;
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
@@ -381,36 +381,8 @@ payload(void)
           reg_value = reg_value & ~BRIDGE_CTRL_SBR_SET;
           val_pcie_write_cfg(erp_bdf, TYPE01_ILR, reg_value);
 
-          timeout = TIMEOUT_LARGE;
-          while (--timeout)
-          {};
-
-          status = val_pcie_data_link_layer_status(erp_bdf);
-          if (status != PCIE_DLL_LINK_ACTIVE_NOT_SUPPORTED)
+          if (val_pcie_wait_for_link_up(erp_bdf, DPC_LINK_UP_TIMEOUT_MS))
           {
-              if (!status)
-              {
-                  /* Wait for for additional Timeout and check the status*/
-                  delay_status = val_time_delay_ms(100 * ONE_MILLISECOND);
-                  if (delay_status)
-                  {
-                      val_print(ERROR,
-                               "\n       Failed to time delay for BDF 0x%x ", erp_bdf);
-                      free_config_space();
-                      free_msi_interrupt(erp_bdf, device_id, its_id,
-                                         lpi_int_id + instance, msi_index);
-                      val_set_status(pe_index, RESULT_FAIL(02));
-                      return;
-                  }
-
-                  status = val_pcie_data_link_layer_status(erp_bdf);
-              }
-          }
-
-          if (status == PCIE_DLL_LINK_STATUS_NOT_ACTIVE)
-          {
-              val_print(ERROR,
-                       "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
               val_set_status(pe_index, RESULT_FAIL(02));
               free_config_space();
               free_msi_interrupt(erp_bdf, device_id, its_id,

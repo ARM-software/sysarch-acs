@@ -2269,6 +2269,54 @@ val_pcie_data_link_layer_status(uint32_t bdf)
 }
 
 /**
+  @brief  Waits for the Data Link Layer Link Active status of the given PCIe
+          function, polling once per millisecond until the timeout expires.
+          If Link Active reporting is not supported, the full timeout is
+          waited instead, since the link status cannot be polled.
+  @param  bdf        - Segment/Bus/Dev/Func in the format of PCIE_CREATE_BDF
+  @param  timeout_ms - Maximum time to wait, in milliseconds
+  @return 0 if the link is active (or reporting is not supported),
+          1 if the link is not active by the timeout or a delay failed
+**/
+uint32_t
+val_pcie_wait_for_link_up(uint32_t bdf, uint32_t timeout_ms)
+{
+  uint32_t elapsed_ms;
+  uint32_t status;
+
+  status = val_pcie_data_link_layer_status(bdf);
+  if (status == PCIE_DLL_LINK_ACTIVE_NOT_SUPPORTED)
+  {
+      if (val_time_delay_ms((uint64_t)timeout_ms * ONE_MILLISECOND))
+      {
+          val_print(ERROR, "\n       Failed to time delay for BDF 0x%x ", bdf);
+          return 1;
+      }
+      return 0;
+  }
+
+  for (elapsed_ms = 0; status != PCIE_DLL_LINK_STATUS_ACTIVE; elapsed_ms++)
+  {
+      if (elapsed_ms == timeout_ms)
+      {
+          val_print(ERROR, "\n       The link not active after reset for BDF 0x%x ", bdf);
+          return 1;
+      }
+
+      val_print(DEBUG, "\n       Link not yet active for BDF 0x%x, retrying", bdf);
+      if (val_time_delay_ms(ONE_MILLISECOND))
+      {
+          val_print(ERROR, "\n       Failed to time delay for BDF 0x%x ", bdf);
+          return 1;
+      }
+
+      status = val_pcie_data_link_layer_status(bdf);
+  }
+
+  return 0;
+}
+
+/**
   @brief  Returns the ECAM address of the input PCIe function
 
   @param  bdf   - Segment/Bus/Dev/Func in PCIE_CREATE_BDF format
