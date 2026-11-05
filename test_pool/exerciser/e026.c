@@ -177,7 +177,7 @@ disable_ro:
               goto test_fail;
           }
 
-          goto test_pass;
+          continue;
       }
 
       /* Initialize the sender buffer with test specific data */
@@ -227,7 +227,6 @@ disable_ro:
       goto test_clean;
   }
 
-test_pass:
   val_set_status(pe_index, RESULT_PASS);
   goto test_clean;
 
