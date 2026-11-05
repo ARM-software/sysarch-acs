@@ -33,8 +33,7 @@
 #define ERR_FATAL_NONFATAL 2
 #define ERR_UNCORR   0x3
 #define DPC_COMPLETION_UR 0x40000
-#define DPC_LINK_UP_TIMEOUT_US (100 * ONE_MILLISECOND)
-#define DPC_LINK_POLL_INTERVAL_US ONE_MILLISECOND
+#define DPC_LINK_UP_TIMEOUT_MS 100
 #define MAX_DEVICES  256
 #define PCIE_BDF_TABLE_MAX_ENTRIES \
         ((PCIE_DEVICE_BDF_TABLE_SZ - sizeof(pcie_device_bdf_table)) / \
@@ -49,42 +48,6 @@ static volatile uint32_t instance;
 static void     *cfg_space_buf[MAX_DEVICES];
 static uint32_t cfg_space_bdf[MAX_DEVICES];
 static uint32_t cfg_space_count;
-
-static uint32_t
-wait_for_link_up(uint32_t rp_bdf)
-{
-  uint64_t timeout_ticks = val_get_timeout_to_ticks(DPC_LINK_UP_TIMEOUT_US);
-  uint64_t start;
-  uint64_t elapsed;
-  uint32_t status;
-
-  if (timeout_ticks == 0) {
-      val_print(ERROR, "\n       Invalid counter frequency for DPC link recovery");
-      return 1;
-  }
-
-  start = ArmArchTimerReadReg(CntPct);
-  for (;;) {
-      status = val_pcie_data_link_layer_status(rp_bdf);
-      elapsed = ArmArchTimerReadReg(CntPct) - start;
-      if (elapsed > timeout_ticks)
-          break;
-
-      if (status == PCIE_DLL_LINK_STATUS_ACTIVE)
-          return 0;
-
-      if (status != PCIE_DLL_LINK_STATUS_NOT_ACTIVE || elapsed == timeout_ticks)
-          break;
-
-      /* PALs may scale delays; bound the retry window by counter time. */
-      if (val_time_delay_ms(DPC_LINK_POLL_INTERVAL_US)) {
-          val_print(ERROR, "\n       Failed to delay during DPC recovery, BDF 0x%x", rp_bdf);
-          return 1;
-      }
-  }
-
-  return 1;
-}
 
 static
 void
@@ -500,10 +463,8 @@ dpc_recover:
           reg_value = reg_value & ~BRIDGE_CTRL_SBR_SET;
           val_pcie_write_cfg(erp_bdf, TYPE01_ILR, reg_value);
 
-          if (wait_for_link_up(erp_bdf))
+          if (val_pcie_wait_for_link_up(erp_bdf, DPC_LINK_UP_TIMEOUT_MS))
           {
-              val_print(ERROR,
-                       "\n       The link not active after reset for BDF 0x%x: ", erp_bdf);
               fail_cnt++;
               val_set_status(pe_index, RESULT_FAIL(fail_cnt));
               free_config_space();
