@@ -239,6 +239,12 @@ void val_pe_context_restore(uint64_t sp);
 void val_pe_default_esr(uint64_t interrupt_type, void *context);
 void val_pe_cache_clean_range(uint64_t start_addr, uint64_t length);
 
+/* Range cache maintenance by VA to PoC (SystemReg.S): one DC op per cache line
+   and a single DSB SY on completion. */
+void val_clean_dcache_range(uint64_t start_addr, uint64_t length);
+void val_clean_inv_dcache_range(uint64_t start_addr, uint64_t length);
+void val_inv_dcache_range(uint64_t start_addr, uint64_t length);
+
 uint64_t val_pe_get_esr(void *context);
 uint64_t val_pe_get_far(void *context);
 

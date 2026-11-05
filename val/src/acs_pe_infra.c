@@ -424,7 +424,7 @@ void
 val_pe_cache_clean_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  pal_pe_data_cache_ops_range(start_addr, length, CLEAN);
+  val_clean_dcache_range(start_addr, length);
 #endif
 }
 
@@ -440,7 +440,7 @@ void
 val_pe_cache_clean_invalidate_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  pal_pe_data_cache_ops_range(start_addr, length, CLEAN_AND_INVALIDATE);
+  val_clean_inv_dcache_range(start_addr, length);
 #endif
 }
 
@@ -456,7 +456,7 @@ void
 val_pe_cache_invalidate_range(uint64_t start_addr, uint64_t length)
 {
 #ifndef TARGET_LINUX
-  pal_pe_data_cache_ops_range(start_addr, length, INVALIDATE);
+  val_inv_dcache_range(start_addr, length);
 #endif
 }
 
