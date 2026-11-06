@@ -40,6 +40,8 @@ semantics so individual READMEs can simply reference it.
 one suite invocation. Each run resets the result map, including when a later
 run changes the PE count or rule selections. This cache does not merge different
 rule IDs that share a test entry, and unknown results are not reused.
+Rules whose tests depend on the parent rule are marked
+`.cache_policy = RULE_CACHE_RERUN` in `val/src/rule_metadata.c` and always run again.
 Aliases still traverse and report their children, so
 skip filtering, aggregation and cycle/depth checks remain active.
 
