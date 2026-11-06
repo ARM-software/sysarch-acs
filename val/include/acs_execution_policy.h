@@ -30,6 +30,7 @@
  * - wakeup/watchdog/timer timeout controls
  * - crypto-extension and EL1 trap workarounds
  * - system last-level cache hinting
+ * - opt-in per-run base-rule result reuse
  */
 typedef struct acs_execution_policy {
     uint32_t pcie_p2p;
@@ -54,6 +55,7 @@ typedef struct acs_execution_policy {
      * not safely expose them. Compose with EL1SKIPTRAP_* flags.
      */
     uint32_t el1skiptrap_mask;
+    bool     rule_cache_enabled;
 } acs_execution_policy_t;
 
 void acs_reset_execution_policy(void);
@@ -72,5 +74,6 @@ uint32_t acs_policy_get_timer_timeout_us(void);
 uint32_t acs_policy_get_crypto_support(void);
 uint32_t acs_policy_get_sys_last_lvl_cache(void);
 uint32_t acs_policy_get_el1skiptrap_mask(void);
+bool acs_policy_get_rule_cache_enabled(void);
 
 #endif /* __ACS_EXECUTION_POLICY_H__ */

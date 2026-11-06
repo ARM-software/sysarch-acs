@@ -1876,6 +1876,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "All EP/Sw under RP in same ECAM Region",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
         },
         [PCI_IN_05] = {
             .test_entry_id    = PCI_IN_05_ENTRY,
@@ -1937,6 +1938,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ARI forwarding enable rule",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
         },
         [PCI_IN_18] = {
             .test_entry_id    = P011_ENTRY,
@@ -1967,6 +1969,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Legacy Interrupt is SPI",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
         },
         [PCI_LI_03] = {
             .test_entry_id    = PCI_LI_03_ENTRY,
@@ -1974,6 +1977,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Legacy Intr SPI level sensitive",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
         },
         [PCI_MM_01] = {
             .test_entry_id    = PCI_MM_01_ENTRY,
@@ -2109,6 +2113,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Read and write to BAR reg - RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 83,
         },
         [RI_BAR_3] = {
@@ -2117,6 +2122,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check BAR memory space & type - RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 62,
         },
         [RI_INT_1] = {
@@ -2125,6 +2131,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check MSI and MSI-X support - RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 69,
         },
         [RI_ORD_1] = {
@@ -2133,6 +2140,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Arrival order & Gathering Check - RCiEP, iEP EP",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE  +  21,
         },
         [RE_ORD_4] = {
@@ -2165,6 +2173,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check Power Mgmt rules - RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_PCIE_TEST_NUM_BASE + 70,
         },
         [RE_REC_1] = {
@@ -2203,6 +2212,7 @@ rule_test_map_t rule_test_map[RULE_ID_SENTINEL] = {
             .rule_desc        = "Check ATS Support Rule -  RCiEP, iEP Pair",
             .platform_bitmask = PLATFORM_BAREMETAL | PLATFORM_UEFI,
             .flag             = BASE_RULE,
+            .cache_policy     = RULE_CACHE_RERUN,
             .test_num         = ACS_EXERCISER_TEST_NUM_BASE + 19,
         },
         [S_L6PCI_1] = {

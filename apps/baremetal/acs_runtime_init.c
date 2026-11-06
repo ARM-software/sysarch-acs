@@ -172,6 +172,7 @@ acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
       policy->crypto_support = defaults->crypto_support;
       policy->sys_last_lvl_cache = defaults->sys_last_lvl_cache;
       policy->el1skiptrap_mask = defaults->el1skiptrap_mask;
+      policy->rule_cache_enabled = defaults->rule_cache_enabled;
   }
 
   platform_defaults = acs_get_platform_execution_policy_defaults();
@@ -185,6 +186,7 @@ acs_load_execution_policy_defaults(acs_execution_policy_t *policy)
   policy->crypto_support = platform_defaults->crypto_support;
   policy->sys_last_lvl_cache = platform_defaults->sys_last_lvl_cache;
   policy->el1skiptrap_mask = platform_defaults->el1skiptrap_mask;
+  policy->rule_cache_enabled = platform_defaults->rule_cache_enabled;
 
   if (platform_defaults->timeout_pass != 0u)
       policy->timeout_pass = platform_defaults->timeout_pass;
@@ -406,6 +408,10 @@ acs_apply_compile_params(acs_run_request_t *ctx, acs_execution_policy_t *policy)
   ctx->execute_modules = acs_build_module_array;
   ctx->num_modules = acs_build_module_count;
   ctx->execute_modules_owned = false;
+#endif
+
+#if defined(ACS_RULE_CACHE) && ACS_RULE_CACHE
+  policy->rule_cache_enabled = true;
 #endif
 
 #ifdef ACS_VERBOSE_LEVEL

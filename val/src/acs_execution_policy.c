@@ -107,3 +107,8 @@ uint32_t acs_policy_get_el1skiptrap_mask(void)
 {
     return g_execution_policy.el1skiptrap_mask;
 }
+
+bool acs_policy_get_rule_cache_enabled(void)
+{
+    return g_execution_policy.rule_cache_enabled;
+}

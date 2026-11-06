@@ -46,6 +46,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-p2p", TypeFlag},
     {L"-ps", TypeFlag},
     {L"-r", TypeValue},
+    {L"-rule-cache", TypeFlag},
     {L"-skip", TypeValue},
     {L"-skip-dp-nic-ms", TypeFlag},
     {L"-skipmodule", TypeValue},
@@ -92,6 +93,8 @@ HelpMsg (VOID)
         "        Examples: -r B_PE_01,B_PE_02,B_GIC_01\n"
         "                  -r rules.txt  (file may mix commas/newlines; lines \n"
         "                     starting with # are comments)\n"
+        "-rule-cache\n"
+        "        Reuse completed base-rule results within this run (opt-in).\n"
         "-skip   Rule ID(s) to be skipped (comma-separated, like -r)\n"
         "        Example: -skip B_PE_01,B_GIC_02\n"
         "-skip-dp-nic-ms \n"

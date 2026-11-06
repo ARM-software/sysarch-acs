@@ -41,6 +41,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-only", TypeValue},
     {L"-p2p", TypeFlag},
     {L"-r", TypeValue},
+    {L"-rule-cache", TypeFlag},
     {L"-skip", TypeValue},
     {L"-skip-dp-nic-ms", TypeFlag},
     {L"-skipmodule", TypeValue},
@@ -76,6 +77,8 @@ HelpMsg (VOID)
         "                     starting with # are comments)\n"
         "-only <n> \n"
         "        Only run tests for rules at level <n> \n"
+        "-rule-cache\n"
+        "        Reuse completed base-rule results within this run (opt-in).\n"
         "-skip   Rule ID(s) to be skipped (comma-separated, like -r)\n"
         "        Example: -skip B_PE_01,B_GIC_02\n"
         "-skip-dp-nic-ms \n"

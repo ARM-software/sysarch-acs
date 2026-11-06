@@ -108,6 +108,8 @@ HelpMsg (
              "        Accepted values: CACHE, REG, ERROR, MBWU\n"
              "-r      Run tests for passed comma-separated SYS-MPAM rule IDs or a rules file\n"
              "        Example: -r RBDJXQ\n"
+             "-rule-cache\n"
+             "        Reuse completed base-rule results within this run (opt-in).\n"
              "-skip   SYS-MPAM rule ID(s) to be skipped (comma-separated, like -r)\n"
              "-skipmodule\n"
              "        Skip the specified modules (comma-separated names).\n"
@@ -123,6 +125,7 @@ CONST SHELL_PARAM_ITEM ParamList[] = {
     {L"-l", TypeValue},
     {L"-m", TypeValue},
     {L"-r", TypeValue},
+    {L"-rule-cache", TypeFlag},
     {L"-skip", TypeValue},
     {L"-skipmodule", TypeValue},
     {L"-v", TypeValue},

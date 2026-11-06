@@ -144,6 +144,11 @@ if(DEFINED ACS_VERBOSE_LEVEL)
     endif()
 endif()
 
+option(ACS_RULE_CACHE "Reuse completed base-rule results within a baremetal run" OFF)
+if(ACS_RULE_CACHE)
+    add_compile_definitions(ACS_RULE_CACHE=1)
+endif()
+
 # Propagate ACS_LEVEL into compiler definitions for all sources.
 # This selects the compliance level for the active ACS suite at compile
 # time, overriding the PLATFORM_OVERRIDE_<ACS>_LEVEL value supplied by
@@ -189,6 +194,7 @@ list(APPEND CLEAN_LIST
 
 # Optional forwarding of ACS_ENABLED_MODULE_LIST to inner configure
 set(DEFAULT_OVERRIDE_ARGS "")
+list(APPEND DEFAULT_OVERRIDE_ARGS -DACS_RULE_CACHE=${ACS_RULE_CACHE})
 if(DEFINED CROSS_COMPILE AND NOT "${CROSS_COMPILE}" STREQUAL "")
     message(STATUS "[ACS] : CROSS_COMPILE (top-level) = ${CROSS_COMPILE}")
     list(APPEND DEFAULT_OVERRIDE_ARGS -DCROSS_COMPILE=${CROSS_COMPILE})
