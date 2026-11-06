@@ -38,6 +38,7 @@ typedef struct {
     TEST_ENTRY_ID_e  test_entry_id;
     MODULE_NAME_e    module_id;     /* Module to which this test belongs */
     RULE_FLAG_e      flag;
+    RULE_CACHE_POLICY_e cache_policy;
     uint32_t         test_num;
     char8_t          platform_bitmask;
     char8_t          rule_desc[RULE_DESC_SIZE];

@@ -1305,6 +1305,12 @@ typedef enum {
     ALIAS_RULE
 } RULE_FLAG_e;
 
+/* Result reuse policy for a base rule in rule_test_map_t (used with rule caching) */
+typedef enum {
+    RULE_CACHE_REUSE = 0,   /* Default: a completed result may be reused in this run */
+    RULE_CACHE_RERUN        /* Test selection depends on the parent rule; always rerun */
+} RULE_CACHE_POLICY_e;
+
 /* SBSA levels enum */
 typedef enum {
     SBSA_LEVEL_3  = 3,
