@@ -60,7 +60,6 @@ static
 uint32_t
 run_cxl_path_ats_dma(uint32_t e_bdf)
 {
-  uint32_t rc_index;
   uint32_t instance;
   uint32_t cap_base = 0;
   uint32_t reg_value = 0;
@@ -88,11 +87,7 @@ run_cxl_path_ats_dma(uint32_t e_bdf)
   val_memory_set(&mem_desc, sizeof(mem_desc), 0);
   val_memory_set(&pgt_desc, sizeof(pgt_desc), 0);
 
-  rc_index = val_iovirt_get_rc_index(PCIE_EXTRACT_BDF_SEG(e_bdf));
-  if (rc_index == ACS_INVALID_INDEX)
-    return ACS_STATUS_FAIL;
-
-  instance = val_exerciser_get_exerciser_instance(rc_index);
+  instance = val_exerciser_get_instance_from_bdf(e_bdf);
   if (instance == ACS_INVALID_INDEX)
     return ACS_STATUS_FAIL;
 
