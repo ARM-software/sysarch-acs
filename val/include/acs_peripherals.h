@@ -51,6 +51,8 @@
 #define BSA_UARTRIS   0x3C
 #define BSA_UARTMIS   0x40
 #define BSA_UARTICR   0x44
+#define UART_TX_FIFO_FULL_MASK (1U << 5)
+#define UART_TX_INTERRUPT_MASK (1U << 5)
 #define UART_RES      0x50
 
 #define COMPATIBLE_FULL_16550     0x0

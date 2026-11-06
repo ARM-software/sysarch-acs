@@ -21,6 +21,7 @@
 #include "acs_pe.h"
 #include "acs_peripherals.h"
 #include "acs_gic.h"
+#include "acs_memory.h"
 #include "gic_v3.h"
 
 #define TEST_NUM   (ACS_PER_TEST_NUM_BASE + 3)
@@ -31,12 +32,14 @@
 #define TEST_NUM1  (ACS_PER_TEST_NUM_BASE + 6)
 #define TEST_RULE1 "B_PER_06"
 #define TEST_DESC1 "Check Arm GENERIC UART Interrupt      "
+#define UART_TX_STIMULUS_LENGTH 42U
 
 static uint64_t l_uart_base;
 static uint32_t int_id;
 static void *branch_to_test;
 static uint64_t branch_stack_pointer;
 static uint32_t test_fail;
+static volatile uint32_t uart_isr_received;
 
 static
 uint32_t
@@ -77,7 +80,7 @@ uart_enable_txintr()
 
   /* Enable TX interrupt by setting mask bit[5] in UARTIMSC */
   data = val_peripheral_uart_reg_read(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32);
-  data = data | (1<<5);
+  data = data | UART_TX_INTERRUPT_MASK;
   val_peripheral_uart_reg_write(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32, data);
 }
 
@@ -88,9 +91,44 @@ uart_disable_txintr()
 
   /* Disable TX interrupt by clearing mask bit[5] in UARTIMSC */
   data = val_peripheral_uart_reg_read(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32);
-  data = data & (~(1<<5));
+  data = data & ~UART_TX_INTERRUPT_MASK;
   val_peripheral_uart_reg_write(l_uart_base + BSA_UARTIMSC, WIDTH_BIT32, data);
 
+}
+
+static
+uint32_t
+uart_generate_tx_stimulus(void)
+{
+  static const char stimulus[] = "\r\nTEST";
+  uint32_t character;
+  uint32_t timeout;
+
+  for (character = 0; character < UART_TX_STIMULUS_LENGTH; character++) {
+      timeout = TIMEOUT_LARGE;
+      while (val_peripheral_uart_reg_read(l_uart_base + BSA_UARTFR, WIDTH_BIT32)
+             & UART_TX_FIFO_FULL_MASK) {
+          if (--timeout == 0)
+              return ACS_STATUS_FAIL;
+      }
+      val_peripheral_uart_reg_write(l_uart_base + BSA_UARTDR, WIDTH_BIT8,
+                                    stimulus[character % (sizeof(stimulus) - 1U)]);
+  }
+
+  val_mem_issue_dsb();
+  return ACS_STATUS_PASS;
+}
+
+static
+void
+uart_clear_tx_interrupt(void)
+{
+  uart_disable_txintr();
+  val_peripheral_uart_reg_write(l_uart_base + BSA_UARTICR, WIDTH_BIT32,
+                                UART_TX_INTERRUPT_MASK);
+  val_mem_issue_dsb();
+  val_gic_clear_interrupt(int_id);
+  val_mem_issue_dsb();
 }
 
 /* Write to a read only register*/
@@ -113,11 +151,13 @@ static
 void
 isr()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t tx_pending = val_peripheral_uart_reg_read(l_uart_base + BSA_UARTMIS,
+                                                     WIDTH_BIT32) & UART_TX_INTERRUPT_MASK;
 
   uart_disable_txintr();
-  val_print(DEBUG, "\n       Received interrupt on %d     ", int_id);
-  val_set_status(index, RESULT_PASS);
+  val_mem_issue_dsb();
+  if (tx_pending)
+      uart_isr_received = 1;
   val_gic_end_of_interrupt(int_id);
 }
 
@@ -365,14 +405,10 @@ payload_check_arm_generic_uart_interrupt()
              return;
           }
 
-          uart_interrupt_checked = 1;
           if (uart_is_16550(interface_type)) {
               count--;
               continue;
           }
-
-          /* PASS will be set from ISR */
-          val_set_status(index, RESULT_PENDING(TEST_NUM1));
 
           val_peripheral_uart_setup();
           /* If UART is used by other app (optee/TF) skip it */
@@ -383,7 +419,11 @@ payload_check_arm_generic_uart_interrupt()
               continue;
           }
 
-          /* Install ISR */
+          uart_interrupt_checked = 1;
+          uart_clear_tx_interrupt();
+          uart_isr_received = 0;
+          val_set_status(index, RESULT_PENDING(TEST_NUM1));
+
           if (val_gic_install_isr(int_id, isr)) {
              val_print(ERROR, "\n       GIC Install Handler Failed...");
              val_set_status(index, RESULT_FAIL(3));
@@ -391,17 +431,29 @@ payload_check_arm_generic_uart_interrupt()
           }
 
           uart_enable_txintr();
-          val_print_raw(l_uart_base, acs_policy_get_print_level(),
-                        "\n       Test Message                          ", 0);
 
-          while ((--timeout > 0) && (IS_RESULT_PENDING(val_get_status(index)))) {
-          };
+          if (uart_generate_tx_stimulus() != ACS_STATUS_PASS) {
+              uart_clear_tx_interrupt();
+              val_gic_free_irq(int_id, 0);
+              val_print(ERROR, "\n       UART TX FIFO remained full on %d", int_id);
+              test_fail++;
+              count--;
+              continue;
+          }
 
-          if (timeout == 0) {
-             val_print(ERROR,
-             "\n       Did not receive UART interrupt on %d  ",
-             int_id);
-             test_fail++;
+          while (timeout && !uart_isr_received &&
+                 IS_RESULT_PENDING(val_get_status(index))) {
+              timeout--;
+          }
+
+          uart_clear_tx_interrupt();
+          val_gic_free_irq(int_id, 0);
+
+          if (uart_isr_received)
+              val_print(DEBUG, "\n       Received interrupt on %d     ", int_id);
+          else {
+              val_print(ERROR, "\n       Did not receive UART interrupt on %d  ", int_id);
+              test_fail++;
           }
       } else if (!uart_is_16550(interface_type)) {
           val_print(DEBUG, "\n       UART interface type %x is not BSA compatible",
