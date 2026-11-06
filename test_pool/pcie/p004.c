@@ -17,6 +17,7 @@
 #include "acs_val.h"
 #include "acs_pe.h"
 #include "acs_pcie.h"
+#include "acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 4)
 #define TEST_RULE  "PCI_IN_13"
@@ -26,6 +27,9 @@
 
 static void *branch_to_test;
 static uint64_t branch_stack_pointer;
+static void *branch_after_out_of_window;
+static volatile uint32_t out_of_window;
+static volatile uint32_t out_of_window_aborted;
 static
 void
 esr(uint64_t interrupt_type, void *context)
@@ -33,6 +37,21 @@ esr(uint64_t interrupt_type, void *context)
   uint32_t pe_index;
 
   pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+
+  if (out_of_window) {
+      uint64_t syndrome = val_pe_get_esr(context);
+      uint32_t ec = (syndrome >> 26) & 0x3f;
+
+      /* Accept an external abort or SError only during the rejection probe. */
+      if ((interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS &&
+           (ec == 0x24 || ec == 0x25) && (syndrome & 0x3f) == 0x10) ||
+          (interrupt_type == EXCEPT_AARCH64_SERROR && ec == 0x2f)) {
+          out_of_window_aborted = 1;
+          val_pe_update_elr_and_sp(context, (uint64_t)branch_after_out_of_window,
+                                  branch_stack_pointer);
+          return;
+      }
+  }
 
   if (interrupt_type == EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS) {
       /* Update the ELR and SP to return to the test cleanup path. */
@@ -103,7 +122,8 @@ payload(void)
   uint32_t test_skip = 1;
   uint32_t mem_offset = 0;
   uint64_t mem_base = 0;
-  uint64_t ori_mem_base = 0;
+  uint32_t original_window;
+  volatile uint32_t window_modified = 0;
   uint64_t mem_lim = 0, new_mem_lim = 0;
   uint32_t status;
   uint32_t ur_status;
@@ -124,6 +144,8 @@ payload(void)
   }
 
   branch_to_test = &&exception_return;
+  branch_after_out_of_window = &&out_of_window_return;
+  out_of_window = 0;
   branch_stack_pointer = val_pe_save_exception_return_context();
 
   /* Since this is a memory space access test.
@@ -147,6 +169,7 @@ payload(void)
       /* BSA -> PCI_IN_13 SBSA(iEP_RP) -> HVZJY */
       if (dp_type == RP || dp_type == iEP_RP)
       {
+        window_modified = 0;
         /* Part 1:
          * Check When Address is within the Range of Non-Prefetchable
          * Memory Range.
@@ -156,6 +179,7 @@ payload(void)
 
         /* Read Function's NP Memory Base Limit Register */
         val_pcie_read_cfg(bdf, TYPE1_NP_MEM, &read_value);
+        original_window = read_value;
         val_print(DEBUG, "\n       BDF is 0x%x", bdf);
         if (read_value == 0)
           continue;
@@ -195,7 +219,6 @@ payload(void)
          * Read the same
          */
 
-        ori_mem_base = mem_base;
         branch_stack_pointer = val_pe_save_exception_return_context();
         val_pcie_bar_mem_read(bdf, mem_base + mem_offset, &old_value);
         val_pcie_bar_mem_write(bdf, mem_base + mem_offset, KNOWN_DATA);
@@ -220,7 +243,7 @@ payload(void)
             continue;
         }
 
-        /**Check_2: Accessing out of NP memory limit range must result in UR completion
+        /**Check_2: Access outside the NP window must be rejected by the Root Complex
          *
          * If the limit exceeds 1MB then modify the range to be 1MB
          * and access out of the limit set
@@ -230,16 +253,29 @@ payload(void)
            val_print(DEBUG, "\n       Entered Check_2 for bdf 0x%x", bdf);
            new_mem_lim = mem_base + MEM_OFFSET_LARGE;
            mem_base = mem_base | (mem_base  >> 16);
+           window_modified = 1;
            val_pcie_write_cfg(bdf, TYPE1_NP_MEM, mem_base);
            val_pcie_read_cfg(bdf, TYPE1_NP_MEM, &read_value);
 
+           val_pcie_urd_below_rp(bdf, 1);
+           val_pcie_clear_urd(bdf);
+           value = 0;
+           out_of_window_aborted = 0;
+           out_of_window = 1;
+           branch_stack_pointer = val_pe_save_exception_return_context();
            val_pcie_bar_mem_read(bdf, new_mem_lim + MEM_OFFSET_SMALL, &value);
+           val_mem_issue_dsb();
+out_of_window_return:
+           out_of_window = 0;
+           if (out_of_window_aborted)
+               value = PCIE_UNKNOWN_RESPONSE;
            ur_status = val_pcie_is_urd(bdf);
            val_print(DEBUG, "\n       Value read is 0x%llx, UR status is %d", value, ur_status);
-           if (!ur_status)
+           if (val_pcie_urd_below_rp(bdf, 0) ||
+               (!ur_status && !out_of_window_aborted && value != PCIE_UNKNOWN_RESPONSE))
            {
                val_print(ERROR,
-                     "\n       UR response not obtained for out of range access on bdf 0x%x", bdf);
+                     "\n       Out of range access was not rejected by the RC for bdf 0x%x", bdf);
                val_print(ERROR, "\n Range register value 0x%x", read_value);
                val_print(ERROR, "\n       Out of range 0x%llx",
                                     (new_mem_lim + MEM_OFFSET_SMALL));
@@ -247,15 +283,14 @@ payload(void)
            }
 
            val_pcie_clear_urd(bdf);
+           val_pcie_urd_below_rp(bdf, 1);
         }
 
 exception_return:
+        out_of_window = 0;
         /*Write back original value */
-        if ((mem_lim >> MEM_SHIFT) > (ori_mem_base >> MEM_SHIFT))
-        {
-            val_pcie_write_cfg(bdf, TYPE1_NP_MEM,
-                                           ((mem_lim & MEM_LIM_MASK) | (ori_mem_base  >> 16)));
-        }
+        if (window_modified)
+            val_pcie_write_cfg(bdf, TYPE1_NP_MEM, original_window);
 
         /* Memory Space might have constraint on RW/RO behaviour
          * So not checking for Read-Write Data mismatch.
