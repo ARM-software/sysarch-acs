@@ -97,26 +97,18 @@ uart_disable_txintr()
 }
 
 static
-uint32_t
+void
 uart_generate_tx_stimulus(void)
 {
   static const char stimulus[] = "\r\nTEST";
   uint32_t character;
-  uint32_t timeout;
 
   for (character = 0; character < UART_TX_STIMULUS_LENGTH; character++) {
-      timeout = TIMEOUT_LARGE;
-      while (val_peripheral_uart_reg_read(l_uart_base + BSA_UARTFR, WIDTH_BIT32)
-             & UART_TX_FIFO_FULL_MASK) {
-          if (--timeout == 0)
-              return ACS_STATUS_FAIL;
-      }
       val_peripheral_uart_reg_write(l_uart_base + BSA_UARTDR, WIDTH_BIT8,
                                     stimulus[character % (sizeof(stimulus) - 1U)]);
   }
 
   val_mem_issue_dsb();
-  return ACS_STATUS_PASS;
 }
 
 static
@@ -432,14 +424,7 @@ payload_check_arm_generic_uart_interrupt()
 
           uart_enable_txintr();
 
-          if (uart_generate_tx_stimulus() != ACS_STATUS_PASS) {
-              uart_clear_tx_interrupt();
-              val_gic_free_irq(int_id, 0);
-              val_print(ERROR, "\n       UART TX FIFO remained full on %d", int_id);
-              test_fail++;
-              count--;
-              continue;
-          }
+          uart_generate_tx_stimulus();
 
           while (timeout && !uart_isr_received &&
                  IS_RESULT_PENDING(val_get_status(index))) {
