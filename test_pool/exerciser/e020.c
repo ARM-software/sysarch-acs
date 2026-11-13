@@ -80,8 +80,6 @@ payload(void)
   void *dram_buf_out_virt;
   uint64_t dram_buf_in_phys;
   uint64_t dram_buf_out_phys;
-  uint64_t dram_buf_in_iova;
-  uint64_t dram_buf_out_iova;
   uint64_t m_vir_addr;
   uint32_t num_exercisers, num_smmus;
   uint32_t device_id, its_id;
@@ -224,8 +222,6 @@ payload(void)
 
     clear_dram_buf(dram_buf_in_virt, test_data_blk_size);
 
-    dram_buf_in_iova = dram_buf_in_phys;
-    dram_buf_out_iova = dram_buf_out_phys;
     if (master.smmu_index != ACS_INVALID_INDEX &&
         val_iovirt_get_smmu_info(SMMU_CTRL_ARCH_MAJOR_REV, master.smmu_index) == 3) {
         if (val_iovirt_get_device_info(PCIE_CREATE_BDF_PACKED(e_bdf),
@@ -278,8 +274,6 @@ payload(void)
             goto test_fail;
         }
 
-        dram_buf_in_iova = mem_desc->virtual_address;
-        dram_buf_out_iova = dram_buf_in_iova + (test_data_blk_size / 2);
     }
 
     test_skip = 0;
@@ -321,7 +315,7 @@ payload(void)
     /* Trigger DMA from input buffer to exerciser memory */
     val_exerciser_ops(START_DMA, EDMA_TO_DEVICE, instance);
 
-    if (val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_out_iova, dma_len, instance)) {
+    if (val_exerciser_set_param(DMA_ATTRIBUTES, dram_buf_out_phys, dma_len, instance)) {
         val_print(ERROR, "\n       DMA attributes setting failure %4x", instance);
         goto test_fail;
     }
