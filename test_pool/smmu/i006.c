@@ -28,32 +28,36 @@ payload()
 {
   uint32_t num_smmu;
   uint32_t index;
+  uint32_t test_skip = 1;
 
   index = val_pe_get_index_mpid(val_pe_get_mpid());
 
   num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
   if (num_smmu == 0) {
       val_print(DEBUG, "\n       No SMMU Controllers are discovered ");
-      val_set_status(index, RESULT_SKIP(3));
+      val_set_status(index, RESULT_SKIP(2));
       return;
   }
 
   while (num_smmu--) {
-      if (val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, num_smmu) == 3) {
-          val_print(DEBUG, "\n       Not valid for SMMU v3             ");
-          val_set_status(index, RESULT_SKIP(2));
-          return;
+      if (val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, num_smmu) != 2) {
+          val_print(DEBUG, "\n       Test applicable only to SMMU v2      ");
+          continue;
       }
 
+      test_skip = 0;
       if (!val_iovirt_check_unique_ctx_intid(num_smmu)) {
           val_print(ERROR, "\n       Unique interrupt ID per context bank check "
-                                   "failed for SMMU %x");
+                                   "failed for SMMU %x", num_smmu);
           val_set_status(index, RESULT_FAIL(1));
           return;
       }
   }
 
-  val_set_status(index, RESULT_PASS);
+  if (test_skip)
+      val_set_status(index, RESULT_SKIP(3));
+  else
+      val_set_status(index, RESULT_PASS);
 }
 
 uint32_t
