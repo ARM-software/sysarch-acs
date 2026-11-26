@@ -20,7 +20,7 @@ index 7e985f8280..ae19e5b070 100644
  
    ShellPkg/Application/Shell/Shell.inf {
      <PcdsFixedAtBuild>
-@@ -157,4 +161,10 @@
+@@ -157,4 +161,11 @@
    ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
  
  [BuildOptions]
@@ -31,6 +31,7 @@ index 7e985f8280..ae19e5b070 100644
 +!else
 +       *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
 +!endif
++        CLANGDWARF:*_*_*_CC_FLAGS = -Wno-error=ignored-optimization-argument -Wno-error=tautological-constant-out-of-range-compare
 +!include edk2-libc/StdLib/StdLib.inc
 diff --git a/edk2-libc/StdLib/LibC/Main/Main.c b/edk2-libc/StdLib/LibC/Main/Main.c
 index b203d15..8c9618e 100644

@@ -28,18 +28,6 @@ static CXL_INFO_TABLE *g_cxl_info_table;
 static CXL_COMPONENT_TABLE *g_cxl_component_table;
 extern pcie_device_bdf_table *g_pcie_bdf_table;
 
-static inline uint64_t
-val_align_down(uint64_t value, uint64_t align)
-{
-  return value & ~(align - 1u);
-}
-
-static inline uint64_t
-val_align_up(uint64_t value, uint64_t align)
-{
-  return (value + align - 1u) & ~(align - 1u);
-}
-
 /**
   @brief   Retrieve a pointer to a component table entry.
 
