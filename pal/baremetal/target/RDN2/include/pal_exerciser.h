@@ -16,7 +16,7 @@
  * limitations under the License.
 **/
 
-#include <stdio.h>
+#include <stddef.h>
 #include "acs_stdint.h"
 #include "acs_execution_policy.h"
 #include "pal_print.h"
