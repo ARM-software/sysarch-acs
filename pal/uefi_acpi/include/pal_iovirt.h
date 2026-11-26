@@ -18,7 +18,7 @@
 #ifndef __PAL_IOVIRT_H__
 #define __PAL_IOVIRT_H__
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 typedef struct {
         EFI_ACPI_DESCRIPTION_HEADER header;
@@ -96,6 +96,6 @@ typedef struct {
         UINT32 overflow_interrupt_gsiv;
         UINT32 node_reference;
 }IORT_PMCG;
-#pragma pack()
+#pragma pack(pop)
 
 #endif

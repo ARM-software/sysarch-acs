@@ -21,7 +21,7 @@
 /* Not defined in EDK2: Remove once EDK2 supports MPAM*/
 #define MEMORY_RESOURCE_PARTITIONING_AND_MONITORING_TABLE_SIGNATURE SIGNATURE_32('M', 'P', 'A', 'M')
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 typedef struct {
     EFI_ACPI_DESCRIPTION_HEADER header;
@@ -63,6 +63,6 @@ typedef struct {
     UINT32 reserved;
 } EFI_ACPI_MPAM_FUNC_DEPEN_DESC_STRUCTURE;
 
-#pragma pack()
+#pragma pack(pop)
 
 #endif

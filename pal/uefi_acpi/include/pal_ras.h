@@ -18,7 +18,7 @@
 #ifndef __PAL_SBSA_RAS_H__
 #define __PAL_SBSA_RAS_H__
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 #define MAX_NUM_OF_RAS_SUPPORTED  140
 
@@ -75,6 +75,6 @@ typedef struct {
   UINT32 SetRasCapabilitiesStatus;
 } RAS2_PCC_SHARED_MEMORY_REGION;
 
-#pragma pack()
+#pragma pack(pop)
 
 #endif
