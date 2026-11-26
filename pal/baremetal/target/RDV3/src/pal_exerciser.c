@@ -679,6 +679,9 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE Type, exerciser_data_t *Data
   uint64_t EcamBAR0;
   uint64_t EcamBAR;
   uint64_t Config_offset;
+  uint32_t BarRegLowerValue;
+  uint32_t Seg, Bus, Dev, Func;
+  uint32_t Offset;
 
   Config_offset = pal_exerciser_get_pcie_config_offset(Bdf);
   EcamBase = (Ecam + Config_offset);
@@ -709,9 +712,7 @@ uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE Type, exerciser_data_t *Data
               Data->bar_space.type = MMIO_NON_PREFETCHABLE;
           return 0;
   case EXERCISER_DATA_MMIO_SPACE:
-          uint32_t BarRegLowerValue = 0;
-          uint32_t Seg, Bus, Dev, Func;
-          uint32_t Offset;
+          BarRegLowerValue = 0;
           Index = 0;
           Data->bar_space.base_addr = 0;
           while (Index < TYPE0_MAX_BARS)

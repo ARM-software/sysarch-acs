@@ -55,7 +55,7 @@ UINT32 pal_pmu_get_event_filter_info(UINT32 node_index, PMU_EVENT_TYPE_e event_t
                                      PMU_NODE_INFO_TYPE node_type, UINT64 *filter_mask,
                                      UINT64 *filter_value);
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 typedef struct {
     EFI_ACPI_DESCRIPTION_HEADER header;
@@ -77,7 +77,7 @@ typedef struct {
     UINT32 implementation_id;
 } APMT_NODE;
 
-#pragma pack()
+#pragma pack(pop)
 
 typedef struct{
     UINT32 node_index;

@@ -979,7 +979,7 @@ VOID pal_hmat_create_info_table(HMAT_INFO_TABLE *HmatTable);
 
 /* TPM2 Structure */
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
 typedef struct {
   TPM2_RESPONSE_HEADER    Header;
@@ -995,7 +995,7 @@ typedef struct {
   UINT32                 PropertyCount;
 } TPM2_GET_CAPABILITY_COMMAND;
 
-#pragma pack()
+#pragma pack(pop)
 
 typedef enum {
   DMA_TYPE_USB  =  0x2000,

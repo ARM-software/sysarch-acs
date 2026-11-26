@@ -154,7 +154,7 @@ ASM_PFX(AA64EnableETETrace):
 
 ASM_PFX(AA64EnableTRBUTrace):
     /* Add an offset for different PE */
-    mov x0, x0, lsl #12   // x0 has Current PE Index
+    lsl x0, x0, #12       // x0 has Current PE Index
     add x1, x1, x0        // Updated Base Address for Curent PE
 
     /* Update TRBBASER_EL1, TRBPTR_EL1 */

@@ -32,7 +32,7 @@ static void payload(void)
     uint32_t pe_index;
     uint32_t msc_index;
     uint32_t total_nodes;
-    uint32_t idr_value;
+    uint64_t idr_value;
 
     pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 

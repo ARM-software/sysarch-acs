@@ -66,6 +66,7 @@ uint64_t parse_tracestream(uint8_t *trace_bytes, uint64_t trace_size)
     uint64_t pkt_len = 0;
     uint64_t pkt_type = 0;
     uint64_t length = 0;
+    uint64_t header = 0;
     uint64_t trcidr0_read = val_pe_reg_read(TRCIDR0);
     uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
 
@@ -305,7 +306,7 @@ uint64_t parse_tracestream(uint8_t *trace_bytes, uint64_t trace_size)
               break;
 
         default:
-              uint64_t header = trace_bytes[byte_index];
+              header = trace_bytes[byte_index];
 
               /* Handles Cycle Count, Mispredict, Cancel, Event, Atom,
                  and Address Match packet types */

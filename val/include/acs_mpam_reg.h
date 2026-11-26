@@ -25,7 +25,7 @@
 
 /* Macro can be used to read bitfields with name##_MASK and name##_SHIFT
    already defined or declared  for it*/
-#define BITFIELD_READ(name, val) ((val >> name##_SHIFT) & name##_MASK)
+#define BITFIELD_READ(name, val) (((uint64_t)(val) >> name##_SHIFT) & name##_MASK)
 
 /* Macro can be used to set bitfields with name##_MASK and name##_SHIFT
    already defined or declared  for it*/

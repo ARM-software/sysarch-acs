@@ -286,7 +286,7 @@ pal_pcie_bar_mem_read(UINT32 Bdf, UINT64 address, UINT32 *data)
     Status = gBS->HandleProtocol (HandleBuffer[Index], &gEfiPciRootBridgeIoProtocolGuid, (VOID **)&Pci);
     if (!EFI_ERROR (Status)) {
       if (Pci->SegmentNumber == InputSeg) {
-          Status = Pci->Mem.Read (Pci, EfiPciIoWidthUint32, address, 1, data);
+          Status = Pci->Mem.Read (Pci, EfiPciWidthUint32, address, 1, data);
           pal_mem_free(HandleBuffer);
           if (!EFI_ERROR (Status))
             return 0;
@@ -335,7 +335,7 @@ pal_pcie_bar_mem_write(UINT32 Bdf, UINT64 address, UINT32 data)
     Status = gBS->HandleProtocol (HandleBuffer[Index], &gEfiPciRootBridgeIoProtocolGuid, (VOID **)&Pci);
     if (!EFI_ERROR (Status)) {
       if (Pci->SegmentNumber == InputSeg) {
-          Status = Pci->Mem.Write (Pci, EfiPciIoWidthUint32, address, 1, &data);
+          Status = Pci->Mem.Write (Pci, EfiPciWidthUint32, address, 1, &data);
           pal_mem_free(HandleBuffer);
           if (!EFI_ERROR (Status))
             return 0;
